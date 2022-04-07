@@ -43,8 +43,15 @@ class Worker():
 		buff = io.BytesIO(raw)
 		img_pil = Image.open(buff)
 		img = np.array(img_pil)
-		obj = DeepFace.analyze(img_path=img , actions=['age', 'gender', 'race', 'emotion'])
-		task["result"] = { "answer": obj }
+
+		diagnos = DeepFace.analyze(img_path=img , actions=['age', 'gender', 'race', 'emotion'])
+		res = {}
+		res["age"] = diagnos["age"]
+		res["region"] = diagnos["region"]
+		res["race"] = diagnos["dominant_race"]
+		res["emotion"] = diagnos["dominant_emotion"]
+		task["result"] = { "answer": res }
+		
 		self.stackResult.append(task["result"])
 		print("[Worker] Proscess : \n", task["result"])
 		return task
