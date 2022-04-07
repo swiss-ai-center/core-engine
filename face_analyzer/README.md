@@ -1,3 +1,12 @@
+# API
+- Input : image jpg
+- Output : JSON with key "answer" containing a dict of the age, region, rage and emotion
+- example :
+
+        "{\"answer\": {\"age\": 29, \"region\": {\"x\": 262, \"y\": 62, \"w\": 149, \"h\": 149}, \"race\": \"white\", \"emotion\": \"happy\"}}"
+
+- NB : the JSON is stringified !
+
 # How to run
 
 Using both docker or your local python3, the worker will use the following environment variables if defined:
