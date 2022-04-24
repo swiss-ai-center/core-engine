@@ -1,0 +1,38 @@
+square:
+  nodes:
+    - type: entry
+      id: squareEntry
+      api:
+        route: toSquare
+        body:
+          num: 42
+      next: [squarify]
+    
+    - type: node
+      id: squarify
+      in:
+        theNumber: squareEntry.out.num
+      after: |
+        node.out["squared"] = node.input["theNumber"]**2
+      next: [squareEnd]
+    
+    - type: end
+      id: squareEnd
+      in:
+        theResult: squarify.out.squared
+
+dummy:
+  nodes:
+    - type: entry
+      id: binEntry
+      api:
+        route: bin
+        body: theFile
+        params:
+          val: "test"
+      next: [binEnd]
+
+    - type: end
+      id: binEnd
+      in:
+        theResult: binEntry.out.theFile
