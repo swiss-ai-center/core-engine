@@ -79,7 +79,7 @@ build-face_analyzer:
 deploy-face_analyzer:
   variables:
     SERVICE_NAME: face_analyzer
-  image: lachlanevenson/k8s-kubectl:latest
+  image: bitnami/kubectl:latest
   stage: deploy
   tags:
     - k8s
@@ -128,7 +128,7 @@ build-face_detection:
 deploy-face_detection:
   variables:
     SERVICE_NAME: face_detection
-  image: lachlanevenson/k8s-kubectl:latest
+  image: bitnami/kubectl:latest
   stage: deploy
   tags:
     - k8s
@@ -177,7 +177,7 @@ build-area_blur:
 deploy-area_blur:
   variables:
     SERVICE_NAME: area_blur
-  image: lachlanevenson/k8s-kubectl:latest
+  image: bitnami/kubectl:latest
   stage: deploy
   tags:
     - k8s
