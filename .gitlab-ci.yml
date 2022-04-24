@@ -54,6 +54,8 @@ deploy-engine:
 ###
 
 build-face_analyzer:
+  variables:
+    SERVICE_NAME: face_analyzer
   image: docker:19.03.12
   stage: build
   services:
@@ -62,16 +64,18 @@ build-face_analyzer:
     - docker info
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
   script:
-    - docker build -t $CI_REGISTRY_IMAGE/face_analyzer:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/face_analyzer:latest -f ./face_analyzer/dockerfile ./face_analyzer
-    - docker push $CI_REGISTRY_IMAGE/face_analyzer:$CI_COMMIT_SHORT_SHA
-    - docker push $CI_REGISTRY_IMAGE/face_analyzer:latest
+    - docker build -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest -f ./$SERVICE_NAME/dockerfile ./$SERVICE_NAME
+    - docker push $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest
   only:
     refs:
       - dev
     changes:
-      - face_analyzer/**/*
+      - $SERVICE_NAME/**/*
   
 deploy-face_analyzer:
+  variables:
+    SERVICE_NAME: face_analyzer
   image: lachlanevenson/k8s-kubectl:latest
   stage: deploy
   tags:
@@ -83,14 +87,15 @@ deploy-face_analyzer:
     # Check if KUBECONFIG is configured
     - kubectl config get-contexts
     # Change name of 
-    - sed -i "s~IMAGE_NAME~$CI_REGISTRY_IMAGE/engine:$CI_COMMIT_SHORT_SHA~g" ./engine/kubernetes/deployment.yml 
-    - kubectl apply -f ./engine/kubernetes/deployment.yml -n project-dev
+    - sed -i "s~IMAGE_NAME~$CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA~g" ./$SERVICE_NAME/kubernetes/deployment.yml 
+    - kubectl apply -f ./$SERVICE_NAME/kubernetes/deployment.yml -n project-dev
     # Create services
-    - kubectl apply -f ./engine/kubernetes/service.yml -n project-dev
-  rules:
-    - if: $CI_PIPELINE_BRANCH == 'dev'
-    - changes:
-      - face_analyzer/**/*
+    - kubectl apply -f ./$SERVICE_NAME/kubernetes/service.yml -n project-dev
+  only:
+    refs:
+      - dev
+    changes:
+      - $SERVICE_NAME/**/*
   
 
 
