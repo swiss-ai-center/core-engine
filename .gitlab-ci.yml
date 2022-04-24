@@ -75,12 +75,12 @@ build-face_analyzer:
     refs:
       - dev
     changes:
-      - $SERVICE_NAME/**/*
+      - face_analyzer/**/*
   
 deploy-face_analyzer:
   variables:
     SERVICE_NAME: face_analyzer
-  image: bitnami/kubectl:latest
+  image: lachlanevenson/k8s-kubectl:latest
   stage: deploy
   tags:
     - k8s
@@ -99,7 +99,7 @@ deploy-face_analyzer:
     refs:
       - dev
     changes:
-      - $SERVICE_NAME/**/*
+      - face_analyzer/**/*
 
 ###
 # Face detection
@@ -124,12 +124,12 @@ build-face_detection:
     refs:
       - dev
     changes:
-      - $SERVICE_NAME/**/*
+      - face_detection/**/*
   
 deploy-face_detection:
   variables:
     SERVICE_NAME: face_detection
-  image: bitnami/kubectl:latest
+  image: lachlanevenson/k8s-kubectl:latest
   stage: deploy
   tags:
     - k8s
@@ -148,7 +148,7 @@ deploy-face_detection:
     refs:
       - dev
     changes:
-      - $SERVICE_NAME/**/*
+      - face_detection/**/*
 
 ###
 # Area Blur
@@ -178,7 +178,7 @@ build-area_blur:
 deploy-area_blur:
   variables:
     SERVICE_NAME: area_blur
-  image: bitnami/kubectl:latest
+  image: lachlanevenson/k8s-kubectl:latest
   stage: deploy
   tags:
     - k8s
