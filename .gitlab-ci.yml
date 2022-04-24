@@ -39,7 +39,7 @@ deploy-engine:
     # Create services
     - kubectl apply -f ./engine/kubernetes/service.yml -n project-dev
     # Create Ingress
-    - kubectl -n project-dev apply -f ./kubernetes/ingress.yml
+    - kubectl -n project-dev apply -f ./engine/kubernetes/ingress.yml
   rules:
     - if: $CI_PIPELINE_BRANCH == 'dev'
     - changes:
