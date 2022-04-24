@@ -23,7 +23,7 @@ build-engine:
     refs:
       - dev
     changes:
-      - engine/**/*
+      - engine/*
 
 
   
@@ -49,7 +49,7 @@ deploy-engine:
     refs:
       - dev
     changes:
-      - engine/**/*
+      - engine/*
   
 ###
 # Face analyzer
