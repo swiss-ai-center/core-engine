@@ -117,7 +117,7 @@ build-face_detection:
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
   script:
     - docker pull $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest || true
-    - docker build -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest -f ./$SERVICE_NAME/dockerfile ./$SERVICE_NAME
+    - docker build --network host -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest -f ./$SERVICE_NAME/dockerfile ./$SERVICE_NAME
     - docker push $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA
     - docker push $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest
   only:
@@ -166,7 +166,7 @@ build-area_blur:
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
   script:
     - docker pull $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest || true
-    - docker build -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest -f ./$SERVICE_NAME/dockerfile ./$SERVICE_NAME
+    - docker build --network host -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest -f ./$SERVICE_NAME/dockerfile ./$SERVICE_NAME
     - docker push $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA
     - docker push $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest
   only:
