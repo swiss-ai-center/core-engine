@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
       - name: area-blur
-        #image: registry.forge.hefr.ch/mse_pi/services/area_blur:latest
         image: IMAGE_NAME
+        #image: registry.forge.hefr.ch/mse_pi/services/area_blur:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80 
@@ -29,6 +29,8 @@ spec:
         - name: APP_LOG
           value: info
         - name: APP_ENGINE
-          value: "http://service-engine.project-dev.svc.cluster.local/notify"
+          value: "http://service-engine.project-dev.svc.cluster.local"
+        - name: APP_SERVICE
+          value: "http://service-area-blur.project-dev.svc.cluster.local"
       imagePullSecrets:
       - name: mysecretdeployer

@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: service-face-analyser
+  name: service-face-analyzer
 spec:
   selector:
-    app: face-analyser
+    app: face-analyzer
   ports:
   - protocol: TCP
     port: 80

@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: face-analyser
+  name: face-analyzer
   labels:
-    app: face-analyser
+    app: face-analyzer
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: face-analyser
+      app: face-analyzer
   template:
     metadata:
       labels:
-        app: face-analyser
+        app: face-analyzer
     spec:
       containers:
-      - name: face-analyser
-        #image: registry.forge.hefr.ch/mse_pi/services/face_analyser:latest
+      - name: face-analyzer
         image: IMAGE_NAME
+        #image: registry.forge.hefr.ch/mse_pi/services/face_analyzer:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80 
@@ -29,6 +29,8 @@ spec:
         - name: APP_LOG
           value: info
         - name: APP_ENGINE
-          value: "http://service-engine.project-dev.svc.cluster.local/notify"
+          value: "http://service-engine.project-dev.svc.cluster.local"
+        - name: APP_SERVICE
+          value: "http://service-face-analyzer.project-dev.svc.cluster.local"
       imagePullSecrets:
       - name: mysecretdeployer
