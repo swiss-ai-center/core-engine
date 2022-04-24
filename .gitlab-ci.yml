@@ -71,7 +71,7 @@ build-face_analyzer:
     changes:
       - face_analyzer/**/*
   
-deploy-engine:
+deploy-face_analyzer:
   image: lachlanevenson/k8s-kubectl:latest
   stage: deploy
   tags:
