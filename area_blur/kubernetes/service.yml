@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-area-blur
+spec:
+  selector:
+    app: area-blur
+  ports:
+  - protocol: TCP
+    port: 80

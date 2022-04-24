@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: area-blur
+  labels:
+    app: area-blur
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: area-blur
+  template:
+    metadata:
+      labels:
+        app: area-blur
+    spec:
+      containers:
+      - name: area-blur
+        image: registry.forge.hefr.ch/mse_pi/services/area_blur:latest
+        #image: IMAGE_NAME
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80 
+        env:
+        - name: APP_HOST
+          value: 0.0.0.0
+        - name: APP_PORT
+          value: "80"
+        - name: APP_LOG
+          value: info
+        - name: APP_ENGINE
+          value: "http://service-engine.project-dev.svc.cluster.local/notify"
+      imagePullSecrets:
+      - name: mysecretdeployer
