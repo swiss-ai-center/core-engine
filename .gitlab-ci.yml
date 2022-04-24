@@ -173,7 +173,7 @@ build-area_blur:
     refs:
       - dev
     changes:
-      - $SERVICE_NAME/**/*
+      - area_blur/**/*
   
 deploy-area_blur:
   variables:
@@ -197,7 +197,7 @@ deploy-area_blur:
     refs:
       - dev
     changes:
-      - $SERVICE_NAME/**/*
+      - area_blur/**/*
   
 
   
