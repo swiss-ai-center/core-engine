@@ -41,13 +41,14 @@ class Worker():
 		return max(smallest, min(val, largest))
 
 	async def process(self, task):
-
-		print("[Worker] Processing...")
-		raw = await task["img"].read()
-		img_strm = io.BytesIO(raw)
+		raw_img = await task["image"].read()
+		img_strm = io.BytesIO(raw_img)
 		img = cv2.imdecode(np.frombuffer(img_strm.read(), np.uint8), 1)
 		
-		areas = json.loads(task["areas"])
+		raw_areas = await task["areas"].read()
+		areas = json.loads(raw_areas)
+		areas = areas['areas']
+		print(areas)
 		task["areas"]=areas
 		# [x1, y1, x2, y2]
 		rows=img.shape[0]
@@ -69,7 +70,7 @@ class Worker():
 		#cv2.imwrite('res.jpg', img)
 		is_success, outBuff = cv2.imencode(".jpg", img)
 		task["result"] = outBuff.tobytes()
-
+		#await self.client.post(url, params={"task_id": task_id}, files={"result": task["result"]})
 		return task
 
 class Callback(Worker):
@@ -78,11 +79,9 @@ class Callback(Worker):
 		self.client = httpx.AsyncClient()
 
 	async def process(self, task):
-		print("[Callback] Process")
 		url = task["callback_url"]
-		print(url)
 		task_id = task["task_id"]
 		if url is not None:
 			# Needs to be modified if the result contains a blob to send back
 			# something like: await self.client.post(url, params={"task_id": task_id}, files={"result": file...})
-			await self.client.post(url, params={"task_id": task_id}, json={"areas": task["areas"]}, files={"result": task["result"]})
+			await self.client.post(url, params={"task_id": task_id}, files={"result": task["result"]})

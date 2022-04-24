@@ -6,6 +6,10 @@ from . import interface
 import json
 import os
 
+import cv2
+import io
+import base64
+
 async def startup():
 	# Announce ourself to the engine
 	if engine is not None and service is not None:
@@ -33,6 +37,9 @@ worker = Worker()
 callback = Callback()
 app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
 
+res = []
+
+
 # Implement me!!! Define meaningful routes here, using input objects from "interface" or UploadFile + query params
 
 # # This is a route for a service that only takes json input, which structure should be a interface.Job object
@@ -46,11 +53,30 @@ app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
 
 # This is a route for a service that takes a binary file as input, plus a custom "data1" query param
 @app.post("/compute", response_model = interface.TaskId)
-async def post( areas:str, img: UploadFile, callback_url: str = None, task_id: str = None):
+async def post( areas: UploadFile, image: UploadFile, callback_url: str = None, task_id: str = None):
 	if task_id is None:
 		task_id = str(interface.uid())
-	task = {"callback_url": callback_url, "task_id": task_id, "img": img, "areas": json.loads(areas)}
+	task = {"callback_url": callback_url, "task_id": task_id, "image": image, "areas": areas}
 	await worker.addTask(task)
 	return interface.TaskId(task_id=task_id)
 
+
+
+
+
+@app.post("/result", response_model = interface.TaskId)
+async def result_post(image: UploadFile, task_id: str = None):
+	raw_img = await image.read()
+	img_strm = io.BytesIO(raw_img)
+	buff = img_strm
+	img_str = base64.b64encode(buff.getvalue())
+	res.append(img_str)
+	print(len(res))
+	return interface.TaskId(task_id="-1")
+
+
+@app.get("/result", response_model = interface.TaskId)
+async def result_get():
+	img_str = res.pop()	
+	return interface.TaskId(task_id=f'<img src="data:image/jpg;base64, {img_str}/>')
 
