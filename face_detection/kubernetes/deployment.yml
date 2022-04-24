@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
       - name: face-detection
-        image: registry.forge.hefr.ch/mse_pi/services/face_detection:latest
-        #image: IMAGE_NAME
+        #image: registry.forge.hefr.ch/mse_pi/services/face_detection:latest
+        image: IMAGE_NAME
         imagePullPolicy: Always
         ports:
         - containerPort: 80 

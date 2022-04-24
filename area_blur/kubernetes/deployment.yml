@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
       - name: area-blur
-        image: registry.forge.hefr.ch/mse_pi/services/area_blur:latest
-        #image: IMAGE_NAME
+        #image: registry.forge.hefr.ch/mse_pi/services/area_blur:latest
+        image: IMAGE_NAME
         imagePullPolicy: Always
         ports:
         - containerPort: 80 

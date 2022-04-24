@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
       - name: face-analyser
-        image: registry.forge.hefr.ch/mse_pi/services/face_analyser:latest
-        #image: IMAGE_NAME
+        #image: registry.forge.hefr.ch/mse_pi/services/face_analyser:latest
+        image: IMAGE_NAME
         imagePullPolicy: Always
         ports:
         - containerPort: 80 
