@@ -15,7 +15,8 @@ build-engine:
     - docker push $CI_REGISTRY_IMAGE/engine:$CI_COMMIT_SHORT_SHA
     - docker push $CI_REGISTRY_IMAGE/engine:latest
   only:
-    - dev
+    refs:
+      - dev
     changes:
       - engine/**/*
 
@@ -41,7 +42,7 @@ deploy-engine:
     - kubectl -n project-dev apply -f ./kubernetes/ingress.yml
   rules:
     - if: $CI_PIPELINE_BRANCH == 'dev'
-    - change:
+    - changes:
       - engine/**/*
   
 
