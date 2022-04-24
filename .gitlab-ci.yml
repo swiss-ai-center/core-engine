@@ -87,8 +87,6 @@ deploy-engine:
     - kubectl apply -f ./engine/kubernetes/deployment.yml -n project-dev
     # Create services
     - kubectl apply -f ./engine/kubernetes/service.yml -n project-dev
-    # Create Ingress
-    - kubectl -n project-dev apply -f ./face_analyzer/kubernetes/ingress.yml
   rules:
     - if: $CI_PIPELINE_BRANCH == 'dev'
     - changes:
