@@ -2,6 +2,10 @@ stages:
   - build
   - deploy
 
+###
+# Engine
+###
+
 build-engine:
   image: docker:19.03.12
   stage: build
@@ -39,12 +43,58 @@ deploy-engine:
     # Create services
     - kubectl apply -f ./engine/kubernetes/service.yml -n project-dev
     # Create Ingress
-    - kubectl -n project-dev apply -f ./kubernetes/ingress.yml
+    - kubectl -n project-dev apply -f ./engine/kubernetes/ingress.yml
   rules:
     - if: $CI_PIPELINE_BRANCH == 'dev'
     - changes:
       - engine/**/*
   
+###
+# Face analyzer
+###
+
+build-face_analyzer:
+  image: docker:19.03.12
+  stage: build
+  services:
+    - docker:19.03.12-dind
+  before_script:
+    - docker info
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/face_analyzer:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/face_analyzer:latest -f ./face_analyzer/dockerfile ./face_analyzer
+    - docker push $CI_REGISTRY_IMAGE/face_analyzer:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/face_analyzer:latest
+  only:
+    refs:
+      - dev
+    changes:
+      - face_analyzer/**/*
+  
+deploy-engine:
+  image: lachlanevenson/k8s-kubectl:latest
+  stage: deploy
+  tags:
+    - k8s
+  # when: manual
+  script:
+    - echo $KUBE_CONFIG | base64 -d > kubeconfig.txt
+    - export KUBECONFIG=$(pwd)/kubeconfig.txt
+    # Check if KUBECONFIG is configured
+    - kubectl config get-contexts
+    # Change name of 
+    - sed -i "s~IMAGE_NAME~$CI_REGISTRY_IMAGE/engine:$CI_COMMIT_SHORT_SHA~g" ./engine/kubernetes/deployment.yml 
+    - kubectl apply -f ./engine/kubernetes/deployment.yml -n project-dev
+    # Create services
+    - kubectl apply -f ./engine/kubernetes/service.yml -n project-dev
+    # Create Ingress
+    - kubectl -n project-dev apply -f ./face_analyzer/kubernetes/ingress.yml
+  rules:
+    - if: $CI_PIPELINE_BRANCH == 'dev'
+    - changes:
+      - face_analyzer/**/*
+  
+
 
 
     
