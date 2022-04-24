@@ -102,7 +102,7 @@ deploy-face_analyzer:
 # Face detection
 ###
 
-build-face_analyzer:
+build-face_detection:
   variables:
     SERVICE_NAME: face_detection
   image: docker:19.03.12
@@ -122,7 +122,7 @@ build-face_analyzer:
     changes:
       - $SERVICE_NAME/**/*
   
-deploy-face_analyzer:
+deploy-face_detection:
   variables:
     SERVICE_NAME: face_detection
   image: lachlanevenson/k8s-kubectl:latest
