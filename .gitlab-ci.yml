@@ -2,54 +2,8 @@ stages:
   - build
   - deploy
 
-###
-# Engine
-###
-
-build-engine:
-  image: docker:19.03.12
-  stage: build
-  services:
-    - docker:19.03.12-dind
-  before_script:
-    - docker info
-    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-  script:
-    - docker pull $CI_REGISTRY_IMAGE/engine:latest || true
-    - docker build -t $CI_REGISTRY_IMAGE/engine:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/engine:latest -f ./engine/dockerfile ./engine
-    - docker push $CI_REGISTRY_IMAGE/engine:$CI_COMMIT_SHORT_SHA
-    - docker push $CI_REGISTRY_IMAGE/engine:latest
-  only:
-    refs:
-      - dev
-    changes:
-      - engine/**/*
-
-
-  
-deploy-engine:
-  image: lachlanevenson/k8s-kubectl:latest
-  stage: deploy
-  tags:
-    - k8s
-  # when: manual
-  script:
-    - echo $KUBE_CONFIG | base64 -d > kubeconfig.txt
-    - export KUBECONFIG=$(pwd)/kubeconfig.txt
-    # Check if KUBECONFIG is configured
-    - kubectl config get-contexts
-    # Change name of 
-    - sed -i "s~IMAGE_NAME~$CI_REGISTRY_IMAGE/engine:$CI_COMMIT_SHORT_SHA~g" ./engine/kubernetes/deployment.yml 
-    - kubectl apply -f ./engine/kubernetes/deployment.yml -n project-dev
-    # Create services
-    - kubectl apply -f ./engine/kubernetes/service.yml -n project-dev
-    # Create Ingress
-    - kubectl -n project-dev apply -f ./engine/kubernetes/ingress.yml
-  only:
-    refs:
-      - dev
-    changes:
-      - engine/**/*
+include:
+  - engine/engine.gitlab-ci.yml
   
 ###
 # Face analyzer
