@@ -1,5 +1,7 @@
 import asyncio
 import httpx
+import datetime
+
 from .Pipeline import Pipeline, Node
 from .Enums import Status, NodeType
 
@@ -87,7 +89,8 @@ class Engine():
 		
 		if finishedNode.type == NodeType.END:
 			job.status = Status.FINISHED
-		
+
+		job.touch()
 		self.registry.saveJob(job)
 		
 		# Refactor this?!
@@ -143,5 +146,14 @@ class Engine():
 		
 		pipeline = {"nodes": [entry, component, end]}
 		self.addPipeline(pipeline)
+
+	async def clean(self, delta):
+		now = datetime.datetime.utcnow()
+		for job in self.registry.getAllJobs():
+			if now - job.timestamp() > delta:
+				binUids = set([job.binaries[binary] for binary in job.binaries])
+				for binUid in binUids:
+					self.registry.removeBinary(binUid)
+				self.registry.removeJob(job._id)
 
 # Race condition when processingFinished is called simultaneously for one same pipeline?

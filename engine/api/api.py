@@ -3,11 +3,12 @@ import yaml
 import pydantic
 import io
 import json
+import datetime
 
 from typing import Union
 from fastapi import FastAPI, HTTPException, UploadFile, Depends, Request
 from fastapi.responses import RedirectResponse, JSONResponse, StreamingResponse
-from .Engine import Engine, Registry
+from .Engine import Engine, Registry, Cron
 from . import interface
 
 def addRoute(route, body, params={}):
@@ -57,15 +58,18 @@ def addRoute(route, body, params={}):
 	app.openapi_schema = None
 
 async def startup():
-	for endpoint in engine.api:
-		addRoute(**engine.api[endpoint])
+	timer.start()
 
 async def shutdown():
-	pass
+	timer.stop()
 
 app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
 registry = Registry.Registry("/tmp/registry")
 engine = Engine.Engine(registry, os.environ["APP_ENGINE"] if "APP_ENGINE" in os.environ else None)
+timer = Cron.Timer(
+	timeout=int(os.environ["APP_CRON"]) if "APP_CRON" in os.environ else 300,
+	callback=engine.clean,
+	delta=datetime.timedelta(seconds=int(os.environ["APP_LIFESPAN"]) if "APP_LIFESPAN" in os.environ else 1800))
 
 @app.get("/tasks/{taskId}/status")
 def getTaskStatus(taskId: str):

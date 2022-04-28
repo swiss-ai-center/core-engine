@@ -1,5 +1,6 @@
 import copy
 import json
+import datetime
 
 from .Enums import Status, NodeType
 
@@ -41,6 +42,12 @@ class Pipeline(Context):
 			return n
 		return None
 
+	def touch(self):
+		self.lastUpdate = datetime.datetime.utcnow().isoformat()
+
+	def timestamp(self):
+		return datetime.datetime.fromisoformat(self.lastUpdate)
+
 	@staticmethod
 	def build(nodes):
 		p = Pipeline({})
@@ -49,6 +56,7 @@ class Pipeline(Context):
 		p.entry = None
 		p.end = None
 		p.status = Status.RUNNING
+		p.lastUpdate = None
 		
 		for nodeDef in nodes:
 			n = Node.build(**nodeDef)
@@ -65,7 +73,8 @@ class Pipeline(Context):
 			node = p.node(nodeId)
 			for succ in node.next:
 				p.node(succ).predecessors.append(nodeId)
-
+		
+		p.touch()
 		return p
 
 	@staticmethod
