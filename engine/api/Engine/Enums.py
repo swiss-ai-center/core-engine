@@ -1,14 +1,13 @@
-class Enum(object):
-    pass
+from enum import Enum
 
-Status = Enum()
-Status.RUNNING = "running"
-Status.FINISHED = "finished"
-Status.ERROR = "error"
-Status.NA = "unavailable"
+class Status(str, Enum):
+	RUNNING = "running"
+	FINISHED = "finished"
+	ERROR = "error"
+	NA = "unavailable"
 
-NodeType = Enum()
-NodeType.NODE = "node"
-NodeType.ENTRY = "entry"
-NodeType.END = "end"
-NodeType.SERVICE = "service"
+class NodeType(str, Enum):
+	NODE = "node"
+	ENTRY = "entry"
+	END = "end"
+	SERVICE = "service"

@@ -1,5 +1,7 @@
 import asyncio
 import httpx
+import datetime
+
 from .Pipeline import Pipeline, Node
 from .Enums import Status, NodeType
 
@@ -28,7 +30,8 @@ class Engine():
 		if endpoint is not None:
 			self.endpoints[endpoint] = pid
 			self.api[endpoint] = api
-	
+		return api
+
 	def removePipeline(self, endpoint):
 		if endpoint not in self.endpoints:
 			raise Exception
@@ -37,7 +40,7 @@ class Engine():
 		self.endpoints.pop(endpoint)
 		self.api.pop(endpoint)
 	
-	async def newJob(self, endpoint, data, binary=None):
+	async def newJob(self, endpoint, data, binaries=[]):
 		if endpoint not in self.endpoints:
 			raise Exception
 		
@@ -48,10 +51,10 @@ class Engine():
 		self.registry.saveJob(job)
 		taskId = self.registry.addTask({"job": job._id, "node": job.entry})
 		requestId = self.registry.addTask({"job": job._id})
-		await self.processTask(taskId, data, binary)
+		await self.processTask(taskId, data, binaries)
 		return requestId
 
-	async def processTask(self, taskId, data, binary=None):
+	async def processTask(self, taskId, data, binaries=[]):
 		task = self.registry.popTask(taskId)
 		if task is None:
 			raise Exception
@@ -65,7 +68,7 @@ class Engine():
 		finishedNode = job.node(nodeId)
 		
 		# Process binary input if any
-		if binary is not None:
+		for binary in binaries:
 			stream = data[binary]
 			binUid = await self.registry.storeBinary(stream)
 			data[binary] = binUid
@@ -86,7 +89,8 @@ class Engine():
 		
 		if finishedNode.type == NodeType.END:
 			job.status = Status.FINISHED
-		
+
+		job.touch()
 		self.registry.saveJob(job)
 		
 		# Refactor this?!
@@ -117,10 +121,21 @@ class Engine():
 		for key in job.node(job.end).out:
 			identifier = str.join(".", [job.end, "out", key])
 			if identifier in job.binaries:
-				binUid = job.binaries[identifier]
-				return self.registry.getBinaryStream(binUid)
-
-		return job.node(job.end).out
+				out[key] = "{engine}/tasks/{taskId}/files/{name}".format(engine=self.route, taskId=taskId, name=key)
+		return out
+	
+	def getResultFile(self, taskId, fileName):
+		task = self.registry.getTask(taskId)
+		if task is None:
+			raise Exception
+		
+		job = self.registry.getJob(task["job"])
+		if job is None:
+			raise Exception
+		
+		identifier = str.join(".", [job.end, "out", fileName])
+		binUid = job.binaries[identifier]
+		return self.registry.getBinaryStream(binUid)
 
 	def createServicePipeline(self, url, api):
 		name = api["route"]
@@ -131,5 +146,14 @@ class Engine():
 		
 		pipeline = {"nodes": [entry, component, end]}
 		self.addPipeline(pipeline)
+
+	async def clean(self, delta):
+		now = datetime.datetime.utcnow()
+		for job in self.registry.getAllJobs():
+			if now - job.timestamp() > delta:
+				binUids = set([job.binaries[binary] for binary in job.binaries])
+				for binUid in binUids:
+					self.registry.removeBinary(binUid)
+				self.registry.removeJob(job._id)
 
 # Race condition when processingFinished is called simultaneously for one same pipeline?

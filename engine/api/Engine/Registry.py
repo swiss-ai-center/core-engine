@@ -55,6 +55,12 @@ class Registry():
 			return Pipeline(self.data["jobs"][jobId])
 		return None
 
+	def getAllJobs(self):
+		return [Pipeline(job) for job in self.data["jobs"].values()]
+	
+	def removeJob(self, jobId):
+		self.data["jobs"].pop(jobId)
+
 	def addTask(self, task):
 		taskId = self.uid()
 		self.data["tasks"][taskId] = task

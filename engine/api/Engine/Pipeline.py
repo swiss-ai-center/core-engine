@@ -1,4 +1,6 @@
 import copy
+import json
+import datetime
 
 from .Enums import Status, NodeType
 
@@ -40,6 +42,12 @@ class Pipeline(Context):
 			return n
 		return None
 
+	def touch(self):
+		self.lastUpdate = datetime.datetime.utcnow().isoformat()
+
+	def timestamp(self):
+		return datetime.datetime.fromisoformat(self.lastUpdate)
+
 	@staticmethod
 	def build(nodes):
 		p = Pipeline({})
@@ -48,6 +56,7 @@ class Pipeline(Context):
 		p.entry = None
 		p.end = None
 		p.status = Status.RUNNING
+		p.lastUpdate = None
 		
 		for nodeDef in nodes:
 			n = Node.build(**nodeDef)
@@ -64,7 +73,8 @@ class Pipeline(Context):
 			node = p.node(nodeId)
 			for succ in node.next:
 				p.node(succ).predecessors.append(nodeId)
-
+		
+		p.touch()
 		return p
 
 	@staticmethod
@@ -79,12 +89,12 @@ class Node(Context):
 		super().__init__(ctx)
 
 	@staticmethod
-	def build(id, type=NodeType.NODE, params={}, next=[], ready=None, before=None, after=None, **kwargs):
+	def build(id, type=NodeType.NODE, params={}, input=None, next=[], ready=None, before=None, after=None, **kwargs):
 		n = Node({})
 		n.id = id
 		n.type = type
 		n.params = copy.deepcopy(params)
-		n.in_directive = kwargs["in"] if "in" in kwargs else None # Because in is a reserved keyword
+		n.in_directive = input
 		n.next = copy.deepcopy(next)
 		n.ready_func = ready
 		n.before_func = before
@@ -146,28 +156,32 @@ class Node(Context):
 			exec(self.before_func, locs, globals())
 
 	async def process(self, taskId):
-		binaryInput = None
-		binaryKey = None
-		
-		for key in self.input:
+		binaries = {}
+		jsonBody = copy.deepcopy(self.input)
+
+		for key in jsonBody:
 			identifier = str.join(".", [self.id, "input", key])
 			if identifier in self._pipeline.binaries:
-				binaryKey = key
-				binaryInput = self._pipeline.binaries[identifier]
+				binUid = self._pipeline.binaries[identifier]
+				binaries[key] = self._pipeline._engine.registry.getBinaryStream(binUid)
+		
+		# Remove binaries from body
+		[jsonBody.pop(key) for key in binaries.keys()]
 		
 		if self.type == NodeType.SERVICE:
 			params = {"callback_url": self._pipeline._engine.route + "/processing", "task_id": taskId}
-			if binaryInput is None:
+			if len(binaries) == 0:
+				# Pure json service
 				await self.client.post(self.url, params=params, json=self.input)
 			else:
-				params.update(self.input)
-				params.pop(binaryKey)
-				files = {binaryKey: self._pipeline._engine.registry.getBinaryStream(binaryInput)}
-				await self._pipeline._engine.client.post(self.url, params=params, files=files)
+				# Multipart request with json and binaries
+				binaries["data"] = json.dumps(jsonBody).encode("utf8")
+				await self._pipeline._engine.client.post(self.url, params=params, files=binaries)
 		else:
-			if binaryInput is not None:
-				identifier = str.join(".", [self.id, "out", binaryKey])
-				self._pipeline.binaries[identifier] = binaryInput
+			for binaryKey in binaries:
+				inIdentifier = str.join(".", [self.id, "input", binaryKey])
+				outIdentifier = str.join(".", [self.id, "out", binaryKey])
+				self._pipeline.binaries[outIdentifier] = self._pipeline.binaries[inIdentifier]
 			await self._pipeline._engine.processTask(taskId, self.input)
 
 	def after(self, result):
