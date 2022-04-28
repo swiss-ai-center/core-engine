@@ -65,7 +65,10 @@ async def shutdown():
 
 app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
 registry = Registry.Registry("/tmp/registry")
-engine = Engine.Engine(registry, os.environ["APP_ENGINE"] if "APP_ENGINE" in os.environ else None)
+engine = Engine.Engine(
+	registry,
+	os.environ["APP_ENGINE"] if "APP_ENGINE" in os.environ else None,
+	os.environ["APP_EXTERNAL_URL"] if "APP_EXTERNAL_URL" in os.environ else None)
 timer = Cron.Timer(
 	timeout=int(os.environ["APP_CRON"]) if "APP_CRON" in os.environ else 300,
 	callback=engine.clean,

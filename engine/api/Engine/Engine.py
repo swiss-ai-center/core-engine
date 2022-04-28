@@ -6,9 +6,10 @@ from .Pipeline import Pipeline, Node
 from .Enums import Status, NodeType
 
 class Engine():
-	def __init__(self, registry, route):
+	def __init__(self, registry, route, externalRoute):
 		self.registry = registry
 		self.route = route
+		self.externalRoute = externalRoute
 		self.client = httpx.AsyncClient()
 		self.endpoints = {}
 		self.api = {}
@@ -121,7 +122,7 @@ class Engine():
 		for key in job.node(job.end).out:
 			identifier = str.join(".", [job.end, "out", key])
 			if identifier in job.binaries:
-				out[key] = "{engine}/tasks/{taskId}/files/{name}".format(engine=self.route, taskId=taskId, name=key)
+				out[key] = "{engine}/tasks/{taskId}/files/{name}".format(engine=self.externalRoute, taskId=taskId, name=key)
 		return out
 	
 	def getResultFile(self, taskId, fileName):

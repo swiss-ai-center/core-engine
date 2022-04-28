@@ -30,5 +30,7 @@ spec:
           value: info
         - name: APP_ENGINE
           value: "http://service-engine.project-dev.svc.cluster.local"
+        - name: APP_EXTERNAL_URL
+          value: "https://pi-engine.kube.isc.heia-fr.ch"
       imagePullSecrets:
       - name: mysecretdeployer
