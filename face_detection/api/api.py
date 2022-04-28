@@ -1,19 +1,34 @@
 import asyncio
 from fastapi import FastAPI, File, UploadFile
-
+import httpx
 from .worker import Worker, Callback
 from . import interface
 import json
+import os
 
 async def startup():
+	# Announce ourself to the engine
+	if engine is not None and service is not None:
+		serviceDescr = {"url": service + "/compute", "api": interface.engineAPI()}
+		await client.post(engine + "/services", json=serviceDescr)
+
 	worker.chain(callback)
 	callback.start()
 	worker.start()
 
 async def shutdown():
+	# Remove ourself from the engine
+	if engine is not None and service is not None:
+		endpoint = interface.engineAPI()["route"]
+		await client.delete(engine + "/services/" + endpoint)
+
 	await worker.stop()
 	await callback.stop()
 
+engine = os.environ["APP_ENGINE"] if "APP_ENGINE" in os.environ else None
+service = os.environ["APP_SERVICE"] if "APP_SERVICE" in os.environ else None
+
+client = httpx.AsyncClient()
 worker = Worker()
 callback = Callback()
 app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
