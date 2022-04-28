@@ -6,9 +6,6 @@ from . import interface
 import json
 import os
 
-import cv2
-import io
-import base64
 
 async def startup():
 	# Announce ourself to the engine
