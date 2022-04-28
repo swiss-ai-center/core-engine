@@ -80,12 +80,12 @@ class Node(Context):
 		super().__init__(ctx)
 
 	@staticmethod
-	def build(id, type=NodeType.NODE, params={}, next=[], ready=None, before=None, after=None, **kwargs):
+	def build(id, type=NodeType.NODE, params={}, input=None, next=[], ready=None, before=None, after=None, **kwargs):
 		n = Node({})
 		n.id = id
 		n.type = type
 		n.params = copy.deepcopy(params)
-		n.in_directive = kwargs["in"] if "in" in kwargs else None # Because in is a reserved keyword
+		n.in_directive = input
 		n.next = copy.deepcopy(next)
 		n.ready_func = ready
 		n.before_func = before

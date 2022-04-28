@@ -28,7 +28,8 @@ class Engine():
 		if endpoint is not None:
 			self.endpoints[endpoint] = pid
 			self.api[endpoint] = api
-	
+		return api
+
 	def removePipeline(self, endpoint):
 		if endpoint not in self.endpoints:
 			raise Exception

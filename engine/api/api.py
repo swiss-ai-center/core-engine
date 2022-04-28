@@ -4,6 +4,7 @@ import pydantic
 import io
 import json
 
+from typing import Union
 from fastapi import FastAPI, HTTPException, UploadFile, Depends, Request
 from fastapi.responses import RedirectResponse, JSONResponse, StreamingResponse
 from .Engine import Engine, Registry
@@ -11,11 +12,11 @@ from . import interface
 
 def addRoute(route, body, params={}):
 	# Not sure why I have to do this when called by createService...
+
 	if params is None:
 		params = {}
 
 	paramsModel = pydantic.create_model("Params", **params)
-	
 	
 	if type(body) is list:
 		async def handler(request: Request, query: paramsModel = Depends()):
@@ -39,7 +40,7 @@ def addRoute(route, body, params={}):
 			bodyType = pydantic.create_model(route + "Body", **body)
 		elif type(body) is str:
 			bodyType = UploadFile
-		async def handler(request: Request, query: paramsModel = Depends()):
+		async def handler(data: bodyType, query: paramsModel = Depends()):
 			jobData = {}
 			jobData.update(query.dict())
 			binaries = []
@@ -82,11 +83,15 @@ def getTaskResultFile(taskId: str, fileName: str):
 	return StreamingResponse(stream, media_type="application/octet-stream")
 
 @app.post("/services")
-def createService(service: interface.ServiceDescription):
-	api = service.api.dict()
-	serviceName = api["route"]
-	if serviceName not in engine.endpoints:
-		engine.createServicePipeline(service.url, api)
+def createService(service: Union[interface.ServiceDescription, interface.PipelineDescription]):
+	if service.type is interface.ServiceType.SERVICE:
+		api = service.api.dict()
+		serviceName = api["route"]
+		if serviceName not in engine.endpoints:
+			engine.createServicePipeline(service.url, api)
+			addRoute(**api)
+	elif service.type is interface.ServiceType.PIPELINE:
+		api = engine.addPipeline(service.dict())
 		addRoute(**api)
 
 @app.delete("/services/{serviceName}")
