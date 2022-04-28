@@ -37,7 +37,7 @@ class Engine():
 		self.endpoints.pop(endpoint)
 		self.api.pop(endpoint)
 	
-	async def newJob(self, endpoint, data, binary=None):
+	async def newJob(self, endpoint, data, binaries=[]):
 		if endpoint not in self.endpoints:
 			raise Exception
 		
@@ -48,10 +48,10 @@ class Engine():
 		self.registry.saveJob(job)
 		taskId = self.registry.addTask({"job": job._id, "node": job.entry})
 		requestId = self.registry.addTask({"job": job._id})
-		await self.processTask(taskId, data, binary)
+		await self.processTask(taskId, data, binaries)
 		return requestId
 
-	async def processTask(self, taskId, data, binary=None):
+	async def processTask(self, taskId, data, binaries=[]):
 		task = self.registry.popTask(taskId)
 		if task is None:
 			raise Exception
@@ -65,7 +65,7 @@ class Engine():
 		finishedNode = job.node(nodeId)
 		
 		# Process binary input if any
-		if binary is not None:
+		for binary in binaries:
 			stream = data[binary]
 			binUid = await self.registry.storeBinary(stream)
 			data[binary] = binUid
@@ -117,10 +117,21 @@ class Engine():
 		for key in job.node(job.end).out:
 			identifier = str.join(".", [job.end, "out", key])
 			if identifier in job.binaries:
-				binUid = job.binaries[identifier]
-				return self.registry.getBinaryStream(binUid)
-
-		return job.node(job.end).out
+				out[key] = "{engine}/tasks/{taskId}/files/{name}".format(engine=self.route, taskId=taskId, name=key)
+		return out
+	
+	def getResultFile(self, taskId, fileName):
+		task = self.registry.getTask(taskId)
+		if task is None:
+			raise Exception
+		
+		job = self.registry.getJob(task["job"])
+		if job is None:
+			raise Exception
+		
+		identifier = str.join(".", [job.end, "out", fileName])
+		binUid = job.binaries[identifier]
+		return self.registry.getBinaryStream(binUid)
 
 	def createServicePipeline(self, url, api):
 		name = api["route"]

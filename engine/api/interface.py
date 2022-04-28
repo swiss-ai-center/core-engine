@@ -6,7 +6,7 @@ class JobResponse(BaseModel):
 
 class APIDescription(BaseModel):
 	route: str
-	body: Union[str, dict]
+	body: Union[str, dict, list[str]]
 	params: Optional[dict]
 
 class ServiceDescription(BaseModel):

@@ -2,6 +2,7 @@ import os
 import yaml
 import pydantic
 import io
+import json
 
 from fastapi import FastAPI, HTTPException, UploadFile, Depends, Request
 from fastapi.responses import RedirectResponse, JSONResponse, StreamingResponse
@@ -14,38 +15,47 @@ def addRoute(route, body, params={}):
 		params = {}
 
 	paramsModel = pydantic.create_model("Params", **params)
-	bodyType = None
 	
-	if type(body) is dict:
-		bodyType = pydantic.create_model(route + "Body", **body)
-	elif type(body) is str:
-		bodyType = UploadFile
-
-	async def handler(data: bodyType, query: paramsModel = Depends()):
-		jobData = {}
-		jobData.update(query.dict())
-		binary = None
-		if bodyType is UploadFile:
-			binary = body
-			jobData[body] = data
-		else:
-			jobData.update(data.dict())
-		jobId = await engine.newJob(route, jobData, binary)
-		return {"jobId": jobId}
+	
+	if type(body) is list:
+		async def handler(request: Request, query: paramsModel = Depends()):
+			jobData = {}
+			jobData.update(query.dict())
+			binaries = []
+			form = await request.form()
+			for name in body:
+				obj = form[name]
+				if obj.content_type == "application/json":
+					payload = await obj.read()
+					jobData.update(json.loads(payload))
+				else:
+					jobData[name] = obj
+					binaries.append(name)
+			jobId = await engine.newJob(route, jobData, binaries)
+			return {"jobId": jobId}
+	else:
+		bodyType = None
+		if type(body) is dict:
+			bodyType = pydantic.create_model(route + "Body", **body)
+		elif type(body) is str:
+			bodyType = UploadFile
+		async def handler(request: Request, query: paramsModel = Depends()):
+			jobData = {}
+			jobData.update(query.dict())
+			binaries = []
+			if bodyType is UploadFile:
+				binaries.append(body)
+				jobData[body] = data
+			else:
+				jobData.update(data.dict())
+			jobId = await engine.newJob(route, jobData, binaries)
+			return {"jobId": jobId}
 
 	app.add_api_route("/services/" + route, handler, methods=["POST"],  response_model=interface.JobResponse)
 	# Force the regeneration of the schema
 	app.openapi_schema = None
 
 async def startup():
-	# example pipelines
-	example = os.path.join(os.path.dirname(os.path.abspath(__file__)), "example.yaml")
-	f = open(example, encoding="utf8")
-	pipelines = yaml.load(f, Loader=yaml.FullLoader)
-	f.close()
-	engine.addPipeline(pipelines["square"])
-	engine.addPipeline(pipelines["dummy"])
-	
 	for endpoint in engine.api:
 		addRoute(**engine.api[endpoint])
 
@@ -64,10 +74,12 @@ def getTaskStatus(taskId: str):
 @app.get("/tasks/{taskId}")
 def getTaskResult(taskId: str):
 	result = engine.getResult(taskId)
-	if isinstance(result, io.IOBase):
-		return StreamingResponse(result, media_type="application/octet-stream")
-	else:
-		return JSONResponse(result)
+	return JSONResponse(result)
+
+@app.get("/tasks/{taskId}/files/{fileName}")
+def getTaskResultFile(taskId: str, fileName: str):
+	stream = engine.getResultFile(taskId, fileName)
+	return StreamingResponse(stream, media_type="application/octet-stream")
 
 @app.post("/services")
 def createService(service: interface.ServiceDescription):
@@ -91,7 +103,7 @@ def removeService(serviceName: str):
 @app.post("/processing")
 async def processCallback(task_id: str, request: Request):
 	data = {}
-	binary = None
+	binaries = []
 	
 	contentType = request.headers["content-type"].replace(";", "")
 
@@ -99,9 +111,13 @@ async def processCallback(task_id: str, request: Request):
 		data.update(await request.json())
 	elif "multipart/form-data" in contentType:
 		form = await request.form()
-		# this does NOT support multiple binaries for now!
 		for k in form:
-			data[k] = form[k]
-			binary = k
+			obj = form[k]
+			if obj.content_type == "application/json":
+				payload = await obj.read()
+				data.update(json.loads(payload))
+			else:
+				data[k] = obj
+				binaries.append(k)
 
-	await engine.processTask(task_id, data, binary)
+	await engine.processTask(task_id, data, binaries)
