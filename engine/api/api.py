@@ -8,6 +8,7 @@ import datetime
 from typing import Union
 from fastapi import FastAPI, HTTPException, UploadFile, Depends, Request
 from fastapi.responses import RedirectResponse, JSONResponse, StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 from .Engine import Engine, Registry, Cron
 from . import interface
 
@@ -69,6 +70,15 @@ engine = Engine.Engine(
 	registry,
 	os.environ["APP_ENGINE"] if "APP_ENGINE" in os.environ else None,
 	os.environ["APP_EXTERNAL_URL"] if "APP_EXTERNAL_URL" in os.environ else None)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 timer = Cron.Timer(
 	timeout=int(os.environ["APP_CRON"]) if "APP_CRON" in os.environ else 300,
 	callback=engine.clean,
