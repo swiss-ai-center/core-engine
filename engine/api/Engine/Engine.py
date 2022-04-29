@@ -48,7 +48,7 @@ class Engine():
 		
 		pipelineId = self.endpoints[endpoint]
 		pipelineTemplate = self.registry.getPipeline(pipelineId)
-		job = Pipeline.build(pipelineTemplate["nodes"])
+		job = Pipeline.build(pipelineTemplate["nodes"], pipelineId)
 		job.node(job.entry).before()
 		self.registry.saveJob(job)
 		taskId = self.registry.addTask({"job": job._id, "node": job.entry})
@@ -149,6 +149,17 @@ class Engine():
 		binUid = job.binaries[identifier]
 		return self.registry.getBinaryStream(binUid)
 
+	def getJobRaw(self, taskId):
+		task = self.registry.getTask(taskId)
+		if task is None:
+			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
+		
+		job = self.registry.getJob(task["job"])
+		if job is None:
+			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
+		
+		return job.data
+
 	def createServicePipeline(self, url, api):
 		name = api["route"]
 
@@ -167,5 +178,41 @@ class Engine():
 				for binUid in binUids:
 					self.registry.removeBinary(binUid)
 				self.registry.removeJob(job._id)
+	
+	def getStats(self):
+		# Reverse id to endpoints
+		models = {}
+		for e in self.endpoints:
+			pid = self.endpoints[e]
+			models[pid] = e
+		
+		endpoints = dict.fromkeys(self.endpoints, 0)
+		undef = 0
+
+		running = 0
+		finished = 0
+		failed = 0
+		
+		jobs = self.registry.getAllJobs()
+		for job in jobs:
+			if job.status is Status.RUNNING: running += 1
+			elif job.status is Status.FINISHED: finished += 1
+			elif job.status is Status.ERROR: failed += 1
+			
+			eid = job.model
+			if eid in models:
+				endpoint = models[eid]
+				endpoints[endpoint] += 1
+			else:
+				undef += 1
+		
+		if undef > 0:
+			endpoints["UNDEFINED"] = undef
+
+		stats = {}
+		stats["jobs"] = {"total": len(jobs), "running": running, "finished": finished, "failed": failed}
+		stats["services"] = endpoints
+
+		return stats
 
 # Race condition when processingFinished is called simultaneously for one same pipeline?

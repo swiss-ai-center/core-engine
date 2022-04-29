@@ -74,22 +74,27 @@ timer = Cron.Timer(
 	callback=engine.clean,
 	delta=datetime.timedelta(seconds=int(os.environ["APP_LIFESPAN"]) if "APP_LIFESPAN" in os.environ else 1800))
 
-@app.get("/tasks/{taskId}/status")
-def getTaskStatus(taskId: str):
-	status = engine.pollTask(taskId)
-	return {"id": taskId, "status": status}
-
-@app.get("/tasks/{taskId}")
+@app.get("/tasks/{taskId}", summary="Get results of a task")
 def getTaskResult(taskId: str):
 	result = engine.getResult(taskId)
 	return JSONResponse(result)
 
-@app.get("/tasks/{taskId}/files/{fileName}")
+@app.get("/tasks/{taskId}/status", summary="Get the status of a task")
+def getTaskStatus(taskId: str):
+	status = engine.pollTask(taskId)
+	return {"id": taskId, "status": status}
+
+@app.get("/tasks/{taskId}/raw", summary="Get raw pipeline data for a task")
+def getTaskRaw(taskId: str):
+	raw = engine.getJobRaw(taskId)
+	return JSONResponse(raw)
+
+@app.get("/tasks/{taskId}/files/{fileName}", summary="Retrieve a binary result of a task")
 def getTaskResultFile(taskId: str, fileName: str):
 	stream = engine.getResultFile(taskId, fileName)
 	return StreamingResponse(stream, media_type="application/octet-stream")
 
-@app.post("/services")
+@app.post("/services", summary="Create a new service or pipeline")
 def createService(service: Union[interface.ServiceDescription, interface.PipelineDescription]):
 	if service.type is interface.ServiceType.SERVICE:
 		api = service.api.dict()
@@ -101,7 +106,12 @@ def createService(service: Union[interface.ServiceDescription, interface.Pipelin
 		api = engine.addPipeline(service.dict())
 		addRoute(**api)
 
-@app.delete("/services/{serviceName}")
+@app.get("/stats", summary="Get engine and pipelines statistics")
+def getTaskRaw():
+	stats = engine.getStats()
+	return JSONResponse(stats)
+
+@app.delete("/services/{serviceName}", summary="Remove a service or pipeline")
 def removeService(serviceName: str):
 	if serviceName in engine.endpoints:
 		engine.removePipeline(serviceName)
