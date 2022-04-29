@@ -11,7 +11,7 @@ from fastapi.responses import RedirectResponse, JSONResponse, StreamingResponse
 from .Engine import Engine, Registry, Cron
 from . import interface
 
-def addRoute(route, body, params={}):
+def addRoute(route, body, params={}, summary=None, description=None):
 	# Not sure why I have to do this when called by createService...
 
 	if params is None:
@@ -53,7 +53,7 @@ def addRoute(route, body, params={}):
 			jobId = await engine.newJob(route, jobData, binaries)
 			return {"jobId": jobId}
 
-	app.add_api_route("/services/" + route, handler, methods=["POST"],  response_model=interface.JobResponse)
+	app.add_api_route("/services/" + route, handler, methods=["POST"],  response_model=interface.JobResponse, summary=summary, description=description)
 	# Force the regeneration of the schema
 	app.openapi_schema = None
 
@@ -112,7 +112,7 @@ def removeService(serviceName: str):
 		# Force the regeneration of the schema
 		app.openapi_schema = None
 
-@app.post("/processing")
+@app.post("/processing", include_in_schema=False)
 async def processCallback(task_id: str, request: Request):
 	data = {}
 	binaries = []
