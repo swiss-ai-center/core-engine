@@ -49,7 +49,7 @@ class Pipeline(Context):
 		return datetime.datetime.fromisoformat(self.lastUpdate)
 
 	@staticmethod
-	def build(nodes):
+	def build(nodes, templateId=None):
 		p = Pipeline({})
 		p.nodes = {}
 		p.binaries = {}
@@ -57,6 +57,7 @@ class Pipeline(Context):
 		p.end = None
 		p.status = Status.RUNNING
 		p.lastUpdate = None
+		p.model = templateId
 		
 		for nodeDef in nodes:
 			n = Node.build(**nodeDef)

@@ -12,6 +12,8 @@ class JobResponse(BaseModel):
 
 class APIDescription(BaseModel):
 	route: str
+	summary: Optional[str]
+	description: Optional[str]
 	body: Union[str, dict, list[str]]
 	params: Optional[dict]
 

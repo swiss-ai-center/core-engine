@@ -4,6 +4,7 @@ import datetime
 
 from .Pipeline import Pipeline, Node
 from .Enums import Status, NodeType
+from .Errors import ItemNotFound, NotFinished
 
 class Engine():
 	def __init__(self, registry, route, externalRoute):
@@ -13,7 +14,7 @@ class Engine():
 		self.client = httpx.AsyncClient()
 		self.endpoints = {}
 		self.api = {}
-		
+
 		self.load()
 	
 	def load(self):
@@ -35,7 +36,7 @@ class Engine():
 
 	def removePipeline(self, endpoint):
 		if endpoint not in self.endpoints:
-			raise Exception
+			raise ItemNotFound("Pipeline {endpoint} not found".format(endpoint=endpoint))
 		pid = self.endpoints[endpoint]
 		self.registry.removePipeline(pid)
 		self.endpoints.pop(endpoint)
@@ -43,11 +44,11 @@ class Engine():
 	
 	async def newJob(self, endpoint, data, binaries=[]):
 		if endpoint not in self.endpoints:
-			raise Exception
+			raise ItemNotFound("Pipeline {endpoint} not found".format(endpoint=endpoint))
 		
 		pipelineId = self.endpoints[endpoint]
 		pipelineTemplate = self.registry.getPipeline(pipelineId)
-		job = Pipeline.build(pipelineTemplate["nodes"])
+		job = Pipeline.build(pipelineTemplate["nodes"], pipelineId)
 		job.node(job.entry).before()
 		self.registry.saveJob(job)
 		taskId = self.registry.addTask({"job": job._id, "node": job.entry})
@@ -58,11 +59,11 @@ class Engine():
 	async def processTask(self, taskId, data, binaries=[]):
 		task = self.registry.popTask(taskId)
 		if task is None:
-			raise Exception
+			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
 		
 		job = self.registry.getJob(task["job"])
 		if job is None:
-			raise Exception
+			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
 		
 		job.hide("_engine", self)
 		nodeId = task["node"]
@@ -102,22 +103,25 @@ class Engine():
 	def pollTask(self, taskId):
 		task = self.registry.getTask(taskId)
 		if task is None:
-			return Status.NA
+			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
 		job = self.registry.getJob(task["job"])
 		if job is None:
-			return Status.NA
+			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
 		
 		return job.status
 	
 	def getResult(self, taskId):
 		task = self.registry.getTask(taskId)
 		if task is None:
-			raise Exception
+			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
 		
 		job = self.registry.getJob(task["job"])
 		if job is None:
-			raise Exception
-		
+			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
+
+		if job.status is not Status.FINISHED:
+			raise NotFinished("Pipeline is not finished ({status})".format(status=job.status))
+
 		out = job.node(job.end).out
 		for key in job.node(job.end).out:
 			identifier = str.join(".", [job.end, "out", key])
@@ -128,15 +132,33 @@ class Engine():
 	def getResultFile(self, taskId, fileName):
 		task = self.registry.getTask(taskId)
 		if task is None:
-			raise Exception
+			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
 		
 		job = self.registry.getJob(task["job"])
 		if job is None:
-			raise Exception
-		
+			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
+
+		if job.status is not Status.FINISHED:
+			raise NotFinished("Pipeline is not finished ({status})".format(status=job.status))
+
 		identifier = str.join(".", [job.end, "out", fileName])
+
+		if identifier not in job.binaries:
+			raise ItemNotFound("No file named " + filename + " for task " + taskId)
+
 		binUid = job.binaries[identifier]
 		return self.registry.getBinaryStream(binUid)
+
+	def getJobRaw(self, taskId):
+		task = self.registry.getTask(taskId)
+		if task is None:
+			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
+		
+		job = self.registry.getJob(task["job"])
+		if job is None:
+			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
+		
+		return job.data
 
 	def createServicePipeline(self, url, api):
 		name = api["route"]
@@ -156,5 +178,41 @@ class Engine():
 				for binUid in binUids:
 					self.registry.removeBinary(binUid)
 				self.registry.removeJob(job._id)
+	
+	def getStats(self):
+		# Reverse id to endpoints
+		models = {}
+		for e in self.endpoints:
+			pid = self.endpoints[e]
+			models[pid] = e
+		
+		endpoints = dict.fromkeys(self.endpoints, 0)
+		undef = 0
+
+		running = 0
+		finished = 0
+		failed = 0
+		
+		jobs = self.registry.getAllJobs()
+		for job in jobs:
+			if job.status is Status.RUNNING: running += 1
+			elif job.status is Status.FINISHED: finished += 1
+			elif job.status is Status.ERROR: failed += 1
+			
+			eid = job.model
+			if eid in models:
+				endpoint = models[eid]
+				endpoints[endpoint] += 1
+			else:
+				undef += 1
+		
+		if undef > 0:
+			endpoints["UNDEFINED"] = undef
+
+		stats = {}
+		stats["jobs"] = {"total": len(jobs), "running": running, "finished": finished, "failed": failed}
+		stats["services"] = endpoints
+
+		return stats
 
 # Race condition when processingFinished is called simultaneously for one same pipeline?

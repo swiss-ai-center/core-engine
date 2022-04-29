@@ -7,6 +7,7 @@
       "id": "faceBlurEntry",
       "api":
       {
+        "summary": "Detect and blur faces in provided image",
         "route": "faceBlur",
         "body": "image"
       },
