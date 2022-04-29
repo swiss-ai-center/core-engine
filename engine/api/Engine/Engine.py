@@ -4,6 +4,7 @@ import datetime
 
 from .Pipeline import Pipeline, Node
 from .Enums import Status, NodeType
+from .Errors import ItemNotFound, NotFinished
 
 class Engine():
 	def __init__(self, registry, route, externalRoute):
@@ -35,7 +36,7 @@ class Engine():
 
 	def removePipeline(self, endpoint):
 		if endpoint not in self.endpoints:
-			raise Exception
+			raise ItemNotFound("Pipeline {endpoint} not found".format(endpoint=endpoint))
 		pid = self.endpoints[endpoint]
 		self.registry.removePipeline(pid)
 		self.endpoints.pop(endpoint)
@@ -43,7 +44,7 @@ class Engine():
 	
 	async def newJob(self, endpoint, data, binaries=[]):
 		if endpoint not in self.endpoints:
-			raise Exception
+			raise ItemNotFound("Pipeline {endpoint} not found".format(endpoint=endpoint))
 		
 		pipelineId = self.endpoints[endpoint]
 		pipelineTemplate = self.registry.getPipeline(pipelineId)
@@ -58,11 +59,11 @@ class Engine():
 	async def processTask(self, taskId, data, binaries=[]):
 		task = self.registry.popTask(taskId)
 		if task is None:
-			raise Exception
+			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
 		
 		job = self.registry.getJob(task["job"])
 		if job is None:
-			raise Exception
+			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
 		
 		job.hide("_engine", self)
 		nodeId = task["node"]
@@ -102,22 +103,25 @@ class Engine():
 	def pollTask(self, taskId):
 		task = self.registry.getTask(taskId)
 		if task is None:
-			return Status.NA
+			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
 		job = self.registry.getJob(task["job"])
 		if job is None:
-			return Status.NA
+			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
 		
 		return job.status
 	
 	def getResult(self, taskId):
 		task = self.registry.getTask(taskId)
 		if task is None:
-			raise Exception
+			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
 		
 		job = self.registry.getJob(task["job"])
 		if job is None:
-			raise Exception
-		
+			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
+
+		if job.status is not Status.FINISHED:
+			raise NotFinished("Pipeline is not finished ({status})".format(status=job.status))
+
 		out = job.node(job.end).out
 		for key in job.node(job.end).out:
 			identifier = str.join(".", [job.end, "out", key])
@@ -128,13 +132,20 @@ class Engine():
 	def getResultFile(self, taskId, fileName):
 		task = self.registry.getTask(taskId)
 		if task is None:
-			raise Exception
+			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
 		
 		job = self.registry.getJob(task["job"])
 		if job is None:
-			raise Exception
-		
+			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
+
+		if job.status is not Status.FINISHED:
+			raise NotFinished("Pipeline is not finished ({status})".format(status=job.status))
+
 		identifier = str.join(".", [job.end, "out", fileName])
+
+		if identifier not in job.binaries:
+			raise ItemNotFound("No file named " + filename + " for task " + taskId)
+
 		binUid = job.binaries[identifier]
 		return self.registry.getBinaryStream(binUid)
 
