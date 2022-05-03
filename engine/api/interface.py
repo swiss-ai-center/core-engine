@@ -15,7 +15,6 @@ class APIDescription(BaseModel):
 	summary: Optional[str]
 	description: Optional[str]
 	body: Union[str, dict, list[str]]
-	params: Optional[dict]
 
 class Node(BaseModel):
 	id: str
