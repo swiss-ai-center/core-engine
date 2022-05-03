@@ -5,53 +5,53 @@ import io
 import json
 import datetime
 
+from inspect import Parameter, Signature
 from typing import Union
 from fastapi import FastAPI, HTTPException, UploadFile, Depends, Request
 from fastapi.responses import RedirectResponse, JSONResponse, StreamingResponse
 from .Engine import Engine, Registry, Cron
 from . import interface
 
-def addRoute(route, body, params={}, summary=None, description=None):
-	# Not sure why I have to do this when called by createService...
-
-	if params is None:
-		params = {}
-
-	paramsModel = pydantic.create_model("Params", **params)
+def addRoute(route, body, summary=None, description=None):
 	
-	if type(body) is list:
-		async def handler(request: Request, query: paramsModel = Depends()):
-			jobData = {}
-			jobData.update(query.dict())
-			binaries = []
+	# This should be wrapped in a functor, howevera bug in starlette prevents the handler to be correctly called if __call__ is declared async. This should be fixed in version 0.21.0 (https://github.com/encode/starlette/pull/1444).
+	async def handler(*args, **kwargs):
+		jobData = {}
+		binaries = []
+		
+		if type(body) is dict:
+			jobData.update(kwargs["data"].dict())
+		elif type(body) is str:
+			binaries.append(body)
+		elif type(body) is list:
+			binaries = body
+		
+		if len(binaries) > 0:
+			request = kwargs["req"]
 			form = await request.form()
-			for name in body:
+			for name in binaries:
 				obj = form[name]
 				if obj.content_type == "application/json":
 					payload = await obj.read()
 					jobData.update(json.loads(payload))
 				else:
 					jobData[name] = obj
-					binaries.append(name)
-			jobId = await engine.newJob(route, jobData, binaries)
-			return {"jobId": jobId}
-	else:
-		bodyType = None
-		if type(body) is dict:
-			bodyType = pydantic.create_model(route + "Body", **body)
-		elif type(body) is str:
-			bodyType = UploadFile
-		async def handler(data: bodyType, query: paramsModel = Depends()):
-			jobData = {}
-			jobData.update(query.dict())
-			binaries = []
-			if bodyType is UploadFile:
-				binaries.append(body)
-				jobData[body] = data
-			else:
-				jobData.update(data.dict())
-			jobId = await engine.newJob(route, jobData, binaries)
-			return {"jobId": jobId}
+
+		jobId = await engine.newJob(route, jobData, binaries)
+		return {"jobId": jobId}
+	
+	# Change the function signature with expected types from the api description so that the api doc is correctly generated
+	params = []
+	if type(body) is dict:
+		model = pydantic.create_model(route + "Body", **body)
+		params.append(Parameter("data", kind=Parameter.POSITIONAL_ONLY, annotation=model))
+	elif type(body) is str:
+		params.append(Parameter(body, kind=Parameter.POSITIONAL_ONLY, annotation=UploadFile))
+	elif type(body) is list:
+		for name in body:
+			params.append(Parameter(name, kind=Parameter.POSITIONAL_ONLY, annotation=UploadFile))
+	params.append(Parameter("req", kind=Parameter.POSITIONAL_ONLY, annotation=Request))
+	handler.__signature__ = Signature(params)
 
 	app.add_api_route("/services/" + route, handler, methods=["POST"],  response_model=interface.JobResponse, summary=summary, description=description)
 	# Force the regeneration of the schema
