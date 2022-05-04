@@ -1,0 +1,9 @@
+FROM python:3.9
+COPY ./requirements.txt /tmp/requirements.txt
+RUN pip3 install -r /tmp/requirements.txt
+
+RUN mkdir /app
+COPY main.py /app
+COPY api /app/api
+
+ENTRYPOINT [ "python3", "/app/main.py"]
