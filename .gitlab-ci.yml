@@ -4,6 +4,7 @@ stages:
 
 include:
   - engine/engine.gitlab-ci.yml
+  - webapp/webapp.gitlab-ci.yml
   
 ###
 # Face analyzer
@@ -152,10 +153,6 @@ deploy-area_blur:
       - dev
     changes:
       - area_blur/**/*
-  
-
-  
 
 
 
-    
