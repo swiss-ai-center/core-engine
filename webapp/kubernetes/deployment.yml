@@ -20,5 +20,11 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 80
+        env:
+        - name: APP_HOST
+          value: 0.0.0.0
+        - name: APP_PORT
+          value: "80"
+
       imagePullSecrets:
       - name: mysecretdeployer
