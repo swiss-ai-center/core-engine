@@ -144,7 +144,7 @@ class Engine():
 		identifier = str.join(".", [job.end, "out", fileName])
 
 		if identifier not in job.binaries:
-			raise ItemNotFound("No file named " + filename + " for task " + taskId)
+			raise ItemNotFound("No file named " + fileName + " for task " + taskId)
 
 		binUid = job.binaries[identifier]
 		return self.registry.getBinaryStream(binUid)

@@ -17,7 +17,7 @@ class Registry():
 		if os.path.isfile(persistFile):
 			self.data = loadJson(persistFile)
 		else:
-			self.data = {"pipelines": [], "jobs": {}, "tasks": {}}
+			self.data = {"pipelines": {}, "jobs": {}, "tasks": {}}
 		
 		if not os.path.isdir(binFolder):
 			os.makedirs(binFolder)
@@ -30,15 +30,15 @@ class Registry():
 		return str(self.counter)
 
 	def getPipelines(self):
-		return self.data["pipelines"]
+		return self.data["pipelines"].values()
 	
 	def getPipeline(self, pipelineId):
 		return self.data["pipelines"][pipelineId]
 
 	def addPipeline(self, pipeline):
-		pipelineId = len(self.data["pipelines"])
+		pipelineId = self.uid()
 		pipeline["_id"] = pipelineId
-		self.data["pipelines"].append(pipeline)
+		self.data["pipelines"][pipelineId] = pipeline
 		return pipelineId
 
 	def removePipeline(self, pid):
