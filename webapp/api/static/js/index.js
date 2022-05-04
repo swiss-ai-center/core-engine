@@ -73,9 +73,8 @@ function faceBlur() {
 
 function showResults(jobId, service) {
 	const resBox = document.querySelector("#box_result");
-	const resBoxContainer = document.querySelector("#box_results_container")
 	const imgOutput = document.querySelector("#image_result");
-	const imgContainer = document.querySelector("#img_results_container")
+	const imgContainer = document.querySelector("#img_results_container");
 	const url = `${engineURL}tasks/${jobId}`;
 
 	document.querySelectorAll(".results").forEach((el) => {
@@ -85,10 +84,10 @@ function showResults(jobId, service) {
 
 	axios.get(url)
 		.then((res) => {
-			resBox.value = ""
+			resBox.value = "";
 			imgContainer.disabled = true;
 			if (service === "FACE_ANALYZER") {
-				resBox.innerHTML = `${JSON.stringify(res.data, null, 4)}\n`;
+				resBox.value = `${JSON.stringify(res.data, null, 4)}\n`;
 				resBox.style.visibility = "visible";
 			} else if (service === "FACE_BLUR") {
 				axios.get(`${engineURL}tasks/${jobId}`)
