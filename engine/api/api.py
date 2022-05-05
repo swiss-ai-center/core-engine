@@ -6,7 +6,7 @@ import json
 import datetime
 
 from inspect import Parameter, Signature
-from typing import Union
+from typing import Union, List
 from fastapi import FastAPI, HTTPException, UploadFile, Depends, Request
 from fastapi.responses import RedirectResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -116,6 +116,11 @@ def createService(service: Union[interface.ServiceDescription, interface.Pipelin
 		api = engine.addPipeline(service.dict())
 		addRoute(**api)
 
+@app.get("/services", summary="Get all pipelines", response_model=List[interface.PipelineDescription])
+def getPipeline():
+	pipelines = engine.getPipelines()
+	return pipelines
+
 @app.get("/stats", summary="Get engine and pipelines statistics")
 def getTaskRaw():
 	stats = engine.getStats()
@@ -131,6 +136,11 @@ def removeService(serviceName: str):
 				break
 		# Force the regeneration of the schema
 		app.openapi_schema = None
+
+@app.get("/services/{serviceName}", summary="Get the pipeline description", response_model=interface.PipelineDescription)
+def getPipeline(serviceName: str):
+	pipeline = engine.getPipeline(serviceName)
+	return pipeline
 
 @app.post("/processing", include_in_schema=False)
 async def processCallback(task_id: str, request: Request):
