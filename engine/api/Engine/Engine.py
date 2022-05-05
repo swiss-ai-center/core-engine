@@ -214,5 +214,18 @@ class Engine():
 		stats["services"] = endpoints
 
 		return stats
+	
+	def getPipelines(self):
+		pipelines = []
+		for pid in self.endpoints.values():
+			pipelines.append(self.registry.getPipeline(pid))
+		return pipelines
+
+	def getPipeline(self, name):
+		if name not in self.endpoints:
+			raise ItemNotFound("Pipeline {name} not found".format(name=name))
+		pipelineId = self.endpoints[name]
+		pipelineTemplate = self.registry.getPipeline(pipelineId)
+		return pipelineTemplate
 
 # Race condition when processingFinished is called simultaneously for one same pipeline?
