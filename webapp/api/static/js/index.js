@@ -5,6 +5,8 @@ axios.defaults.headers.post['Access-Control-Allow-Origin'] = '*';
 const engineURL = "https://pi-engine.kube.isc.heia-fr.ch/"
 
 let tasks = []
+$( ".results" ).hide();
+
 function faceAnalyze() {
 	const url = `${engineURL}services/faceAnalyzer`
 	const imagefile = document.querySelector('#image_analyze');
@@ -72,28 +74,25 @@ function faceBlur() {
 
 
 function showResults(jobId, service) {
-	const resBox = document.querySelector("#box_result");
-	const imgOutput = document.querySelector("#image_result");
-	const imgContainer = document.querySelector("#img_results_container");
 	const url = `${engineURL}tasks/${jobId}`;
 
-	document.querySelectorAll(".results").forEach((el) => {
-		console.log(el);
-		el.style.visibility = "hidden";
-	});
+	$( ".results" ).prop( "disabled", true );
+	$( ".results" ).hide();
 
 	axios.get(url)
 		.then((res) => {
-			resBox.value = "";
-			imgContainer.disabled = true;
+			$('#box_result').val("").change();
 			if (service === "FACE_ANALYZER") {
-				resBox.value = `${JSON.stringify(res.data, null, 4)}\n`;
-				resBox.style.visibility = "visible";
+				$('#box_result').val(`${JSON.stringify(res.data, null, 4)}\n`).change();
+				$('#box_result').show();
+				$('#box_result').prop( "disabled", false );
+
 			} else if (service === "FACE_BLUR") {
 				axios.get(`${engineURL}tasks/${jobId}`)
 					.then((res) => {
-						imgOutput.src = res.data.blurred;
-						imgOutput.style.visibility = "visible";
+						$("#image_result").attr("src", res.data.blurred);
+						$("#image_result").show()
+						$('#image_result').prop( "disabled", false );
 					})
 			}
 		})
