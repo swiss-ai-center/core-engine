@@ -9,6 +9,7 @@ fastapi==0.75.0
 h11==0.13.0
 idna==3.3
 iniconfig==1.1.1
+motor==3.0.0
 packaging==21.3
 pluggy==1.0.0
 py==1.11.0

@@ -18,6 +18,7 @@ def resolveObjectAttr(obj, pathStr):
 
 class Context(object):
 	def __init__(self, ctx):
+		if "_id" in ctx and type(ctx["_id"]) is not str: ctx["_id"] = str(ctx["_id"])
 		super().__setattr__("data", ctx)
 		super().__setattr__("hidden", {})
 	def __getattr__(self, key):
@@ -183,6 +184,8 @@ class Node(Context):
 				inIdentifier = str.join(".", [self.id, "input", binaryKey])
 				outIdentifier = str.join(".", [self.id, "out", binaryKey])
 				self._pipeline.binaries[outIdentifier] = self._pipeline.binaries[inIdentifier]
+			self._pipeline.touch()
+			await self._pipeline._engine.registry.saveJob(self._pipeline)
 			await self._pipeline._engine.processTask(taskId, self.input)
 
 	def after(self, result):

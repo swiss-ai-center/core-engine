@@ -15,3 +15,7 @@ class NodeType(str, Enum):
 class StorageType(str, Enum):
 	LOCAL = "local"
 	S3 = "S3"
+
+class DBType(str, Enum):
+	MEMORY = "memory"
+	MONGO = "mongo"

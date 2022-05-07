@@ -14,19 +14,17 @@ class Engine():
 		self.client = httpx.AsyncClient()
 		self.endpoints = {}
 		self.api = {}
-
-		self.load()
 	
-	def load(self):
-		pipelines = self.registry.getPipelines()
+	async def load(self):
+		pipelines = await self.registry.getPipelines()
 		for pipeline in pipelines:
-			endpoint = Pipeline.endpoint(pipeline)
+			endpoint = Pipeline.api(pipeline)["route"]
 			if endpoint is not None:
-				self.endpoints[endpoint] = pipeline["_id"]
+				self.endpoints[endpoint] = str(pipeline["_id"])
 				self.api[endpoint] = Pipeline.api(pipeline)
 	
-	def addPipeline(self, pipeline):
-		pid = self.registry.addPipeline(pipeline)
+	async def addPipeline(self, pipeline):
+		pid = await self.registry.addPipeline(pipeline)
 		api = Pipeline.api(pipeline)
 		endpoint = api["route"]
 		if endpoint is not None:
@@ -34,11 +32,11 @@ class Engine():
 			self.api[endpoint] = api
 		return api
 
-	def removePipeline(self, endpoint):
+	async def removePipeline(self, endpoint):
 		if endpoint not in self.endpoints:
 			raise ItemNotFound("Pipeline {endpoint} not found".format(endpoint=endpoint))
 		pid = self.endpoints[endpoint]
-		self.registry.removePipeline(pid)
+		await self.registry.removePipeline(pid)
 		self.endpoints.pop(endpoint)
 		self.api.pop(endpoint)
 	
@@ -47,21 +45,21 @@ class Engine():
 			raise ItemNotFound("Pipeline {endpoint} not found".format(endpoint=endpoint))
 		
 		pipelineId = self.endpoints[endpoint]
-		pipelineTemplate = self.registry.getPipeline(pipelineId)
+		pipelineTemplate = await self.registry.getPipeline(pipelineId)
 		job = Pipeline.build(pipelineTemplate["nodes"], pipelineId)
 		job.node(job.entry).before()
-		self.registry.saveJob(job)
-		taskId = self.registry.addTask({"job": job._id, "node": job.entry})
-		requestId = self.registry.addTask({"job": job._id})
+		await self.registry.saveJob(job)
+		taskId = await self.registry.addTask({"job": job._id, "node": job.entry})
+		requestId = await self.registry.addTask({"job": job._id})
 		await self.processTask(taskId, data, binaries)
 		return requestId
 
 	async def processTask(self, taskId, data, binaries=[]):
-		task = self.registry.popTask(taskId)
+		task = await self.registry.popTask(taskId)
 		if task is None:
 			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
 		
-		job = self.registry.getJob(task["job"])
+		job = await self.registry.getJob(task["job"])
 		if job is None:
 			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
 		
@@ -86,40 +84,41 @@ class Engine():
 			succ = job.node(nextId)
 			if succ.ready():
 				succ.before()
-				taskId = self.registry.addTask({"job": job._id, "node": nextId})
+				taskId = await self.registry.addTask({"job": job._id, "node": nextId})
 				toProcess.append((succ, taskId))
 		
 		if finishedNode.type == NodeType.END:
 			job.status = Status.FINISHED
 
 		job.touch()
-		self.registry.saveJob(job)
+		await self.registry.saveJob(job)
 		
 		# Refactor this?!
 		for item in toProcess:
 			node, taskId = item
+			# Race condition if we are processing multiple generic nodes here, because each one of them will call processTask and pipeline data will be overwritten
 			await node.process(taskId)
 	
-	def pollTask(self, taskId):
-		task = self.registry.getTask(taskId)
+	async def pollTask(self, taskId):
+		task = await self.registry.getTask(taskId)
 		if task is None:
 			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
-		job = self.registry.getJob(task["job"])
+		job = await self.registry.getJob(task["job"])
 		if job is None:
 			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
 		
 		return job.status
 	
-	def getResult(self, taskId):
-		task = self.registry.getTask(taskId)
+	async def getResult(self, taskId):
+		task = await self.registry.getTask(taskId)
 		if task is None:
 			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
 		
-		job = self.registry.getJob(task["job"])
+		job = await self.registry.getJob(task["job"])
 		if job is None:
 			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
 
-		if job.status is not Status.FINISHED:
+		if job.status != Status.FINISHED:
 			raise NotFinished("Pipeline is not finished ({status})".format(status=job.status))
 
 		out = job.node(job.end).out
@@ -130,15 +129,15 @@ class Engine():
 		return out
 	
 	async def getResultFile(self, taskId, fileName):
-		task = self.registry.getTask(taskId)
+		task = await self.registry.getTask(taskId)
 		if task is None:
 			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
 		
-		job = self.registry.getJob(task["job"])
+		job = await self.registry.getJob(task["job"])
 		if job is None:
 			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
 
-		if job.status is not Status.FINISHED:
+		if job.status != Status.FINISHED:
 			raise NotFinished("Pipeline is not finished ({status})".format(status=job.status))
 
 		identifier = str.join(".", [job.end, "out", fileName])
@@ -149,18 +148,18 @@ class Engine():
 		binUid = job.binaries[identifier]
 		return await self.registry.getBinaryStream(binUid)
 
-	def getJobRaw(self, taskId):
-		task = self.registry.getTask(taskId)
+	async def getJobRaw(self, taskId):
+		task = await self.registry.getTask(taskId)
 		if task is None:
 			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
 		
-		job = self.registry.getJob(task["job"])
+		job = await self.registry.getJob(task["job"])
 		if job is None:
 			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
 		
 		return job.data
 
-	def createServicePipeline(self, url, api):
+	async def createServicePipeline(self, url, api):
 		name = api["route"]
 
 		entry = {"type": NodeType.ENTRY, "id": name + "-entry", "api": api, "next": [name + "-component"]}
@@ -168,18 +167,18 @@ class Engine():
 		end = {"type": NodeType.END, "id": name + "-end"}
 		
 		pipeline = {"nodes": [entry, component, end]}
-		self.addPipeline(pipeline)
+		await self.addPipeline(pipeline)
 
 	async def clean(self, delta):
 		now = datetime.datetime.utcnow()
-		for job in self.registry.getAllJobs():
+		for job in await self.registry.getAllJobs():
 			if now - job.timestamp() > delta:
 				binUids = set([job.binaries[binary] for binary in job.binaries])
 				for binUid in binUids:
 					await self.registry.removeBinary(binUid)
-				self.registry.removeJob(job._id)
+				await self.registry.removeJob(job._id)
 	
-	def getStats(self):
+	async def getStats(self):
 		# Reverse id to endpoints
 		models = {}
 		for e in self.endpoints:
@@ -193,11 +192,11 @@ class Engine():
 		finished = 0
 		failed = 0
 		
-		jobs = self.registry.getAllJobs()
+		jobs = await self.registry.getAllJobs()
 		for job in jobs:
-			if job.status is Status.RUNNING: running += 1
-			elif job.status is Status.FINISHED: finished += 1
-			elif job.status is Status.ERROR: failed += 1
+			if job.status == Status.RUNNING: running += 1
+			elif job.status == Status.FINISHED: finished += 1
+			elif job.status == Status.ERROR: failed += 1
 			
 			eid = job.model
 			if eid in models:
@@ -215,17 +214,15 @@ class Engine():
 
 		return stats
 	
-	def getPipelines(self):
-		pipelines = []
-		for pid in self.endpoints.values():
-			pipelines.append(self.registry.getPipeline(pid))
-		return pipelines
+	async def getPipelines(self):
+		return self.registry.getPipelines()
 
-	def getPipeline(self, name):
+	async def getPipeline(self, name):
 		if name not in self.endpoints:
 			raise ItemNotFound("Pipeline {name} not found".format(name=name))
 		pipelineId = self.endpoints[name]
-		pipelineTemplate = self.registry.getPipeline(pipelineId)
+		pipelineTemplate = await self.registry.getPipeline(pipelineId)
 		return pipelineTemplate
 
 # Race condition when processingFinished is called simultaneously for one same pipeline?
+# We should put processTask in a worker!
