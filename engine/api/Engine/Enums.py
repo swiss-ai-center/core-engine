@@ -11,3 +11,7 @@ class NodeType(str, Enum):
 	ENTRY = "entry"
 	END = "end"
 	SERVICE = "service"
+
+class StorageType(str, Enum):
+	LOCAL = "local"
+	S3 = "S3"

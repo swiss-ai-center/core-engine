@@ -32,5 +32,15 @@ spec:
           value: "http://service-engine.project-dev.svc.cluster.local"
         - name: APP_EXTERNAL_URL
           value: "https://pi-engine.kube.isc.heia-fr.ch"
+        - name: S3_URL
+          value: "https://minio1.isc.heia-fr.ch:9007"
+        - name: S3_KEY_ID
+          value: S3_KEY_ID_PLACEHOLDER
+        - name: S3_SECRET_KEY
+          value: S3_SECRET_KEY_PLACEHOLDER
+        - name: S3_BUCKET
+          value: "mse-pi"
+        - name: REG_STORAGE_TYPE
+          value: "S3"
       imagePullSecrets:
       - name: mysecretdeployer

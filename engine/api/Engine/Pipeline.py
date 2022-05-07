@@ -122,7 +122,7 @@ class Node(Context):
 					break
 		
 		# Call specific ready function
-		if self.ready_func is not None:
+		else:
 			locs = self.locals()
 			# Inject modifiable object
 			status = Context({})
@@ -164,7 +164,7 @@ class Node(Context):
 			identifier = str.join(".", [self.id, "input", key])
 			if identifier in self._pipeline.binaries:
 				binUid = self._pipeline.binaries[identifier]
-				binaries[key] = self._pipeline._engine.registry.getBinaryStream(binUid)
+				binaries[key] = await self._pipeline._engine.registry.getBinaryStream(binUid)
 		
 		# Remove binaries from body
 		[jsonBody.pop(key) for key in binaries.keys()]

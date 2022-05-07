@@ -1,3 +1,4 @@
+aioboto3==9.6.0
 anyio==3.5.0
 asgiref==3.5.0
 attrs==21.4.0
