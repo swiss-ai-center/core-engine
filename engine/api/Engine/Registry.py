@@ -3,6 +3,7 @@ import os
 import asyncio
 import aioboto3
 import uuid
+import datetime
 import copy
 import motor.motor_asyncio
 
@@ -205,3 +206,10 @@ class Registry():
 		elif self.storageType == StorageType.S3:
 			obj = await self.getS3Obj(uid)
 			await obj.delete()
+	
+	async def clean(self, delta):
+		if self.storageType == StorageType.S3:
+			now = datetime.datetime.utcnow()
+			async for obj in self.storage.objects.all():
+				if now - obj.last_modified > delta:
+					await obj.delete()
