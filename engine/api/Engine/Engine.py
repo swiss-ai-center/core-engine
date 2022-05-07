@@ -129,7 +129,7 @@ class Engine():
 				out[key] = "{engine}/tasks/{taskId}/files/{name}".format(engine=self.externalRoute, taskId=taskId, name=key)
 		return out
 	
-	def getResultFile(self, taskId, fileName):
+	async def getResultFile(self, taskId, fileName):
 		task = self.registry.getTask(taskId)
 		if task is None:
 			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
@@ -147,7 +147,7 @@ class Engine():
 			raise ItemNotFound("No file named " + fileName + " for task " + taskId)
 
 		binUid = job.binaries[identifier]
-		return self.registry.getBinaryStream(binUid)
+		return await self.registry.getBinaryStream(binUid)
 
 	def getJobRaw(self, taskId):
 		task = self.registry.getTask(taskId)
@@ -176,7 +176,7 @@ class Engine():
 			if now - job.timestamp() > delta:
 				binUids = set([job.binaries[binary] for binary in job.binaries])
 				for binUid in binUids:
-					self.registry.removeBinary(binUid)
+					await self.registry.removeBinary(binUid)
 				self.registry.removeJob(job._id)
 	
 	def getStats(self):

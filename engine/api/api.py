@@ -10,11 +10,10 @@ from typing import Union, List
 from fastapi import FastAPI, HTTPException, UploadFile, Depends, Request
 from fastapi.responses import RedirectResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from .Engine import Engine, Registry, Cron
+from .Engine import Engine, Registry, Cron, Enums
 from . import interface
 
 def addRoute(route, body, summary=None, description=None):
-	
 	# This should be wrapped in a functor, howevera bug in starlette prevents the handler to be correctly called if __call__ is declared async. This should be fixed in version 0.21.0 (https://github.com/encode/starlette/pull/1444).
 	async def handler(*args, **kwargs):
 		jobData = {}
@@ -59,17 +58,38 @@ def addRoute(route, body, summary=None, description=None):
 	app.openapi_schema = None
 
 async def startup():
+	global registry
+	global engine
+	global timer
+
+	registry = await Registry.Registry.create(
+		s3_url=os.environ["S3_URL"] if "S3_URL" in os.environ else None,
+		s3_zone=os.environ["S3_ZONE"] if "S3_ZONE" in os.environ else None,
+		s3_key=os.environ["S3_KEY_ID"] if "S3_KEY_ID" in os.environ else None,
+		s3_secret=os.environ["S3_SECRET_KEY"] if "S3_SECRET_KEY" in os.environ else None,
+		s3_bucket=os.environ["S3_BUCKET"] if "S3_BUCKET" in os.environ else None,
+		binFolder=os.environ["REG_LOCAL_DATA"] if "REG_LOCAL_DATA" in os.environ else None,
+		storageType=os.environ["REG_STORAGE_TYPE"] if "REG_STORAGE_TYPE" in os.environ else Enums.StorageType.LOCAL)
+	
+	engine = Engine.Engine(
+		registry=registry,
+		route=os.environ["APP_ENGINE"] if "APP_ENGINE" in os.environ else None,
+		externalRoute=os.environ["APP_EXTERNAL_URL"] if "APP_EXTERNAL_URL" in os.environ else None)
+	
+	timer = Cron.Timer(
+		timeout=int(os.environ["APP_CRON"]) if "APP_CRON" in os.environ else 300,
+		callback=engine.clean,
+		delta=datetime.timedelta(seconds=int(os.environ["APP_LIFESPAN"]) if "APP_LIFESPAN" in os.environ else 1800))
+
 	timer.start()
 
 async def shutdown():
 	timer.stop()
 
 app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
-registry = Registry.Registry("/tmp/registry")
-engine = Engine.Engine(
-	registry,
-	os.environ["APP_ENGINE"] if "APP_ENGINE" in os.environ else None,
-	os.environ["APP_EXTERNAL_URL"] if "APP_EXTERNAL_URL" in os.environ else None)
+registry = None
+engine = None
+timer = None
 
 app.add_middleware(
     CORSMiddleware,
@@ -78,11 +98,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-timer = Cron.Timer(
-	timeout=int(os.environ["APP_CRON"]) if "APP_CRON" in os.environ else 300,
-	callback=engine.clean,
-	delta=datetime.timedelta(seconds=int(os.environ["APP_LIFESPAN"]) if "APP_LIFESPAN" in os.environ else 1800))
 
 @app.get("/tasks/{taskId}", summary="Get results of a task")
 def getTaskResult(taskId: str):
@@ -100,8 +115,8 @@ def getTaskRaw(taskId: str):
 	return JSONResponse(raw)
 
 @app.get("/tasks/{taskId}/files/{fileName}", summary="Retrieve a binary result of a task")
-def getTaskResultFile(taskId: str, fileName: str):
-	stream = engine.getResultFile(taskId, fileName)
+async def getTaskResultFile(taskId: str, fileName: str):
+	stream = await engine.getResultFile(taskId, fileName)
 	return StreamingResponse(stream, media_type="application/octet-stream")
 
 @app.post("/services", summary="Create a new service or pipeline")
