@@ -14,7 +14,27 @@ class Engine():
 		self.client = httpx.AsyncClient()
 		self.endpoints = {}
 		self.api = {}
-	
+		
+		# Worker
+		self.asyncTask = None
+		self.running = False
+		self.tasks = asyncio.Queue()
+
+	def start(self):
+		self.running = True
+		self.asyncTask = asyncio.create_task(self.run())
+
+	async def stop(self):
+		self.running = False
+		await self.tasks.put(None)
+		await self.asyncTask
+
+	async def run(self):
+		while self.running:
+			task = await self.tasks.get()
+			if task is not None:
+				await self._processTask(*task)
+
 	async def load(self):
 		pipelines = await self.registry.getPipelines()
 		for pipeline in pipelines:
@@ -55,6 +75,9 @@ class Engine():
 		return requestId
 
 	async def processTask(self, taskId, data, binaries=[]):
+		await self.tasks.put([taskId, data, binaries])
+
+	async def _processTask(self, taskId, data, binaries=[]):
 		task = await self.registry.popTask(taskId)
 		if task is None:
 			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
@@ -96,9 +119,10 @@ class Engine():
 		# Refactor this?!
 		for item in toProcess:
 			node, taskId = item
-			# Race condition if we are processing multiple generic nodes here, because each one of them will call processTask and pipeline data will be overwritten
 			await node.process(taskId)
-	
+			job.touch()
+			await self.registry.saveJob(job)
+
 	async def pollTask(self, taskId):
 		task = await self.registry.getTask(taskId)
 		if task is None:

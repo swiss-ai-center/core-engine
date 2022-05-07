@@ -10,8 +10,13 @@ import motor.motor_asyncio
 from bson.objectid import ObjectId
 from contextlib import AsyncExitStack
 from .Enums import StorageType, DBType
-from .Errors import ItemNotFound
+from .Errors import ItemNotFound, BadID
 from .Pipeline import Pipeline
+
+def strToId(objId):
+	if not ObjectId.is_valid(objId):
+		raise BadID("Invalid identifier " + objId)
+	return ObjectId(objId)
 
 class Registry():
 	def __init__(self, storage, db, storageType=StorageType.LOCAL, dbType=DBType.MEMORY):
@@ -84,7 +89,7 @@ class Registry():
 		if self.dbType == DBType.MEMORY:
 			return self.db["pipelines"][pipelineId]
 		elif self.dbType == DBType.MONGO:
-			return await self.db.pipelines.find_one({"_id": ObjectId(pipelineId)})
+			return await self.db.pipelines.find_one({"_id": strToId(pipelineId)})
 
 	async def addPipeline(self, pipeline):
 		pipelineId = None
@@ -101,7 +106,7 @@ class Registry():
 		if self.dbType == DBType.MEMORY:
 			self.db["pipelines"].pop(pid)
 		elif self.dbType == DBType.MONGO:
-			await self.db.pipelines.delete_one({"_id": ObjectId(pid)})
+			await self.db.pipelines.delete_one({"_id": strToId(pid)})
 
 	async def saveJob(self, job):
 		if self.dbType == DBType.MEMORY:
@@ -115,14 +120,14 @@ class Registry():
 			else:
 				jobData = copy.deepcopy(job.data)
 				jobId = jobData.pop("_id")
-				await self.db.jobs.find_one_and_replace({"_id": ObjectId(jobId)}, jobData)
+				await self.db.jobs.find_one_and_replace({"_id": strToId(jobId)}, jobData)
 
 	async def getJob(self, jobId):
 		if self.dbType == DBType.MEMORY:
 			if jobId in self.db["jobs"]:
 				return Pipeline(self.db["jobs"][jobId])
 		else:
-			jobData = await self.db.jobs.find_one({"_id": ObjectId(jobId)})
+			jobData = await self.db.jobs.find_one({"_id": strToId(jobId)})
 			if jobData is not None:
 				return Pipeline(jobData)
 		return None
@@ -138,7 +143,7 @@ class Registry():
 		if self.dbType == DBType.MEMORY:
 			self.db["jobs"].pop(jobId)
 		elif self.dbType == DBType.MONGO:
-			await self.db.jobs.delete_one({"_id": ObjectId(jobId)})
+			await self.db.jobs.delete_one({"_id": strToId(jobId)})
 
 	async def addTask(self, task):
 		taskId = None
@@ -155,7 +160,7 @@ class Registry():
 			if taskId in self.db["tasks"]:
 				return self.db["tasks"][taskId]
 		else:
-			return await self.db.tasks.find_one({"_id": ObjectId(taskId)})
+			return await self.db.tasks.find_one({"_id": strToId(taskId)})
 		return None
 
 	async def popTask(self, taskId):
@@ -163,7 +168,7 @@ class Registry():
 			if taskId in self.db["tasks"]:
 				return self.db["tasks"].pop(taskId)
 		else:
-			return await self.db.tasks.find_one_and_delete({"_id": ObjectId(taskId)})
+			return await self.db.tasks.find_one_and_delete({"_id": strToId(taskId)})
 		return None
 	
 	async def storeBinary(self, stream):

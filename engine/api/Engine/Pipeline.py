@@ -184,8 +184,6 @@ class Node(Context):
 				inIdentifier = str.join(".", [self.id, "input", binaryKey])
 				outIdentifier = str.join(".", [self.id, "out", binaryKey])
 				self._pipeline.binaries[outIdentifier] = self._pipeline.binaries[inIdentifier]
-			self._pipeline.touch()
-			await self._pipeline._engine.registry.saveJob(self._pipeline)
 			await self._pipeline._engine.processTask(taskId, self.input)
 
 	def after(self, result):

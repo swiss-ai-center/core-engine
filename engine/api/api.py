@@ -81,15 +81,16 @@ async def startup():
 	
 	# To refactor?
 	await engine.load()
+	engine.start()
 	
 	timer = Cron.Timer(
 		timeout=int(os.environ["APP_CRON"]) if "APP_CRON" in os.environ else 300,
 		callback=engine.clean,
 		delta=datetime.timedelta(seconds=int(os.environ["APP_LIFESPAN"]) if "APP_LIFESPAN" in os.environ else 1800))
-
 	timer.start()
 
 async def shutdown():
+	await engine.stop()
 	timer.stop()
 
 app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
