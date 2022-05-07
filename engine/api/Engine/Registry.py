@@ -214,7 +214,8 @@ class Registry():
 	
 	async def clean(self, delta):
 		if self.storageType == StorageType.S3:
-			now = datetime.datetime.utcnow()
+			now = datetime.datetime.now(datetime.timezone.utc)
 			async for obj in self.storage.objects.all():
-				if now - obj.last_modified > delta:
+				timestamp = await obj.last_modified
+				if now - timestamp > delta:
 					await obj.delete()

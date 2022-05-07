@@ -83,20 +83,31 @@ async def startup():
 	await engine.load()
 	engine.start()
 	
-	timer = Cron.Timer(
-		timeout=int(os.environ["APP_CRON"]) if "APP_CRON" in os.environ else 300,
+	tick = int(os.environ["APP_CRON"]) if "APP_CRON" in os.environ else 300
+	lifespan = int(os.environ["APP_LIFESPAN"]) if "APP_LIFESPAN" in os.environ else 1800
+	engineCleanTimer = Cron.Timer(
+		timeout=tick,
 		callback=engine.clean,
-		delta=datetime.timedelta(seconds=int(os.environ["APP_LIFESPAN"]) if "APP_LIFESPAN" in os.environ else 1800))
-	timer.start()
+		delta=datetime.timedelta(seconds=lifespan))
+	engineCleanTimer.start()
+	timers.append(engineCleanTimer)
+
+	s3CleanTimer = Cron.Timer(
+		timeout=20*tick,
+		callback=registry.clean,
+		delta=datetime.timedelta(seconds=10*lifespan))
+	s3CleanTimer.start()
+	timers.append(s3CleanTimer)
 
 async def shutdown():
 	await engine.stop()
-	timer.stop()
+	for timer in timers:
+		timer.stop()
 
 app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
 registry = None
 engine = None
-timer = None
+timers = []
 
 app.add_middleware(
     CORSMiddleware,
