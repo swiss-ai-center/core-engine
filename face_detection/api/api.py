@@ -1,9 +1,7 @@
-import asyncio
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, UploadFile
 import httpx
 from .worker import Worker, Callback
 from . import interface
-import json
 import os
 
 async def startup():
@@ -45,11 +43,10 @@ app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
 # 	return interface.TaskId(task_id=task_id)
 
 # This is a route for a service that takes a binary file as input, plus a custom "data1" query param
-@app.post("/compute", response_model = interface.TaskId)
+@app.post("/compute", response_model=interface.TaskId)
 async def post(image: UploadFile, callback_url: str = None, task_id: str = None):
 	if task_id is None:
 		task_id = str(interface.uid())
 	task = {"callback_url": callback_url, "task_id": task_id, "image": image}
 	await worker.addTask(task)
 	return interface.TaskId(task_id=task_id)
-

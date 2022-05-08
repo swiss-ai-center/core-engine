@@ -3,7 +3,6 @@ import httpx
 import io
 import cv2
 import numpy as np
-from fastapi import Response
 import json
 
 
@@ -36,7 +35,7 @@ class Worker():
 				result = await self.process(task)
 				if result is not None and self.next is not None:
 					await self.next.addTask(result)
-	
+
 	def clamp(self, val, smallest, largest):
 		return max(smallest, min(val, largest))
 
@@ -44,33 +43,28 @@ class Worker():
 		raw_img = await task["image"].read()
 		img_strm = io.BytesIO(raw_img)
 		img = cv2.imdecode(np.frombuffer(img_strm.read(), np.uint8), 1)
-		
+
 		raw_areas = await task["areas"].read()
 		areas = json.loads(raw_areas)
 		areas = areas['areas']
-		print(areas)
-		task["areas"]=areas
+		task["areas"] = areas
 		# [x1, y1, x2, y2]
-		rows=img.shape[0]
-		cols=img.shape[1]
-		print(type(areas), areas, rows, cols)
-		
+		rows = img.shape[0]
+		cols = img.shape[1]
+
 		for a in areas:
-			print(a)
 			a[0] = self.clamp(int(a[0]), 0, cols)
 			a[1] = self.clamp(int(a[1]), 0, rows)
 			a[2] = self.clamp(int(a[2]), 0, cols)
 			a[3] = self.clamp(int(a[3]), 0, rows)
-		
+
 		for a in areas:
 			x1, x2, y1, y2 = a[0], a[2], a[1], a[3]
-			img[y1:y2+1, x1:x2+1] = cv2.blur(img[y1:y2+1, x1:x2+1] ,(23,23))
-		
-
-		#cv2.imwrite('res.jpg', img)
+			img[y1:y2 + 1, x1:x2 + 1] = cv2.blur(img[y1:y2 + 1, x1:x2 + 1], (23, 23))
+		# cv2.imwrite('res.jpg', img)
 		is_success, outBuff = cv2.imencode(".jpg", img)
 		task["result"] = outBuff.tobytes()
-		#await self.client.post(url, params={"task_id": task_id}, files={"result": task["result"]})
+		# await self.client.post(url, params={"task_id": task_id}, files={"result": task["result"]})
 		return task
 
 class Callback(Worker):

@@ -1,10 +1,10 @@
-import asyncio
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, UploadFile
 import httpx
 from .worker import Worker, Callback
 from . import interface
-import json
 import os
+import io
+import base64
 
 
 async def startup():
@@ -49,7 +49,7 @@ res = []
 # 	return interface.TaskId(task_id=task_id)
 
 # This is a route for a service that takes a binary file as input, plus a custom "data1" query param
-@app.post("/compute", response_model = interface.TaskId)
+@app.post("/compute", response_model=interface.TaskId)
 async def post(data: UploadFile, image: UploadFile, callback_url: str = None, task_id: str = None):
 	if task_id is None:
 		task_id = str(interface.uid())
@@ -57,23 +57,16 @@ async def post(data: UploadFile, image: UploadFile, callback_url: str = None, ta
 	await worker.addTask(task)
 	return interface.TaskId(task_id=task_id)
 
-
-
-
-
-@app.post("/result", response_model = interface.TaskId)
+@app.post("/result", response_model=interface.TaskId)
 async def result_post(image: UploadFile, task_id: str = None):
 	raw_img = await image.read()
 	img_strm = io.BytesIO(raw_img)
 	buff = img_strm
 	img_str = base64.b64encode(buff.getvalue())
 	res.append(img_str)
-	print(len(res))
 	return interface.TaskId(task_id="-1")
 
-
-@app.get("/result", response_model = interface.TaskId)
+@app.get("/result", response_model=interface.TaskId)
 async def result_get():
-	img_str = res.pop()	
+	img_str = res.pop()
 	return interface.TaskId(task_id=f'<img src="data:image/jpg;base64, {img_str}/>')
-

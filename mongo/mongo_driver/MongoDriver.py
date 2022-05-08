@@ -1,11 +1,10 @@
-from datetime import datetime as Datetime
 import os
-from typing import List
 
 from pymongo import MongoClient
 
 class MongoDriver:
 	database = None
+
 	def __init__(
 		self,
 		username: str = "registry",
@@ -22,7 +21,7 @@ class MongoDriver:
 		databaseName = os.environ["MONGO_AUTHDB"] if "MONGO_AUTHDB" in os.environ else databaseName
 
 		self.databaseName = databaseName
-		print(host, port, databaseName)
+		# print(host, port, databaseName)
 
 		self.uri: str = (f"mongodb://{username}:{password}@{host}:{port}/{databaseName}")
 
@@ -30,10 +29,10 @@ class MongoDriver:
 
 	def open(self):
 		if self.database is None:
-			print("Connection to mongoDB server...")
+			print("Connection to mongoDB server...") # noqa T201
 			self.connection: MongoClient = MongoClient(self.uri)
 			self.database = self.connection[self.databaseName]
-			print("Connection OK")
+			print("Connection OK") # noqa T201
 
 		return self.connection
 
@@ -44,4 +43,3 @@ class MongoDriver:
 
 	def close(self):
 		self.connection.close()
-
