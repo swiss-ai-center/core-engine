@@ -179,10 +179,11 @@ class Registry():
 		if type(stream) is bytes:
 			data = stream
 		elif hasattr(stream, "read"):
-			if inspect.isawaitable(stream.read):
-				data = await stream.read()
+			thing = stream.read()
+			if inspect.isawaitable(thing):
+				data = await thing
 			else:
-				data = stream.read()
+				data = thing
 
 		if self.storageType == StorageType.LOCAL:
 			w = open(os.path.join(self.storage, uid), "wb")
