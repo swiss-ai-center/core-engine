@@ -124,8 +124,7 @@ async def getTaskResult(taskId: str):
 
 @app.get("/tasks/{taskId}/status", summary="Get the status of a task")
 async def getTaskStatus(taskId: str):
-	status = await engine.pollTask(taskId)
-	return {"id": taskId, "status": status}
+	return await engine.pollTask(taskId)
 
 @app.get("/tasks/{taskId}/raw", summary="Get raw pipeline data for a task")
 async def getTaskRaw(taskId: str):
@@ -177,13 +176,21 @@ async def getPipeline(serviceName: str):
 
 @app.post("/processing", include_in_schema=False)
 async def processCallback(task_id: str, request: Request):
+	error = False
+	errorMsg = ""
+
 	data = {}
 	binaries = []
 	
 	contentType = request.headers["content-type"].replace(";", "")
 
 	if "application/json" in contentType:
-		data.update(await request.json())
+		requestData = await request.json()
+		if "type" in requestData and requestData["type"] == "error":
+			error = True
+			errorMsg = requestData["message"] if "message" in requestData else ""
+		else:
+			data.update(requestData)
 	elif "multipart/form-data" in contentType:
 		form = await request.form()
 		for k in form:
@@ -194,5 +201,8 @@ async def processCallback(task_id: str, request: Request):
 			else:
 				data[k] = obj
 				binaries.append(k)
-
-	await engine.processTask(task_id, data, binaries)
+	
+	if error:
+		await engine.processError(task_id, errorMsg)
+	else:
+		await engine.processTask(task_id, data, binaries)

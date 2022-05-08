@@ -57,6 +57,7 @@ class Pipeline(Context):
 		p.entry = None
 		p.end = None
 		p.status = Status.RUNNING
+		p.error = None
 		p.lastUpdate = None
 		p.model = templateId
 		
@@ -124,13 +125,18 @@ class Node(Context):
 		
 		# Call specific ready function
 		else:
-			locs = self.locals()
-			# Inject modifiable object
-			status = Context({})
-			status.ready = isReady
-			locs["status"] = status
-			exec(self.ready_func, locs)
-			isReady = status.ready
+			try:
+				locs = self.locals()
+				# Inject modifiable object
+				status = Context({})
+				status.ready = isReady
+				locs["status"] = status
+				exec(self.ready_func, locs)
+				isReady = status.ready
+			except Exception as e:
+				self._pipeline.status = Status.ERROR
+				self._pipeline.error = "Failed to assert ready state for node {node}: {error}".format(node=self.id, error=e)
+				return False
 
 		return isReady
 
@@ -155,7 +161,11 @@ class Node(Context):
 				self._pipeline.binaries[inIdentifier] = resolvedValue
 
 		if self.before_func is not None:
-			exec(self.before_func, locs, globals())
+			try:
+				exec(self.before_func, locs, globals())
+			except Exception as e:
+				self._pipeline.status = Status.ERROR
+				self._pipeline.error = "Failed to pre-process node {node}: {error}".format(node=self.id, error=e)
 
 	async def process(self, taskId):
 		binaries = {}
@@ -171,14 +181,18 @@ class Node(Context):
 		[jsonBody.pop(key) for key in binaries.keys()]
 		
 		if self.type == NodeType.SERVICE:
-			params = {"callback_url": self._pipeline._engine.route + "/processing", "task_id": taskId}
-			if len(binaries) == 0:
-				# Pure json service
-				await self.client.post(self.url, params=params, json=self.input)
-			else:
-				# Multipart request with json and binaries
-				binaries["data"] = json.dumps(jsonBody).encode("utf8")
-				await self._pipeline._engine.client.post(self.url, params=params, files=binaries)
+			try:
+				params = {"callback_url": self._pipeline._engine.route + "/processing", "task_id": taskId}
+				if len(binaries) == 0:
+					# Pure json service
+					await self.client.post(self.url, params=params, json=self.input)
+				else:
+					# Multipart request with json and binaries
+					binaries["data"] = json.dumps(jsonBody).encode("utf8")
+					await self._pipeline._engine.client.post(self.url, params=params, files=binaries)
+			except Exception as e:
+				self._pipeline.status = Status.ERROR
+				self._pipeline.error = "Failed to process service node {node}: {error}".format(node=self.id, error=e)
 		else:
 			for binaryKey in binaries:
 				inIdentifier = str.join(".", [self.id, "input", binaryKey])
@@ -189,7 +203,11 @@ class Node(Context):
 	def after(self, result):
 		self.out = result
 		if self.after_func is not None:
-			exec(self.after_func, self.locals(), globals())
+			try:
+				exec(self.after_func, self.locals(), globals())
+			except Exception as e:
+				self._pipeline.status = Status.ERROR
+				self._pipeline.error = "Failed to post-process node {node}: {error}".format(node=self.id, error=e)
 	
 	def locals(self):
 		# So much sugar!!!

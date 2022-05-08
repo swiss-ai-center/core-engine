@@ -4,7 +4,7 @@ import datetime
 
 from .Pipeline import Pipeline, Node
 from .Enums import Status, NodeType
-from .Errors import ItemNotFound, NotFinished
+from .Errors import ItemNotFound, BadStatus
 
 class Engine():
 	def __init__(self, registry, route, externalRoute):
@@ -18,7 +18,7 @@ class Engine():
 		# Worker
 		self.asyncTask = None
 		self.running = False
-		self.tasks = asyncio.Queue()
+		self.messages = asyncio.Queue()
 
 	def start(self):
 		self.running = True
@@ -26,13 +26,15 @@ class Engine():
 
 	async def stop(self):
 		self.running = False
-		await self.tasks.put(None)
+		await self.messages.put(None)
 		await self.asyncTask
 
 	async def run(self):
 		while self.running:
-			task = await self.tasks.get()
-			if task is not None:
+			msg = await self.messages.get()
+			if msg is not None:
+				error = not msg[0]
+				task = msg[1:]
 				await self._processTask(*task)
 
 	async def load(self):
@@ -74,8 +76,25 @@ class Engine():
 		await self.processTask(taskId, data, binaries)
 		return requestId
 
+	async def processError(self, taskId, message):
+		await self.messages.put([False, taskId, message])
+
+	async def _processError(self, taskId, message):
+		task = await self.registry.popTask(taskId)
+		if task is None:
+			raise ItemNotFound("Task {taskId} not found".format(taskId=taskId))
+		
+		job = await self.registry.getJob(task["job"])
+		if job is None:
+			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
+		
+		job.status = Status.ERROR
+		job.error = message
+		job.touch()
+		await self.registry.saveJob(job)
+
 	async def processTask(self, taskId, data, binaries=[]):
-		await self.tasks.put([taskId, data, binaries])
+		await self.messages.put([True, taskId, data, binaries])
 
 	async def _processTask(self, taskId, data, binaries=[]):
 		task = await self.registry.popTask(taskId)
@@ -86,6 +105,9 @@ class Engine():
 		if job is None:
 			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
 		
+		if job.status != Status.RUNNING:
+			raise BadStatus("Pipeline is finished")
+
 		job.hide("_engine", self)
 		nodeId = task["node"]
 		finishedNode = job.node(nodeId)
@@ -131,7 +153,10 @@ class Engine():
 		if job is None:
 			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
 		
-		return job.status
+		status = {"status": job.status}
+		if job.status == Status.ERROR:
+			status["message"] = job.error
+		return status
 	
 	async def getResult(self, taskId):
 		task = await self.registry.getTask(taskId)
@@ -143,7 +168,7 @@ class Engine():
 			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
 
 		if job.status != Status.FINISHED:
-			raise NotFinished("Pipeline is not finished ({status})".format(status=job.status))
+			raise BadStatus("Pipeline is not finished ({status})".format(status=job.status))
 
 		out = job.node(job.end).out
 		for key in job.node(job.end).out:
@@ -162,7 +187,7 @@ class Engine():
 			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
 
 		if job.status != Status.FINISHED:
-			raise NotFinished("Pipeline is not finished ({status})".format(status=job.status))
+			raise BadStatus("Pipeline is not finished ({status})".format(status=job.status))
 
 		identifier = str.join(".", [job.end, "out", fileName])
 
