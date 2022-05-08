@@ -189,7 +189,7 @@ class Node(Context):
 
 	def locals(self):
 		# So much sugar!!!
-		loc = {"node": self, "pipeline": self._pipeline}
+		loc = {"node": self, "pipeline": self._pipeline, "input": Context(self.input)}
 		for nodeId in self._pipeline.nodes:
 			loc[nodeId] = self._pipeline.node(nodeId)
 		return loc
@@ -229,8 +229,53 @@ class NodeService(Node):
 		except Exception as e:
 			self._pipeline.fail("Failed to process service node {node}: {error}".format(node=self.id, error=e))
 
+class NodeBranch(Node):
+	def build(self, **kwargs):
+		super().build(**kwargs)
+		# Using reserved keywords in node def -_-
+		self.cond = kwargs["if"]
+		self.then = kwargs["then"]
+		self.otherwise = kwargs["else"]
+
+	async def process(self, taskId):
+		try:
+			locs = self.locals()
+			predicate = eval(self.cond, locs, globals())
+			branch = None
+
+			if predicate:
+				branch = self.then
+			else:
+				branch = self.otherwise
+
+			# Now process branch
+			data = {}
+
+			if type(branch) is str:
+				exec(branch, locs, globals())
+			elif type(branch) is dict:
+				if "exec" in branch:
+					exec(branch["exec"], locs, globals())
+				if "next" in branch:
+					self.next = branch["next"]
+					for nextId in self.next:
+						nextnode = self._pipeline.node(nextId)
+						nextnode.predecessors.append(self.id)
+				if "out" in branch:
+					for key in branch["out"]:
+						identifier = branch["out"][key]
+						resolvedValue = resolveObjectAttr(locs, identifier)
+						data[key] = resolvedValue
+						if identifier in self._pipeline.binaries:
+							outIdentifier = str.join(".", [self.id, "out", key])
+							self._pipeline.binaries[outIdentifier] = resolvedValue
+			await self._pipeline._engine.processTask(taskId, data)
+		except Exception as e:
+			self._pipeline.fail("Failed to process branch node {node}: {error}".format(node=self.id, error=e))
+
 NodeFactories = {}
 NodeFactories[NodeType.NODE] = Node
 NodeFactories[NodeType.ENTRY] = NodeEntry
 NodeFactories[NodeType.END] = Node
 NodeFactories[NodeType.SERVICE] = NodeService
+NodeFactories[NodeType.BRANCH] = NodeBranch

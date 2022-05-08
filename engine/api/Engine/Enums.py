@@ -11,6 +11,7 @@ class NodeType(str, Enum):
 	ENTRY = "entry"
 	END = "end"
 	SERVICE = "service"
+	BRANCH = "branch"
 
 class StorageType(str, Enum):
 	LOCAL = "local"

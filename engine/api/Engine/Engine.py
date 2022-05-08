@@ -109,7 +109,7 @@ class Engine():
 			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
 
 		if job.status != Status.RUNNING:
-			raise BadStatus("Pipeline is finished")
+			return
 
 		job.hide("_engine", self)
 		nodeId = task["node"]
