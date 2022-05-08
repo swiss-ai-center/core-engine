@@ -276,5 +276,3 @@ class Engine():
 		pipelineTemplate = await self.registry.getPipeline(pipelineId)
 		return pipelineTemplate
 
-# Race condition when processingFinished is called simultaneously for one same pipeline?
-# We should put processTask in a worker!
