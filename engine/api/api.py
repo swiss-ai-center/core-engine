@@ -80,6 +80,8 @@ async def startup():
 	# To refactor?
 	await engine.load()
 	engine.start()
+	for endpoint in engine.api:
+		addRoute(**engine.api[endpoint])
 
 	tick = int(os.environ["APP_CRON"]) if "APP_CRON" in os.environ else 300
 	lifespan = int(os.environ["APP_LIFESPAN"]) if "APP_LIFESPAN" in os.environ else 1800
