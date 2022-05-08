@@ -45,7 +45,7 @@ class Registry():
 					bucket = await s3.create_bucket(Bucket=s3_bucket)
 				storage = bucket
 			except Exception as e:
-				print("Failed to connect to S3, using local storage:", e)
+				print("Failed to connect to S3, using local storage:", e) # noqa T201
 				storageType = StorageType.LOCAL
 
 		if storageType == StorageType.LOCAL:
@@ -65,7 +65,7 @@ class Registry():
 				if "tasks" not in colls: await db.create_collection("tasks")
 
 			except Exception as e:
-				print("Failed to connect to mongo, using memory:", e)
+				print("Failed to connect to mongo, using memory:", e) # noqa T201
 				dbType = DBType.MEMORY
 
 		if dbType == DBType.MEMORY:
