@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .Engine import Engine, Registry, Cron, Enums
 from . import interface
 
-def addRoute(route, body, summary=None, description=None):
+def addRoute(route, body=None, summary=None, description=None):
 	# This should be wrapped in a functor, howevera bug in starlette prevents the handler to be correctly called if __call__ is declared async. This should be fixed in version 0.21.0 (https://github.com/encode/starlette/pull/1444).
 	async def handler(*args, **kwargs):
 		jobData = {}
@@ -101,6 +101,7 @@ async def startup():
 
 async def shutdown():
 	await engine.stop()
+	await engine.client.aclose()
 	for timer in timers:
 		timer.stop()
 

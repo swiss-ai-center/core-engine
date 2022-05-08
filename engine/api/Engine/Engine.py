@@ -275,4 +275,3 @@ class Engine():
 		pipelineId = self.endpoints[name]
 		pipelineTemplate = await self.registry.getPipeline(pipelineId)
 		return pipelineTemplate
-

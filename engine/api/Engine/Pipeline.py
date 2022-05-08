@@ -1,6 +1,7 @@
 import copy
 import json
 import datetime
+import httpx
 
 from .Enums import Status, NodeType
 
@@ -221,7 +222,7 @@ class NodeService(Node):
 			params = {"callback_url": self._pipeline._engine.route + "/processing", "task_id": taskId}
 			if len(binaries) == 0:
 				# Pure json service
-				await self.client.post(self.url, params=params, json=self.input)
+				await self._pipeline._engine.client.post(self.url, params=params, json=jsonBody)
 			else:
 				# Multipart request with json and binaries
 				binaries["data"] = json.dumps(jsonBody).encode("utf8")
@@ -273,9 +274,65 @@ class NodeBranch(Node):
 		except Exception as e:
 			self._pipeline.fail("Failed to process branch node {node}: {error}".format(node=self.id, error=e))
 
+class NodeHTTP(Node):
+	def build(self, url, verb="GET", **kwargs):
+		super().build(**kwargs)
+		self.url = url
+		self.verb = verb
+
+	async def process(self, taskId):
+		if self.verb == "POST":
+			req = self._pipeline._engine.client.post
+		elif self.verb == "DELETE":
+			req = self._pipeline._engine.client.delete
+		elif self.verb == "PUT":
+			req = self._pipeline._engine.client.put
+		elif self.verb == "PATCH":
+			req = self._pipeline._engine.client.patch
+		else:
+			req = self._pipeline._engine.client.get
+
+		binaries = {}
+		jsonBody = copy.deepcopy(self.input)
+
+		for key in jsonBody:
+			identifier = str.join(".", [self.id, "input", key])
+			if identifier in self._pipeline.binaries:
+				binUid = self._pipeline.binaries[identifier]
+				binaries[key] = await self._pipeline._engine.registry.getBinaryStream(binUid)
+
+		# Remove binaries from body
+		[jsonBody.pop(key) for key in binaries.keys()]
+
+		try:
+			if len(binaries) == 0:
+				if len(jsonBody) == 0:
+					res = await req(self.url)
+				else:
+					res = await req(self.url, json=jsonBody)
+			else:
+				# Multipart request with json and binaries
+				if len(jsonBody) > 0:
+					binaries["data"] = json.dumps(jsonBody).encode("utf8")
+				res = await req(self.url, files=binaries)
+			if res.status_code != httpx.codes.OK:
+				await self._pipeline._engine.processError(taskId, "Request to {url} failed for node {node}: {code}".format(url=self.url, node=self.id, code=res.status_code))
+			else:
+				data = {}
+				binaries = []
+				if "application/json" in res.headers["Content-Type"]:
+					data = res.json()
+				elif len(res.content) > 0:
+					data["raw"] = res.content
+					binaries.append("raw")
+				await self._pipeline._engine.processTask(taskId, data, binaries)
+		except Exception as e:
+			self._pipeline.fail("Failed to process http node {node}: {error}".format(node=self.id, error=e))
+
 NodeFactories = {}
 NodeFactories[NodeType.NODE] = Node
 NodeFactories[NodeType.ENTRY] = NodeEntry
 NodeFactories[NodeType.END] = Node
 NodeFactories[NodeType.SERVICE] = NodeService
 NodeFactories[NodeType.BRANCH] = NodeBranch
+NodeFactories[NodeType.HTTP] = NodeHTTP
