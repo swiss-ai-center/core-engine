@@ -109,7 +109,7 @@ class Engine():
 			raise ItemNotFound("Job for task {taskId} not found".format(taskId=taskId))
 
 		if job.status != Status.RUNNING:
-			raise BadStatus("Pipeline is finished")
+			return
 
 		job.hide("_engine", self)
 		nodeId = task["node"]
@@ -275,6 +275,3 @@ class Engine():
 		pipelineId = self.endpoints[name]
 		pipelineTemplate = await self.registry.getPipeline(pipelineId)
 		return pipelineTemplate
-
-# Race condition when processingFinished is called simultaneously for one same pipeline?
-# We should put processTask in a worker!

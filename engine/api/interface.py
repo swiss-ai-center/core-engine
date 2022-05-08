@@ -1,4 +1,4 @@
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Literal
 from pydantic import BaseModel
 from .Engine.Enums import NodeType
 from enum import Enum
@@ -14,7 +14,12 @@ class APIDescription(BaseModel):
 	route: str
 	summary: Optional[str]
 	description: Optional[str]
-	body: Union[str, dict, list[str]]
+	body: Union[str, dict, List[str]]
+
+class Branch(BaseModel):
+	exec: Optional[str]
+	out: Optional[dict]
+	next: Optional[List[str]]
 
 class Node(BaseModel):
 	id: str
@@ -29,10 +34,10 @@ class Node(BaseModel):
 	url: Optional[str]
 
 class PipelineDescription(BaseModel):
-	nodes: List[Node]
-	type: ServiceType = ServiceType.PIPELINE
+	nodes: List[Union[Node, dict]]
+	type: Literal[ServiceType.PIPELINE]
 
 class ServiceDescription(BaseModel):
 	url: str
 	api: APIDescription
-	type: ServiceType = ServiceType.SERVICE
+	type: Literal[ServiceType.SERVICE]

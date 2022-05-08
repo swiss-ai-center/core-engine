@@ -5,6 +5,7 @@ import uuid
 import datetime
 import copy
 import motor.motor_asyncio
+import inspect
 
 from bson.objectid import ObjectId
 from contextlib import AsyncExitStack
@@ -53,7 +54,7 @@ class Registry():
 				binFolder = "/tmp/registry"
 			if not os.path.isdir(binFolder):
 				os.makedirs(binFolder)
-				storage = binFolder
+			storage = binFolder
 
 		if dbType == DBType.MONGO:
 			try:
@@ -172,13 +173,22 @@ class Registry():
 
 	async def storeBinary(self, stream):
 		uid = self.uid()
+
+		# Support various types of input
+		if type(stream) is bytes:
+			data = stream
+		elif hasattr(stream, "read"):
+			if inspect.isawaitable(stream.read):
+				data = await stream.read()
+			else:
+				data = stream.read()
+
 		if self.storageType == StorageType.LOCAL:
 			w = open(os.path.join(self.storage, uid), "wb")
-			w.write(await stream.read())
+			w.write(data)
 			w.close()
 		elif self.storageType == StorageType.S3:
 			binId = "binaries/" + uid
-			data = await stream.read()
 			await self.storage.put_object(Key=binId, Body=io.BytesIO(data))
 		return uid
 

@@ -1,6 +1,7 @@
 import copy
 import json
 import datetime
+import httpx
 
 from .Enums import Status, NodeType
 
@@ -41,13 +42,19 @@ class Pipeline(Context):
 
 	def node(self, nodeId):
 		if nodeId in self.nodes:
-			n = Node(self.nodes[nodeId])
+			nodeData = self.nodes[nodeId]
+			nodeType = nodeData["type"]
+			n = NodeFactories[nodeType](nodeData)
 			n.hide("_pipeline", self)
 			return n
 		return None
 
 	def touch(self):
 		self.lastUpdate = datetime.datetime.utcnow().isoformat()
+
+	def fail(self, error=""):
+		self.status = Status.ERROR
+		self.error = error
 
 	def timestamp(self):
 		return datetime.datetime.fromisoformat(self.lastUpdate)
@@ -65,8 +72,10 @@ class Pipeline(Context):
 		p.model = templateId
 
 		for nodeDef in nodes:
-			n = Node.build(**nodeDef)
+			nodeType = nodeDef["type"]
 			nodeId = nodeDef["id"]
+			n = NodeFactories[nodeType]({})
+			n.build(**nodeDef)
 			p.nodes[nodeId] = n.data
 
 			if n.type == NodeType.ENTRY:
@@ -94,29 +103,19 @@ class Node(Context):
 	def __init__(self, ctx):
 		super().__init__(ctx)
 
-	@staticmethod
-	def build(id, type=NodeType.NODE, params={}, input=None, next=[], ready=None, before=None, after=None, **kwargs):
-		n = Node({})
-		n.id = id
-		n.type = type
-		n.params = copy.deepcopy(params)
-		n.in_directive = input
-		n.next = copy.deepcopy(next)
-		n.ready_func = ready
-		n.before_func = before
-		n.after_func = after
-		n.input = {}
-		n.out = {}
-		n.finished = False
-		n.predecessors = []
-
-		# Specific nodes
-		if n.type == NodeType.ENTRY:
-			n.api = kwargs["api"]
-		elif n.type == NodeType.SERVICE:
-			n.url = kwargs["url"]
-
-		return n
+	def build(self, id, type=NodeType.NODE, params={}, input=None, next=[], ready=None, before=None, after=None, **kwargs):
+		self.id = id
+		self.type = type
+		self.params = copy.deepcopy(params)
+		self.in_directive = input
+		self.next = copy.deepcopy(next)
+		self.ready_func = ready
+		self.before_func = before
+		self.after_func = after
+		self.input = {}
+		self.out = {}
+		self.finished = False
+		self.predecessors = []
 
 	def ready(self):
 		isReady = True
@@ -137,8 +136,7 @@ class Node(Context):
 				exec(self.ready_func, locs)
 				isReady = status.ready
 			except Exception as e:
-				self._pipeline.status = Status.ERROR
-				self._pipeline.error = "Failed to assert ready state for node {node}: {error}".format(node=self.id, error=e)
+				self._pipeline.fail("Failed to assert ready state for node {node}: {error}".format(node=self.id, error=e))
 				return False
 
 		return isReady
@@ -167,8 +165,45 @@ class Node(Context):
 			try:
 				exec(self.before_func, locs, globals())
 			except Exception as e:
-				self._pipeline.status = Status.ERROR
-				self._pipeline.error = "Failed to pre-process node {node}: {error}".format(node=self.id, error=e)
+				self._pipeline.fail("Failed to pre-process node {node}: {error}".format(node=self.id, error=e))
+
+	async def process(self, taskId):
+		binaries = []
+		for key in self.input:
+			identifier = str.join(".", [self.id, "input", key])
+			if identifier in self._pipeline.binaries:
+				binaries.append(key)
+
+		for binaryKey in binaries:
+			inIdentifier = str.join(".", [self.id, "input", binaryKey])
+			outIdentifier = str.join(".", [self.id, "out", binaryKey])
+			self._pipeline.binaries[outIdentifier] = self._pipeline.binaries[inIdentifier]
+		await self._pipeline._engine.processTask(taskId, self.input)
+
+	def after(self, result):
+		self.out = result
+		if self.after_func is not None:
+			try:
+				exec(self.after_func, self.locals(), globals())
+			except Exception as e:
+				self._pipeline.fail("Failed to post-process node {node}: {error}".format(node=self.id, error=e))
+
+	def locals(self):
+		# So much sugar!!!
+		loc = {"node": self, "pipeline": self._pipeline, "input": Context(self.input)}
+		for nodeId in self._pipeline.nodes:
+			loc[nodeId] = self._pipeline.node(nodeId)
+		return loc
+
+class NodeEntry(Node):
+	def build(self, api, **kwargs):
+		super().build(**kwargs)
+		self.api = api
+
+class NodeService(Node):
+	def build(self, url, **kwargs):
+		super().build(**kwargs)
+		self.url = url
 
 	async def process(self, taskId):
 		binaries = {}
@@ -183,38 +218,121 @@ class Node(Context):
 		# Remove binaries from body
 		[jsonBody.pop(key) for key in binaries.keys()]
 
-		if self.type == NodeType.SERVICE:
-			try:
-				params = {"callback_url": self._pipeline._engine.route + "/processing", "task_id": taskId}
-				if len(binaries) == 0:
-					# Pure json service
-					await self.client.post(self.url, params=params, json=self.input)
-				else:
-					# Multipart request with json and binaries
-					binaries["data"] = json.dumps(jsonBody).encode("utf8")
-					await self._pipeline._engine.client.post(self.url, params=params, files=binaries)
-			except Exception as e:
-				self._pipeline.status = Status.ERROR
-				self._pipeline.error = "Failed to process service node {node}: {error}".format(node=self.id, error=e)
+		try:
+			params = {"callback_url": self._pipeline._engine.route + "/processing", "task_id": taskId}
+			if len(binaries) == 0:
+				# Pure json service
+				await self._pipeline._engine.client.post(self.url, params=params, json=jsonBody)
+			else:
+				# Multipart request with json and binaries
+				binaries["data"] = json.dumps(jsonBody).encode("utf8")
+				await self._pipeline._engine.client.post(self.url, params=params, files=binaries)
+		except Exception as e:
+			self._pipeline.fail("Failed to process service node {node}: {error}".format(node=self.id, error=e))
+
+class NodeBranch(Node):
+	def build(self, **kwargs):
+		super().build(**kwargs)
+		# Using reserved keywords in node def -_-
+		self.cond = kwargs["if"]
+		self.then = kwargs["then"]
+		self.otherwise = kwargs["else"]
+
+	async def process(self, taskId):
+		try:
+			locs = self.locals()
+			predicate = eval(self.cond, locs, globals())
+			branch = None
+
+			if predicate:
+				branch = self.then
+			else:
+				branch = self.otherwise
+
+			# Now process branch
+			data = {}
+
+			if type(branch) is str:
+				exec(branch, locs, globals())
+			elif type(branch) is dict:
+				if "exec" in branch:
+					exec(branch["exec"], locs, globals())
+				if "next" in branch:
+					self.next = branch["next"]
+					for nextId in self.next:
+						nextnode = self._pipeline.node(nextId)
+						nextnode.predecessors.append(self.id)
+				if "out" in branch:
+					for key in branch["out"]:
+						identifier = branch["out"][key]
+						resolvedValue = resolveObjectAttr(locs, identifier)
+						data[key] = resolvedValue
+						if identifier in self._pipeline.binaries:
+							outIdentifier = str.join(".", [self.id, "out", key])
+							self._pipeline.binaries[outIdentifier] = resolvedValue
+			await self._pipeline._engine.processTask(taskId, data)
+		except Exception as e:
+			self._pipeline.fail("Failed to process branch node {node}: {error}".format(node=self.id, error=e))
+
+class NodeHTTP(Node):
+	def build(self, url, verb="GET", **kwargs):
+		super().build(**kwargs)
+		self.url = url
+		self.verb = verb
+
+	async def process(self, taskId):
+		if self.verb == "POST":
+			req = self._pipeline._engine.client.post
+		elif self.verb == "DELETE":
+			req = self._pipeline._engine.client.delete
+		elif self.verb == "PUT":
+			req = self._pipeline._engine.client.put
+		elif self.verb == "PATCH":
+			req = self._pipeline._engine.client.patch
 		else:
-			for binaryKey in binaries:
-				inIdentifier = str.join(".", [self.id, "input", binaryKey])
-				outIdentifier = str.join(".", [self.id, "out", binaryKey])
-				self._pipeline.binaries[outIdentifier] = self._pipeline.binaries[inIdentifier]
-			await self._pipeline._engine.processTask(taskId, self.input)
+			req = self._pipeline._engine.client.get
 
-	def after(self, result):
-		self.out = result
-		if self.after_func is not None:
-			try:
-				exec(self.after_func, self.locals(), globals())
-			except Exception as e:
-				self._pipeline.status = Status.ERROR
-				self._pipeline.error = "Failed to post-process node {node}: {error}".format(node=self.id, error=e)
+		binaries = {}
+		jsonBody = copy.deepcopy(self.input)
 
-	def locals(self):
-		# So much sugar!!!
-		loc = {"node": self, "pipeline": self._pipeline}
-		for nodeId in self._pipeline.nodes:
-			loc[nodeId] = self._pipeline.node(nodeId)
-		return loc
+		for key in jsonBody:
+			identifier = str.join(".", [self.id, "input", key])
+			if identifier in self._pipeline.binaries:
+				binUid = self._pipeline.binaries[identifier]
+				binaries[key] = await self._pipeline._engine.registry.getBinaryStream(binUid)
+
+		# Remove binaries from body
+		[jsonBody.pop(key) for key in binaries.keys()]
+
+		try:
+			if len(binaries) == 0:
+				if len(jsonBody) == 0:
+					res = await req(self.url)
+				else:
+					res = await req(self.url, json=jsonBody)
+			else:
+				# Multipart request with json and binaries
+				if len(jsonBody) > 0:
+					binaries["data"] = json.dumps(jsonBody).encode("utf8")
+				res = await req(self.url, files=binaries)
+			if res.status_code != httpx.codes.OK:
+				await self._pipeline._engine.processError(taskId, "Request to {url} failed for node {node}: {code}".format(url=self.url, node=self.id, code=res.status_code))
+			else:
+				data = {}
+				binaries = []
+				if "application/json" in res.headers["Content-Type"]:
+					data = res.json()
+				elif len(res.content) > 0:
+					data["raw"] = res.content
+					binaries.append("raw")
+				await self._pipeline._engine.processTask(taskId, data, binaries)
+		except Exception as e:
+			self._pipeline.fail("Failed to process http node {node}: {error}".format(node=self.id, error=e))
+
+NodeFactories = {}
+NodeFactories[NodeType.NODE] = Node
+NodeFactories[NodeType.ENTRY] = NodeEntry
+NodeFactories[NodeType.END] = Node
+NodeFactories[NodeType.SERVICE] = NodeService
+NodeFactories[NodeType.BRANCH] = NodeBranch
+NodeFactories[NodeType.HTTP] = NodeHTTP
