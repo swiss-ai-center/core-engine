@@ -40,7 +40,7 @@ class Worker():
 		buff = io.BytesIO(raw)
 		img_pil = Image.open(buff)
 		img = np.array(img_pil)
-		diagnos = DeepFace.analyze(img_path=img , actions=['age', 'gender', 'race', 'emotion'])
+		diagnos = DeepFace.analyze(img_path=img, actions=['age', 'gender', 'race', 'emotion'])
 		task["result"] = diagnos
 
 		return task

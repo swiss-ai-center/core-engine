@@ -1,4 +1,5 @@
 stages:
+  - linting
   - build
   - deploy
 
@@ -9,3 +10,13 @@ include:
   - face_analyzer/face_analyzer.gitlab-ci.yml
   - face_detection/face_detection.gitlab-ci.yml
   - area_blur/area_blur.gitlab-ci.yml
+
+flake8:
+  image: python:3
+  stage: linting
+  before_script:
+    - pip install flake8 flake8-print
+  script:
+    - flake8 .
+  only:
+    - merge_requests

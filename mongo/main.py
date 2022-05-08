@@ -8,7 +8,7 @@ def get_tasks(task_id: str, limit: int = 300) -> Task:
 	collection = driver.get_collection("Tasks")
 	result = collection.find({"id": task_id})
 
-	print([Task.parse_obj(i) for i in result])
+	print([Task.parse_obj(i) for i in result]) # noqa T201
 
 
 # Update or insert an object. If the id of the task already exists,
@@ -23,7 +23,7 @@ def get_all_tasks():
 	collection = driver.get_collection("Tasks")
 	result = collection.find()
 
-	print([Task.parse_obj(i) for i in result])
+	print([Task.parse_obj(i) for i in result]) # noqa T201
 
 
 if __name__ == "__main__":

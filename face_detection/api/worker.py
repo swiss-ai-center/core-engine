@@ -44,9 +44,8 @@ class Worker():
 
 		faces = RetinaFace.detect_faces(img)
 		# cast int64 to int to fixe json error (can't convert int64)
-		res = [ [ int(i) for i in v['facial_area'] ] for k,v in faces.items() ]
-		
-		task["result"] = { "answer": res }
+		res = [[int(i) for i in v['facial_area']] for k, v in faces.items()]
+		task["result"] = {"answer": res}
 		return task
 
 class Callback(Worker):

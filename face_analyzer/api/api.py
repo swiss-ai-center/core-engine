@@ -1,11 +1,9 @@
 import os
-import asyncio
 import httpx
-from fastapi import FastAPI, File, UploadFile, Depends
+from fastapi import FastAPI, UploadFile
 
 from .worker import Worker, Callback
 from . import interface
-import pydantic
 
 async def startup():
 	# Announce ourself to the engine
@@ -34,7 +32,7 @@ worker = Worker()
 callback = Callback()
 app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
 
-@app.post("/compute", response_model = interface.TaskId)
+@app.post("/compute", response_model=interface.TaskId)
 async def post(img: UploadFile, callback_url: str = None, task_id: str = None):
 	if task_id is None:
 		task_id = str(interface.uid())

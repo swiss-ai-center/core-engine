@@ -1,8 +1,5 @@
 import os
 import uvicorn
-import requests
-
-from api import interface
 
 def main():
 	host = os.environ["APP_HOST"] if "APP_HOST" in os.environ else "0.0.0.0"

@@ -93,9 +93,9 @@ async def startup():
 	timers.append(engineCleanTimer)
 
 	s3CleanTimer = Cron.Timer(
-		timeout=20*tick,
+		timeout=20 * tick,
 		callback=registry.clean,
-		delta=datetime.timedelta(seconds=10*lifespan))
+		delta=datetime.timedelta(seconds=10 * lifespan))
 	s3CleanTimer.start()
 	timers.append(s3CleanTimer)
 

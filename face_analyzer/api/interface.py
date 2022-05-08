@@ -11,4 +11,4 @@ class TaskId(BaseModel):
 	task_id: str
 
 def engineAPI():
-	return {"route":"faceAnalyzer", "body":"img"}
+	return {"route": "faceAnalyzer", "body": "img"}
