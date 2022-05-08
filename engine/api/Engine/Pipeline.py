@@ -18,6 +18,7 @@ def resolveObjectAttr(obj, pathStr):
 
 class Context(object):
 	def __init__(self, ctx):
+		if "_id" in ctx and type(ctx["_id"]) is not str: ctx["_id"] = str(ctx["_id"])
 		super().__setattr__("data", ctx)
 		super().__setattr__("hidden", {})
 	def __getattr__(self, key):

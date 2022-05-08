@@ -69,27 +69,45 @@ async def startup():
 		s3_secret=os.environ["S3_SECRET_KEY"] if "S3_SECRET_KEY" in os.environ else None,
 		s3_bucket=os.environ["S3_BUCKET"] if "S3_BUCKET" in os.environ else None,
 		binFolder=os.environ["REG_LOCAL_DATA"] if "REG_LOCAL_DATA" in os.environ else None,
-		storageType=os.environ["REG_STORAGE_TYPE"] if "REG_STORAGE_TYPE" in os.environ else Enums.StorageType.LOCAL)
+		storageType=os.environ["REG_STORAGE_TYPE"] if "REG_STORAGE_TYPE" in os.environ else Enums.StorageType.LOCAL,
+		mongo_uri=os.environ["MONGO_URI"] if "MONGO_URI" in os.environ else None,
+		mongo_db=os.environ["MONGO_DB"] if "MONGO_DB" in os.environ else None,
+		dbType=os.environ["REG_DB_TYPE"] if "REG_DB_TYPE" in os.environ else Enums.DBType.MEMORY)
 	
 	engine = Engine.Engine(
 		registry=registry,
 		route=os.environ["APP_ENGINE"] if "APP_ENGINE" in os.environ else None,
 		externalRoute=os.environ["APP_EXTERNAL_URL"] if "APP_EXTERNAL_URL" in os.environ else None)
 	
-	timer = Cron.Timer(
-		timeout=int(os.environ["APP_CRON"]) if "APP_CRON" in os.environ else 300,
+	# To refactor?
+	await engine.load()
+	engine.start()
+	
+	tick = int(os.environ["APP_CRON"]) if "APP_CRON" in os.environ else 300
+	lifespan = int(os.environ["APP_LIFESPAN"]) if "APP_LIFESPAN" in os.environ else 1800
+	engineCleanTimer = Cron.Timer(
+		timeout=tick,
 		callback=engine.clean,
-		delta=datetime.timedelta(seconds=int(os.environ["APP_LIFESPAN"]) if "APP_LIFESPAN" in os.environ else 1800))
+		delta=datetime.timedelta(seconds=lifespan))
+	engineCleanTimer.start()
+	timers.append(engineCleanTimer)
 
-	timer.start()
+	s3CleanTimer = Cron.Timer(
+		timeout=20*tick,
+		callback=registry.clean,
+		delta=datetime.timedelta(seconds=10*lifespan))
+	s3CleanTimer.start()
+	timers.append(s3CleanTimer)
 
 async def shutdown():
-	timer.stop()
+	await engine.stop()
+	for timer in timers:
+		timer.stop()
 
 app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
 registry = None
 engine = None
-timer = None
+timers = []
 
 app.add_middleware(
     CORSMiddleware,
@@ -100,18 +118,18 @@ app.add_middleware(
 )
 
 @app.get("/tasks/{taskId}", summary="Get results of a task")
-def getTaskResult(taskId: str):
-	result = engine.getResult(taskId)
+async def getTaskResult(taskId: str):
+	result = await engine.getResult(taskId)
 	return JSONResponse(result)
 
 @app.get("/tasks/{taskId}/status", summary="Get the status of a task")
-def getTaskStatus(taskId: str):
-	status = engine.pollTask(taskId)
+async def getTaskStatus(taskId: str):
+	status = await engine.pollTask(taskId)
 	return {"id": taskId, "status": status}
 
 @app.get("/tasks/{taskId}/raw", summary="Get raw pipeline data for a task")
-def getTaskRaw(taskId: str):
-	raw = engine.getJobRaw(taskId)
+async def getTaskRaw(taskId: str):
+	raw = await engine.getJobRaw(taskId)
 	return JSONResponse(raw)
 
 @app.get("/tasks/{taskId}/files/{fileName}", summary="Retrieve a binary result of a task")
@@ -120,31 +138,31 @@ async def getTaskResultFile(taskId: str, fileName: str):
 	return StreamingResponse(stream, media_type="application/octet-stream")
 
 @app.post("/services", summary="Create a new service or pipeline")
-def createService(service: Union[interface.ServiceDescription, interface.PipelineDescription]):
+async def createService(service: Union[interface.ServiceDescription, interface.PipelineDescription]):
 	if service.type is interface.ServiceType.SERVICE:
 		api = service.api.dict()
 		serviceName = api["route"]
 		if serviceName not in engine.endpoints:
-			engine.createServicePipeline(service.url, api)
+			await engine.createServicePipeline(service.url, api)
 			addRoute(**api)
 	elif service.type is interface.ServiceType.PIPELINE:
-		api = engine.addPipeline(service.dict())
+		api = await engine.addPipeline(service.dict())
 		addRoute(**api)
 
 @app.get("/services", summary="Get all pipelines", response_model=List[interface.PipelineDescription])
-def getPipeline():
-	pipelines = engine.getPipelines()
+async def getPipelines():
+	pipelines = await engine.getPipelines()
 	return pipelines
 
 @app.get("/stats", summary="Get engine and pipelines statistics")
-def getTaskRaw():
-	stats = engine.getStats()
+async def getTaskRaw():
+	stats = await engine.getStats()
 	return JSONResponse(stats)
 
 @app.delete("/services/{serviceName}", summary="Remove a service or pipeline")
-def removeService(serviceName: str):
+async def removeService(serviceName: str):
 	if serviceName in engine.endpoints:
-		engine.removePipeline(serviceName)
+		await engine.removePipeline(serviceName)
 		for i in range(len(app.routes)):
 			if app.routes[i].path == "/services/" + serviceName:
 				app.routes.pop(i)
@@ -153,8 +171,8 @@ def removeService(serviceName: str):
 		app.openapi_schema = None
 
 @app.get("/services/{serviceName}", summary="Get the pipeline description", response_model=interface.PipelineDescription)
-def getPipeline(serviceName: str):
-	pipeline = engine.getPipeline(serviceName)
+async def getPipeline(serviceName: str):
+	pipeline = await engine.getPipeline(serviceName)
 	return pipeline
 
 @app.post("/processing", include_in_schema=False)
