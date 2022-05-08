@@ -5,6 +5,7 @@ stages:
 include:
   - engine/engine.gitlab-ci.yml
   - webapp/webapp.gitlab-ci.yml
+  - mongo/mongo.gitlab-ci.yml
   
 ###
 # Face analyzer
