@@ -6,6 +6,7 @@ import datetime
 import copy
 import motor.motor_asyncio
 import inspect
+import logging
 
 from bson.objectid import ObjectId
 from contextlib import AsyncExitStack
@@ -46,7 +47,7 @@ class Registry():
 					bucket = await s3.create_bucket(Bucket=s3_bucket)
 				storage = bucket
 			except Exception as e:
-				print("Failed to connect to S3, using local storage:", e) # noqa T201
+				logging.getLogger("uvicorn").warning("Failed to connect to S3, using local storage: " + str(e))
 				storageType = StorageType.LOCAL
 
 		if storageType == StorageType.LOCAL:
@@ -66,7 +67,7 @@ class Registry():
 				if "tasks" not in colls: await db.create_collection("tasks")
 
 			except Exception as e:
-				print("Failed to connect to mongo, using memory:", e) # noqa T201
+				logging.getLogger("uvicorn").warning("Failed to connect to mongo, using memory:" + str(e))
 				dbType = DBType.MEMORY
 
 		if dbType == DBType.MEMORY:
