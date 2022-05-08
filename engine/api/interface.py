@@ -8,7 +8,7 @@ class ServiceType(str, Enum):
 	PIPELINE = "pipeline"
 
 class JobResponse(BaseModel):
-	jobId : str
+	jobId: str
 
 class APIDescription(BaseModel):
 	route: str
