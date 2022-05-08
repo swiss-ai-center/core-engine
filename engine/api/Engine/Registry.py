@@ -1,6 +1,5 @@
 import io
 import os
-import asyncio
 import aioboto3
 import uuid
 import datetime
@@ -21,7 +20,7 @@ def strToId(objId):
 class Registry():
 	def __init__(self, storage, db, storageType=StorageType.LOCAL, dbType=DBType.MEMORY):
 		self.storage = storage
-		self.db=db
+		self.db = db
 		self.storageType = storageType
 		self.dbType = dbType
 
@@ -55,7 +54,7 @@ class Registry():
 			if not os.path.isdir(binFolder):
 				os.makedirs(binFolder)
 				storage = binFolder
-		
+
 		if dbType == DBType.MONGO:
 			try:
 				client = motor.motor_asyncio.AsyncIOMotorClient(mongo_uri)
@@ -68,7 +67,7 @@ class Registry():
 			except Exception as e:
 				print("Failed to connect to mongo, using memory:", e)
 				dbType = DBType.MEMORY
-		
+
 		if dbType == DBType.MEMORY:
 			db = {"pipelines": {}, "jobs": {}, "tasks": {}}
 
@@ -138,7 +137,7 @@ class Registry():
 		elif self.dbType == DBType.MONGO:
 			search = self.db.jobs.find()
 			return [Pipeline(j) async for j in search]
-	
+
 	async def removeJob(self, jobId):
 		if self.dbType == DBType.MEMORY:
 			self.db["jobs"].pop(jobId)
@@ -154,7 +153,7 @@ class Registry():
 			inserted = await self.db.tasks.insert_one(task)
 			taskId = str(inserted.inserted_id)
 		return taskId
-	
+
 	async def getTask(self, taskId):
 		if self.dbType == DBType.MEMORY:
 			if taskId in self.db["tasks"]:
@@ -170,7 +169,7 @@ class Registry():
 		else:
 			return await self.db.tasks.find_one_and_delete({"_id": strToId(taskId)})
 		return None
-	
+
 	async def storeBinary(self, stream):
 		uid = self.uid()
 		if self.storageType == StorageType.LOCAL:
@@ -191,7 +190,7 @@ class Registry():
 				await obj.load()
 				# At this point we know obj exists
 				return obj
-			except:
+			except Exception:
 				raise ItemNotFound("No such binary: " + uid)
 		return None
 
@@ -211,7 +210,7 @@ class Registry():
 		elif self.storageType == StorageType.S3:
 			obj = await self.getS3Obj(uid)
 			await obj.delete()
-	
+
 	async def clean(self, delta):
 		if self.storageType == StorageType.S3:
 			now = datetime.datetime.now(datetime.timezone.utc)

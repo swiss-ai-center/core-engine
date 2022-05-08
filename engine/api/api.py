@@ -1,14 +1,12 @@
 import os
-import yaml
 import pydantic
-import io
 import json
 import datetime
 
 from inspect import Parameter, Signature
 from typing import Union, List
-from fastapi import FastAPI, HTTPException, UploadFile, Depends, Request
-from fastapi.responses import RedirectResponse, JSONResponse, StreamingResponse
+from fastapi import FastAPI, UploadFile, Request
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from .Engine import Engine, Registry, Cron, Enums
 from . import interface
@@ -18,14 +16,14 @@ def addRoute(route, body, summary=None, description=None):
 	async def handler(*args, **kwargs):
 		jobData = {}
 		binaries = []
-		
+
 		if type(body) is dict:
 			jobData.update(kwargs["data"].dict())
 		elif type(body) is str:
 			binaries.append(body)
 		elif type(body) is list:
 			binaries = body
-		
+
 		if len(binaries) > 0:
 			request = kwargs["req"]
 			form = await request.form()
@@ -39,7 +37,7 @@ def addRoute(route, body, summary=None, description=None):
 
 		jobId = await engine.newJob(route, jobData, binaries)
 		return {"jobId": jobId}
-	
+
 	# Change the function signature with expected types from the api description so that the api doc is correctly generated
 	params = []
 	if type(body) is dict:
@@ -53,7 +51,7 @@ def addRoute(route, body, summary=None, description=None):
 	params.append(Parameter("req", kind=Parameter.POSITIONAL_ONLY, annotation=Request))
 	handler.__signature__ = Signature(params)
 
-	app.add_api_route("/services/" + route, handler, methods=["POST"],  response_model=interface.JobResponse, summary=summary, description=description)
+	app.add_api_route("/services/" + route, handler, methods=["POST"], response_model=interface.JobResponse, summary=summary, description=description)
 	# Force the regeneration of the schema
 	app.openapi_schema = None
 
@@ -73,16 +71,18 @@ async def startup():
 		mongo_uri=os.environ["MONGO_URI"] if "MONGO_URI" in os.environ else None,
 		mongo_db=os.environ["MONGO_DB"] if "MONGO_DB" in os.environ else None,
 		dbType=os.environ["REG_DB_TYPE"] if "REG_DB_TYPE" in os.environ else Enums.DBType.MEMORY)
-	
+
 	engine = Engine.Engine(
 		registry=registry,
 		route=os.environ["APP_ENGINE"] if "APP_ENGINE" in os.environ else None,
 		externalRoute=os.environ["APP_EXTERNAL_URL"] if "APP_EXTERNAL_URL" in os.environ else None)
-	
+
 	# To refactor?
 	await engine.load()
 	engine.start()
-	
+	for endpoint in engine.api:
+		addRoute(**engine.api[endpoint])
+
 	tick = int(os.environ["APP_CRON"]) if "APP_CRON" in os.environ else 300
 	lifespan = int(os.environ["APP_LIFESPAN"]) if "APP_LIFESPAN" in os.environ else 1800
 	engineCleanTimer = Cron.Timer(
@@ -110,11 +110,11 @@ engine = None
 timers = []
 
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+	CORSMiddleware,
+	allow_origins=["*"],
+	allow_credentials=True,
+	allow_methods=["*"],
+	allow_headers=["*"],
 )
 
 @app.get("/tasks/{taskId}", summary="Get results of a task")
@@ -124,8 +124,7 @@ async def getTaskResult(taskId: str):
 
 @app.get("/tasks/{taskId}/status", summary="Get the status of a task")
 async def getTaskStatus(taskId: str):
-	status = await engine.pollTask(taskId)
-	return {"id": taskId, "status": status}
+	return await engine.pollTask(taskId)
 
 @app.get("/tasks/{taskId}/raw", summary="Get raw pipeline data for a task")
 async def getTaskRaw(taskId: str):
@@ -155,7 +154,7 @@ async def getPipelines():
 	return pipelines
 
 @app.get("/stats", summary="Get engine and pipelines statistics")
-async def getTaskRaw():
+async def getStats():
 	stats = await engine.getStats()
 	return JSONResponse(stats)
 
@@ -177,13 +176,21 @@ async def getPipeline(serviceName: str):
 
 @app.post("/processing", include_in_schema=False)
 async def processCallback(task_id: str, request: Request):
+	error = False
+	errorMsg = ""
+
 	data = {}
 	binaries = []
-	
+
 	contentType = request.headers["content-type"].replace(";", "")
 
 	if "application/json" in contentType:
-		data.update(await request.json())
+		requestData = await request.json()
+		if "type" in requestData and requestData["type"] == "error":
+			error = True
+			errorMsg = requestData["message"] if "message" in requestData else ""
+		else:
+			data.update(requestData)
 	elif "multipart/form-data" in contentType:
 		form = await request.form()
 		for k in form:
@@ -195,4 +202,7 @@ async def processCallback(task_id: str, request: Request):
 				data[k] = obj
 				binaries.append(k)
 
-	await engine.processTask(task_id, data, binaries)
+	if error:
+		await engine.processError(task_id, errorMsg)
+	else:
+		await engine.processTask(task_id, data, binaries)

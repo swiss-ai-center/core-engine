@@ -7,7 +7,7 @@ from .Enums import Status, NodeType
 def resolveObjectAttr(obj, pathStr):
 	data = obj
 	path = pathStr.split(".")
-	
+
 	for p in path:
 		if type(data) is dict and p in data:
 			data = data[p]
@@ -21,14 +21,17 @@ class Context(object):
 		if "_id" in ctx and type(ctx["_id"]) is not str: ctx["_id"] = str(ctx["_id"])
 		super().__setattr__("data", ctx)
 		super().__setattr__("hidden", {})
+
 	def __getattr__(self, key):
 		if key in self.data:
-			return self.data[key] 
+			return self.data[key]
 		elif key in self.hidden:
-			return self.hidden[key] 
+			return self.hidden[key]
 		raise AttributeError
+
 	def __setattr__(self, key, value):
 		self.data[key] = value
+
 	def hide(self, key, value):
 		self.hidden[key] = value
 
@@ -57,9 +60,10 @@ class Pipeline(Context):
 		p.entry = None
 		p.end = None
 		p.status = Status.RUNNING
+		p.error = None
 		p.lastUpdate = None
 		p.model = templateId
-		
+
 		for nodeDef in nodes:
 			n = Node.build(**nodeDef)
 			nodeId = nodeDef["id"]
@@ -69,13 +73,13 @@ class Pipeline(Context):
 				p.entry = nodeId
 			elif n.type == NodeType.END:
 				p.end = nodeId
-		
+
 		# Process successors
 		for nodeId in p.nodes:
 			node = p.node(nodeId)
 			for succ in node.next:
 				p.node(succ).predecessors.append(nodeId)
-		
+
 		p.touch()
 		return p
 
@@ -105,15 +109,15 @@ class Node(Context):
 		n.out = {}
 		n.finished = False
 		n.predecessors = []
-		
+
 		# Specific nodes
 		if n.type == NodeType.ENTRY:
 			n.api = kwargs["api"]
 		elif n.type == NodeType.SERVICE:
 			n.url = kwargs["url"]
-		
+
 		return n
-	
+
 	def ready(self):
 		isReady = True
 		if self.ready_func is None:
@@ -121,23 +125,28 @@ class Node(Context):
 				if not self._pipeline.node(pred).finished:
 					isReady = False
 					break
-		
+
 		# Call specific ready function
 		else:
-			locs = self.locals()
-			# Inject modifiable object
-			status = Context({})
-			status.ready = isReady
-			locs["status"] = status
-			exec(self.ready_func, locs)
-			isReady = status.ready
+			try:
+				locs = self.locals()
+				# Inject modifiable object
+				status = Context({})
+				status.ready = isReady
+				locs["status"] = status
+				exec(self.ready_func, locs)
+				isReady = status.ready
+			except Exception as e:
+				self._pipeline.status = Status.ERROR
+				self._pipeline.error = "Failed to assert ready state for node {node}: {error}".format(node=self.id, error=e)
+				return False
 
 		return isReady
 
 	def before(self):
 		locs = self.locals()
 		directive = {}
-		
+
 		if self.in_directive is not None:
 			directive = self.in_directive
 		else:
@@ -155,7 +164,11 @@ class Node(Context):
 				self._pipeline.binaries[inIdentifier] = resolvedValue
 
 		if self.before_func is not None:
-			exec(self.before_func, locs, globals())
+			try:
+				exec(self.before_func, locs, globals())
+			except Exception as e:
+				self._pipeline.status = Status.ERROR
+				self._pipeline.error = "Failed to pre-process node {node}: {error}".format(node=self.id, error=e)
 
 	async def process(self, taskId):
 		binaries = {}
@@ -166,19 +179,23 @@ class Node(Context):
 			if identifier in self._pipeline.binaries:
 				binUid = self._pipeline.binaries[identifier]
 				binaries[key] = await self._pipeline._engine.registry.getBinaryStream(binUid)
-		
+
 		# Remove binaries from body
 		[jsonBody.pop(key) for key in binaries.keys()]
-		
+
 		if self.type == NodeType.SERVICE:
-			params = {"callback_url": self._pipeline._engine.route + "/processing", "task_id": taskId}
-			if len(binaries) == 0:
-				# Pure json service
-				await self.client.post(self.url, params=params, json=self.input)
-			else:
-				# Multipart request with json and binaries
-				binaries["data"] = json.dumps(jsonBody).encode("utf8")
-				await self._pipeline._engine.client.post(self.url, params=params, files=binaries)
+			try:
+				params = {"callback_url": self._pipeline._engine.route + "/processing", "task_id": taskId}
+				if len(binaries) == 0:
+					# Pure json service
+					await self.client.post(self.url, params=params, json=self.input)
+				else:
+					# Multipart request with json and binaries
+					binaries["data"] = json.dumps(jsonBody).encode("utf8")
+					await self._pipeline._engine.client.post(self.url, params=params, files=binaries)
+			except Exception as e:
+				self._pipeline.status = Status.ERROR
+				self._pipeline.error = "Failed to process service node {node}: {error}".format(node=self.id, error=e)
 		else:
 			for binaryKey in binaries:
 				inIdentifier = str.join(".", [self.id, "input", binaryKey])
@@ -189,8 +206,12 @@ class Node(Context):
 	def after(self, result):
 		self.out = result
 		if self.after_func is not None:
-			exec(self.after_func, self.locals(), globals())
-	
+			try:
+				exec(self.after_func, self.locals(), globals())
+			except Exception as e:
+				self._pipeline.status = Status.ERROR
+				self._pipeline.error = "Failed to post-process node {node}: {error}".format(node=self.id, error=e)
+
 	def locals(self):
 		# So much sugar!!!
 		loc = {"node": self, "pipeline": self._pipeline}
