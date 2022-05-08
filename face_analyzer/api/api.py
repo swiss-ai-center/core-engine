@@ -8,7 +8,7 @@ from . import interface
 async def startup():
 	# Announce ourself to the engine
 	if engine is not None and service is not None:
-		serviceDescr = {"url": service + "/compute", "api": interface.engineAPI()}
+		serviceDescr = {"url": service + "/compute", "api": interface.engineAPI(), "type": "service"}
 		await client.post(engine + "/services", json=serviceDescr)
 
 	worker.chain(callback)
