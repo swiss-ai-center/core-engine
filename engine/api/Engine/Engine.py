@@ -4,7 +4,7 @@ import datetime
 
 from .Pipeline import Pipeline, Node
 from .Enums import Status, NodeType
-from .Errors import ItemNotFound, BadStatus
+from .Errors import ItemNotFound, BadStatus, Duplicate
 
 class Engine():
 	def __init__(self, registry, route, externalRoute):
@@ -46,9 +46,11 @@ class Engine():
 				self.api[endpoint] = Pipeline.api(pipeline)
 	
 	async def addPipeline(self, pipeline):
-		pid = await self.registry.addPipeline(pipeline)
 		api = Pipeline.api(pipeline)
 		endpoint = api["route"]
+		if endpoint in self.endpoints:
+			raise Duplicate("Pipeline already exists for endpoint {endpoint}".format(endpoint=endpoint))
+		pid = await self.registry.addPipeline(pipeline)
 		if endpoint is not None:
 			self.endpoints[endpoint] = pid
 			self.api[endpoint] = api

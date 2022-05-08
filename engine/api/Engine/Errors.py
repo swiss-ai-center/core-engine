@@ -11,3 +11,7 @@ class BadStatus(HTTPException):
 class BadID(HTTPException):
 	def __init__(self, message):
 		super().__init__(status_code=400, detail=message)
+
+class Duplicate(HTTPException):
+	def __init__(self, message):
+		super().__init__(status_code=400, detail=message)
