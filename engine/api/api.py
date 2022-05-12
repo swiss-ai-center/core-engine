@@ -24,6 +24,8 @@ def addRoute(route, body=None, summary=None, description=None):
 		elif type(body) is list:
 			binaries = body
 
+		jsonParts = set()
+
 		if len(binaries) > 0:
 			request = kwargs["req"]
 			form = await request.form()
@@ -32,10 +34,11 @@ def addRoute(route, body=None, summary=None, description=None):
 				if obj.content_type == "application/json":
 					payload = await obj.read()
 					jobData.update(json.loads(payload))
+					jsonParts.add(name)
 				else:
 					jobData[name] = obj
 
-		jobId = await engine.newJob(route, jobData, binaries)
+		jobId = await engine.newJob(route, jobData, [b for b in binaries if b not in jsonParts])
 		return {"jobId": jobId}
 
 	# Change the function signature with expected types from the api description so that the api doc is correctly generated
