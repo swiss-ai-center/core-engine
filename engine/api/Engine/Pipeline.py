@@ -195,6 +195,24 @@ class Node(Context):
 			loc[nodeId] = self._pipeline.node(nodeId)
 		return loc
 
+	def isParent(self, nodeId):
+		if nodeId in self.predecessors:
+			return True
+
+		for predId in self.predecessors:
+			if self._pipeline.node(predId).isParent(nodeId):
+				return True
+
+		return False
+
+	def reset(self):
+		if self.finished:
+			self.finished = False
+			self.input = {}
+			self.out = {}
+			for nextId in self.next:
+				self._pipeline.node(nextId).reset()
+
 class NodeEntry(Node):
 	def build(self, api, **kwargs):
 		super().build(**kwargs)
@@ -237,6 +255,7 @@ class NodeBranch(Node):
 		self.cond = kwargs["if"]
 		self.then = kwargs["then"]
 		self.otherwise = kwargs["else"]
+		self.resetStatus = False
 
 	async def process(self, taskId):
 		try:
@@ -261,7 +280,11 @@ class NodeBranch(Node):
 					self.next = branch["next"]
 					for nextId in self.next:
 						nextnode = self._pipeline.node(nextId)
-						nextnode.predecessors.append(self.id)
+						if self.isParent(nextId):
+							nextnode.reset()
+							self.resetStatus = True
+						else:
+							nextnode.predecessors.append(self.id)
 				if "out" in branch:
 					for key in branch["out"]:
 						identifier = branch["out"][key]
@@ -273,6 +296,12 @@ class NodeBranch(Node):
 			await self._pipeline._engine.processTask(taskId, data)
 		except Exception as e:
 			self._pipeline.fail("Failed to process branch node {node}: {error}".format(node=self.id, error=e))
+
+	def after(self, result):
+		super().after(result)
+		if self.resetStatus:
+			self.resetStatus = False
+			self.finished = False
 
 class NodeHTTP(Node):
 	def build(self, url, verb="GET", **kwargs):
