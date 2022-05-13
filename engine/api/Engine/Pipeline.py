@@ -358,6 +358,82 @@ class NodeHTTP(Node):
 		except Exception as e:
 			self._pipeline.fail("Failed to process http node {node}: {error}".format(node=self.id, error=e))
 
+class NodeLoop(Node):
+	def build(self, items, nodes, **kwargs):
+		super().build(**kwargs)
+		self.items = items
+		self.nodes = nodes
+		self.collect = kwargs["collect"] if "collect" in kwargs else {}
+
+		self.counter = 0
+		self.endNode = self.id + "End"
+
+	async def process(self, taskId):
+		if self.endNode not in self._pipeline.nodes:
+			endNode = Node({})
+			endNode.build(**{"id": self.endNode, "type": NodeType.NODE, "input": {}, "next": self.next, "after": self.id + ".out = node.out"})
+			self._pipeline.nodes[self.endNode] = endNode.data
+			self.next = []
+		endNode = self._pipeline.node(self.endNode)
+
+		items = resolveObjectAttr(self.locals(), self.items)
+		if type(items) is not list:
+			self._pipeline.fail("Can not iterate on " + self.items + " (" + str(type(items)) + ")")
+			return
+
+		for i in range(len(items)):
+			item = items[i]
+			branchNodes = {}
+			branchEntryNode = None
+			for node in self.nodes:
+				# Set new id
+				nodeDef = copy.deepcopy(node)
+				nodeId = node["id"] + str(self.counter)
+				self.counter += 1
+				branchNodes[node["id"]] = nodeId
+				nodeDef["id"] = nodeId
+
+				# Connect branch end node to loop end node
+				if "next" in nodeDef:
+					nextList = nodeDef["next"]
+					if "loopEnd" in nextList:
+						nextList[nextList.index("loopEnd")] = endNode.id
+						endNode.predecessors.append(nodeId)
+
+				# Process inputs
+				if "input" in nodeDef:
+					directive = nodeDef["input"]
+					for k in directive:
+						if directive[k].startswith("loop."):
+							path = directive[k].split(".")
+							if path[1] in branchNodes:
+								directive[k] = str.join(".", [branchNodes[path[1]]] + path[2:])
+
+				# Build and inject current item
+				n = NodeFactories[node["type"]]({})
+				n.build(**nodeDef)
+				n._loop = item
+				self._pipeline.nodes[nodeId] = n.data
+
+				if branchEntryNode is None:
+					branchEntryNode = nodeId
+					n.predecessors.append(self.id)
+
+			self.next.append(branchEntryNode)
+			for k in self.collect:
+				path = self.collect[k].split(".")
+				endNode.in_directive[k + str(i)] = str.join(".", [branchNodes[path[0]]] + path[1:])
+
+		await self._pipeline._engine.processTask(taskId, {}, [])
+
+	def reset(self):
+		self.next = []
+		endNode = self._pipeline.node(self.endNode)
+		endNode.predecessors = []
+		endNode.in_directive = {}
+		super().reset()
+		endNode.reset()
+
 NodeFactories = {}
 NodeFactories[NodeType.NODE] = Node
 NodeFactories[NodeType.ENTRY] = NodeEntry
@@ -365,3 +441,4 @@ NodeFactories[NodeType.END] = Node
 NodeFactories[NodeType.SERVICE] = NodeService
 NodeFactories[NodeType.BRANCH] = NodeBranch
 NodeFactories[NodeType.HTTP] = NodeHTTP
+NodeFactories[NodeType.LOOP] = NodeLoop

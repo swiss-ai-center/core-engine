@@ -34,7 +34,7 @@ class Node(BaseModel):
 	url: Optional[str]
 
 class PipelineDescription(BaseModel):
-	nodes: List[Union[Node, dict]]
+	nodes: List[dict]
 	type: Literal[ServiceType.PIPELINE]
 
 class ServiceDescription(BaseModel):
