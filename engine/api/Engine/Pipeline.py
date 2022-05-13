@@ -383,22 +383,25 @@ class NodeLoop(Node):
 
 		for i in range(len(items)):
 			item = items[i]
-			branchNodes = {}
+			branchNodesMapping = {}
+			branchNodes = []
 			branchEntryNode = None
 			for node in self.nodes:
 				# Set new id
 				nodeDef = copy.deepcopy(node)
 				nodeId = node["id"] + str(self.counter)
 				self.counter += 1
-				branchNodes[node["id"]] = nodeId
+				branchNodesMapping[node["id"]] = nodeId
 				nodeDef["id"] = nodeId
 
 				# Connect branch end node to loop end node
 				if "next" in nodeDef:
 					nextList = nodeDef["next"]
-					if "loopEnd" in nextList:
-						nextList[nextList.index("loopEnd")] = endNode.id
-						endNode.predecessors.append(nodeId)
+					for i in range(len(nextList)):
+						nextNode = nextList[i]
+						if nextNode == "loopEnd":
+							nextList[i] = endNode.id
+							endNode.predecessors.append(nodeId)
 
 				# Process inputs
 				if "input" in nodeDef:
@@ -406,23 +409,28 @@ class NodeLoop(Node):
 					for k in directive:
 						if directive[k].startswith("loop."):
 							path = directive[k].split(".")
-							if path[1] in branchNodes:
-								directive[k] = str.join(".", [branchNodes[path[1]]] + path[2:])
+							if path[1] in branchNodesMapping:
+								directive[k] = str.join(".", [branchNodesMapping[path[1]]] + path[2:])
 
 				# Build and inject current item
 				n = NodeFactories[node["type"]]({})
 				n.build(**nodeDef)
 				n._loop = item
 				self._pipeline.nodes[nodeId] = n.data
+				branchNodes.append(n)
 
 				if branchEntryNode is None:
 					branchEntryNode = nodeId
 					n.predecessors.append(self.id)
-
+			for n in branchNodes:
+				for i in range(len(n.next)):
+					nextId = n.next[i]
+					if nextId in branchNodesMapping:
+						n.next[i] = branchNodesMapping[nextId]
 			self.next.append(branchEntryNode)
 			for k in self.collect:
 				path = self.collect[k].split(".")
-				endNode.in_directive[k + str(i)] = str.join(".", [branchNodes[path[0]]] + path[1:])
+				endNode.in_directive[k + str(i)] = str.join(".", [branchNodesMapping[path[0]]] + path[1:])
 
 		await self._pipeline._engine.processTask(taskId, {}, [])
 
