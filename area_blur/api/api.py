@@ -3,15 +3,14 @@ import httpx
 from .worker import Worker, Callback
 from . import interface
 import os
-import io
-import base64
 
 
 async def startup():
 	# Announce ourself to the engine
 	if engine is not None and service is not None:
-		serviceDescr = {"url": service + "/compute", "api": interface.engineAPI(), "type": "service"}
-		await client.post(engine + "/services", json=serviceDescr)
+		for route in interface.engineAPI():
+			serviceDescr = {"url": service + "/" + route['route'], "api": route, "type": "service"}
+			await client.post(engine + "/services", json=serviceDescr)
 
 	worker.chain(callback)
 	callback.start()
@@ -20,8 +19,8 @@ async def startup():
 async def shutdown():
 	# Remove ourself from the engine
 	if engine is not None and service is not None:
-		endpoint = interface.engineAPI()["route"]
-		await client.delete(engine + "/services/" + endpoint)
+		for route in interface.engineAPI():
+			await client.delete(engine + "/services/" + route)
 
 	await worker.stop()
 	await callback.stop()
@@ -49,24 +48,19 @@ res = []
 # 	return interface.TaskId(task_id=task_id)
 
 # This is a route for a service that takes a binary file as input, plus a custom "data1" query param
-@app.post("/compute", response_model=interface.TaskId)
-async def post(data: UploadFile, image: UploadFile, callback_url: str = None, task_id: str = None):
+@app.post("/blur", response_model=interface.TaskId)
+async def blur(data: UploadFile, image: UploadFile, callback_url: str = None, task_id: str = None):
 	if task_id is None:
 		task_id = str(interface.uid())
-	task = {"callback_url": callback_url, "task_id": task_id, "image": image, "areas": data}
+	task = {"operation": "blur", "callback_url": callback_url, "task_id": task_id, "image": image, "areas": data}
 	await worker.addTask(task)
 	return interface.TaskId(task_id=task_id)
 
-@app.post("/result", response_model=interface.TaskId)
-async def result_post(image: UploadFile, task_id: str = None):
-	raw_img = await image.read()
-	img_strm = io.BytesIO(raw_img)
-	buff = img_strm
-	img_str = base64.b64encode(buff.getvalue())
-	res.append(img_str)
-	return interface.TaskId(task_id="-1")
-
-@app.get("/result", response_model=interface.TaskId)
-async def result_get():
-	img_str = res.pop()
-	return interface.TaskId(task_id=f'<img src="data:image/jpg;base64, {img_str}/>')
+# This is a route for a service that takes a binary file as input, plus a custom "data1" query param
+@app.post("/crop", response_model=interface.TaskId)
+async def crop(data: UploadFile, image: UploadFile, callback_url: str = None, task_id: str = None):
+	if task_id is None:
+		task_id = str(interface.uid())
+	task = {"operation": "crop", "callback_url": callback_url, "task_id": task_id, "image": image, "areas": data}
+	await worker.addTask(task)
+	return interface.TaskId(task_id=task_id)

@@ -13,4 +13,7 @@ class TaskId(BaseModel):
 # Also implement me!
 # This is the custom API that will be sent to the Engine, with our magical (not completely defined yet) syntax
 def engineAPI():
-	return {"route": "areaBlur", "body": ["image", "areas"]}
+	return [
+		{"route": "blur", "body": ["image", "areas"]},
+		{"route": "crop", "body": ["image", "areas"]}
+	]

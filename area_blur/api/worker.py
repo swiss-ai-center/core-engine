@@ -39,7 +39,7 @@ class Worker():
 	def clamp(self, val, smallest, largest):
 		return max(smallest, min(val, largest))
 
-	async def process(self, task):
+	async def blur(self, task):
 		raw_img = await task["image"].read()
 		img_strm = io.BytesIO(raw_img)
 		img = cv2.imdecode(np.frombuffer(img_strm.read(), np.uint8), 1)
@@ -67,6 +67,30 @@ class Worker():
 		# await self.client.post(url, params={"task_id": task_id}, files={"result": task["result"]})
 		return task
 
+	async def crop(self, task):
+		raw_img = await task["image"].read()
+		img_strm = io.BytesIO(raw_img)
+		img = cv2.imdecode(np.frombuffer(img_strm.read(), np.uint8), 1)
+		raw_areas = await task["areas"].read()
+		areas = json.loads(raw_areas)
+		task["areas"] = areas
+		areas = areas['areas'][0]
+
+		is_success, cropped_image = cv2.imencode(".jpg", img[areas[0]:areas[2], areas[1]:areas[3]])
+
+		task["result"] = cropped_image.tobytes()
+		return task
+
+	async def process(self, task):
+		if task['operation'] == 'blur':
+			task = await self.blur(task)
+
+		if task['operation'] == 'crop':
+			task = await self.crop(task)
+
+		return task
+
+# Take task et send to engine
 class Callback(Worker):
 	def __init__(self):
 		super().__init__()
