@@ -63,7 +63,8 @@ class Worker():
 			img[y1:y2 + 1, x1:x2 + 1] = cv2.blur(img[y1:y2 + 1, x1:x2 + 1], (23, 23))
 		# cv2.imwrite('res.jpg', img)
 		is_success, outBuff = cv2.imencode(".jpg", img)
-		task["result"] = outBuff.tobytes()
+		task["results"] = []
+		task["results"].append(outBuff.tobytes())
 		# await self.client.post(url, params={"task_id": task_id}, files={"result": task["result"]})
 		return task
 
@@ -74,11 +75,12 @@ class Worker():
 		raw_areas = await task["areas"].read()
 		areas = json.loads(raw_areas)
 		task["areas"] = areas
-		areas = areas['areas'][0]
+		areas = areas['areas']
+		task["results"] = []
+		for area in areas:
+			is_success, cropped_image = cv2.imencode(".jpg", img[area[0]:area[2], area[1]:area[3]])
+			task["results"].append(cropped_image.tobytes())
 
-		is_success, cropped_image = cv2.imencode(".jpg", img[areas[0]:areas[2], areas[1]:areas[3]])
-
-		task["result"] = cropped_image.tobytes()
 		return task
 
 	async def process(self, task):
@@ -102,4 +104,14 @@ class Callback(Worker):
 		if url is not None:
 			# Needs to be modified if the result contains a blob to send back
 			# something like: await self.client.post(url, params={"task_id": task_id}, files={"result": file...})
-			await self.client.post(url, params={"task_id": task_id}, files={"result": task["result"]})
+			i = 1
+			files = {}
+			if(len(task["results"]) > 1):
+				for result in task["results"]:
+					filename = "result" + str(i)
+					files[filename] = result
+					i += 1
+			else:
+				files['result'] = task["results"][0]
+
+			await self.client.post(url, params={"task_id": task_id}, files=files)

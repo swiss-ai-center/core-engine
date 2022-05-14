@@ -8,8 +8,8 @@ import os
 async def startup():
 	# Announce ourself to the engine
 	if engine is not None and service is not None:
-		for route in interface.engineAPI():
-			serviceDescr = {"url": service + "/" + route['route'], "api": route, "type": "service"}
+		for api in interface.engineAPI():
+			serviceDescr = {"url": service + "/" + api['route'], "api": api, "type": "service"}
 			await client.post(engine + "/services", json=serviceDescr)
 
 	worker.chain(callback)
@@ -19,8 +19,8 @@ async def startup():
 async def shutdown():
 	# Remove ourself from the engine
 	if engine is not None and service is not None:
-		for route in interface.engineAPI():
-			await client.delete(engine + "/services/" + route)
+		for api in interface.engineAPI():
+			await client.delete(engine + "/services/" + api['route'])
 
 	await worker.stop()
 	await callback.stop()
