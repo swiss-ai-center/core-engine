@@ -267,7 +267,8 @@ class Engine():
 		return stats
 
 	async def getPipelines(self):
-		return await self.registry.getPipelines()
+		pipelines = await self.registry.getPipelines()
+		return list(pipelines)
 
 	async def getPipeline(self, name):
 		if name not in self.endpoints:
