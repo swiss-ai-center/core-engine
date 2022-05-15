@@ -218,7 +218,7 @@ class Engine():
 		component = {"type": NodeType.SERVICE, "id": name + "-component", "url": url, "next": [name + "-end"]}
 		end = {"type": NodeType.END, "id": name + "-end"}
 
-		pipeline = {"nodes": [entry, component, end]}
+		pipeline = {"type": "pipeline", "nodes": [entry, component, end]}
 		await self.addPipeline(pipeline)
 
 	async def clean(self, delta):
