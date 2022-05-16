@@ -115,6 +115,16 @@ class Worker():
 
 		return task
 
+	async def greyscale(self, task):
+		raw = await task["image"].read()
+		stream = io.BytesIO(raw)
+		img = Image.open(stream)
+		img2 = img.convert("L")
+		outBuff = io.BytesIO()
+		img2.save(outBuff, format="jpeg", quality=95)
+		outBuff.seek(0)
+		task["results"] = [outBuff]
+
 	async def process(self, task):
 		if task['operation'] == 'blur':
 			await self.blur(task)
@@ -127,6 +137,9 @@ class Worker():
 
 		if task['operation'] == 'analyze':
 			await self.analyze(task)
+
+		if task['operation'] == 'greyscale':
+			await self.greyscale(task)
 
 		return task
 

@@ -18,4 +18,5 @@ def engineAPI():
 		{"route": "crop", "body": ["image", "areas"]},
 		{"route": "convertPNGtoJPG", "body": ["image"]},
 		{"route": "analyze", "body": ["image"], "summary": "Extract image metadata"},
+		{"route": "greyscale", "body": ["image"], "summary": "Convert image to black and white / grey scale"}
 	]
