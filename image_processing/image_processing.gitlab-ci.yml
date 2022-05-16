@@ -2,9 +2,9 @@
 # Area Blur
 ###
 
-build-area_blur:
+build-image_processing:
   variables:
-    SERVICE_NAME: area_blur
+    SERVICE_NAME: image_processing
   image: docker:19.03.12
   stage: build
   services:
@@ -21,11 +21,11 @@ build-area_blur:
     refs:
       - dev
     changes:
-      - area_blur/**/*
+      - image_processing/**/*
   
-deploy-area_blur:
+deploy-image_processing:
   variables:
-    SERVICE_NAME: area_blur
+    SERVICE_NAME: image_processing
   image: lachlanevenson/k8s-kubectl:latest
   stage: deploy
   tags:
@@ -45,4 +45,4 @@ deploy-area_blur:
     refs:
       - dev
     changes:
-      - area_blur/**/*
+      - image_processing/**/*
