@@ -96,6 +96,37 @@ class Worker():
 
 		return task
 
+	async def resize(sefl, task):
+		raw_img = await task["image"].read()
+		img_strm = io.BytesIO(raw_img)
+		img = cv2.imdecode(np.frombuffer(img_strm.read(), np.uint8), 1)
+
+		# Scaling
+		raw_scale_settings = await task["settings"].read()
+		scale_settings = json.loads(raw_scale_settings)
+		task["scale_settings"] = scale_settings
+
+		if scale_settings["withRatio"] is True:
+			scale_percent = scale_settings["scale_percent"]
+			width = int(img.shape[1] * scale_percent / 100)
+			height = int(img.shape[0] * scale_percent / 100)
+		else:
+			width = scale_settings["width"]
+			height = scale_settings["height"]
+
+		dim = (width, height)
+
+		# resize image
+		resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+
+		# Save .jpg image
+		is_success, resized_imaged = cv2.imencode(".jpg", resized)
+
+		task["results"] = []
+		task["results"].append(resized_imaged.tobytes())
+
+		return task
+
 	async def process(self, task):
 		if task['operation'] == 'blur':
 			task = await self.blur(task)
@@ -105,6 +136,9 @@ class Worker():
 
 		if task['operation'] == 'convertPNGtoJPG':
 			task = await self.convertPNGtoJPG(task)
+
+		if task['operation'] == 'resize':
+			task = await self.resize(task)
 
 		return task
 
