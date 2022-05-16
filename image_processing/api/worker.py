@@ -149,7 +149,7 @@ class Worker():
 		dim = (width, height)
 
 		# resize image
-		resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+		resized = cv2.resize(img, dim, interpolation=cv2.INTER_LANCZOS4)
 
 		# Save .jpg image
 		is_success, outBuff = cv2.imencode(".jpg", resized)
