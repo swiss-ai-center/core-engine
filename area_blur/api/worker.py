@@ -4,6 +4,7 @@ import io
 import cv2
 import numpy as np
 import json
+import logging
 
 from PIL import Image
 from PIL.ExifTags import TAGS
@@ -42,15 +43,12 @@ class Worker():
 		return max(smallest, min(val, largest))
 
 	async def blur(self, task):
-		raw_img = await task["image"].read()
-		img_strm = io.BytesIO(raw_img)
-		img = cv2.imdecode(np.frombuffer(img_strm.read(), np.uint8), 1)
+		raw = await task["image"].read()
+		img = cv2.imdecode(np.frombuffer(raw, np.uint8), 1)
 
 		raw_areas = await task["areas"].read()
-		areas = json.loads(raw_areas)
-		areas = areas['areas']
-		task["areas"] = areas
-		# [x1, y1, x2, y2]
+		areas = json.loads(raw_areas)['areas']
+
 		rows = img.shape[0]
 		cols = img.shape[1]
 
@@ -62,12 +60,13 @@ class Worker():
 
 		for a in areas:
 			x1, x2, y1, y2 = a[0], a[2], a[1], a[3]
-			img[y1:y2 + 1, x1:x2 + 1] = cv2.blur(img[y1:y2 + 1, x1:x2 + 1], (23, 23))
-		# cv2.imwrite('res.jpg', img)
+			# We need to compute the blur kernel size according to the area size
+			areaSize = max(x2 - x1, y2 - y1)
+			kernelSize = int(areaSize * 0.08)
+			img[y1:y2 + 1, x1:x2 + 1] = cv2.blur(img[y1:y2 + 1, x1:x2 + 1], (kernelSize, kernelSize))
+
 		is_success, outBuff = cv2.imencode(".jpg", img)
-		task["results"] = []
-		task["results"].append(outBuff.tobytes())
-		# await self.client.post(url, params={"task_id": task_id}, files={"result": task["result"]})
+		task["result"] = outBuff.tobytes()
 		return task
 
 	async def analyze(self, task):
@@ -86,32 +85,34 @@ class Worker():
 			metadata[name] = val if type(val) in [str, int, float, bool] else str(val)
 
 		task["result"] = metadata
-
-	async def crop(self, task):
-		raw_img = await task["image"].read()
-		img_strm = io.BytesIO(raw_img)
-		img = cv2.imdecode(np.frombuffer(img_strm.read(), np.uint8), 1)
-		raw_areas = await task["areas"].read()
-		areas = json.loads(raw_areas)
-		task["areas"] = areas
-		areas = areas['areas']
-		task["results"] = []
-		for area in areas:
-			is_success, cropped_image = cv2.imencode(".jpg", img[area[0]:area[2], area[1]:area[3]])
-			task["results"].append(cropped_image.tobytes())
-
 		return task
 
-	async def convertPNGtoJPG(sefl, task):
-		raw_img = await task["image"].read()
-		img_strm = io.BytesIO(raw_img)
-		img = cv2.imdecode(np.frombuffer(img_strm.read(), np.uint8), 1)
+	async def crop(self, task):
+		raw = await task["image"].read()
+		img = cv2.imdecode(np.frombuffer(raw, np.uint8), 1)
+		raw_areas = await task["areas"].read()
+		areas = json.loads(raw_areas)['areas']
 
-		# Save .jpg image
-		is_success, converted_imaged = cv2.imencode(".jpg", img)
+		cropped = []
 
-		task["results"] = []
-		task["results"].append(converted_imaged.tobytes())
+		for area in areas:
+			is_success, cropped_image = cv2.imencode(".jpg", img[area[0]:area[2], area[1]:area[3]])
+			cropped.append(cropped_image.tobytes())
+
+		task["result"] = cropped if len(cropped) > 1 else cropped[0]
+		return task
+
+	async def convert(self, task):
+		raw = await task["format"].read()
+		spec = json.loads(raw)
+		raw = await task["image"].read()
+		stream = io.BytesIO(raw)
+		img = Image.open(stream)
+
+		outBuff = io.BytesIO()
+		img.save(outBuff, **spec)
+		outBuff.seek(0)
+		task["result"] = outBuff
 
 		return task
 
@@ -119,27 +120,33 @@ class Worker():
 		raw = await task["image"].read()
 		stream = io.BytesIO(raw)
 		img = Image.open(stream)
+
 		img2 = img.convert("L")
 		outBuff = io.BytesIO()
 		img2.save(outBuff, format="jpeg", quality=95)
 		outBuff.seek(0)
-		task["results"] = [outBuff]
+		task["result"] = outBuff
+
+		return task
 
 	async def process(self, task):
-		if task['operation'] == 'blur':
-			await self.blur(task)
+		try:
+			if task['operation'] == 'blur':
+				await self.blur(task)
 
-		if task['operation'] == 'crop':
-			await self.crop(task)
+			if task['operation'] == 'crop':
+				await self.crop(task)
 
-		if task['operation'] == 'convertPNGtoJPG':
-			await self.convertPNGtoJPG(task)
+			if task['operation'] == 'convert':
+				await self.convert(task)
 
-		if task['operation'] == 'analyze':
-			await self.analyze(task)
+			if task['operation'] == 'analyze':
+				await self.analyze(task)
 
-		if task['operation'] == 'greyscale':
-			await self.greyscale(task)
+			if task['operation'] == 'greyscale':
+				await self.greyscale(task)
+		except Exception as e:
+			task["error"] = "Failed to process image: " + str(e)
 
 		return task
 
@@ -153,20 +160,23 @@ class Callback(Worker):
 		url = task["callback_url"] if "callback_url" in task else None
 		task_id = task["task_id"] if "task_id" in task else None
 
-		jsonResult = task['operation'] == "analyze"
-
 		if url is not None:
-			if jsonResult:
-				await self.client.post(url, params={"task_id": task_id}, json=task["result"])
-			else:
+			res = task["result"] if "result" in task else None
+			if "error" in task:
+				await self.client.post(url, params={"task_id": task_id}, json={"error": task["error"]})
+			elif type(res) is dict:
+				await self.client.post(url, params={"task_id": task_id}, json=res)
+			elif type(res) is bytes or isinstance(res, io.IOBase):
+				await self.client.post(url, params={"task_id": task_id}, files={"result": res})
+			elif type(res) is list:
+
 				files = {}
-				if(len(task["results"]) > 1):
-					i = 1
-					for result in task["results"]:
-						filename = "result" + str(i)
-						files[filename] = result
-						i += 1
-				else:
-					files['result'] = task["results"][0]
+				for i in range(len(res)):
+					filename = "result" + str(i)
+					files[filename] = res[i]
 
 				await self.client.post(url, params={"task_id": task_id}, files=files)
+			else:
+				await self.client.post(url, params={"task_id": task_id}, json={"error": "Invalid output " + str(type(res))})
+		else:
+			logging.getLogger("uvicorn").warning("No callback for task, skipping")

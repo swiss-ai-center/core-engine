@@ -10,13 +10,9 @@ def uid():
 class TaskId(BaseModel):
 	task_id: str
 
-# Also implement me!
-# This is the custom API that will be sent to the Engine, with our magical (not completely defined yet) syntax
-def engineAPI():
-	return [
-		{"route": "blur", "body": ["image", "areas"]},
-		{"route": "crop", "body": ["image", "areas"]},
-		{"route": "convertPNGtoJPG", "body": ["image"]},
-		{"route": "analyze", "body": ["image"], "summary": "Extract image metadata"},
-		{"route": "greyscale", "body": ["image"], "summary": "Convert image to black and white / grey scale"}
-	]
+engineAPI = {}
+engineAPI["blur"] = {"route": "image-blur", "body": ["image", "areas"], "summary": "Blur one or more areas in an image"}
+engineAPI["crop"] = {"route": "image-crop", "body": ["image", "areas"], "summary": "Crop one or more areas of an image"}
+engineAPI["convert"] = {"route": "image-convert", "body": ["image", "format"], "summary": "Convert between image formats"}
+engineAPI["analyze"] = {"route": "image-analyze", "body": ["image"], "summary": "Extract image metadata"}
+engineAPI["greyscale"] = {"route": "image-greyscale", "body": ["image"], "summary": "Convert image to black and white / grey scale"}
