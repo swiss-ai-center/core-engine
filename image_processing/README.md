@@ -43,6 +43,9 @@ or with all custom parameters:
 
 ```bash
 APP_HOST=0.0.0.0 APP_PORT=4040 APP_LOG=info APP_ENGINE=http://engine.com/notify python3 main.py
+
+APP_HOST=0.0.0.0 APP_PORT=8081 APP_SERVICE=http://192.168.x.x:8081 APP_ENGINE=http://192.168.x.x:8080 APP_LOG=info python3 ./area_blur/main.py
+
 ```
 
 ## Run using docker

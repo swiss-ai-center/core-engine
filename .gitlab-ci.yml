@@ -4,10 +4,10 @@ stages:
   - deploy
 
 include:
-  - area_blur/area_blur.gitlab-ci.yml
   - engine/engine.gitlab-ci.yml
   - face_analyzer/face_analyzer.gitlab-ci.yml
   - face_detection/face_detection.gitlab-ci.yml
+  - image_processing/image_processing.gitlab-ci.yml
   - mongo/mongo.gitlab-ci.yml
   - webapp/webapp.gitlab-ci.yml
 
