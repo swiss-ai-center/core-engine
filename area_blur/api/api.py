@@ -3,6 +3,7 @@ import httpx
 from .worker import Worker, Callback
 from . import interface
 import os
+import logging
 
 async def startup():
 	# Announce ourself to the engine
@@ -10,7 +11,10 @@ async def startup():
 		for operation in interface.engineAPI:
 			api = interface.engineAPI[operation]
 			serviceDescr = {"url": service + "/" + operation, "api": api, "type": "service"}
-			await client.post(engine + "/services", json=serviceDescr)
+			try:
+				await client.post(engine + "/services", json=serviceDescr)
+			except Exception as e:
+				logging.getLogger("uvicorn").warning("Failed to notify the engine: " + str(e))
 
 	worker.chain(callback)
 	callback.start()
@@ -20,7 +24,10 @@ async def shutdown():
 	# Remove ourself from the engine
 	if engine is not None and service is not None:
 		for operation in interface.engineAPI:
-			await client.delete(engine + "/services/" + operation)
+			try:
+				await client.delete(engine + "/services/" + operation)
+			except Exception as e:
+				logging.getLogger("uvicorn").warning("Failed to notify the engine: " + str(e))
 
 	await worker.stop()
 	await callback.stop()
