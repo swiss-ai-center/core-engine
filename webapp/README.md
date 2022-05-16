@@ -1,158 +1,70 @@
-Mettre pydantic
-Swagger
-Expliquer comment run
+# Getting Started with Create React App
 
-# How to run
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-Using both docker or your local python3, the API require at least the two first following arguments :
+## Available Scripts
 
-- `--listen` : str - It's the address on which the API will listen. Put `0.0.0.0` for it to listen for every request.
-- `--port` : int - It's the port the API will listen on. For standard HTTP, use `80`.
-- `--reload` : Optionnal - Write `--reload` for the API to reload itself after applying changes to the code. Use it in dev only.
+In the project directory, you can run:
 
-## Run your machine without docker
+### `npm start`
 
-First, install the requirements using `pip3`
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-```bash
-pip3 install -r requirements.txt
-```
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
-Then, you can run the following command to run it in dev :
+### `npm test`
 
-```bash
-python3 api/api.py --port 80 --listen 0.0.0.0 --reload
-# Reload is optionnal, it's is practical to use it when you have to change code a lot, the API reload itself when saving the file.
-```
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-## Run using docker
+### `npm run build`
 
-First build the dockerfile which you can find in the root directory and build it in the same directory using the following command :
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-```bash
-docker build -t pi/api -f dockerfile .
-```
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
-Then run it using the following command and don't forget to add the two required arguments at the end as the entrypoint of the docker file is the command to run the API :
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-```bash
-docker run -it --rm -p80:80 pi/api --listen 0.0.0.0 --port 80
-```
+### `npm run eject`
 
-If you wish to use the reload while in the docker, mount a volume linking you local file to the ones in the docker :
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-```bash
-docker run -it --rm -p80:80 -v$(pwd)/api:/app/api pi/api --listen 0.0.0.0 --port 80 --reload
-```
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-## Running the tests
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-### On your local machine
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-To run the tests of you API make sur you are in the root directory of the project and run the following command :
+## Learn More
 
-```bash
-python3 -m pytest api/tests
-```
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-### Inside the docker
+To learn React, check out the [React documentation](https://reactjs.org/).
 
-TBD
+### Code Splitting
 
-# Routes
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
 
-**GET /docs**
-This route will show you the full documentation of all your routes.
+### Analyzing the Bundle Size
 
-**GET /static/file1.txt**
-This route will return a static file text file.
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
 
-**GET /**
-This route will redirect you on `/hello`.
+### Making a Progressive Web App
 
-**GET /hello**
-This route will return you a JSON object with the following format :
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
 
-```json
-{
-  "Hello": "World !"
-}
-```
+### Advanced Configuration
 
-**GET /pydantic**
-This route require parameters in the body and will return you the object you gave him as JSON.
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
-Here is the Pydantic model `GExample` where the field `name` is required and the field `surename` is optional :
+### Deployment
 
-```python
-from pydantic import BaseModel
-from typing import Optional
-class GExample (BaseModel):
-	name: str
-	surname: Optional[str]
-```
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
-With this declaration, you can call the API using either both parameter, or only the name :
+### `npm run build` fails to minify
 
-```bash
-# With both parameters
-curl -X 'GET' \
-  'http://localhost/pydantic' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "name": "My name is awesome :D !",
-  "surname": "I have a surename, WoW !"
-}'
-```
-
-```bash
-# With only one of the required parameters
-curl -X 'GET' \
-  'http://localhost/pydantic' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "name": "My name is awesome :D !"
-}'
-```
-
-**POST /pydantic**
-This route require parameters in the body and will return you the object you gave him as JSON.
-
-Here is the Pydantic model `PExample` where the field `name` is required and the field `surename` is optional :
-
-```python
-from pydantic import BaseModel
-from models.GExample import GExample
-# Example for a POST request
-class PExample(BaseModel):
-	email : str
-	age: int
-	basicInfo: GExample
-```
-
-With this declaration, you can call the API using either both parameter of the `GModel`, or only with one. But the `email` and `age` are required :
-
-```bash
-curl -X 'POST' \
-  'http://localhost/pydantic' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "email": "ihave@nema.il",
-  "age": 23,
-  "basicInfo": {
-    "name": "My name is awesome :D !",
-    "surname": "I have a surename, WoW !"
-  }
-}'
-```
-
-# Execute tests
-
-Execute at the root of the project the following command :
-
-```bash
-python3 -m pytest api/tests
-```
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
