@@ -138,7 +138,7 @@ class Worker():
 		raw_settings = await task["settings"].read()
 		settings = json.loads(raw_settings)
 
-		if settings["withRatio"] is True:
+		if "withRatio" in settings and settings["withRatio"] is True:
 			scale_percent = settings["scale_percent"]
 			width = int(img.shape[1] * scale_percent / 100)
 			height = int(img.shape[0] * scale_percent / 100)
@@ -152,10 +152,9 @@ class Worker():
 		resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
 
 		# Save .jpg image
-		is_success, resized_imaged = cv2.imencode(".jpg", resized)
+		is_success, outBuff = cv2.imencode(".jpg", resized)
 
-		task["result"] = []
-		task["result"].append(resized_imaged.tobytes())
+		task["result"] = outBuff.tobytes()
 
 		return task
 
