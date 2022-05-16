@@ -1,6 +1,6 @@
 FROM node:18.1.0-slim AS build
 WORKDIR /tmp
-COPY webapp .
+COPY . .
 RUN npm install
 RUN npm run build
 
