@@ -16,5 +16,6 @@ def engineAPI():
 	return [
 		{"route": "blur", "body": ["image", "areas"]},
 		{"route": "crop", "body": ["image", "areas"]},
-		{"route": "convertPNGtoJPG", "body": ["image"]}
+		{"route": "convertPNGtoJPG", "body": ["image"]},
+		{"route": "analyze", "body": ["image"], "summary": "Extract image metadata"},
 	]

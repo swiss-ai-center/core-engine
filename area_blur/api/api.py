@@ -73,3 +73,12 @@ async def convertPNGtoJPG(image: UploadFile, callback_url: str = None, task_id: 
 	task = {"operation": "convertPNGtoJPG", "callback_url": callback_url, "task_id": task_id, "image": image}
 	await worker.addTask(task)
 	return interface.TaskId(task_id=task_id)
+
+
+@app.post("/analyze", response_model=interface.TaskId)
+async def analyze(image: UploadFile, callback_url: str = None, task_id: str = None):
+	if task_id is None:
+		task_id = str(interface.uid())
+	task = {"operation": "analyze", "callback_url": callback_url, "task_id": task_id, "image": image}
+	await worker.addTask(task)
+	return interface.TaskId(task_id=task_id)

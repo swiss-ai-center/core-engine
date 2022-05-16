@@ -5,6 +5,8 @@ import cv2
 import numpy as np
 import json
 
+from PIL import Image
+from PIL.ExifTags import TAGS
 
 class Worker():
 	def __init__(self):
@@ -68,6 +70,23 @@ class Worker():
 		# await self.client.post(url, params={"task_id": task_id}, files={"result": task["result"]})
 		return task
 
+	async def analyze(self, task):
+		raw = await task["image"].read()
+		stream = io.BytesIO(raw)
+		img = Image.open(stream)
+		metadata = {}
+
+		metadata["format"] = img.get_format_mimetype()
+		metadata["width"] = img.width
+		metadata["height"] = img.height
+
+		exif = img.getexif()
+		for tagId, val in exif.items():
+			name = TAGS[tagId] if tagId in TAGS else "0x{tagId:x}".format(tagId=tagId)
+			metadata[name] = val if type(val) in [str, int, float, bool] else str(val)
+
+		task["result"] = metadata
+
 	async def crop(self, task):
 		raw_img = await task["image"].read()
 		img_strm = io.BytesIO(raw_img)
@@ -98,13 +117,16 @@ class Worker():
 
 	async def process(self, task):
 		if task['operation'] == 'blur':
-			task = await self.blur(task)
+			await self.blur(task)
 
 		if task['operation'] == 'crop':
-			task = await self.crop(task)
+			await self.crop(task)
 
 		if task['operation'] == 'convertPNGtoJPG':
-			task = await self.convertPNGtoJPG(task)
+			await self.convertPNGtoJPG(task)
+
+		if task['operation'] == 'analyze':
+			await self.analyze(task)
 
 		return task
 
@@ -115,19 +137,23 @@ class Callback(Worker):
 		self.client = httpx.AsyncClient()
 
 	async def process(self, task):
-		url = task["callback_url"]
-		task_id = task["task_id"]
-		if url is not None:
-			# Needs to be modified if the result contains a blob to send back
-			# something like: await self.client.post(url, params={"task_id": task_id}, files={"result": file...})
-			i = 1
-			files = {}
-			if(len(task["results"]) > 1):
-				for result in task["results"]:
-					filename = "result" + str(i)
-					files[filename] = result
-					i += 1
-			else:
-				files['result'] = task["results"][0]
+		url = task["callback_url"] if "callback_url" in task else None
+		task_id = task["task_id"] if "task_id" in task else None
 
-			await self.client.post(url, params={"task_id": task_id}, files=files)
+		jsonResult = task['operation'] == "analyze"
+
+		if url is not None:
+			if jsonResult:
+				await self.client.post(url, params={"task_id": task_id}, json=task["result"])
+			else:
+				files = {}
+				if(len(task["results"]) > 1):
+					i = 1
+					for result in task["results"]:
+						filename = "result" + str(i)
+						files[filename] = result
+						i += 1
+				else:
+					files['result'] = task["results"][0]
+
+				await self.client.post(url, params={"task_id": task_id}, files=files)
