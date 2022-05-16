@@ -23,7 +23,7 @@ spec:
         env:
         - name: APP_PORT
           value: "80"
-        -name: REACT_APP_ENGINE_URL
+        - name: REACT_APP_ENGINE_URL
           value: "https://pi-engine.kube.isc.heia-fr.ch"
 
       imagePullSecrets:
