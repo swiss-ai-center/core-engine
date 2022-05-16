@@ -1,30 +1,14 @@
 import { useEffect } from 'react';
 import ReactJson from 'react-json-view';
 
-export default function ScriptEditor({service, setService}) {
+export default function ScriptEditor({service, setService, dimensions}) {
 
   return (
-    <div className="column is-3">
+    <div className="column is-3" style={{height: dimensions.height}}>
       <ReactJson
         indentWidth={2}
-        collapsed={2}
-        src={[
-          {
-            task: 'Learn React',
-            done: true,
-          },
-          {
-            task: 'Write Book',
-            done: false,
-            test: {
-              ouw: 100,
-              asdf: {
-                sadfasdfasdf: 97832,
-                lits: [2,3,"fv","fs","s","sdf","asd",34,]
-              }
-            }
-          }
-        ]}
+        collapsed={3}
+        src={service}
       />
     </div>
   )
