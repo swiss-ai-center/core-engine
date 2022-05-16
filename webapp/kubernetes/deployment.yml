@@ -23,6 +23,8 @@ spec:
         env:
         - name: APP_PORT
           value: "80"
+          # This env variable doesn't work in production because JavaScript is awesome !!!
+          # It is now an arg of the docker build. Set it up in the gitlab-ci
         - name: REACT_APP_ENGINE_URL
           value: "https://pi-engine.kube.isc.heia-fr.ch"
 

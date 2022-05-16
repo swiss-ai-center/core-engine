@@ -1,4 +1,6 @@
 FROM node:18.1.0-slim AS build
+ARG ENGINE_URL="https://pi-engine.kube.isc.heia-fr.ch"
+ENV REACT_APP_ENGINE_URL ${ENGINE_URL}
 WORKDIR /tmp
 COPY . .
 RUN npm install --legacy-peer-deps

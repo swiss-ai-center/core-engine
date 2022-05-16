@@ -14,7 +14,7 @@ build-webapp:
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
   script:
     - docker pull $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest || true
-    - docker build --network host -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest -f ./$SERVICE_NAME/dockerfile ./$SERVICE_NAME
+    - docker build --network host --build-arg ENGINE_URL="https://pi-engine.kube.isc.heia-fr.ch" -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest -f ./$SERVICE_NAME/dockerfile ./$SERVICE_NAME
     - docker push $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA
     - docker push $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest
   only:
@@ -36,7 +36,7 @@ deploy-webapp:
     - export KUBECONFIG=$(pwd)/kubeconfig.txt
     # Check if KUBECONFIG is configured
     - kubectl config get-contexts
-    # Change name of 
+    # Change name of the image
     - sed -i "s~IMAGE_NAME~$CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA~g" ./$SERVICE_NAME/kubernetes/deployment.yml 
     - kubectl apply -f ./$SERVICE_NAME/kubernetes/deployment.yml -n project-dev
     # Create services
