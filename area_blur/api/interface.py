@@ -15,5 +15,6 @@ class TaskId(BaseModel):
 def engineAPI():
 	return [
 		{"route": "blur", "body": ["image", "areas"]},
-		{"route": "crop", "body": ["image", "areas"]}
+		{"route": "crop", "body": ["image", "areas"]},
+		{"route": "convertPNGtoJPG", "body": ["image"]}
 	]

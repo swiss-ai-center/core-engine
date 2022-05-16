@@ -64,3 +64,12 @@ async def crop(data: UploadFile, image: UploadFile, callback_url: str = None, ta
 	task = {"operation": "crop", "callback_url": callback_url, "task_id": task_id, "image": image, "areas": data}
 	await worker.addTask(task)
 	return interface.TaskId(task_id=task_id)
+
+# This is a route for a service that takes a binary file as input
+@app.post("/convertPNGtoJPG", response_model=interface.TaskId)
+async def convertPNGtoJPG(image: UploadFile, callback_url: str = None, task_id: str = None):
+	if task_id is None:
+		task_id = str(interface.uid())
+	task = {"operation": "convertPNGtoJPG", "callback_url": callback_url, "task_id": task_id, "image": image}
+	await worker.addTask(task)
+	return interface.TaskId(task_id=task_id)

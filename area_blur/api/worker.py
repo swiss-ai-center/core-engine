@@ -83,12 +83,28 @@ class Worker():
 
 		return task
 
+	async def convertPNGtoJPG(sefl, task):
+		raw_img = await task["image"].read()
+		img_strm = io.BytesIO(raw_img)
+		img = cv2.imdecode(np.frombuffer(img_strm.read(), np.uint8), 1)
+
+		# Save .jpg image
+		is_success, converted_imaged = cv2.imencode(".jpg", img)
+
+		task["results"] = []
+		task["results"].append(converted_imaged.tobytes())
+
+		return task
+
 	async def process(self, task):
 		if task['operation'] == 'blur':
 			task = await self.blur(task)
 
 		if task['operation'] == 'crop':
 			task = await self.crop(task)
+
+		if task['operation'] == 'convertPNGtoJPG':
+			task = await self.convertPNGtoJPG(task)
 
 		return task
 
