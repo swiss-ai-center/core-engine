@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import React from 'react';
 import ReactFlow, { Background, Controls, addEdge, useNodesState, useEdgesState } from 'react-flow-renderer';
 
 const initialNodes = [
@@ -113,24 +113,9 @@ const initialEdges = [
   },
 ];
 
-function Board({service, setService}) {
+function Board({service, setService, dimensions}) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [dimensions, setDimensions] = useState({
-    height: window.innerHeight,
-    width: window.innerWidth
-  })
-
-  useEffect(() => {
-
-    function handleResize() {
-      setDimensions({
-        height: window.innerHeight,
-        width: window.innerWidth
-      })
-    }
-    window.addEventListener('resize', handleResize)
-  })
 
   const onConnect = (params) => setEdges((els) => addEdge(params, els));
 
