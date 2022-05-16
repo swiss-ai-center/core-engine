@@ -83,9 +83,9 @@ async def greyscale(image: UploadFile, callback_url: str = None, task_id: str = 
 	return interface.TaskId(task_id=task_id)
 
 @app.post("/resize", response_model=interface.TaskId)
-async def resize(data: UploadFile, image: UploadFile, callback_url: str = None, task_id: str = None):
+async def resize(image: UploadFile, settings: UploadFile, callback_url: str = None, task_id: str = None):
 	if task_id is None:
 		task_id = str(interface.uid())
-	task = {"operation": "resize", "callback_url": callback_url, "task_id": task_id, "image": image, "settings": data}
+	task = {"operation": "resize", "callback_url": callback_url, "task_id": task_id, "image": image, "settings": settings}
 	await worker.addTask(task)
 	return interface.TaskId(task_id=task_id)

@@ -131,8 +131,7 @@ class Worker():
 
 	async def resize(sefl, task):
 		raw = await task["image"].read()
-		stream = io.BytesIO(raw)
-		img = cv2.imdecode(np.frombuffer(stream.read(), np.uint8), 1)
+		img = cv2.imdecode(np.frombuffer(raw, np.uint8), 1)
 
 		# Scaling
 		raw_settings = await task["settings"].read()
@@ -144,7 +143,12 @@ class Worker():
 			height = int(img.shape[0] * scale_percent / 100)
 		else:
 			width = settings["width"]
-			height = settings["height"]
+
+			if "height" in settings:
+				height = settings["height"]
+			else:
+				ratio = width / img.shape[1]
+				height = int(img.shape[0] * ratio)
 
 		dim = (width, height)
 
