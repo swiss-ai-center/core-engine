@@ -43,26 +43,26 @@ app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
 res = []
 
 @app.post("/blur", response_model=interface.TaskId)
-async def blur(image: UploadFile, areas: UploadFile, callback_url: str = None, task_id: str = None):
+async def blur(image: UploadFile, data: UploadFile, callback_url: str = None, task_id: str = None):
 	if task_id is None:
 		task_id = str(interface.uid())
-	task = {"operation": "blur", "callback_url": callback_url, "task_id": task_id, "image": image, "areas": areas}
+	task = {"operation": "blur", "callback_url": callback_url, "task_id": task_id, "image": image, "areas": data}
 	await worker.addTask(task)
 	return interface.TaskId(task_id=task_id)
 
 @app.post("/crop", response_model=interface.TaskId)
-async def crop(image: UploadFile, areas: UploadFile, callback_url: str = None, task_id: str = None):
+async def crop(image: UploadFile, data: UploadFile, callback_url: str = None, task_id: str = None):
 	if task_id is None:
 		task_id = str(interface.uid())
-	task = {"operation": "crop", "callback_url": callback_url, "task_id": task_id, "image": image, "areas": areas}
+	task = {"operation": "crop", "callback_url": callback_url, "task_id": task_id, "image": image, "areas": data}
 	await worker.addTask(task)
 	return interface.TaskId(task_id=task_id)
 
 @app.post("/convert", response_model=interface.TaskId)
-async def convert(image: UploadFile, format: UploadFile, callback_url: str = None, task_id: str = None):
+async def convert(image: UploadFile, data: UploadFile, callback_url: str = None, task_id: str = None):
 	if task_id is None:
 		task_id = str(interface.uid())
-	task = {"operation": "convert", "callback_url": callback_url, "task_id": task_id, "image": image, "format": format}
+	task = {"operation": "convert", "callback_url": callback_url, "task_id": task_id, "image": image, "format": data}
 	await worker.addTask(task)
 	return interface.TaskId(task_id=task_id)
 
@@ -83,9 +83,9 @@ async def greyscale(image: UploadFile, callback_url: str = None, task_id: str = 
 	return interface.TaskId(task_id=task_id)
 
 @app.post("/resize", response_model=interface.TaskId)
-async def resize(image: UploadFile, settings: UploadFile, callback_url: str = None, task_id: str = None):
+async def resize(image: UploadFile, data: UploadFile, callback_url: str = None, task_id: str = None):
 	if task_id is None:
 		task_id = str(interface.uid())
-	task = {"operation": "resize", "callback_url": callback_url, "task_id": task_id, "image": image, "settings": settings}
+	task = {"operation": "resize", "callback_url": callback_url, "task_id": task_id, "image": image, "settings": data}
 	await worker.addTask(task)
 	return interface.TaskId(task_id=task_id)
