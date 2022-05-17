@@ -240,11 +240,13 @@ class NodeService(Node):
 			params = {"callback_url": self._pipeline._engine.route + "/processing", "task_id": taskId}
 			if len(binaries) == 0:
 				# Pure json service
-				await self._pipeline._engine.client.post(self.url, params=params, json=jsonBody)
+				res = await self._pipeline._engine.client.post(self.url, params=params, json=jsonBody)
 			else:
 				# Multipart request with json and binaries
 				binaries["data"] = json.dumps(jsonBody).encode("utf8")
-				await self._pipeline._engine.client.post(self.url, params=params, files=binaries)
+				res = await self._pipeline._engine.client.post(self.url, params=params, files=binaries)
+			if res.status_code != 200:
+				self._pipeline.fail("Failed to process service node {node}: request to {service} returned {status}".format(node=self.id, service=self.url, status=res.status_code))
 		except Exception as e:
 			self._pipeline.fail("Failed to process service node {node}: {error}".format(node=self.id, error=e))
 
@@ -370,8 +372,8 @@ class NodeLoop(Node):
 
 	async def process(self, taskId):
 		if self.endNode not in self._pipeline.nodes:
-			endNode = Node({})
-			endNode.build(**{"id": self.endNode, "type": NodeType.NODE, "input": {}, "next": self.next, "after": self.id + ".out = node.out"})
+			endNode = NodeLoopEnd({})
+			endNode.build(**{"id": self.endNode, "input": {}, "next": self.next, "loop": self.id})
 			self._pipeline.nodes[self.endNode] = endNode.data
 			self.next = []
 		endNode = self._pipeline.node(self.endNode)
@@ -397,10 +399,10 @@ class NodeLoop(Node):
 				# Connect branch end node to loop end node
 				if "next" in nodeDef:
 					nextList = nodeDef["next"]
-					for i in range(len(nextList)):
-						nextNode = nextList[i]
+					for j in range(len(nextList)):
+						nextNode = nextList[j]
 						if nextNode == "loopEnd":
-							nextList[i] = endNode.id
+							nextList[j] = endNode.id
 							endNode.predecessors.append(nodeId)
 
 				# Process inputs
@@ -423,10 +425,10 @@ class NodeLoop(Node):
 					branchEntryNode = nodeId
 					n.predecessors.append(self.id)
 			for n in branchNodes:
-				for i in range(len(n.next)):
-					nextId = n.next[i]
+				for j in range(len(n.next)):
+					nextId = n.next[j]
 					if nextId in branchNodesMapping:
-						n.next[i] = branchNodesMapping[nextId]
+						n.next[j] = branchNodesMapping[nextId]
 			self.next.append(branchEntryNode)
 			for k in self.collect:
 				path = self.collect[k].split(".")
@@ -442,6 +444,21 @@ class NodeLoop(Node):
 		super().reset()
 		endNode.reset()
 
+class NodeLoopEnd(Node):
+	def build(self, loop, **kwargs):
+		super().build(type=NodeType.LOOPEND, **kwargs)
+		self.loop = loop
+
+	def after(self, result):
+		super().after(result)
+		self._pipeline.node(self.loop).out = result
+		for key in self.out:
+			identifier = str.join(".", [self.id, "out", key])
+			if identifier in self._pipeline.binaries:
+				binUid = self._pipeline.binaries[identifier]
+				loopOutId = str.join(".", [self.loop, "out", key])
+				self._pipeline.binaries[loopOutId] = binUid
+
 NodeFactories = {}
 NodeFactories[NodeType.NODE] = Node
 NodeFactories[NodeType.ENTRY] = NodeEntry
@@ -450,3 +467,4 @@ NodeFactories[NodeType.SERVICE] = NodeService
 NodeFactories[NodeType.BRANCH] = NodeBranch
 NodeFactories[NodeType.HTTP] = NodeHTTP
 NodeFactories[NodeType.LOOP] = NodeLoop
+NodeFactories[NodeType.LOOPEND] = NodeLoopEnd

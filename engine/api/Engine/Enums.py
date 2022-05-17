@@ -14,6 +14,7 @@ class NodeType(str, Enum):
 	BRANCH = "branch"
 	HTTP = "http"
 	LOOP = "loop"
+	LOOPEND = "loopend"
 
 class StorageType(str, Enum):
 	LOCAL = "local"
