@@ -96,7 +96,7 @@ class Worker():
 		cropped = []
 
 		for area in areas:
-			is_success, cropped_image = cv2.imencode(".jpg", img[area[0]:area[2], area[1]:area[3]])
+			is_success, cropped_image = cv2.imencode(".jpg", img[area[1]:area[3], area[0]:area[2]])
 			cropped.append(cropped_image.tobytes())
 
 		task["result"] = cropped if len(cropped) > 1 else cropped[0]
