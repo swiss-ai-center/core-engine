@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactFlow, { Background, Controls, addEdge, useNodesState, useEdgesState } from 'react-flow-renderer';
+
+import DrawGraph from './DrawGraph'
 
 const initialNodes = [
   {
@@ -119,6 +121,11 @@ function Board({service, setService, dimensions}) {
 
   const onConnect = (params) => setEdges((els) => addEdge(params, els));
 
+  useEffect(() => {
+    const newGraph = DrawGraph(service);
+    setNodes(newGraph[0]);
+    setEdges(newGraph[1]);
+  }, [service])
 
   return (
     <div className='column' style={{ height: dimensions.height - (dimensions.height / 5) }}>
