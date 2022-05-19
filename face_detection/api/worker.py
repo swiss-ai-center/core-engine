@@ -36,16 +36,19 @@ class Worker():
 					await self.next.addTask(result)
 
 	async def process(self, task):
-		# Implement me with something useful!!!
-		raw = await task["image"].read()
-		buff = io.BytesIO(raw)
-		img_pil = Image.open(buff)
-		img = np.array(img_pil)
+		try:
+			raw = await task["image"].read()
+			buff = io.BytesIO(raw)
+			img_pil = Image.open(buff)
+			img = np.array(img_pil)
 
-		faces = RetinaFace.detect_faces(img)
-		# cast int64 to int to fixe json error (can't convert int64)
-		res = [[int(i) for i in v['facial_area']] for k, v in faces.items()]
-		task["result"] = {"answer": res}
+			faces = RetinaFace.detect_faces(img)
+			# cast int64 to int to fixe json error (can't convert int64)
+			res = [[int(i) for i in v['facial_area']] for k, v in faces.items()]
+			task["result"] = {"answer": res}
+		except Exception as e:
+			task["error"] = "Failed to process image: " + str(e)
+
 		return task
 
 class Callback(Worker):
@@ -57,6 +60,9 @@ class Callback(Worker):
 		url = task["callback_url"]
 		task_id = task["task_id"]
 		if url is not None:
-			# Needs to be modified if the result contains a blob to send back
-			# something like: await self.client.post(url, params={"task_id": task_id}, files={"result": file...})
-			await self.client.post(url, params={"task_id": task_id}, json=task["result"])
+			data = None
+			if "error" in task:
+				data = {"type": "error", "message": task["error"]}
+			else:
+				data = task["result"]
+			await self.client.post(url, params={"task_id": task_id}, json=data)
