@@ -200,7 +200,7 @@ class Callback(Worker):
 		if url is not None:
 			res = task["result"] if "result" in task else None
 			if "error" in task:
-				await self.client.post(url, params={"task_id": task_id}, json={"error": task["error"]})
+				await self.client.post(url, params={"task_id": task_id}, json={"type": "error", "message": task["error"]})
 			elif type(res) is dict:
 				await self.client.post(url, params={"task_id": task_id}, json=res)
 			elif type(res) is bytes or isinstance(res, io.IOBase):
