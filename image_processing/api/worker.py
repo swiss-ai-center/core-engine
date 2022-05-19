@@ -108,6 +108,7 @@ class Worker():
 		raw = await task["image"].read()
 		stream = io.BytesIO(raw)
 		img = Image.open(stream)
+		img = img.convert("RGB")
 
 		outBuff = io.BytesIO()
 		img.save(outBuff, **spec)

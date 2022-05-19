@@ -128,13 +128,7 @@ class Node(Context):
 		# Call specific ready function
 		else:
 			try:
-				locs = self.locals()
-				# Inject modifiable object
-				status = Context({})
-				status.ready = isReady
-				locs["status"] = status
-				exec(self.ready_func, locs)
-				isReady = status.ready
+				isReady = eval(self.ready_func, self.locals())
 			except Exception as e:
 				self._pipeline.fail("Failed to assert ready state for node {node}: {error}".format(node=self.id, error=e))
 				return False
