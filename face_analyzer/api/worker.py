@@ -36,12 +36,15 @@ class Worker():
 					await self.next.addTask(result)
 
 	async def process(self, task):
-		raw = await task["img"].read()
-		buff = io.BytesIO(raw)
-		img_pil = Image.open(buff)
-		img = np.array(img_pil)
-		diagnos = DeepFace.analyze(img_path=img, actions=['age', 'gender', 'race', 'emotion'])
-		task["result"] = diagnos
+		try:
+			raw = await task["image"].read()
+			buff = io.BytesIO(raw)
+			img_pil = Image.open(buff)
+			img = np.array(img_pil)
+			diagnos = DeepFace.analyze(img_path=img, actions=['age', 'gender', 'race', 'emotion'])
+			task["result"] = diagnos
+		except Exception as e:
+			task["error"] = "Failed to process image: " + str(e)
 
 		return task
 
@@ -54,4 +57,9 @@ class Callback(Worker):
 		url = task["callback_url"]
 		task_id = task["task_id"]
 		if url is not None:
-			await self.client.post(url, params={"task_id": task_id}, json=task["result"])
+			data = None
+			if "error" in task:
+				data = {"type": "error", "message": task["error"]}
+			else:
+				data = task["result"]
+			await self.client.post(url, params={"task_id": task_id}, json=data)
