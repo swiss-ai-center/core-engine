@@ -12,7 +12,9 @@ async def startup():
 			api = interface.engineAPI[operation]
 			serviceDescr = {"url": service + "/" + operation, "api": api, "type": "service"}
 			try:
-				await client.post(engine + "/services", json=serviceDescr)
+				res = await client.post(engine + "/services", json=serviceDescr)
+				if res.status_code != 200:
+					logging.getLogger("uvicorn").warning("Failed to notify the engine, request returned " + str(res.status_code))
 			except Exception as e:
 				logging.getLogger("uvicorn").warning("Failed to notify the engine: " + str(e))
 
@@ -25,7 +27,9 @@ async def shutdown():
 	if engine is not None and service is not None:
 		for operation in interface.engineAPI:
 			try:
-				await client.delete(engine + "/services/" + operation)
+				res = await client.delete(engine + "/services/" + operation)
+				if res.status_code != 200:
+					logging.getLogger("uvicorn").warning("Failed to notify the engine, request returned " + str(res.status_code))
 			except Exception as e:
 				logging.getLogger("uvicorn").warning("Failed to notify the engine: " + str(e))
 
