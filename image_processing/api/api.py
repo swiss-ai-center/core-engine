@@ -1,37 +1,40 @@
 from fastapi import FastAPI, UploadFile
 import httpx
 from .worker import Worker, Callback
+from .cron import Timer
 from . import interface
 import os
 import logging
 
-async def startup():
-	# Announce ourself to the engine
-	if engine is not None and service is not None:
-		for operation in interface.engineAPI:
-			api = interface.engineAPI[operation]
-			serviceDescr = {"url": service + "/" + operation, "api": api, "type": "service"}
-			try:
-				res = await client.post(engine + "/services", json=serviceDescr)
-				if res.status_code != 200:
-					logging.getLogger("uvicorn").warning("Failed to notify the engine, request returned " + str(res.status_code))
-			except Exception as e:
-				logging.getLogger("uvicorn").warning("Failed to notify the engine: " + str(e))
+async def notifyEngine():
+	for operation in interface.engineAPI:
+		api = interface.engineAPI[operation]
+		serviceDescr = {"url": service + "/" + operation, "api": api, "type": "service"}
+		try:
+			res = await client.post(engine + "/services", json=serviceDescr)
+			if res.status_code != 200:
+				logging.getLogger("uvicorn").warning("Failed to notify the engine, request returned " + str(res.status_code))
+		except Exception as e:
+			logging.getLogger("uvicorn").warning("Failed to notify the engine: " + str(e))
 
+async def startup():
 	worker.chain(callback)
 	callback.start()
 	worker.start()
 
-async def shutdown():
-	# Remove ourself from the engine
+	# Announce ourself to the engine
 	if engine is not None and service is not None:
-		for operation in interface.engineAPI:
-			try:
-				res = await client.delete(engine + "/services/" + operation)
-				if res.status_code != 200:
-					logging.getLogger("uvicorn").warning("Failed to notify the engine, request returned " + str(res.status_code))
-			except Exception as e:
-				logging.getLogger("uvicorn").warning("Failed to notify the engine: " + str(e))
+		await notifyEngine()
+		tick = int(os.environ["APP_NOTIFY_CRON"]) if "APP_NOTIFY_CRON" in os.environ else 30
+		notifyEngineTimer = Timer(
+			timeout=tick,
+			callback=notifyEngine)
+		notifyEngineTimer.start()
+		timers.append(notifyEngineTimer)
+
+async def shutdown():
+	for timer in timers:
+		timer.stop()
 
 	await worker.stop()
 	await callback.stop()
@@ -43,8 +46,7 @@ client = httpx.AsyncClient()
 worker = Worker()
 callback = Callback()
 app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
-
-res = []
+timers = []
 
 @app.post("/blur", response_model=interface.TaskId)
 async def blur(image: UploadFile, data: UploadFile, callback_url: str = None, task_id: str = None):
