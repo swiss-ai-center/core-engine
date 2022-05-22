@@ -1,11 +1,6 @@
 from typing import Optional, Union, List, Literal
 from pydantic import BaseModel
-from .Engine.Enums import NodeType
-from enum import Enum
-
-class ServiceType(str, Enum):
-	SERVICE = "service"
-	PIPELINE = "pipeline"
+from .Engine.Enums import NodeType, ServiceType
 
 class JobResponse(BaseModel):
 	jobId: str
@@ -35,9 +30,9 @@ class Node(BaseModel):
 
 class PipelineDescription(BaseModel):
 	nodes: List[dict]
-	type: Literal[ServiceType.PIPELINE]
+	type: Union[Literal[ServiceType.PIPELINE], Literal[ServiceType.SERVICE]]
 
 class ServiceDescription(BaseModel):
 	url: str
 	api: APIDescription
-	type: Literal[ServiceType.SERVICE]
+	type: Union[Literal[ServiceType.PIPELINE], Literal[ServiceType.SERVICE]]

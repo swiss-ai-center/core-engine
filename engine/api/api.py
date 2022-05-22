@@ -109,6 +109,14 @@ async def startup():
 	retryTimer.start()
 	timers.append(retryTimer)
 
+	tick = int(os.environ["APP_CLEAN_SERVICE_CRON"]) if "APP_CLEAN_SERVICE_CRON" in os.environ else 30
+	cleanSeviceTimer = Cron.Timer(
+		timeout=tick,
+		callback=cleanServices,
+		delta=datetime.timedelta(seconds=3 * tick))
+	cleanSeviceTimer.start()
+	timers.append(cleanSeviceTimer)
+
 async def shutdown():
 	await engine.stop()
 	await engine.client.aclose()
@@ -150,9 +158,11 @@ async def getTaskResultFile(taskId: str, fileName: str):
 @app.post("/services", summary="Create a new service or pipeline")
 async def createService(service: Union[interface.ServiceDescription, interface.PipelineDescription]):
 	if service.type is interface.ServiceType.SERVICE:
-		api = service.api.dict()
-		serviceName = api["route"]
-		if serviceName not in engine.endpoints:
+		serviceName = service.api.route
+		if serviceName in engine.endpoints:
+			await engine.touchPipeline(serviceName)
+		else:
+			api = service.api.dict()
 			await engine.createServicePipeline(service.url, api)
 			addRoute(**api)
 	elif service.type is interface.ServiceType.PIPELINE:
@@ -170,15 +180,9 @@ async def getStats():
 	return JSONResponse(stats)
 
 @app.delete("/services/{serviceName}", summary="Remove a service or pipeline")
-async def removeService(serviceName: str):
+async def deleteService(serviceName: str):
 	if serviceName in engine.endpoints:
-		await engine.removePipeline(serviceName)
-		for i in range(len(app.routes)):
-			if app.routes[i].path == "/services/" + serviceName:
-				app.routes.pop(i)
-				break
-		# Force the regeneration of the schema
-		app.openapi_schema = None
+		await removeService(serviceName)
 
 @app.get("/services/{serviceName}", summary="Get the pipeline description", response_model=interface.PipelineDescription)
 async def getPipeline(serviceName: str):
@@ -217,3 +221,21 @@ async def processCallback(task_id: str, request: Request):
 		await engine.processError(task_id, errorMsg)
 	else:
 		await engine.processTask(task_id, data, binaries)
+
+async def removeService(serviceName):
+	await engine.removePipeline(serviceName)
+	for i in range(len(app.routes)):
+		if app.routes[i].path == "/services/" + serviceName:
+			app.routes.pop(i)
+			break
+	# Force the regeneration of the schema
+	app.openapi_schema = None
+
+async def cleanServices(delta):
+	now = datetime.datetime.utcnow()
+	pipelines = list(engine.endpoints.keys())
+	for name in pipelines:
+		pipeline = await engine.getPipeline(name)
+		lastHeartbeat = datetime.datetime.fromisoformat(pipeline["timestamp"])
+		if pipeline["type"] == interface.ServiceType.SERVICE and now - lastHeartbeat > delta:
+			await removeService(name)

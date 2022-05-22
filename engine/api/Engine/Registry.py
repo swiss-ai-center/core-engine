@@ -109,6 +109,12 @@ class Registry():
 		elif self.dbType == DBType.MONGO:
 			await self.db.pipelines.delete_one({"_id": strToId(pid)})
 
+	async def updatePipeline(self, pid, field, value):
+		if self.dbType == DBType.MEMORY:
+			self.db["pipelines"][field] = value
+		elif self.dbType == DBType.MONGO:
+			await self.db.pipelines.update_one({"_id": strToId(pid)}, {"$set": {field: value}})
+
 	async def saveJob(self, job):
 		if self.dbType == DBType.MEMORY:
 			if "_id" not in job.data: job.data["_id"] = self.uid()
