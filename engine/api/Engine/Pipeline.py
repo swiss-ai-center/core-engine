@@ -69,6 +69,7 @@ class Pipeline(Context):
 		p.status = Status.RUNNING
 		p.error = None
 		p.lastUpdate = None
+		p.retries = []
 		p.model = templateId
 
 		for nodeDef in nodes:
@@ -216,11 +217,12 @@ class NodeService(Node):
 	def build(self, url, **kwargs):
 		super().build(**kwargs)
 		self.url = url
+		self.retry = 4
+		self.nextRetry = None
 
 	async def process(self, taskId):
 		binaries = {}
 		jsonBody = copy.deepcopy(self.input)
-
 		for key in jsonBody:
 			identifier = str.join(".", [self.id, "input", key])
 			if identifier in self._pipeline.binaries:
@@ -229,6 +231,9 @@ class NodeService(Node):
 
 		# Remove binaries from body
 		[jsonBody.pop(key) for key in binaries.keys()]
+
+		# Magic formula to compute next retry
+		retrySec = int(90 / (0.4 * self.retry)**1.5)
 
 		try:
 			params = {"callback_url": self._pipeline._engine.route + "/processing", "task_id": taskId}
@@ -240,9 +245,24 @@ class NodeService(Node):
 				binaries["data"] = json.dumps(jsonBody).encode("utf8")
 				res = await self._pipeline._engine.client.post(self.url, params=params, files=binaries)
 			if res.status_code != 200:
-				self._pipeline.fail("Failed to process service node {node}: request to {service} returned {status}".format(node=self.id, service=self.url, status=res.status_code))
+				if self.retry > 0:
+					self.retry -= 1
+					self.nextRetry = (datetime.datetime.utcnow() + datetime.timedelta(seconds=retrySec)).isoformat()
+					self._pipeline.retries.append((self.id, taskId))
+				else:
+					self._pipeline.fail("Failed to process service node {node}: request to {service} returned {status}".format(node=self.id, service=self.url, status=res.status_code))
 		except Exception as e:
-			self._pipeline.fail("Failed to process service node {node}: {error}".format(node=self.id, error=e))
+			if self.retry > 0:
+				self.retry -= 1
+				self.nextRetry = (datetime.datetime.utcnow() + datetime.timedelta(seconds=retrySec)).isoformat()
+				self._pipeline.retries.append((self.id, taskId))
+			else:
+				self._pipeline.fail("Failed to process service node {node}: {error}".format(node=self.id, error=e))
+
+	def reset(self):
+		self.retry = 4
+		self.nextRetry = None
+		super().reset()
 
 class NodeBranch(Node):
 	def build(self, **kwargs):

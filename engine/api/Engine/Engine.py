@@ -3,7 +3,7 @@ import httpx
 import datetime
 
 from .Pipeline import Pipeline
-from .Enums import Status, NodeType
+from .Enums import Status, NodeType, TaskType
 from .Errors import ItemNotFound, BadStatus, Duplicate
 
 class Engine():
@@ -33,10 +33,11 @@ class Engine():
 		while self.running:
 			msg = await self.messages.get()
 			if msg is not None:
-				error = not msg[0]
+				taskType = msg[0]
 				task = msg[1:]
-				if error: await self._processError(*task)
-				else: await self._processTask(*task)
+				if taskType == TaskType.ERROR: await self._processError(*task)
+				elif taskType == TaskType.PROCESS: await self._processTask(*task)
+				elif taskType == TaskType.RETRY: await self._processRetry(*task)
 
 	async def load(self):
 		pipelines = await self.registry.getPipelines()
@@ -80,7 +81,7 @@ class Engine():
 		return requestId
 
 	async def processError(self, taskId, message):
-		await self.messages.put([False, taskId, message])
+		await self.messages.put([TaskType.ERROR, taskId, message])
 
 	async def _processError(self, taskId, message):
 		task = await self.registry.popTask(taskId)
@@ -96,8 +97,33 @@ class Engine():
 		job.touch()
 		await self.registry.saveJob(job)
 
+	async def processRetry(self, taskId):
+		await self.messages.put([TaskType.RETRY, taskId])
+
+	async def _processRetry(self, taskId):
+		task = await self.registry.getTask(taskId)
+		job = await self.registry.getJob(task["job"])
+		if job is None:
+			return
+
+		if job.status != Status.RUNNING:
+			return
+
+		job.hide("_engine", self)
+		nodeId = task["node"]
+		retryNode = job.node(nodeId)
+
+		for i in range(len(job.retries)):
+			if job.retries[i] == (nodeId, taskId):
+				job.retries.pop(i)
+				break
+
+		await retryNode.process(taskId)
+		job.touch()
+		await self.registry.saveJob(job)
+
 	async def processTask(self, taskId, data, binaries=[]):
-		await self.messages.put([True, taskId, data, binaries])
+		await self.messages.put([TaskType.PROCESS, taskId, data, binaries])
 
 	async def _processTask(self, taskId, data, binaries=[]):
 		task = await self.registry.popTask(taskId)
@@ -229,6 +255,20 @@ class Engine():
 				for binUid in binUids:
 					await self.registry.removeBinary(binUid)
 				await self.registry.removeJob(job._id)
+
+	async def retry(self):
+		now = datetime.datetime.utcnow()
+		tasksToRetry = []
+		for job in await self.registry.getAllJobs():
+			if job.status == Status.RUNNING and len(job.retries) > 0:
+				for nodeId, taskId in job.retries:
+					node = job.node(nodeId)
+					retryDT = datetime.datetime.fromisoformat(node.nextRetry)
+					if now >= retryDT:
+						tasksToRetry.append(taskId)
+
+		for taskId in tasksToRetry:
+			await self.processRetry(taskId)
 
 	async def getStats(self):
 		# Reverse id to endpoints

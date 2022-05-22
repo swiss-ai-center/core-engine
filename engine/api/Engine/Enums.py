@@ -23,3 +23,8 @@ class StorageType(str, Enum):
 class DBType(str, Enum):
 	MEMORY = "memory"
 	MONGO = "mongo"
+
+class TaskType(str, Enum):
+	PROCESS = "process"
+	ERROR = "error"
+	RETRY = "retry"

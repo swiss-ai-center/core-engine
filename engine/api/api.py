@@ -102,6 +102,13 @@ async def startup():
 	s3CleanTimer.start()
 	timers.append(s3CleanTimer)
 
+	tick = int(os.environ["APP_RETRY_CRON"]) if "APP_RETRY_CRON" in os.environ else 30
+	retryTimer = Cron.Timer(
+		timeout=tick,
+		callback=engine.retry)
+	retryTimer.start()
+	timers.append(retryTimer)
+
 async def shutdown():
 	await engine.stop()
 	await engine.client.aclose()
