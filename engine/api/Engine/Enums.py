@@ -1,5 +1,9 @@
 from enum import Enum
 
+class ServiceType(str, Enum):
+	SERVICE = "service"
+	PIPELINE = "pipeline"
+
 class Status(str, Enum):
 	RUNNING = "running"
 	FINISHED = "finished"

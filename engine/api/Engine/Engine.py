@@ -3,7 +3,7 @@ import httpx
 import datetime
 
 from .Pipeline import Pipeline
-from .Enums import Status, NodeType, TaskType
+from .Enums import Status, ServiceType, NodeType, TaskType
 from .Errors import ItemNotFound, BadStatus, Duplicate
 
 class Engine():
@@ -48,6 +48,7 @@ class Engine():
 				self.api[endpoint] = Pipeline.api(pipeline)
 
 	async def addPipeline(self, pipeline):
+		pipeline["timestamp"] = datetime.datetime.utcnow().isoformat()
 		api = Pipeline.api(pipeline)
 		endpoint = api["route"]
 		if endpoint in self.endpoints:
@@ -244,7 +245,7 @@ class Engine():
 		component = {"type": NodeType.SERVICE, "id": name + "-component", "url": url, "next": [name + "-end"]}
 		end = {"type": NodeType.END, "id": name + "-end"}
 
-		pipeline = {"type": "pipeline", "nodes": [entry, component, end]}
+		pipeline = {"type": ServiceType.SERVICE, "nodes": [entry, component, end]}
 		await self.addPipeline(pipeline)
 
 	async def clean(self, delta):
@@ -316,3 +317,6 @@ class Engine():
 		pipelineId = self.endpoints[name]
 		pipelineTemplate = await self.registry.getPipeline(pipelineId)
 		return pipelineTemplate
+
+	async def touchPipeline(self, name):
+		await self.registry.updatePipeline(self.endpoints[name], "timestamp", datetime.datetime.utcnow().isoformat())
