@@ -4,6 +4,7 @@ stages:
   - deploy
 
 include:
+  - digit_recognition/digit_recognition.gitlab-ci.yml
   - engine/engine.gitlab-ci.yml
   - face_analyzer/face_analyzer.gitlab-ci.yml
   - face_detection/face_detection.gitlab-ci.yml

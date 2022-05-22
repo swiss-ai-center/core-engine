@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: digit-recognition
+  labels:
+    app: digit-recognition
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: digit-recognition
+  template:
+    metadata:
+      labels:
+        app: digit-recognition
+    spec:
+      containers:
+      - name: digit-recognition
+        image: IMAGE_NAME
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80 
+        env:
+        - name: APP_HOST
+          value: 0.0.0.0
+        - name: APP_PORT
+          value: "80"
+        - name: APP_LOG
+          value: info
+        - name: APP_ENGINE
+          value: "http://service-engine.project-dev.svc.cluster.local"
+        - name: APP_SERVICE
+          value: "http://service-digit-recognition.project-dev.svc.cluster.local"
+      imagePullSecrets:
+      - name: mysecretdeployer
