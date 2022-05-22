@@ -2,6 +2,28 @@
 # Digit recognition
 ###
 
+download-model:
+  variables:
+    S3_URL: https://minio1.isc.heia-fr.ch:9007
+    S3_KEY_ID: $MINIO_ACCESS_KEY
+    S3_SECRET_KEY: $MINIO_SECRET_KEY
+    S3_MODEL_PATH: mlops/models/00/176fc1d22946dcbb8f97a404a2ee40
+  image: python:3.9
+  stage: prepare
+  before_script:
+    - pip3 install -r utils/requirements.txt
+  script:
+    - python3 utils/s3client.py pull model.h5 $S3_MODEL_PATH
+  artifacts:
+    paths:
+    - model.h5
+    expire_in: 10 min
+  only:
+    refs:
+      - dev
+    changes:
+      - digit_recognition/**/*
+
 build-digit_recognition:
   variables:
     SERVICE_NAME: digit_recognition
@@ -14,6 +36,7 @@ build-digit_recognition:
     - docker info
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
   script:
+    - mv model.h5 $SERVICE_NAME
     - docker pull $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest || true
     - docker build --network host --cache-from $IMAGE_TAG_LAST -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest -f ./$SERVICE_NAME/dockerfile ./$SERVICE_NAME
     - docker push $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA
@@ -23,6 +46,8 @@ build-digit_recognition:
       - dev
     changes:
       - digit_recognition/**/*
+  dependencies:
+    - download-model
   
 deploy-digit_recognition:
   variables:

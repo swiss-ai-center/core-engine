@@ -38,5 +38,7 @@ async def main():
 			f = open(args.local, "rb")
 			await bucket.put_object(Key=remoteId, Body=f)
 			f.close()
+		elif args.action == "pull":
+			await bucket.download_file(Key=remoteId, Filename=args.local)
 
 asyncio.run(main())
