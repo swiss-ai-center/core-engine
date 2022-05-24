@@ -1,6 +1,7 @@
 stages:
   - linting
   - prepare
+  - test
   - build
   - deploy
 

@@ -2,6 +2,21 @@
 # Engine
 ###
 
+test-engine:
+  image: python:3.9
+  stage: test
+  before_script:
+    - pip3 install -r engine/requirements.txt
+    - pip3 install pytest pytest-asyncio aiofile
+  script:
+    - cd engine
+    - python3 -m pytest --asyncio-mode=auto
+  only:
+    refs:
+      - dev
+    changes:
+      - engine/**/*
+
 build-engine:
   image: docker:19.03.12
   stage: build
@@ -21,8 +36,6 @@ build-engine:
     changes:
       - engine/**/*
 
-
-  
 deploy-engine:
   image: lachlanevenson/k8s-kubectl:latest
   stage: deploy
