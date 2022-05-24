@@ -1,0 +1,22 @@
+{
+  "type": "pipeline",
+  "nodes":
+  [
+    {
+      "type": "entry",
+      "id": "dummyEntry",
+      "api":
+      {
+        "summary": "Dummy pipeline",
+        "route": "dummy2",
+        "body": "img"
+      },
+      "next":["dummyEnd"]
+    },
+    
+    {
+      "type": "end",
+      "id": "dummyEnd"
+    }
+  ]
+}

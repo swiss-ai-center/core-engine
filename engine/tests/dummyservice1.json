@@ -1,0 +1,1 @@
+{"url": "some/url", "api": {"route": "dummyService", "body": ["bin1", "bin2"], "summary": "Dummy service"}, "type": "service"}
