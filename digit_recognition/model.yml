@@ -1,0 +1,2 @@
+variables:
+  DIGIT_RECOGNITION_S3_MODEL_PATH: mlops/models/00/176fc1d22946dcbb8f97a404a2ee40
