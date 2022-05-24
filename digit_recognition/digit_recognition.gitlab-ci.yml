@@ -2,18 +2,20 @@
 # Digit recognition
 ###
 
+include:
+  - digit_recognition/model.yml
+
 download-model:
   variables:
     S3_URL: https://minio1.isc.heia-fr.ch:9007
     S3_KEY_ID: $MINIO_ACCESS_KEY
     S3_SECRET_KEY: $MINIO_SECRET_KEY
-    S3_MODEL_PATH: mlops/models/00/176fc1d22946dcbb8f97a404a2ee40
   image: python:3.9
   stage: prepare
   before_script:
     - pip3 install -r utils/requirements.txt
   script:
-    - python3 utils/s3client.py pull model.h5 $S3_MODEL_PATH
+    - python3 utils/s3client.py pull model.h5 $DIGIT_RECOGNITION_S3_MODEL_PATH
   artifacts:
     paths:
     - model.h5
