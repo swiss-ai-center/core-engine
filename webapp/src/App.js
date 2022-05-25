@@ -16,15 +16,6 @@ export default function App() {
 
   const [service, setService] = useState({});
   const [activeTab, setActiveTab] = useState(SERVICES);
-  const [dimensions, setDimensions] = useState({
-    height: window.innerHeight,
-    width: window.innerWidth
-  })
-
-  window.onresize = () => setDimensions({
-    height: window.innerHeight,
-    width: window.innerWidth
-  });
 
   return (
     <div>
@@ -46,7 +37,7 @@ export default function App() {
             <Tasks show={activeTab === TASKS} />
           </div>
         </div>
-        <Board service={service} dimensions={dimensions} />
+        <Board service={service} />
 
       </div>
     </div>

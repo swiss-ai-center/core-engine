@@ -4,7 +4,7 @@ import ReactFlow, { Background, Controls, useNodesState, useEdgesState } from 'r
 import DrawGraph from './DrawGraph'
 
 
-function Board({service, dimensions}) {
+function Board({ service }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
