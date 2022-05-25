@@ -1,7 +1,5 @@
 export default function DrawGraph(serviceConfiguration) {
 
-  console.log(serviceConfiguration);
-
   let nodes = [];
   let edges = [];
 
@@ -12,7 +10,6 @@ export default function DrawGraph(serviceConfiguration) {
     let y = 0;
     for (let idx in nodesConfig) {
       const node = nodesConfig[idx];
-      console.log("node", node);
       const newNode = {
         id: node.id,
         sourcePosition: "right",

@@ -5,13 +5,22 @@ import DrawGraph from './DrawGraph'
 
 
 function Board({ service }) {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState([{
+    id: 1,
+    next: [],
+    sourcePosition: "right",
+    targetPosition: 'left',
+    data: { label: "Nothing to se here currently, please select a service to see its content" },
+    position: { x: 0, y: 0 }
+  }]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   useEffect(() => {
-    const newGraph = DrawGraph(service);
-    setNodes(newGraph[0]);
-    setEdges(newGraph[1]);
+    if (Object.keys(service).length > 0){
+      const newGraph = DrawGraph(service);
+      setNodes(newGraph[0]);
+      setEdges(newGraph[1]);
+    }
   }, [service])
 
   return (

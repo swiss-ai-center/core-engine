@@ -17,12 +17,13 @@ export default function ServicesListing({ setService, setActiveTab, show }) {
 
   return (
     <div>
-      <div className="buttons" style={{ display: show ? "block" : "none" }} >
+      <div className="buttons" style={{ display: show ? "block" : "none" }}>
         {
           services.map(s => <button
             className="button is-small is-info is-fullwidth"
             title={s.nodes[0].api.summary}
-            onClick={() => { setActiveTab(); setService(s) } }
+            onClick={() => { setActiveTab(); setService(s) }}
+            key={s.nodes[0].api.route}
           >
             {s.nodes[0].api.route}
           </button>)
