@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-export default function ServicesListing({ service, setService, dimensions, show }) {
+export default function ServicesListing({ setService, setActiveTab, show }) {
 
   const [services, setServices] = useState([])
 
@@ -22,7 +22,7 @@ export default function ServicesListing({ service, setService, dimensions, show 
           services.map(s => <button
             className="button is-small is-info is-fullwidth"
             title={s.nodes[0].api.summary}
-            onClick={() => setService(s)}
+            onClick={() => { setActiveTab(); setService(s) } }
           >
             {s.nodes[0].api.route}
           </button>)

@@ -3,7 +3,7 @@ import './App.css'
 import Menu from './menu/Menu';
 import ServicesListing from './servicesListing/ServicesListing'
 import Board from './board/Board';
-import ScriptEditor from './scriptEditor/ScriptEditor';
+import PipelineConfiguration from './PipelineConfiguration/PipelineConfiguration';
 import EngineStatus from './engineStatus/EngineStatus';
 import Tasks from './tasks/Tasks';
 
@@ -39,9 +39,9 @@ export default function App() {
               <li className={activeTab === TASKS ? "is-active" : ""} onClick={() => setActiveTab(TASKS)}><a>Tasks</a></li>
             </ul>
           </div>
-          <div className='content-tab' style={{ height: dimensions.height - (dimensions.height / 5) }}>
-            <ServicesListing service={service} setService={setService} dimensions={dimensions} show={activeTab === SERVICES} />
-            <ScriptEditor service={service} setService={setService} dimensions={dimensions} show={activeTab === CONFIGURATION} />
+          <div className='content-tab' style={{ height: "70vh" }}>
+            <ServicesListing setService={setService} setActiveTab={() => setActiveTab(CONFIGURATION)} show={activeTab === SERVICES} />
+            <PipelineConfiguration service={service} show={activeTab === CONFIGURATION} />
             <EngineStatus show={activeTab === ENGINE_STATUS} />
             <Tasks show={activeTab === TASKS} />
           </div>

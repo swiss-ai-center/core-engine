@@ -1,7 +1,6 @@
-import { useEffect } from 'react';
 import ReactJson from 'react-json-view';
 
-export default function ScriptEditor({ service, setService, dimensions, show }) {
+export default function PipelineConfiguration({ service, show }) {
 
   return (
     <div style={{display: show ? "block": "none"}}>
@@ -9,7 +8,6 @@ export default function ScriptEditor({ service, setService, dimensions, show }) 
         indentWidth={2}
         collapsed={3}
         src={service}
-        style={{ height: dimensions.height }}
       />
     </div>
   )

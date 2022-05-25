@@ -15,14 +15,17 @@ function Board({service, dimensions}) {
   }, [service])
 
   return (
-    <div className='column' style={{ height: dimensions.height - (dimensions.height / 5) }}>
+    <div className='column' style={{ height: "70vh" }}>
+      <div className="content">
+        <h4>{Object.keys(service).length > 0 ? service.nodes[0].api.route : "No pipeline selected"}</h4>
+        <p>{Object.keys(service).length > 0 ? service.nodes[0].api.summary : ""}</p>
+      </div>
       <ReactFlow
         id="board"
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        // onConnect={onConnect}
         fitView
       >
         <Controls />
