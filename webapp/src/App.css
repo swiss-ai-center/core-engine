@@ -1,0 +1,13 @@
+html, body {
+	height: 100%;
+}
+.columns {
+	margin: 10px;
+}
+.content-tab {
+	height: 100%;
+	overflow: scroll;
+}
+#board {
+	border: 2px solid #3e8ed0;
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-export default function ServicesListing({ service, setService, dimensions }) {
+export default function ServicesListing({ service, setService, dimensions, show }) {
 
   const [services, setServices] = useState([])
 
@@ -16,9 +16,8 @@ export default function ServicesListing({ service, setService, dimensions }) {
   }, [])
 
   return (
-    <div className="column is-1">
-      <h5 className="title is-5">Services</h5>
-      <div className="buttons">
+    <div>
+      <div className="buttons" style={{ display: show ? "block" : "none" }} >
         {
           services.map(s => <button
             className="button is-small is-info is-fullwidth"

@@ -4,7 +4,7 @@ import ReactJson from 'react-json-view';
 export default function ScriptEditor({ service, setService, dimensions, show }) {
 
   return (
-    <div style={{ height: dimensions.height, display: show ? "block": "none"}}>
+    <div style={{display: show ? "block": "none"}}>
       <ReactJson
         indentWidth={2}
         collapsed={3}
