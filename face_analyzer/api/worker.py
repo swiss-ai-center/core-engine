@@ -43,6 +43,8 @@ class Worker():
 			img = np.array(img_pil)
 			diagnos = DeepFace.analyze(img_path=img, actions=['age', 'gender', 'race', 'emotion'], enforce_detection=True, detector_backend="retinaface", prog_bar=False)
 			task["result"] = diagnos
+		except ValueError:
+			task["result"] = {}
 		except Exception as e:
 			task["error"] = "Failed to process image: " + str(e)
 
