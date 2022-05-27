@@ -233,7 +233,8 @@ class NodeService(Node):
 		[jsonBody.pop(key) for key in binaries.keys()]
 
 		# Magic formula to compute next retry
-		retrySec = int(90 / (0.4 * self.retry)**1.5)
+		if self.retry > 0:
+			retrySec = int(90 / (0.4 * self.retry)**1.5)
 
 		try:
 			params = {"callback_url": self._pipeline._engine.route + "/processing", "task_id": taskId}
