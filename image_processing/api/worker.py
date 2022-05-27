@@ -113,7 +113,7 @@ class Worker():
 		outBuff = io.BytesIO()
 		img.save(outBuff, **spec)
 		outBuff.seek(0)
-		task["result"] = outBuff
+		task["result"] = outBuff.getvalue()
 
 		return task
 
@@ -126,7 +126,7 @@ class Worker():
 		outBuff = io.BytesIO()
 		img2.save(outBuff, format="jpeg", quality=95)
 		outBuff.seek(0)
-		task["result"] = outBuff
+		task["result"] = outBuff.getvalue()
 
 		return task
 
