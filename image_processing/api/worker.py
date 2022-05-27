@@ -192,7 +192,7 @@ class Worker():
 class Callback(Worker):
 	def __init__(self):
 		super().__init__()
-		self.client = httpx.AsyncClient()
+		self.client = httpx.AsyncClient(timeout=30.0)
 
 	async def process(self, task):
 		url = task["callback_url"] if "callback_url" in task else None
@@ -213,8 +213,14 @@ class Callback(Worker):
 					filename = "result" + str(i)
 					files[filename] = res[i]
 
-				await self.client.post(url, params={"task_id": task_id}, files=files)
+				try:
+					await self.client.post(url, params={"task_id": task_id}, files=files)
+				except Exception as e:
+					logging.getLogger("uvicorn").warning("Failed to send back result (" + url + "): " + str(e))
 			else:
-				await self.client.post(url, params={"task_id": task_id}, json={"error": "Invalid output " + str(type(res))})
+				try:
+					await self.client.post(url, params={"task_id": task_id}, json={"error": "Invalid output " + str(type(res))})
+				except Exception as e:
+					logging.getLogger("uvicorn").warning("Failed to send back result (" + url + "): " + str(e))
 		else:
 			logging.getLogger("uvicorn").warning("No callback for task, skipping")

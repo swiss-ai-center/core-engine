@@ -1,0 +1,71 @@
+{
+  "type": "pipeline",
+  "nodes": [
+    {
+      "type": "entry",
+      "id": "entry",
+      "api": {
+        "summary": "Convert images to jpg",
+        "route": "to-jpg",
+        "body": "image"
+      },
+      "next": [
+        "analyze-img"
+      ]
+    },
+    {
+      "type": "service",
+      "id": "analyze-img",
+      "url": "http://service-image-processing.project-dev.svc.cluster.local/analyze",
+      "input": {
+        "image": "entry.out.image"
+      },
+      "next": [
+        "checkFormat"
+      ]
+    },
+    {
+      "id": "checkFormat",
+      "input": {
+        "imgMime": "analyze-img.out.format"
+      },
+      "type": "branch",
+      "if": "input.imgMime != 'image/jpeg'",
+      "then": {
+        "next": [
+          "convert"
+        ]
+      },
+      "else": {
+        "next": [
+          "end"
+        ],
+        "out": {
+          "result": "entry.out.image"
+        }
+      }
+    },
+    {
+      "type": "service",
+      "id": "convert",
+      "params": {
+        "format": "jpeg",
+        "quality": 90
+      },
+      "url": "http://service-image-processing.project-dev.svc.cluster.local/convert",
+      "input": {
+        "image": "entry.out.image",
+        "format": "node.params.format",
+        "quality": "node.params.quality"
+      },
+      "next": [
+        "end"
+      ]
+    },
+    {
+      "type": "end",
+      "id": "end",
+      "ready": "checkFormat.finished or convert.finished"
+    }
+  ]
+}

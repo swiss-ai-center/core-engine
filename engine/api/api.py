@@ -2,6 +2,7 @@ import os
 import pydantic
 import json
 import datetime
+import logging
 
 from inspect import Parameter, Signature
 from typing import Union, List
@@ -236,6 +237,10 @@ async def cleanServices(delta):
 	pipelines = list(engine.endpoints.keys())
 	for name in pipelines:
 		pipeline = await engine.getPipeline(name)
+		if "timestamp" not in pipeline:
+			logging.getLogger("uvicorn").warning("Pipeline does not contain a timestamp: " + name)
+			await engine.touchPipeline(name)
+			continue
 		lastHeartbeat = datetime.datetime.fromisoformat(pipeline["timestamp"])
 		if pipeline["type"] == interface.ServiceType.SERVICE and now - lastHeartbeat > delta:
 			await removeService(name)
