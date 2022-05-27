@@ -1,6 +1,7 @@
 import asyncio
 import httpx
 import io
+import logging
 from PIL import Image
 from retinaface import RetinaFace
 import numpy as np
@@ -54,7 +55,7 @@ class Worker():
 class Callback(Worker):
 	def __init__(self):
 		super().__init__()
-		self.client = httpx.AsyncClient()
+		self.client = httpx.AsyncClient(timeout=30.0)
 
 	async def process(self, task):
 		url = task["callback_url"]
@@ -65,4 +66,7 @@ class Callback(Worker):
 				data = {"type": "error", "message": task["error"]}
 			else:
 				data = task["result"]
-			await self.client.post(url, params={"task_id": task_id}, json=data)
+			try:
+				await self.client.post(url, params={"task_id": task_id}, json=data)
+			except Exception as e:
+				logging.getLogger("uvicorn").warning("Failed to send back result (" + url + "): " + str(e))
