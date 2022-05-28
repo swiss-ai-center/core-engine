@@ -21,6 +21,7 @@ const Board = ({ service }) => {
   }, [service])
 
   return (
+
     <div className="column" style={{ height: "70vh"}}>
       <div className="content">
         <h4>{Object.keys(service).length > 0 ? service.nodes[0].api.route : "No pipeline selected"}</h4>
@@ -28,6 +29,7 @@ const Board = ({ service }) => {
       </div>
       <ReactFlowProvider>
         <ReactFlow
+          id="board"
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
