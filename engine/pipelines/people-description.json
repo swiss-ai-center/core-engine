@@ -3,10 +3,10 @@
   "nodes": [
     {
       "type": "entry",
-      "id": "blurMinorEntry",
+      "id": "faceDescrEntry",
       "api": {
-        "summary": "Detect and blur faces conditionnally in provided image",
-        "route": "blur-minors",
+        "summary": "Describe the people in an image.",
+        "route": "describe-faces",
         "body": "image"
       },
       "next": [
@@ -18,7 +18,7 @@
       "id": "analyzeImg",
       "url": "http://service-image-processing.project-dev.svc.cluster.local/analyze",
       "input": {
-        "image": "blurMinorEntry.out.image"
+        "image": "faceDescrEntry.out.image"
       },
       "next": [
         "checkFormat"
@@ -41,7 +41,7 @@
           "imageOk"
         ],
         "out": {
-          "result": "blurMinorEntry.out.image"
+          "result": "faceDescrEntry.out.image"
         }
       }
     },
@@ -54,7 +54,7 @@
       },
       "url": "http://service-image-processing.project-dev.svc.cluster.local/convert",
       "input": {
-        "image": "blurMinorEntry.out.image",
+        "image": "faceDescrEntry.out.image",
         "format": "node.params.format",
         "quality": "node.params.quality"
       },
@@ -86,7 +86,7 @@
       "id": "loopFaces",
       "items": "detectFaces.out.answer",
       "next": [
-        "mergeResults"
+        "describe"
       ],
       "nodes": [
         {
@@ -117,58 +117,27 @@
             "image": "loop.cropFace.out.result"
           },
           "next": [
-            "checkFace"
-          ]
-        },
-        {
-          "id": "checkFace",
-          "input": {
-            "analysis": "loop.analyzeFace.out"
-          },
-          "type": "branch",
-          "if": "'gender' in input.analysis and input.analysis['gender'] == 'Woman'",
-          "then": {
-            "out": {
-              "zone": "node._loop"
-            }
-          },
-          "else": {
-            "out": {}
-          },
-          "next": [
             "loopEnd"
           ]
         }
       ],
       "collect": {
-        "analysis": "checkFace.out.zone"
+        "analysis": "analyzeFace.out"
       }
     },
     {
       "type": "node",
-      "id": "mergeResults",
-      "after": "zones = []\nfor analysis in loopFaces.out:\n  if len(loopFaces.out[analysis]) > 0: zones.append(loopFaces.out[analysis])\nnode.out['zones'] = zones",
+      "id": "describe",
+      "after": "nbFaces = len(loopFaces.out)\nif nbFaces == 0:\n  txt = 'No face detected in this image.'\nelse:\n  txt = str(nbFaces) + ' people detected in this image. '\n  for ana in loopFaces.out:\n    analysis = loopFaces.out[ana]\n    if len(analysis) == 0:\n      txt += 'One person that could not be identified. '\n    else:\n      txt += 'A {age} years old {race} {gender} that looks {emotion}. '.format(age=analysis['age'], race=analysis['dominant_race'], gender=analysis['gender'].lower(), emotion=analysis['dominant_emotion'])\nnode.out['description'] = txt",
       "next": [
-        "blurFaces"
-      ]
-    },
-    {
-      "type": "service",
-      "id": "blurFaces",
-      "url": "http://service-image-processing.project-dev.svc.cluster.local/blur",
-      "input": {
-        "image": "imageOk.out.result",
-        "areas": "mergeResults.out.zones"
-      },
-      "next": [
-        "blurMinorEnd"
+        "faceDescrEnd"
       ]
     },
     {
       "type": "end",
-      "id": "blurMinorEnd",
+      "id": "faceDescrEnd",
       "input": {
-        "blurred.jpg": "blurFaces.out.result"
+        "description": "describe.out.description"
       }
     }
   ]
