@@ -1,13 +1,7 @@
-# MongoDB
-
-DO NOT HESITATE TO UPDATE OR DISCUSS THE DESCRIBED STRUCTURE
+# Description
+This folder contains the definition of the mongodb service that runs in the cluster and is used by the engine, alongside example usage code.
 
 # How to run
-
-First build the dockerfile :
-```bash
-docker build -t pi/mongo -f dockerfile .
-```
 
 Then run it:
 ```bash
@@ -20,13 +14,20 @@ pip3 install -r requirements.txt
 python3 test.py
 ```
 
-# Environment variable
+## Run using docker
+### Build docker image
+The mongo docker image can be built using the dockerfile using the command:
 
-The driver will try to use the os environment variable to set itself. If the following variable do not exists the content in the constructor will be used
 ```bash
-export MONGO_USERNAME=registry
-export MONGO_PASSWORD=PiRegistry_2022
-export MONGO_HOST=127.0.0.1
-export MONGO_PORT=27017
-export MONGO_AUTHDB=Registry
+docker build -t pi/mongo -f dockerfile .
 ```
+
+### Run
+Then it can be run normally:
+
+```bash
+docker run -it --rm -p 27017:27017 pi/mongo
+```
+
+## Use
+The mongo server is set up using the `init.js` script, including the credentials to use it. Then, the mongo server can be used with the URI "mongodb://MONGOUSER:MONGOPASSWD@HOST:PORT".
