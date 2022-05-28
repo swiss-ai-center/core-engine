@@ -12,7 +12,7 @@ test-image_processing:
     - cd engine
     - python3 -m pytest --asyncio-mode=auto
   only:
-    refs:
+    ref:
       - dev
       - merge_requests
     changes:
