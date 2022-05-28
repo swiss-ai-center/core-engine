@@ -6,8 +6,8 @@ test-image_processing:
   image: python:3.9
   stage: test
   before_script:
-    - pip3 install -r engine/requirements.txt
-    - pip3 install pytest pytest-asyncio aiofile Pillow
+    - pip3 install -r image_processing/requirements.txt
+    - pip3 install pytest pytest-asyncio aiofile
   script:
     - cd image_processing
     - python3 -m pytest --asyncio-mode=auto
