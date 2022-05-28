@@ -398,11 +398,16 @@ class NodeLoop(Node):
 			self._pipeline.fail("Can not iterate on " + self.items + " (" + str(type(items)) + ")")
 			return
 
+		if len(items) == 0:
+			self.next.append(endNode.id)
+			endNode.predecessors.append(self.id)
+
 		for i in range(len(items)):
 			item = items[i]
 			branchNodesMapping = {}
 			branchNodes = []
 			branchEntryNode = None
+
 			for node in self.nodes:
 				# Set new id
 				nodeDef = copy.deepcopy(node)
