@@ -6,7 +6,7 @@ test-image_processing:
   image: python:3.9
   stage: test
   before_script:
-    - apt-get install python3-opencv
+    - apt-get update && apt-get install python3-opencv
     - pip3 install -r image_processing/requirements.txt
     - pip3 install pytest pytest-asyncio aiofile
   script:
