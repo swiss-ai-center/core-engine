@@ -12,8 +12,9 @@ test-image_processing:
     - cd engine
     - python3 -m pytest --asyncio-mode=auto
   only:
-    ref:
+    refs:
       - dev
+      - merge_requests
     changes:
       - image_processing/**/*
 
