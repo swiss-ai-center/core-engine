@@ -14,7 +14,6 @@ test-image_processing:
   only:
     ref:
       - dev
-      - merge_requests
     changes:
       - image_processing/**/*
 
