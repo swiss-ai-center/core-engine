@@ -2,6 +2,23 @@
 # Face analyzer
 ###
 
+test-face_analyzer:
+  image: python:3.9
+  stage: test
+  before_script:
+    - apt-get update -y && apt-get install python3-opencv -y
+    - pip3 install -r face_analyzer/requirements.txt
+    - pip3 install pytest pytest-asyncio aiofile
+  script:
+    - cd face_analyzer
+    - python3 -m pytest --asyncio-mode=auto
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - face_analyzer/**/*
+
+
 build-face_analyzer:
   variables:
     SERVICE_NAME: face_analyzer

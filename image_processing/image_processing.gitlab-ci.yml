@@ -6,7 +6,7 @@ test-image_processing:
   image: python:3.9
   stage: test
   before_script:
-    - apt-get update -y && apt-get install python3-opencv -y
+    - apt-get update -y && apt-get install ffmpeg libsm6 libxext6 -y
     - pip3 install -r image_processing/requirements.txt
     - pip3 install pytest pytest-asyncio aiofile
   script:
@@ -14,7 +14,6 @@ test-image_processing:
     - python3 -m pytest --asyncio-mode=auto
   only:
     refs:
-      - dev
       - merge_requests
     changes:
       - image_processing/**/*
