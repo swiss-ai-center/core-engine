@@ -13,7 +13,7 @@ test-engine:
     - python3 -m pytest --asyncio-mode=auto
   only:
     refs:
-      - dev
+      - merge_requests
     changes:
       - engine/**/*
 
