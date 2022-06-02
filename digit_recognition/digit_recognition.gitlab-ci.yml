@@ -22,7 +22,25 @@ download-model:
     expire_in: 10 min
   only:
     refs:
-      - dev
+      - merge_requests
+    changes:
+      - digit_recognition/**/*
+
+test-digit_recognition:
+  image: python:3.9
+  stage: test
+  before_script:
+    - apt-get update -y && apt-get install ffmpeg libsm6 libxext6 -y
+    - pip3 install -r digit_recognition/requirements.txt
+    - pip3 install pytest pytest-asyncio aiofile
+  script:
+    - cp model.h5 digit_recognition
+    - cd digit_recognition
+    - python3 -m pytest --asyncio-mode=auto
+    - rm model.h5
+  only:
+    refs:
+      - merge_requests
     changes:
       - digit_recognition/**/*
 
