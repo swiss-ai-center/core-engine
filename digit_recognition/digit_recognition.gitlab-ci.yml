@@ -23,6 +23,7 @@ download-model:
   only:
     refs:
       - merge_requests
+      - dev
     changes:
       - digit_recognition/**/*
 
