@@ -1,6 +1,15 @@
 # Description
 This service allows to create and manage pipelines of microservices. This service was built and tested with python 3.9, therefore we recommend to use the docker version instead of running it natively.
 
+# Pipelines
+The `pipelines` folder contains several examples of ready to use pipelines:
+
+- `blur-women.json`: Blur women detected in an image.
+- `convertjpg.json`: Convert any image to jpg.
+- `face-thumbs.json`: Generate a thumbnail of each face detected in the image.
+- `faceblur.json`: Blur every face detected in an image.
+- `people-description.json`: Analyzes every face in an image and returns a global description.
+
 # How to run
 ## Environment variables
 Using both docker or your local python3, the engine will use the following environment variables if defined.

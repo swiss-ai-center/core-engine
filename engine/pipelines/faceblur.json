@@ -27,7 +27,7 @@
     {
       "type": "service",
       "id": "blurFaces",
-      "url": "http://service-area-blur.project-dev.svc.cluster.local/compute",
+      "url": "http://service-image-processing.project-dev.svc.cluster.local/blur",
       "input": {
         "image": "faceBlurEntry.out.image",
         "areas": "detectFaces.out.answer"
