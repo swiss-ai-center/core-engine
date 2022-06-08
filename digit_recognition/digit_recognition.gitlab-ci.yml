@@ -28,10 +28,9 @@ download-model:
       - digit_recognition/**/*
 
 test-digit_recognition:
-  image: python:3.9
+  image: $CI_REGISTRY_IMAGE/basic_image:latest
   stage: test
   before_script:
-    - apt-get update -y && apt-get install ffmpeg libsm6 libxext6 -y
     - pip3 install -r digit_recognition/requirements.txt
     - pip3 install pytest pytest-asyncio aiofile
   script:

@@ -3,7 +3,7 @@
 ###
 
 test-engine:
-  image: python:3.9
+  image: $CI_REGISTRY_IMAGE/basic_image:latest
   stage: test
   before_script:
     - pip3 install -r engine/requirements.txt
