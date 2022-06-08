@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM registry.forge.hefr.ch/mse_pi/services/basic_image:latest
 COPY requirements.txt /tmp/requirements.txt
 RUN pip3 install -r /tmp/requirements.txt
 
@@ -7,8 +7,6 @@ COPY main.py /app
 COPY model.h5 /app
 COPY api /app/api
 
-RUN apt-get update
-RUN apt-get install ffmpeg libsm6 libxext6 -y
 WORKDIR /app
 
 ENTRYPOINT [ "python3", "/app/main.py" ]

@@ -4,10 +4,9 @@
 ###
 
 test-face_detection:
-  image: python:3.9
+  image: $CI_REGISTRY_IMAGE/basic_image:latest
   stage: test
   before_script:
-    - apt-get update -y && apt-get install ffmpeg libsm6 libxext6 -y
     - pip3 install -r face_detection/requirements.txt
     - pip3 install pytest pytest-asyncio aiofile
   script:
