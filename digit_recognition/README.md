@@ -1,7 +1,8 @@
 # Description
 This service uses a keras model to guess a digit in an image. In order to run, you need to provide a `model.h5` file that the service will load to work. This service was built and tested with python 3.9, therefore we recommend to use the docker version instead of running it natively.
 
-The `model.yaml` file in this folder defined the path of the model to load on the S3 server. This task is done on the *prepare* stage of the CI pipeline.
+The `model.yaml` file in this folder defined the path of the model to load on the S3 server. This task is done on the *prepare* stage of the CI pipeline. The model is trained to recognize digit written in light shade on dark shades (like a white digit on a black background).
+
 # How to run
 ## Environment variables
 Using both docker or your local python3, the engine will use the following environment variables if defined.
