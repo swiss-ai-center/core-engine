@@ -1,2 +1,2 @@
 variables:
-  DIGIT_RECOGNITION_S3_MODEL_PATH: mlops/models/mnist_model_0_2_3_4_6_7_9
+  DIGIT_RECOGNITION_S3_MODEL_PATH: mlops/models/mnist_model_0_1_2_3_4_5_6_7_8_9
