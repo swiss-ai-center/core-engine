@@ -1,0 +1,12 @@
+FROM registry.forge.hefr.ch/mse_pi/services/basic_image:latest
+COPY requirements.txt /tmp/requirements.txt
+RUN pip3 install -r /tmp/requirements.txt
+
+RUN mkdir /app
+COPY main.py /app
+COPY model.h5 /app
+COPY api /app/api
+
+WORKDIR /app
+
+ENTRYPOINT [ "python3", "/app/main.py" ]

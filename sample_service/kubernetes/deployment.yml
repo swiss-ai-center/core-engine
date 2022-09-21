@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: SAMPLE-SERVICE # use dash "-" and not underscore "_" in this file for the service name 
+  labels:
+    app: SAMPLE-SERVICE
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: SAMPLE-SERVICE
+  template:
+    metadata:
+      labels:
+        app: SAMPLE-SERVICE
+    spec:
+      containers:
+      - name: SAMPLE-SERVICE
+        image: IMAGE_NAME
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80 
+        env:
+        - name: APP_HOST
+          value: 0.0.0.0
+        - name: APP_PORT
+          value: "80"
+        - name: APP_LOG
+          value: info
+        - name: APP_ENGINE
+          value: "http://service-engine.project-dev.svc.cluster.local"
+        - name: APP_SERVICE
+          value: "http://service-SAMPLE-SERVICE.project-dev.svc.cluster.local"
+      imagePullSecrets:
+      - name: mysecretdeployer
