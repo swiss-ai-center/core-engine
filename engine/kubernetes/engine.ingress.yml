@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ingress-engine
+  name: engine-ingress
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "16m"
     nginx.org/client-max-body-size: "16m"
@@ -14,6 +14,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: service-engine
+            name: engine-service
             port:
               number: 80

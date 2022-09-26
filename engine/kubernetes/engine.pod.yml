@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  # This name uniquely identifies the pod
+  name: engine-pod
+  labels:
+    app: engine
+spec:
+  containers:
+  - name: engine
+    image: csia-pme/engine
+    # As we use the local image, there is no need to pull the image
+    imagePullPolicy: Never
+    ports:
+    - name: http
+      containerPort: 80
+      hostPort: 8080
+    env:
+    - name: APP_HOST
+      value: 0.0.0.0
+    - name: APP_PORT
+      value: "80"
+    - name: APP_LOG
+      value: info
+    - name: APP_ENGINE
+      value: "http://engine-service"
+    - name: APP_EXTERNAL_URL
+      value: "http://engine-service"
+    - name: S3_URL
+      value: "http://minio-service:9000"
+    - name: S3_KEY_ID
+      value: "minio"
+    - name: S3_SECRET_KEY
+      value: "minio123"
+    - name: S3_BUCKET
+      value: "mse-pi"
+    - name: REG_STORAGE_TYPE
+      value: "S3"
+    - name: MONGO_URI
+      value: "mongodb://mongoadmin:secret@mongo-service:27017"
+    - name: MONGO_DB
+      value: "msepi"
+    - name: REG_DB_TYPE
+      value: "mongo"
+

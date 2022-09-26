@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  # This name uniquely identifies the pod
+  name: mongo-pod
+  labels:
+    app: mongo
+spec:
+  # Refer to the PVC created earlier
+  volumes:
+  - name: storage
+    persistentVolumeClaim:
+      # Name of the PVC created earlier
+      claimName: mongo-pv-claim
+  containers:
+  - name: mongo
+    image: mongo:latest
+    env:
+    - name: MONGO_INITDB_ROOT_USERNAME
+      value: "mongoadmin"
+    - name: MONGO_INITDB_ROOT_PASSWORD
+      value: "secret"
+    ports:
+    - name: mongo
+      containerPort: 27017
+      hostPort: 27017
+    # Mount the volume into the pod
+    volumeMounts:
+    - name: storage # must match the volume name, above
+      mountPath: "/data/db"

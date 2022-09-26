@@ -16,8 +16,7 @@ spec:
     spec:
       containers:
       - name: engine
-        #image: registry.forge.hefr.ch/mse_pi/services/engine:latest
-        image: IMAGE_NAME
+        image: registry.forge.hefr.ch/mse_pi/services/engine:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80

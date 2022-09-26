@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  # This name uniquely identifies the pod
+  name: minio-pod
+  labels:
+    app: minio
+spec:
+  # Refer to the PVC created earlier
+  volumes:
+  - name: storage
+    persistentVolumeClaim:
+      # Name of the PVC created earlier
+      claimName: minio-pv-claim
+  containers:
+  - name: minio
+    # Pulls the default Minio image from Docker Hub
+    image: minio/minio:latest
+    args:
+    - server
+    - --address
+    - ":9000"
+    - --console-address
+    - ":9001"
+    - /storage
+    env:
+    # Minio access key and secret key
+    - name: MINIO_ROOT_USER
+      value: "minio"
+    - name: MINIO_ROOT_PASSWORD
+      value: "minio123"
+    ports:
+    - name: api
+      containerPort: 9000
+      hostPort: 9000
+    - name: console
+      containerPort: 9001
+      hostPort: 9001
+    # Mount the volume into the pod
+    volumeMounts:
+    - name: storage # must match the volume name, above
+      mountPath: "/storage"
