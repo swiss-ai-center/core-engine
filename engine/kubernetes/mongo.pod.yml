@@ -23,7 +23,6 @@ spec:
     ports:
     - name: mongo
       containerPort: 27017
-      hostPort: 27017
     # Mount the volume into the pod
     volumeMounts:
     - name: storage # must match the volume name, above

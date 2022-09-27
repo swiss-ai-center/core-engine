@@ -14,7 +14,6 @@ spec:
     ports:
     - name: http
       containerPort: 80
-      hostPort: 8080
     env:
     - name: APP_HOST
       value: 0.0.0.0
@@ -23,9 +22,9 @@ spec:
     - name: APP_LOG
       value: info
     - name: APP_ENGINE
-      value: "http://engine-service"
+      value: "http://engine-service:8080"
     - name: APP_EXTERNAL_URL
-      value: "http://engine-service"
+      value: "http://engine-service:8080"
     - name: S3_URL
       value: "http://minio-service:9000"
     - name: S3_KEY_ID
@@ -42,4 +41,3 @@ spec:
       value: "msepi"
     - name: REG_DB_TYPE
       value: "mongo"
-

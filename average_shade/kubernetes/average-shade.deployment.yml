@@ -28,8 +28,8 @@ spec:
         - name: APP_LOG
           value: info
         - name: APP_ENGINE
-          value: "http://service-engine.project-dev.svc.cluster.local"
+          value: "http://engine-service.project-dev.svc.cluster.local"
         - name: APP_SERVICE
-          value: "http://service-average-shade.project-dev.svc.cluster.local"
+          value: "http://average-shade-service.project-dev.svc.cluster.local"
       imagePullSecrets:
       - name: mysecretdeployer
