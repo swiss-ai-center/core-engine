@@ -70,9 +70,9 @@ Create a tunnel to access the Kubernetes cluster from the local machine.
 minikube tunnel
 ```
 
-Access the Engine documentation on [http://localhost:8080/docs]().
+Access the Engine documentation on [http://localhost:8080/docs](http://localhost:8080/docs).
 
-Access the MinIO console on [http://localhost:9001]().
+Access the MinIO console on [http://localhost:9001](http://localhost:9001).
 
 ## Start a machine learning backend
 
@@ -109,9 +109,9 @@ kubectl apply \
     -f kubernetes/average-shade.pod.yml
 ```
 
-Access the `average_shade` documentation [http://localhost:8282/docs]().
+Access the `average_shade` documentation [http://localhost:8282/docs](http://localhost:8282/docs).
 
-Access the Engine documentation on [http://localhost:8080/docs]() to validate the backend has been successfully registered to the Engine.
+Access the Engine documentation on [http://localhost:8080/docs](http://localhost:8080/docs) to validate the backend has been successfully registered to the Engine.
 
 ### `digit_recognition` backend
 
@@ -142,9 +142,9 @@ kubectl apply \
     -f kubernetes/digit-recognition.pod.yml
 ```
 
-Access the `digit_recognition` documentation [http://localhost:8383/docs]().
+Access the `digit_recognition` documentation [http://localhost:8383/docs](http://localhost:8383/docs).
 
-Access the Engine documentation on [http://localhost:8080/docs]() to validate the backend has been successfully registered to the Engine.
+Access the Engine documentation on [http://localhost:8080/docs](http://localhost:8080/docs) to validate the backend has been successfully registered to the Engine.
 
 ### `face_analyzer` backend
 
@@ -173,9 +173,9 @@ kubectl apply \
     -f kubernetes/face-analyzer.pod.yml
 ```
 
-Access the `face_analyzer` documentation [http://localhost:8484/docs]().
+Access the `face_analyzer` documentation [http://localhost:8484/docs](http://localhost:8484/docs).
 
-Access the Engine documentation on [http://localhost:8080/docs]() to validate the backend has been successfully registered to the Engine.
+Access the Engine documentation on [http://localhost:8080/docs](http://localhost:8080/docs) to validate the backend has been successfully registered to the Engine.
 
 ### `face_detection` backend
 
@@ -204,9 +204,9 @@ kubectl apply \
     -f kubernetes/face-detection.pod.yml
 ```
 
-Access the `face_detection` documentation [http://localhost:8585/docs]().
+Access the `face_detection` documentation [http://localhost:8585/docs](http://localhost:8585/docs).
 
-Access the Engine documentation on [http://localhost:8080/docs]() to validate the backend has been successfully registered to the Engine.
+Access the Engine documentation on [http://localhost:8080/docs](http://localhost:8080/docs) to validate the backend has been successfully registered to the Engine.
 
 ### `image_processing` backend
 
@@ -235,6 +235,6 @@ kubectl apply \
     -f kubernetes/image-processing.pod.yml
 ```
 
-Access the `image_processing` documentation [http://localhost:8181/docs]().
+Access the `image_processing` documentation [http://localhost:8181/docs](http://localhost:8181/docs).
 
-Access the Engine documentation on [http://localhost:8080/docs]() to validate the backend has been successfully registered to the Engine.
+Access the Engine documentation on [http://localhost:8080/docs](http://localhost:8080/docs) to validate the backend has been successfully registered to the Engine.
