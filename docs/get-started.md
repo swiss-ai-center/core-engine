@@ -6,6 +6,27 @@ This page will guide you through the steps to run the project locally.
 
 [minikube](https://minikube.sigs.k8s.io/) _"quickly sets up a local Kubernetes cluster on macOS, Linux, and Windows"_. Follow the [_Get Started!_](https://minikube.sigs.k8s.io/docs/start/) guide to install and configure minikube.
 
+## Kubernetes tips
+
+To visualize pods (= containers), use the following command.
+
+```sh
+# View pods
+kubectl get pods
+```
+
+To visualize pod's logs, use the following command.
+
+```sh
+# View pod's logs
+kubectl logs <name of the pod>
+
+# or
+
+# Follow the pod's logs (CTRL+C to exit)
+kubectl logs --follow <name of the pod>
+```
+
 ## Start minikube
 
 In order to start minikube, execute the following command.

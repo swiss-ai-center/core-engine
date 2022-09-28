@@ -1,0 +1,63 @@
+stages:          # List of stages for jobs, and their order of execution
+  - dataset
+  - model
+
+
+build_dataset:
+  stage: dataset
+  image: python:3.9
+  before_script:
+    - python3 -m pip install -r requirements.txt
+    - dvc remote add -d datasets $BUCKET_DATASETS
+    - dvc remote modify datasets endpointurl $MINIO_ENDPOINT_URL
+    - dvc remote modify datasets access_key_id $MINIO_ACCESS_KEY
+    - dvc remote modify datasets secret_access_key $MINIO_SECRET_KEY
+  script:
+    - ./script_create_dataset.sh
+    - dvc add ./src/datasets/test.csv
+    - dvc push
+    - dvc add ./src/datasets/train.csv
+    - dvc push
+  only:
+    changes:
+      - numbers.dat
+      - src/*
+  artifacts:
+    paths:
+      - ./src/datasets/test.csv.dvc
+      - ./src/datasets/train.csv.dvc
+
+
+build_model:
+  stage: model
+  image: ubuntu:22.10
+  before_script:
+    - apt update -y
+    - apt install python3-pip -y && apt install wget -y
+    - apt install python3.10-venv -y
+    - python3 -m venv .venv
+    - source ./.venv/bin/activate
+    - pip3 install -r requirements.txt
+    - dvc remote add -d datasets $BUCKET_DATASETS
+    - dvc remote modify datasets endpointurl $MINIO_ENDPOINT_URL
+    - dvc remote modify datasets access_key_id $MINIO_ACCESS_KEY
+    - dvc remote modify datasets secret_access_key $MINIO_SECRET_KEY
+  script:
+    - dvc pull
+    - cd ./src
+    - python3 create_other_model.py
+    - ls ./models
+    - cd .. 
+    - ./script_push_model.sh $MINIO_ENDPOINT_URL $BUCKET_MODELS_NAME $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
+  only:
+    changes:
+      - numbers.dat
+      - src/*
+  artifacts:
+    paths:
+      - ./src/graphs/model_accuracy.jpg
+      - ./src/graphs/model_loss.jpg
+
+
+    
+
