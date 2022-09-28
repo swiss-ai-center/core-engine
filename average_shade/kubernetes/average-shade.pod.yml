@@ -24,6 +24,6 @@ spec:
     - name: APP_ENGINE
       value: "http://engine-service:8080"
     - name: APP_SERVICE
-      value: "http://average-shade:8282"
+      value: "http://average-shade-service:8282"
     - name: APP_NOTIFY_CRON
       value: "30"
