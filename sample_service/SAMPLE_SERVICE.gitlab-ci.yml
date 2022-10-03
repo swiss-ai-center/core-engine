@@ -1,9 +1,11 @@
 ###
-# Digit recognition
+# TODO: Replace SAMPLE SERVICE by the name of your service
+# SAMPLE SERVICE
 ###
 
 include:
-  - digit_recognition/model.yml
+    # TODO: Replace SAMPLE_SERVICE by the name of your service
+  - SAMPLE_SERVICE/model.yml
 
 download-model:
   variables:
@@ -15,7 +17,8 @@ download-model:
   before_script:
     - pip3 install -r utils/requirements.txt
   script:
-    - python3 utils/s3client.py pull model.h5 $DIGIT_RECOGNITION_S3_MODEL_PATH
+    # TODO: Replace SAMPLE_SERVICE by the name of your service
+    - python3 utils/s3client.py pull model.h5 $SAMPLE_SERVICE_S3_MODEL_PATH
   artifacts:
     paths:
     - model.h5
@@ -25,28 +28,36 @@ download-model:
       - merge_requests
       - dev
     changes:
-      - digit_recognition/**/*
+      # TODO: Replace SAMPLE-SERVICE by the name of your service
+      - SAMPLE_SERVICE/**/*
 
-test-digit_recognition:
+# TODO: Replace SAMPLE_SERVICE by the name of your service
+test-SAMPLE_SERVICE:
   image: $CI_REGISTRY_IMAGE/basic_image:latest
   stage: test
   before_script:
-    - pip3 install -r digit_recognition/requirements.txt
+    # TODO: Replace SAMPLE_SERVICE by the name of your service
+    - pip3 install -r SAMPLE_SERVICE/requirements.txt
     - pip3 install pytest pytest-asyncio aiofile
   script:
-    - cp model.h5 digit_recognition
-    - cd digit_recognition
+    # TODO: Replace SAMPLE_SERVICE by the name of your service
+    - cp model.h5 SAMPLE_SERVICE
+    # TODO: Replace SAMPLE_SERVICE by the name of your service
+    - cd SAMPLE_SERVICE
     - python3 -m pytest --asyncio-mode=auto
     - rm model.h5
   only:
     refs:
       - merge_requests
     changes:
-      - digit_recognition/**/*
+    # TODO: Replace SAMPLE-SERVICE by the name of your service
+      - SAMPLE_SERVICE/**/*
 
-build-digit_recognition:
+# TODO: Replace SAMPLE-SERVICE by the name of your service
+build-SAMPLE_SERVICE:
   variables:
-    SERVICE_NAME: digit_recognition
+    # TODO: Replace SAMPLE_SERVICE by the name of your service
+    SERVICE_NAME: SAMPLE_SERVICE
     IMAGE_TAG_LAST: $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest
   image: docker:19.03.12
   stage: build
@@ -65,13 +76,16 @@ build-digit_recognition:
     refs:
       - dev
     changes:
-      - digit_recognition/**/*
+      # TODO: Replace SAMPLE_SERVICE by the name of your service
+      - SAMPLE_SERVICE/**/*
   dependencies:
     - download-model
-  
-deploy-digit_recognition:
+
+# TODO: Replace SAMPLE-SERVICE by the name of your service
+deploy-SAMPLE_SERVICE:
   variables:
-    SERVICE_NAME: digit_recognition
+    # TODO: Replace SAMPLE-SERVICE by the name of your service
+    SERVICE_NAME: SAMPLE_SERVICE
   image: lachlanevenson/k8s-kubectl:latest
   stage: deploy
   tags:
@@ -91,4 +105,5 @@ deploy-digit_recognition:
     refs:
       - dev
     changes:
-      - digit_recognition/**/*
+      # TODO: Replace SAMPLE-SERVICE by the name of your service
+      - SAMPLE_SERVICE/**/*
