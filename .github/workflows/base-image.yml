@@ -1,0 +1,23 @@
+# Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
+name: base_image_workflow
+run-name: base_image workflow
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/base-image.yml
+      - ./images/base_image/Dockerfile
+
+jobs:
+  run-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build-and-push-docker-image-to-github
+        with:
+          docker-registry-username: ${{ github.actor }}
+          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          docker-image-name: ${{ github.repository }}-base-image
+          docker-image-context: ./images/base_image
