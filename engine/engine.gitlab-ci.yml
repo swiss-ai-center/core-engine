@@ -17,25 +17,6 @@ test-engine:
     changes:
       - engine/**/*
 
-build-engine:
-  image: docker:19.03.12
-  stage: build
-  services:
-    - docker:19.03.12-dind
-  before_script:
-    - docker info
-    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-  script:
-    - docker pull $CI_REGISTRY_IMAGE/engine:latest || true
-    - docker build -t $CI_REGISTRY_IMAGE/engine:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/engine:latest -f ./engine/dockerfile ./engine
-    - docker push $CI_REGISTRY_IMAGE/engine:$CI_COMMIT_SHORT_SHA
-    - docker push $CI_REGISTRY_IMAGE/engine:latest
-  only:
-    refs:
-      - dev
-    changes:
-      - engine/**/*
-
 deploy-engine:
   image: lachlanevenson/k8s-kubectl:latest
   stage: deploy

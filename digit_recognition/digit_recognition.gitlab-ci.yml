@@ -44,31 +44,6 @@ test-digit_recognition:
     changes:
       - digit_recognition/**/*
 
-build-digit_recognition:
-  variables:
-    SERVICE_NAME: digit_recognition
-    IMAGE_TAG_LAST: $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest
-  image: docker:19.03.12
-  stage: build
-  services:
-    - docker:19.03.12-dind
-  before_script:
-    - docker info
-    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-  script:
-    - mv model.h5 $SERVICE_NAME
-    - docker pull $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest || true
-    - docker build --network host --cache-from $IMAGE_TAG_LAST -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest -f ./$SERVICE_NAME/dockerfile ./$SERVICE_NAME
-    - docker push $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest
-  only:
-    refs:
-      - dev
-    changes:
-      - digit_recognition/**/*
-  dependencies:
-    - download-model
-  
 deploy-digit_recognition:
   variables:
     SERVICE_NAME: digit_recognition

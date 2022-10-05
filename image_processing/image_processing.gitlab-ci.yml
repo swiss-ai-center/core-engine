@@ -17,28 +17,6 @@ test-image_processing:
     changes:
       - image_processing/**/*
 
-
-build-image_processing:
-  variables:
-    SERVICE_NAME: image_processing
-  image: docker:19.03.12
-  stage: build
-  services:
-    - docker:19.03.12-dind
-  before_script:
-    - docker info
-    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-  script:
-    - docker pull $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest || true
-    - docker build --network host -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest -f ./$SERVICE_NAME/dockerfile ./$SERVICE_NAME
-    - docker push $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest
-  only:
-    refs:
-      - dev
-    changes:
-      - image_processing/**/*
-  
 deploy-image_processing:
   variables:
     SERVICE_NAME: image_processing

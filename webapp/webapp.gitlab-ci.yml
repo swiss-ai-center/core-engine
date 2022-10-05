@@ -2,27 +2,6 @@
 # Webapp
 ###
 
-build-webapp:
-  variables:
-    SERVICE_NAME: webapp
-  image: docker:19.03.12
-  stage: build
-  services:
-    - docker:19.03.12-dind
-  before_script:
-    - docker info
-    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-  script:
-    - docker pull $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest || true
-    - docker build --network host --build-arg ENGINE_URL="https://pi-engine.kube.isc.heia-fr.ch" -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest -f ./$SERVICE_NAME/dockerfile ./$SERVICE_NAME
-    - docker push $CI_REGISTRY_IMAGE/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest
-  only:
-    refs:
-      - dev
-    changes:
-      - webapp/**/*
-
 deploy-webapp:
   variables:
     SERVICE_NAME: webapp
