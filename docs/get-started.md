@@ -4,7 +4,7 @@ This page will guide you through the steps to run the project locally.
 
 ## Install minikube
 
-[minikube](https://minikube.sigs.k8s.io/) _"quickly sets up a local Kubernetes cluster on macOS, Linux, and Windows"_. Follow the [_Get Started!_](https://minikube.sigs.k8s.io/docs/start/) guide to install and configure minikube.
+[minikube](https://minikube.sigs.k8s.io/) _"quickly sets up a local Kubernetes cluster on macOS, Linux, and Windows"_. Follow the [_Get Started!_ - minikube.sigs.k8s.io](https://minikube.sigs.k8s.io/docs/start/) guide to install and configure minikube.
 
 ## Kubernetes tips
 
@@ -45,16 +45,13 @@ kubectl get pods --all-namespaces
 
 ## Start the Engine
 
-In the [engine](../engine) directory, build the Docker image with the following commands. You might need to create and use a Personal Access Token (PAT) to login to the remote Docker container registry.
+In the [engine](../engine) directory, build the Docker image with the following commands.
 
-See more about the Minikube Docker environment here: [minikube.sigs.k8s.io - Pushing images](https://minikube.sigs.k8s.io/docs/handbook/pushing/).
+See more about the Minikube Docker environment here: [_Pushing images_ - minikube.sigs.k8s.io](https://minikube.sigs.k8s.io/docs/handbook/pushing/).
 
 ```sh
 # Access the Minikube's Docker environment
 eval $(minikube docker-env)
-
-# Login to the remote Docker container registry
-docker login registry.forge.hefr.ch --user <GitLab user> --password-stdin
 
 # Build the Docker image
 docker build -t csia-pme/engine .
@@ -103,9 +100,6 @@ In the [webapp](../webapp) directory, build the Docker image with the following 
 # Access the Minikube's Docker environment
 eval $(minikube docker-env)
 
-# Login to the remote Docker container registry
-docker login registry.forge.hefr.ch --user <GitLab user> --password-stdin
-
 # Build the Docker image
 docker build --build-arg ENGINE_URL="http://localhost:8080" -t csia-pme/webapp .
 
@@ -134,16 +128,11 @@ Refer to the [Services](./services.md) documentation for all the available machi
 
 ### `average_shade` backend
 
-_TODO: Fix build image error because model is not available_
-
 In the [average_shade](../average_shade) directory, build the Docker image with the following commands.
 
 ```sh
 # Access the Minikube's Docker environment
 eval $(minikube docker-env)
-
-# Login to the remote Docker container registry
-docker login registry.forge.hefr.ch --user <GitLab user> --password-stdin
 
 # Build the Docker image
 docker build -t csia-pme/average-shade .
@@ -167,16 +156,13 @@ Access the Engine documentation on <http://localhost:8080/docs> to validate the 
 
 ### `digit_recognition` backend
 
-_TODO: Fix build image error because model is not available_
+_TODO: Not working - Fix build image error because model is not available_
 
 In the [digit_recognition](../digit_recognition) directory, build the Docker image with the following commands.
 
 ```sh
 # Access the Minikube's Docker environment
 eval $(minikube docker-env)
-
-# Login to the remote Docker container registry
-docker login registry.forge.hefr.ch --user <GitLab user> --password-stdin
 
 # Build the Docker image
 docker build -t csia-pme/digit-recognition .
@@ -206,9 +192,6 @@ In the [face_analyzer](../face_analyzer) directory, build the Docker image with 
 # Access the Minikube's Docker environment
 eval $(minikube docker-env)
 
-# Login to the remote Docker container registry
-docker login registry.forge.hefr.ch --user <GitLab user> --password-stdin
-
 # Build the Docker image
 docker build -t csia-pme/face-analyzer .
 
@@ -237,9 +220,6 @@ In the [face_detection](../face_detection) directory, build the Docker image wit
 # Access the Minikube's Docker environment
 eval $(minikube docker-env)
 
-# Login to the remote Docker container registry
-docker login registry.forge.hefr.ch --user <GitLab user> --password-stdin
-
 # Build the Docker image
 docker build -t csia-pme/face-detection .
 
@@ -267,9 +247,6 @@ In the [image_processing](../image_processing) directory, build the Docker image
 ```sh
 # Access the Minikube's Docker environment
 eval $(minikube docker-env)
-
-# Login to the remote Docker container registry
-docker login registry.forge.hefr.ch --user <GitLab user> --password-stdin
 
 # Build the Docker image
 docker build -t csia-pme/image-processing .
