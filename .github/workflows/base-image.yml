@@ -4,9 +4,8 @@ run-name: base_image workflow
 
 on:
   push:
-    branches:
-      - main
     paths:
+      - .github/actions/build-and-push-docker-image-to-github/action.yml
       - .github/workflows/base-image.yml
       - ./images/base_image/**/*
 
@@ -15,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - uses: ./.github/actions/build-and-push-docker-image-to-github
         with:
           docker-registry-username: ${{ github.actor }}
