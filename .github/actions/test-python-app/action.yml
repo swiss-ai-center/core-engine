@@ -1,0 +1,32 @@
+# Documentation: https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
+name: test_python_app
+description: Test a Python app
+
+inputs:
+  python-app-path:
+    description: Python app path
+    required: true
+    default: .
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install additional packages
+      shell: bash
+      run: pip3 install pytest pytest-asyncio aiofile
+
+    - name: Install app dependencies
+      shell: bash
+      working-directory: ${{ inputs.python-app-path }}
+      run: pip3 install -r requirements.txt
+
+    - name: Run Python tests
+      shell: bash
+      working-directory: ${{ inputs.python-app-path }}
+      run: python3 -m pytest --asyncio-mode=auto

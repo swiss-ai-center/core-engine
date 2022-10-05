@@ -19,6 +19,7 @@ inputs:
   docker-image-context:
     description: Docker image context
     required: true
+    default: .
 
 runs:
   using: "composite"
@@ -39,6 +40,7 @@ runs:
         tags: |
           type=raw,value=latest
           type=sha
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
       with:
