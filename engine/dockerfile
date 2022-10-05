@@ -1,4 +1,4 @@
-FROM registry.forge.hefr.ch/mse_pi/services/basic_image:latest
+FROM ghcr.io/csia-pme/csia-pme-base-image:latest
 COPY ./requirements.txt /tmp/requirements.txt
 RUN pip3 install -r /tmp/requirements.txt
 
