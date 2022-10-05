@@ -3,21 +3,6 @@
 # Face detection
 ###
 
-test-face_detection:
-  image: $CI_REGISTRY_IMAGE/basic_image:latest
-  stage: test
-  before_script:
-    - pip3 install -r face_detection/requirements.txt
-    - pip3 install pytest pytest-asyncio aiofile
-  script:
-    - cd face_detection
-    - python3 -m pytest --asyncio-mode=auto
-  only:
-    refs:
-      - merge_requests
-    changes:
-      - face_detection/**/*
-
 deploy-face_detection:
   variables:
     SERVICE_NAME: face_detection

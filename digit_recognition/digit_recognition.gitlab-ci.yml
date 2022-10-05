@@ -27,23 +27,6 @@ download-model:
     changes:
       - digit_recognition/**/*
 
-test-digit_recognition:
-  image: $CI_REGISTRY_IMAGE/basic_image:latest
-  stage: test
-  before_script:
-    - pip3 install -r digit_recognition/requirements.txt
-    - pip3 install pytest pytest-asyncio aiofile
-  script:
-    - cp model.h5 digit_recognition
-    - cd digit_recognition
-    - python3 -m pytest --asyncio-mode=auto
-    - rm model.h5
-  only:
-    refs:
-      - merge_requests
-    changes:
-      - digit_recognition/**/*
-
 deploy-digit_recognition:
   variables:
     SERVICE_NAME: digit_recognition

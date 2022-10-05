@@ -31,28 +31,6 @@ download-model:
       # TODO: Replace SAMPLE-SERVICE by the name of your service
       - SAMPLE_SERVICE/**/*
 
-# TODO: Replace SAMPLE_SERVICE by the name of your service
-test-SAMPLE_SERVICE:
-  image: $CI_REGISTRY_IMAGE/basic_image:latest
-  stage: test
-  before_script:
-    # TODO: Replace SAMPLE_SERVICE by the name of your service
-    - pip3 install -r SAMPLE_SERVICE/requirements.txt
-    - pip3 install pytest pytest-asyncio aiofile
-  script:
-    # TODO: Replace SAMPLE_SERVICE by the name of your service
-    - cp model.h5 SAMPLE_SERVICE
-    # TODO: Replace SAMPLE_SERVICE by the name of your service
-    - cd SAMPLE_SERVICE
-    - python3 -m pytest --asyncio-mode=auto
-    - rm model.h5
-  only:
-    refs:
-      - merge_requests
-    changes:
-    # TODO: Replace SAMPLE-SERVICE by the name of your service
-      - SAMPLE_SERVICE/**/*
-
 # TODO: Replace SAMPLE-SERVICE by the name of your service
 deploy-SAMPLE_SERVICE:
   variables:

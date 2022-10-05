@@ -2,21 +2,6 @@
 # Face analyzer
 ###
 
-test-face_analyzer:
-  image: $CI_REGISTRY_IMAGE/basic_image:latest
-  stage: test
-  before_script:
-    - pip3 install -r face_analyzer/requirements.txt
-    - pip3 install pytest pytest-asyncio aiofile
-  script:
-    - cd face_analyzer
-    - python3 -m pytest --asyncio-mode=auto
-  only:
-    refs:
-      - merge_requests
-    changes:
-      - face_analyzer/**/*
-
 deploy-face_analyzer:
   variables:
     SERVICE_NAME: face_analyzer

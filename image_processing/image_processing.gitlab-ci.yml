@@ -2,21 +2,6 @@
 # Image Processing
 ###
 
-test-image_processing:
-  image: $CI_REGISTRY_IMAGE/basic_image:latest
-  stage: test
-  before_script:
-    - pip3 install -r image_processing/requirements.txt
-    - pip3 install pytest pytest-asyncio aiofile
-  script:
-    - cd image_processing
-    - python3 -m pytest --asyncio-mode=auto
-  only:
-    refs:
-      - merge_requests
-    changes:
-      - image_processing/**/*
-
 deploy-image_processing:
   variables:
     SERVICE_NAME: image_processing
