@@ -8,7 +8,7 @@ on:
       - main
     paths:
       - .github/workflows/average-shade.yml
-      - ./average_shade/Dockerfile
+      - ./average_shade/**/*
 
 jobs:
   run-workflow:

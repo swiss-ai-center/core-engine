@@ -8,7 +8,7 @@ on:
       - main
     paths:
       - .github/workflows/base-image.yml
-      - ./images/base_image/Dockerfile
+      - ./images/base_image/**/*
 
 jobs:
   run-workflow:
