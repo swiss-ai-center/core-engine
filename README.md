@@ -1,14 +1,20 @@
 # Description
-This repository contains all code for the *PI-AIMarketplace* project.
+
+This repository contains all code for the CSIA-PME project.
+
+All documentation is available in the [docs](./docs) directory.
+
+**This is a WIP project.**
 
 # CI/CD
-The CI/CD pipelines are defined using the Gitlab CI syntax. The main `.gitlab-ci.yml` defines basic stages and includes specific definitions in each service. Currently, the following stages are defined:
+
+The CI/CD pipelines are defined using the GitHub Actions syntax that can be found in the [.github](./.github) directory. Currently, the following stages are defined:
 
 - *lint*: runs `flake8` to check the code style
 - *prepare*: run service specific script before the build, like downloading ML models
 - *test*: run the unit testing
 - *build*: create the docker image and push it in the registry
-- *deploy*: applies the changes on the Kubernetes cluster
+- ~~*deploy*: applies the changes on the Kubernetes cluster~~ _Not yet_
 
 The CI/CD pipeline is triggered on each individual service only if a merge request modifies its content. Currently, we only have one running cluster, but a good practice would be to have multiple environments, like `dev`, `test` and `prod` which are deployed when according branches are modified.
 

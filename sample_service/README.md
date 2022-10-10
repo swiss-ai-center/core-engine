@@ -1,9 +1,9 @@
 # Description
 This is a sample service, to get it running, watch for the TODOs and replace "SAMPLE_SERVICE" and "SAMPLE-SERVICE" in the files with the name of the service
-You also need to provide a "model.h5" file for the service
-and add the service gitlab-ci file to the imports in the root folder
 
 TODO: DESCRIBE SERVICE HERE...
+
+TODO: Add your service to [GitHub Actions](../.github) and once the service is published, change the visibility of the package ([_Configuring visibility of container images for an organization_ - docs.github.com](https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility#configuring-visibility-of-container-images-for-an-organization)).
 
 # How to run
 ## Environment variables

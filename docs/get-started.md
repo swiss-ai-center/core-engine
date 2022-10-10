@@ -2,6 +2,10 @@
 
 This page will guide you through the steps to run the project locally.
 
+## Install Docker
+
+[Docker](https://minikube.sigs.k8s.io/) _"delivers software in packages called containers"_. Follow the [_Install Docker Engine_ - docs.docker.com](https://docs.docker.com/engine/install/) guide to install and configure Docker.
+
 ## Install minikube
 
 [minikube](https://minikube.sigs.k8s.io/) _"quickly sets up a local Kubernetes cluster on macOS, Linux, and Windows"_. Follow the [_Get Started!_ - minikube.sigs.k8s.io](https://minikube.sigs.k8s.io/docs/start/) guide to install and configure minikube.
@@ -81,7 +85,7 @@ kubectl apply \
     -f kubernetes/engine.pod.yml
 ```
 
-Create a tunnel to access the Kubernetes cluster from the local machine.
+Create a tunnel to access the Kubernetes cluster from the local machine. The terminal in which the tunnel is created must stay open.
 
 ```sh
 # Open a tunnel to the Kubernetes cluster
