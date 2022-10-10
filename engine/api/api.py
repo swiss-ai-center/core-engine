@@ -12,32 +12,59 @@ from fastapi.middleware.cors import CORSMiddleware
 from .Engine import Engine, Registry, Cron, Enums
 from . import interface
 
-def addRoute(route, body=None, summary=None, description=None):
-	# This should be wrapped in a functor, howevera bug in starlette prevents the handler to be correctly called if __call__ is declared async. This should be fixed in version 0.21.0 (https://github.com/encode/starlette/pull/1444).
+def strToArray(string):
+	if string is None:
+		return []
+	return string.strip('][').replace(" ", "").split(",")
+
+def addRoute(route, body=None, bodyType=None, summary=None, description=None):
+	# This should be wrapped in a functor, however a bug in starlette prevents the handler to be correctly called if __call__ is declared async. This should be fixed in version 0.21.0 (https://github.com/encode/starlette/pull/1444).
 	async def handler(*args, **kwargs):
 		jobData = {}
 		binaries = []
+		binariesType = []
+
+		print("bodyType", bodyType)
 
 		if type(body) is dict:
 			jobData.update(kwargs["data"].dict())
+			jobData.update(kwargs["dataType"].dict())
 		elif type(body) is str:
 			binaries.append(body)
+			for i in range(len(bodyType)):
+				binariesType.append(strToArray(bodyType[i]))
 		elif type(body) is list:
 			binaries = body
+			for i in range(len(bodyType)):
+				binariesType.append(strToArray(bodyType[i]))
+
+		print("binaries", binaries)
+		print("binariesType", binariesType)
 
 		jsonParts = set()
 
 		if len(binaries) > 0:
 			request = kwargs["req"]
 			form = await request.form()
+			i = 0
 			for name in binaries:
 				obj = form[name]
-				if obj.content_type == "application/json":
-					payload = await obj.read()
-					jobData.update(json.loads(payload))
-					jsonParts.add(name)
+				print("obj", obj.content_type)
+				if obj.content_type not in binariesType[i]:
+					return JSONResponse(
+						status_code=400,
+						content={
+							"error": "Invalid content type",
+							"message": "The content type of the file must be " + bodyType[i] + "."
+						})
 				else:
-					jobData[name] = obj
+					i += 1
+					if obj.content_type == "application/json":
+						payload = await obj.read()
+						jobData.update(json.loads(payload))
+						jsonParts.add(name)
+					else:
+						jobData[name] = obj
 
 		jobId = await engine.newJob(route, jobData, [b for b in binaries if b not in jsonParts])
 		return {"jobId": jobId}
@@ -54,7 +81,6 @@ def addRoute(route, body=None, summary=None, description=None):
 			params.append(Parameter(name, kind=Parameter.POSITIONAL_ONLY, annotation=UploadFile))
 	params.append(Parameter("req", kind=Parameter.POSITIONAL_ONLY, annotation=Request))
 	handler.__signature__ = Signature(params)
-
 	app.add_api_route("/services/" + route, handler, methods=["POST"], response_model=interface.JobResponse, summary=summary, description=description)
 	# Force the regeneration of the schema
 	app.openapi_schema = None
@@ -158,6 +184,7 @@ async def getTaskResultFile(taskId: str, fileName: str):
 
 @app.post("/services", summary="Create a new service or pipeline")
 async def createService(service: Union[interface.ServiceDescription, interface.PipelineDescription]):
+	print(service)
 	if service.type is interface.ServiceType.SERVICE:
 		serviceName = service.api.route
 		if serviceName in engine.endpoints:

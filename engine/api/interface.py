@@ -10,6 +10,7 @@ class APIDescription(BaseModel):
 	summary: Optional[str]
 	description: Optional[str]
 	body: Union[str, dict, List[str]]
+	bodyType: Optional[Union[str, List[str]]]
 
 class Branch(BaseModel):
 	exec: Optional[str]

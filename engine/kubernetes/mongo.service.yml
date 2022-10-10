@@ -5,6 +5,7 @@ metadata:
   labels:
     app: mongo
 spec:
+  type: LoadBalancer
   ports:
     - name: mongo
       port: 27017

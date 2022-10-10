@@ -53,7 +53,7 @@ app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
 timers = []
 
 
-@app.post("/compute", response_model=interface.TaskId)
+@app.post("/compute", response_model=interface.TaskId, )
 async def post(image: UploadFile, callback_url: str = None, task_id: str = None):
     if task_id is None:
         task_id = str(interface.uid())

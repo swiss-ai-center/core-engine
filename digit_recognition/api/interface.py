@@ -11,4 +11,4 @@ class TaskId(BaseModel):
 	task_id: str
 
 def engineAPI():
-	return {"route": "digit-recognition", "body": "image", "summary": "Recognizes a digit in an image using mnist trained model"}
+	return {"route": "digit-recognition", "body": ["image"], "bodyType": ["[image/png, image/jpeg]"], "summary": "Recognizes a digit in an image using mnist trained model"}
