@@ -11,4 +11,4 @@ class TaskId(BaseModel):
 	task_id: str
 
 def engineAPI():
-	return {"route": "face-detect", "body": ["image"], "bodyType": ["[image/png, image/jpeg]"], "summary": "Detect all faces in the provided image and returns their bounding box"}
+	return {"route": "face-detect", "body": ["image"], "bodyType": ["[image/png, image/jpeg, image/jpg]"], "summary": "Detect all faces in the provided image and returns their bounding box"}

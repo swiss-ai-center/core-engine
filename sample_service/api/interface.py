@@ -12,7 +12,7 @@ class TaskId(BaseModel):
 
 # if the service has only one route
 def engineAPI():
-	return {"route": "SAMPLE-SERVICE", "body": ["param1", "param2", "..."], "bodyType": ["[image/png, image/jpg]", "type2", "..."], "summary": "Describe the service here..."}
+	return {"route": "SAMPLE-SERVICE", "body": ["param1", "param2", "..."], "bodyType": ["[image/png, image/jpeg, image/jpg]", "type2", "..."], "summary": "Describe the service here..."}
 
 # else if the service has multiple routes
 # engineAPI = {}
