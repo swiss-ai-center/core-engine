@@ -89,7 +89,7 @@ Create a tunnel to access the Kubernetes cluster from the local machine. The ter
 
 ```sh
 # Open a tunnel to the Kubernetes cluster
-minikube tunnel
+minikube tunnel --bind-address 127.0.0.1
 ```
 
 Access the Engine documentation on <http://localhost:8080/docs>.
