@@ -1,8 +1,24 @@
-.DS_Store
-.vscode
-__pycache__/
-*.py[cod]
-*$py.class
+## Custom
 
+api/__init__
+
+## Python
+
+# Environments
+.venv
 venv
-**/.idea
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+## IntelliJ's IDEs
+
+.idea
+
+## Visual Studio Code
+
+.vscode
+
+## macOS
+
+.DS_Store

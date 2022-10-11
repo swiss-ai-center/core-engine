@@ -1,4 +1,1 @@
-venv
-api/__pycache__
-api/__init__
-res.jpg
+# Check parent `.gitignore` file for all common ignored files
