@@ -8,7 +8,7 @@ build_dataset:
   image: python:3.9
   before_script:
     - python3 -m pip install -r requirements.txt
-    - dvc remote add -d datasets $BUCKET_DATASETS
+    - dvc remote add -d datasets s3://mlops/datasets
     - dvc remote modify datasets endpointurl $MINIO_ENDPOINT_URL
     - dvc remote modify datasets access_key_id $MINIO_ACCESS_KEY
     - dvc remote modify datasets secret_access_key $MINIO_SECRET_KEY

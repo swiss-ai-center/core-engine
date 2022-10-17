@@ -1,0 +1,46 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python3 src/generate_datasets.py
+    deps:
+    - path: src/generate_datasets.py
+      md5: bff5045375c976c16220fc661d7536ca
+      size: 2409
+    params:
+      params.yaml:
+        prepare.numbers:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+    outs:
+    - path: datasets
+      md5: 9cdba036e9fc0caa18f90070c9786f4b.dir
+      size: 342297612
+      nfiles: 2
+  create-model:
+    cmd: python3 src/create_model.py
+    deps:
+    - path: datasets
+      md5: 9cdba036e9fc0caa18f90070c9786f4b.dir
+      size: 342297612
+      nfiles: 2
+    - path: src/create_model.py
+      md5: 2372d61b539bd92b3582c1b4ad8b1327
+      size: 2974
+    outs:
+    - path: graphs/model_accuracy.jpg
+      md5: 3484b310c802c110570bdb38335e24b8
+      size: 18855
+    - path: graphs/model_loss.jpg
+      md5: 6e8250403f7db9f47923962f3938737d
+      size: 18707
+    - path: mnist_model.h5
+      md5: d5eb5c00ae33569bba5e3203269e48de
+      size: 3271144

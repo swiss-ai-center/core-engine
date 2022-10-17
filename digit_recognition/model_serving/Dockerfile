@@ -4,7 +4,7 @@ RUN pip3 install -r /tmp/requirements.txt
 
 RUN mkdir /app
 COPY main.py /app
-COPY model.h5 /app
+COPY mnist_model.h5 /app
 COPY api /app/api
 
 WORKDIR /app

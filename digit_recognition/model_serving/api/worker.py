@@ -11,7 +11,7 @@ class Worker():
 		self.running = False
 		self.queue = asyncio.Queue()
 		self.next = None
-		self.model = models.load_model("model.h5")
+		self.model = models.load_model("mnist_model.h5")
 
 	def start(self):
 		self.running = True
