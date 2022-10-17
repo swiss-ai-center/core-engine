@@ -14,4 +14,10 @@ class TaskId(BaseModel):
 
 
 def engineAPI():
-    return {"route": "average-shade", "body": ["image"], "bodyType": ["[image/png, image/jpeg, image/jpg]"], "summary": "Returns the average shade of an image"}
+    return {
+        "route": "average-shade",
+        "body": ["image"],
+        "bodyType": ["[image/png, image/jpeg, image/jpg]"],
+        "resultType": ["[application/json]"],
+        "summary": "Returns the average shade of an image"
+    }
