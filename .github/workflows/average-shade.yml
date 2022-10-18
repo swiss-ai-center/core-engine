@@ -5,10 +5,10 @@ run-name: average_shade workflow
 on:
   push:
     paths:
-      - ./.github/actions/build-and-push-docker-image-to-github/action.yml
-      - ./.github/actions/test-python-app/action.yml
-      - ./.github/workflows/average-shade.yml
-      - ./average_shade/**/*
+      - .github/actions/build-and-push-docker-image-to-github/action.yml
+      - .github/actions/test-python-app/action.yml
+      - .github/workflows/average-shade.yml
+      - average_shade/**/*
 
 jobs:
   run-workflow:

@@ -7,14 +7,16 @@ on:
     branches:
       - main
     paths:
-      - ./.github/workflows/webapp.yml
-      - ./webapp/**/*
+      - .github/actions/build-and-push-docker-image-to-github/action.yml
+      - .github/workflows/webapp.yml
+      - webapp/**/*
 
 jobs:
   run-workflow:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - uses: ./.github/actions/build-and-push-docker-image-to-github
         with:
           docker-registry-username: ${{ github.actor }}

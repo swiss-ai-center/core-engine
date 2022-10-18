@@ -11,6 +11,9 @@ venv
 # Byte-compiled / optimized / DLL files
 __pycache__/
 
+# Pytest cache
+.pytest_cache
+
 ## IntelliJ's IDEs
 
 .idea
