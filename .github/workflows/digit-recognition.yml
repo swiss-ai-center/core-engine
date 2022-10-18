@@ -5,63 +5,34 @@ run-name: digit_recognition workflow
 on:
   push:
     paths:
-      - ./.github/actions/build-and-push-docker-image-to-github/action.yml
-      - ./.github/actions/test-python-app/action.yml
-      - ./.github/workflows/digit-recognition.yml
-      - ./digit_recognition/model_creation/**/*
-      - ./digit_recognition/model_serving/**/*
+      - .github/actions/build-and-push-docker-image-to-github/action.yml
+      - .github/actions/run-ml-experiment-with-dvc/action.yml
+      - .github/actions/test-python-app/action.yml
+      - .github/workflows/digit-recognition.yml
+      - digit_recognition/model_creation/**/*
+      - digit_recognition/model_serving/**/*
 
 jobs:
   run-workflow:
     runs-on: ubuntu-latest
-    container: docker://iterativeai/cml:0-dvc2-base1
     steps:
       - uses: actions/checkout@v3
 
-      # Check modified paths/files
-      - uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            build-and-push-docker-image-to-github-action:
-              - '.github/actions/build-and-push-docker-image-to-github/action.yml'
-            run-ml-experiment-with-dvc:
-              - '.github/actions/run-ml-experiment-with-dvc/action.yml'
-            test-python-app-action:
-              - '.github/actions/test-python-app/action.yml'
-            digit-recognition-workflow:
-              - '.github/workflows/digit-recognition.yml'
-            digit-recognition-model-creation:
-              - './digit_recognition/model_creation/**/*'
-            digit-recognition-model-serving:
-              - './digit_recognition/model_serving/**/*'
-
-      # Only run if the action or workflow have been changed or if the model creation ML experiment has been changed
-      - if: steps.changes.outputs.run-ml-experiment-with-dvc == 'true' || steps.changes.outputs.digit-recognition-workflow == 'true' || steps.changes.outputs.digit-recognition-model-creation == 'true'
-        uses: ./.github/actions/run-ml-experiment-with-dvc
+      - uses: ./.github/actions/run-ml-experiment-with-dvc
         with:
           ml-experiment-path: ./digit_recognition/model_creation
           aws-access-key-id: ${{ secrets.DIGIT_RECOGNITION_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.DIGIT_RECOGNITION_AWS_SECRET_ACCESS_KEY }}
 
+      # Move the model to model_serving directory
       - shell: bash
-        run: ls -la ./digit_recognition/model_creation
+        run: mv ./digit_recognition/{model_creation,model_serving}/mnist_model.h5
 
-      # TODO: Save model to GitHub Artifacts
-
-      # TODO: Restore model from GitHub Artifacts
-
-      # TODO: Move model from model_creation to model_serving
-
-      # Only run if the action or workflow have been changed or if the model serving Python app has been changed
-      - if: steps.changes.outputs.test-python-app-action == 'true' || steps.changes.outputs.digit-recognition-workflow == 'true' || steps.changes.outputs.digit-recognition-model-serving == 'true'
-        uses: ./.github/actions/test-python-app
+      - uses: ./.github/actions/test-python-app
         with:
           python-app-path: ./digit_recognition/model_serving
 
-      # Only run on main and if the action or workflow have been changed or if the model serving Python app or the model creation ML experiment have been changed
-      - if: github.ref == 'refs/heads/main' && (steps.changes.outputs.build-and-push-docker-image-to-github-action == 'true' || steps.changes.outputs.digit-recognition-workflow == 'true' || steps.changes.outputs.digit-recognition-model-serving == 'true' || steps.changes.outputs.digit-recognition-model-creation == 'true')
-        uses: ./.github/actions/build-and-push-docker-image-to-github
+      - uses: ./.github/actions/build-and-push-docker-image-to-github
         with:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
