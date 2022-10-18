@@ -1,0 +1,44 @@
+# Documentation: https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
+name: run_ml_experiment_with_dvc
+description: Run ML experiment with DVC
+
+inputs:
+  ml-experiment-path:
+    description: ML experiment path
+    required: true
+    default: .
+
+  aws-access-key-id:
+    description: AWS access key ID (S3)
+    required: false
+
+  aws-secret-access-key:
+    description: AWS secret access key (S3)
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install ML experiment dependencies
+      shell: bash
+      working-directory: ${{ inputs.ml-experiment-path }}
+      run: pip3 install -r requirements.txt
+
+    - name: Retrieve ML experiment data
+      shell: bash
+      working-directory: ${{ inputs.ml-experiment-path }}
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
+      run: dvc pull
+
+    - name: Reproduce ML experiment
+      shell: bash
+      working-directory: ${{ inputs.ml-experiment-path }}
+      run: dvc repro --force

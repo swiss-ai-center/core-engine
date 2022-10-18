@@ -5,9 +5,9 @@ run-name: engine workflow
 on:
   push:
     paths:
-      - .github/actions/build-and-push-docker-image-to-github/action.yml
-      - .github/actions/test-python-app/action.yml
-      - .github/workflows/engine.yml
+      - ./.github/actions/build-and-push-docker-image-to-github/action.yml
+      - ./.github/actions/test-python-app/action.yml
+      - ./.github/workflows/engine.yml
       - ./engine/**/*
 
 jobs:
@@ -16,6 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      # Check modified paths/files
       - uses: dorny/paths-filter@v2
         id: changes
         with:
