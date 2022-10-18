@@ -1,6 +1,6 @@
 # Services
 
-This page contains the machine learning services that are developed or used in this project (in alphabetical order).
+This page contains all the machine learning services that are developed or used in this project (in alphabetical order).
 
 | Name              | Documentation                             | Code                                                 | Local OpenAPI URL             |
 |-------------------|-------------------------------------------|------------------------------------------------------|-------------------------------|

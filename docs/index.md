@@ -2,15 +2,15 @@
 
 Welcome to the documentation for this project! You should find everything you need here. Hope it helps!
 
-## Structure of this documentation
+## Philosophy of this documentation
 
-The structure of this documentation is as follow:
+The philosophy of this documentation is as follow:
 
-_We use a set of [**tools**](./tools/index.md) to develop and promote a platform composed of machine learning [**services**](./services/index.md) orchestrated by an [**engine**](./engine/index.md) that can be chained and visualized through a [**webapp**](./webapp/index.md). All this is deployed on an [**infrastructure**](./infrastructure/index.md) managed by [**providers**](./providers/index.md)._
+_We use a set of [**tools**](./tools/index.md) to develop and promote a machine learning platform. This platform is composed of machine learning [**services**](./services/index.md) that can be chained together to solve a problem. The chaining can be visualized through a [**webapp**](./webapp/index.md). All the machine learning services are orchestrated by an [**engine**](./engine/index.md). The platform is deployed on an [**infrastructure**](./infrastructure/index.md) managed by [**providers**](./providers/index.md)._
 
 _The whole project is managed by a [**team**](./team/index.md) where all human and technical processes are described in [**guides**](./guides/index.md)._
 
-_New people can use [**templates**](./templates/index.md) to bootstrap their machine learning services. Some services use custom [**Docker images**](./docker-images/index.md)_
+_New people can use [**templates**](./templates/index.md) to bootstrap their machine learning services. Some services use custom [**Docker images**](./docker-images/index.md)._
 
 ## Getting started
 
