@@ -9,8 +9,8 @@ on:
       - .github/actions/run-ml-experiment-with-dvc/action.yml
       - .github/actions/test-python-app/action.yml
       - .github/workflows/digit-recognition.yml
-      - digit_recognition/model_creation/**/*
-      - digit_recognition/model_serving/**/*
+      - services/digit_recognition/model_creation/**/*
+      - services/digit_recognition/model_serving/**/*
 
 jobs:
   run-workflow:
@@ -20,17 +20,17 @@ jobs:
 
       - uses: ./.github/actions/run-ml-experiment-with-dvc
         with:
-          ml-experiment-path: ./digit_recognition/model_creation
+          ml-experiment-path: ./services/digit_recognition/model_creation
           aws-access-key-id: ${{ secrets.DIGIT_RECOGNITION_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.DIGIT_RECOGNITION_AWS_SECRET_ACCESS_KEY }}
 
       # Move the model to model_serving directory
       - shell: bash
-        run: mv ./digit_recognition/{model_creation,model_serving}/mnist_model.h5
+        run: mv ./services/digit_recognition/{model_creation,model_serving}/mnist_model.h5
 
       - uses: ./.github/actions/test-python-app
         with:
-          python-app-path: ./digit_recognition/model_serving
+          python-app-path: ./services/digit_recognition/model_serving
 
       # Only run on main
       - if: github.ref == 'refs/heads/main'
@@ -39,4 +39,4 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           docker-image-name: ${{ github.repository }}-digit-recognition
-          docker-image-context: ./digit_recognition/model_serving
+          docker-image-context: ./services/digit_recognition/model_serving

@@ -1,4 +1,4 @@
-# Description
+# CSIA-PME
 
 This repository contains all code for the CSIA-PME project.
 
