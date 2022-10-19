@@ -1,0 +1,21 @@
+stages:
+  prepare:
+    cmd: python3 src/generate_datasets.py
+    deps:
+    - src/generate_datasets.py
+    params:
+    - prepare.numbers
+    outs:
+    - datasets
+  create-model:
+    cmd: python3 src/create_model.py
+    deps:
+    - datasets
+    - src/create_model.py
+    outs:
+    - mnist_model.h5
+    plots:
+    - graphs/model_accuracy.jpg:
+        cache: false
+    - graphs/model_loss.jpg:
+        cache: false

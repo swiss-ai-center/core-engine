@@ -1,0 +1,6 @@
+[core]
+    autostage = true
+    remote = data
+['remote "data"']
+    url = s3://digit-recognition
+    endpointurl = https://minio1.isc.heia-fr.ch:9015

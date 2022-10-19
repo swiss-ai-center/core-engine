@@ -8,7 +8,7 @@ on:
       - .github/actions/build-and-push-docker-image-to-github/action.yml
       - .github/actions/test-python-app/action.yml
       - .github/workflows/average-shade.yml
-      - ./average_shade/**/*
+      - services/average_shade/**/*
 
 jobs:
   run-workflow:
@@ -16,30 +16,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: dorny/paths-filter@v2
-        id: changes
+      - uses: ./.github/actions/test-python-app
         with:
-          filters: |
-            build-and-push-docker-image-to-github-action:
-              - '.github/actions/build-and-push-docker-image-to-github/action.yml'
-            test-python-app-action:
-              - '.github/actions/test-python-app/action.yml'
-            average-shade-workflow:
-              - '.github/workflows/average-shade.yml'
-            average-shade:
-              - './average_shade/**/*'
+          python-app-path: ./services/average_shade
 
-      # Only run if the action or workflow have been changed or if the Python app has been changed
-      - if: steps.changes.outputs.test-python-app-action == 'true' || steps.changes.outputs.average-shade-workflow == 'true' || steps.changes.outputs.average-shade == 'true'
-        uses: ./.github/actions/test-python-app
-        with:
-          python-app-path: ./average_shade
-
-      # Only run on main and if the action or workflow have been changed or if the Python app has been changed
-      - if: github.ref == 'refs/heads/main' && (steps.changes.outputs.build-and-push-docker-image-to-github-action == 'true' || steps.changes.outputs.average-shade-workflow == 'true' || steps.changes.outputs.average-shade == 'true')
+      # Only run on main
+      - if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/build-and-push-docker-image-to-github
         with:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           docker-image-name: ${{ github.repository }}-average-shade
-          docker-image-context: ./average_shade
+          docker-image-context: ./services/average_shade
