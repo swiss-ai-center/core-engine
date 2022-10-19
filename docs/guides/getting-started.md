@@ -1,4 +1,4 @@
-# Get started
+# Getting started
 
 This page will guide you through the steps to run the project locally.
 
