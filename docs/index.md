@@ -2,9 +2,9 @@
 
 Welcome to the documentation for this project! You should find everything you need here. Hope it helps!
 
-## Philosophy of this documentation
+## Terminology of this documentation
 
-The philosophy of this documentation is as follow:
+The terminology of this documentation is as follow:
 
 _We use a set of [**tools**](./tools/index.md) to develop and promote a machine learning platform. This platform is composed of machine learning [**services**](./services/index.md) that can be chained together to solve a problem. The chaining can be visualized through a [**webapp**](./webapp/index.md). All the machine learning services are orchestrated by an [**engine**](./engine/index.md). The platform is deployed on an [**infrastructure**](./infrastructure/index.md) managed by [**providers**](./providers/index.md)._
 
