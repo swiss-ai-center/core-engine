@@ -1,48 +1,72 @@
 # digit_recognition
 
+This service uses a keras model to guess a digit in an image.
+
+The service is built in two steps:
+
+1. [Model creation](#model-creation) - The creation of the model from the data
+2. [Model serving](#model-serving) - The serving of the built model
+
 ## Model creation
 
-### Description
-The goal of this project is to trigger the pipeline to create the dataset we want to train the new model and to provide it for the other service through the S3 server. To trigger the pipeline, simply edit the `numbers.dat` file with the list of the numbers which the model should recognize.
+The goal of this step is to prepare the data and train a new model. All further commands are ran in the [model_creation](../../services/digit_recognition/model_creation) directory.
 
-### Use Case
-1. Edit the `numbers.dat` file with the numbers wanted -> Format
-2. commit changes (the rest is done by the ci pipeline)
+### Run the experiment
 
-### Format
-The file `numbers.dat` should contain the list of the numbers respecting the following syntaxe :
-- Ascending order of the numbers
-- Numbers between 0 and 9 included
-- Numbers splitted by `,` character
+The model can be tweaked using the [`params.yaml`](../../services/digit_recognition/model_creation/params.yaml) file. The `numbers` parameter allows to indicate the digits the model must be able to detect.
 
-### Artifacts
-#### Dataset Generation
-The datasets are pushed with DVC on the S3 and create the DVC files, which are kept as jobs artifacts. They let us track the dataset on the S3 remote server.
+Run a new training using the following commands.
 
-#### Model Generation
-The model is pushed on the S3 with a predifined name based on the numbers it can recognize. The training generated graphs to track its performances, which are kept as artifacts. The console also output the accuracy compared to the raw testset and the name of the model pushed on the S3.
+```sh
+# Export the MinIO S3 credentials (ask them to other members of the team)
+export AWS_ACCESS_KEY_ID=***
+export AWS_SECRET_ACCESS_KEY=***
 
-### Scripts
-This scripts are automatically triggered by the gitlab-ci pipeline.
+# Pull the required data for the experiment from MinIO
+dvc pull
 
-#### Automation
-- `script_create_dataset` : Get digits from numbers.dat file and parse the list of numbers to pass it as arguments to `create_other_model.py`
-- `script_push_model` : Get digits from numbers.dat file and specify the correct name to push the model on the S3
-#### ML
-- `create_default_model` : Create the pre-trained model from the complet MNIST dataset (recognize numbers from 0 to 9)
-- `generate_mnist_sub_dataset` : Generate a sub dataset from the default dataset by precising which digits to keep. The test dataset will contain all the digits like the default one (to compare between different sub dataset)
-- `create_other_model` : Create a pretrained model based on `train.csv` and `test.csv`
-- `s3client` : Manage the connection to the remote Minio S3 server
+# Reproduce the ML experiment with DVC
+dvc repro
+```
+
+The DVC pipeline is described in the [`dvc.yaml`](../../services/digit_recognition/model_creation/dvc.yaml) file.
+
+Each stage describes the dependencies and the outputs of the stage. Every time a dependency of the experiment is updated, running `dvc repro` will run the stages of the pipeline that are affected and keep the results in cache to speed up future runs.
+
+More information on their website: [_Get Started: Data Pipelines_ - dvc.org](https://dvc.org/doc/start/data-management/data-pipelines).
+
+### Push new data/results to MinIO
+
+In order to push new results to MinIO, use the following commands (similar to Git). **Note**: DVC automatically adds files that are specified in the pipelines. In other words, there are no needs to explicitely add those files with `dvc add`.
+
+```sh
+# Get the data status
+dvc status
+
+# Add the required files to DVC
+dvc add <the files you would add to DVC>
+
+# Push the data to DVC
+dvc push
+```
 
 ## Model serving
 
-### Description
-This service uses a keras model to guess a digit in an image. In order to run, you need to provide a `model.h5` file that the service will load to work. This service was built and tested with python 3.9, therefore we recommend to use the docker version instead of running it natively.
+The goal of this step is to serve the model made in the previous step. All further commands are ran in the [model_serving](../../services/digit_recognition/model_serving) directory.
 
-The `model.yaml` file in this folder defined the path of the model to load on the S3 server. This task is done on the *prepare* stage of the CI pipeline. The model is trained to recognize digit written in light shade on dark shades (like a white digit on a black background).
+### Retrieve the model
+
+Run the following command to get the model created from the previous step.
+
+```sh
+# Copy the model from the creation directory
+cp ../model_creation/mnist_model.h5 .
+```
 
 ### How to run
+
 #### Environment variables
+
 Using both docker or your local python3, the engine will use the following environment variables if defined.
 
 *General variables*
@@ -55,7 +79,9 @@ Using both docker or your local python3, the engine will use the following envir
 - APP_NOTIFY_CRON: the frequency in second of the heartbeat announce to the engine, default is 30
 
 ## Run natively
+
 ### Install dependencies
+
 Install the requirements using `pip3`
 
 ```bash
@@ -63,7 +89,9 @@ pip3 install -r requirements.txt
 ```
 
 * In order to work, some packages may need a few additional libs that you can install with your distribution package manager, check console at run time.
+
 ##### Run the tests
+
 To run the tests, the following additional packages must be installed:
 
 ```bash
@@ -76,6 +104,7 @@ python3 -m pytest --asyncio-mode=auto
 ```
 
 ##### Run
+
 Then, you can run the following command to run it in dev:
 
 ```bash
@@ -90,10 +119,10 @@ APP_HOST=0.0.0.0 APP_PORT=4040 APP_LOG=info APP_... python3 main.py
 
 #### Run locally using Kubernetes
 
-Refer to the [Get started](../docs/get-started.md) documentation in order to run this service locally.
+Refer to the [Get started](../guides/getting-started.md) documentation in order to run this service locally.
 
 #### Use
+
 The API documentation is automatically generated by FastAPI using the OpenAPI standard. A user friendly interface provided by Swagger is available under the `/docs` route, where the endpoints of teh service are described.
 
 This simple service only has one route `/compute` that takes an image as input, which will be used to guess the number.
-

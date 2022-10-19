@@ -167,7 +167,7 @@ In the [digit_recognition/model_creation](../../services/digit_recognition/model
 export AWS_ACCESS_KEY_ID=***
 export AWS_SECRET_ACCESS_KEY=***
 
-# Pull the required data for the experiment
+# Pull the required data for the experiment from MinIO
 dvc pull
 
 # Force the reproduction of the experiment
