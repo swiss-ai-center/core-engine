@@ -1,0 +1,18 @@
+# Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
+name: debug
+run-name: debug workflow
+
+on:
+  push:
+
+jobs:
+  run-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ./.github/actions/deploy-app-on-rancher-kubernetes-cluster
+        with:
+          rancher-api-endpoint-url: ${{ secrets.RANCHER_API_ENDPOINT_URL }}
+          rancher-bearer-token: ${{ secrets.RANCHER_BEARER_TOKEN }}
+          kubectl-args: get pods
