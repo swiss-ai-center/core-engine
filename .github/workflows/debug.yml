@@ -11,8 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: ./.github/actions/deploy-app-on-rancher-kubernetes-cluster
+      - uses: ./.github/actions/deploy-app-on-kubernetes-cluster
         with:
-          rancher-api-endpoint-url: ${{ secrets.RANCHER_API_ENDPOINT_URL }}
-          rancher-bearer-token: ${{ secrets.RANCHER_BEARER_TOKEN }}
+          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-namespace: csia-pme-prod
           kubectl-args: get pods
