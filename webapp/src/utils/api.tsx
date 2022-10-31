@@ -17,3 +17,12 @@ export const getPipelines = async () => {
     }
     return [];
 }
+
+export const getDescription = async (name: string) => {
+    const response = await fetch(SERVER_URL + '/services/' + name);
+    if (response) {
+        const data = await response.json();
+        return data;
+    }
+    return [];
+}
