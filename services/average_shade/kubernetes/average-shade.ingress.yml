@@ -1,22 +1,22 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: engine-ingress
+  name: average-shade-ingress
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "16m"
     nginx.org/client-max-body-size: "16m"
 spec:
   rules:
-  - host: engine-csia-pme.kube.isc.heia-fr.ch
+  - host: average-shade-csia-pme.kube.isc.heia-fr.ch
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: engine-service
+            name: average-shade-service
             port:
               number: 80
   tls:
     - hosts:
-        - engine-csia-pme.kube.isc.heia-fr.ch
+        - average-shade-csia-pme.kube.isc.heia-fr.ch

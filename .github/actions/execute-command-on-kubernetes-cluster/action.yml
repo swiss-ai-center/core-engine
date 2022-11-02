@@ -1,6 +1,6 @@
 # Documentation: https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
-name: deploy_app_on_kubernetes_cluster
-description: Deploy app on a Kubernetes cluster
+name: execute_command_on_kubernetes_cluster
+description: Execute a command on a Kubernetes cluster
 
 inputs:
   kubectl-binary-url:
@@ -17,6 +17,10 @@ inputs:
   kube-namespace:
     description: kubectl namespace
     required: true
+  kubectl-context:
+    description: kubectl context
+    required: true
+    default: .
   kubectl-args:
     description: kubectl arguments
     required: true
@@ -54,4 +58,5 @@ runs:
 
     - name: Execute kubectl command
       shell: bash
+      working-directory: ${{ inputs.kubectl-context }}
       run: kubectl --namespace "${{ inputs.kube-namespace }}" ${{ inputs.kubectl-args }}

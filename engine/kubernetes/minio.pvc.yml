@@ -9,8 +9,7 @@ spec:
   # Read more about access modes here: http://kubernetes.io/docs/user-guide/persistent-volumes/#access-modes
   accessModes:
     - ReadWriteOnce
-  storageClassName: standard
   resources:
     # This is the request for storage. Should be available in the cluster.
     requests:
-      storage: 10Gi
+      storage: 500Gi

@@ -8,9 +8,7 @@ metadata:
 spec:
   containers:
   - name: average-shade
-    image: csia-pme/average-shade
-    # As we use the local image, there is no need to pull the image
-    imagePullPolicy: Never
+    image: ghcr.io/csia-pme/csia-pme-average-shade:sha-2026f89
     ports:
     - name: http
       containerPort: 80 

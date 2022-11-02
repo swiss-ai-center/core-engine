@@ -6,6 +6,7 @@ on:
   push:
     paths:
       - .github/actions/build-and-push-docker-image-to-github/action.yml
+      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
       - .github/actions/test-python-app/action.yml
       - .github/workflows/engine.yml
       - engine/**/*
@@ -28,3 +29,33 @@ jobs:
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           docker-image-name: ${{ github.repository }}-engine
           docker-image-context: ./engine
+
+      # Only run on main
+      - if: github.ref == 'refs/heads/main'
+        name: Prepare configuration files with secrets from GitHub Secrets
+        shell: bash
+        working-directory: ./engine/kubernetes
+        env:
+          MINIO_ROOT_USER: ${{ secrets.ENGINE_MINIO_ROOT_USER }}
+          MINIO_ROOT_PASSWORD: ${{ secrets.ENGINE_MINIO_ROOT_PASSWORD }}
+          MINIO_DOMAIN: ${{ secrets.ENGINE_MINIO_DOMAIN }}
+          MINIO_SERVER_URL: ${{ secrets.ENGINE_MINIO_SERVER_URL }}
+          MINIO_BROWSER_REDIRECT_URL: ${{ secrets.ENGINE_MINIO_BROWSER_REDIRECT_URL }}
+        run: |
+          # Set MinIO configuration
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' minio.config-map.yaml | envsubst > minio.config-map.yml
+
+      # Only run on main
+      - if: github.ref == 'refs/heads/main'
+        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        with:
+          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-namespace: csia-pme-prod
+          kubectl-context: ./engine/kubernetes
+          kubectl-args: |
+            apply \
+              -f minio.pvc.yml \
+              -f minio.config-map.yml \
+              -f minio.stateful.yml \
+              -f minio.service.yml \
+              -f minio.ingress.yml
