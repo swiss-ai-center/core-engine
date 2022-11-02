@@ -52,7 +52,7 @@ jobs:
           MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.ENGINE_MONGO_INITDB_ROOT_PASSWORD }}
           # Engine
           S3_KEY_ID: ${{ secrets.ENGINE_ENGINE_S3_KEY_ID }}
-          SECRET_KEY: ${{ secrets.ENGINE_ENGINE_S3_SECRET_KEY }}
+          S3_SECRET_KEY: ${{ secrets.ENGINE_ENGINE_S3_SECRET_KEY }}
           S3_BUCKET: ${{ secrets.ENGINE_ENGINE_S3_BUCKET }}
           MONGO_URI: ${{ secrets.ENGINE_ENGINE_MONGO_URI }}
           MONGO_DB: ${{ secrets.ENGINE_ENGINE_MONGO_DB }}
