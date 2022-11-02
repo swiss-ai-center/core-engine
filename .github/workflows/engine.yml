@@ -50,11 +50,21 @@ jobs:
           # Mongo
           MONGO_INITDB_ROOT_USERNAME: ${{ secrets.ENGINE_MONGO_INITDB_ROOT_USERNAME }}
           MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.ENGINE_MONGO_INITDB_ROOT_PASSWORD }}
+          # Engine
+          S3_KEY_ID: ${{ secrets.ENGINE_ENGINE_S3_KEY_ID }}
+          SECRET_KEY: ${{ secrets.ENGINE_ENGINE_S3_SECRET_KEY }}
+          S3_BUCKET: ${{ secrets.ENGINE_ENGINE_S3_BUCKET }}
+          MONGO_URI: ${{ secrets.ENGINE_ENGINE_MONGO_URI }}
+          MONGO_DB: ${{ secrets.ENGINE_ENGINE_MONGO_DB }}
+          APP_EXTERNAL_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
+          S3_URL: https://minio-csia-pme.kube.isc.heia-fr.ch
         run: |
           # Set MinIO configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' minio.config-map.yml | envsubst > new-minio.config-map.yml && mv new-minio.config-map.yml minio.config-map.yml
           # Set Mongo configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' mongo.config-map.yml | envsubst > new-mongo.config-map.yml && mv new-mongo.config-map.yml mongo.config-map.yml
+          # Set Engine configuration
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' engine.config-map.yml | envsubst > new-engine.config-map.yml && mv new-engine.config-map.yml engine.config-map.yml
 
       - name: Deploy Engine on Kubernetes cluster
         # Only run on main
@@ -74,4 +84,8 @@ jobs:
               -f mongo.pvc.yml \
               -f mongo.config-map.yml \
               -f mongo.stateful.yml \
-              -f mongo.service.yml
+              -f mongo.service.yml \
+              -f engine.config-map.yml \
+              -f engine.stateful.yml \
+              -f engine.service.yml \
+              -f engine.ingress.yml

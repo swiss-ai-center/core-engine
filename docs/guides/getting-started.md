@@ -49,21 +49,6 @@ kubectl get pods --all-namespaces
 
 ## Start the Engine
 
-In the [engine](../../engine) directory, build the Docker image with the following commands.
-
-See more about the Minikube Docker environment here: [_Pushing images_ - minikube.sigs.k8s.io](https://minikube.sigs.k8s.io/docs/handbook/pushing/).
-
-```sh
-# Access the Minikube's Docker environment
-eval $(minikube docker-env)
-
-# Build the Docker image
-docker build -t csia-pme/engine .
-
-# Exit the Minikube's Docker environment
-eval $(minikube docker-env -u)
-```
-
 In the [engine](../../engine) directory, start the Engine with the following commands.
 
 ```sh
@@ -83,8 +68,9 @@ kubectl apply \
 
 # Start the engine
 kubectl apply \
-    -f kubernetes/engine.service.yml \
-    -f kubernetes/engine.pod.yml
+    -f kubernetes/engine.config-map.yml \
+    -f kubernetes/engine.stateful.yml \
+    -f kubernetes/engine.service.yml
 ```
 
 Create a tunnel to access the Kubernetes cluster from the local machine. The terminal in which the tunnel is created must stay open.
