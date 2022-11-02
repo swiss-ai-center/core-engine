@@ -169,26 +169,14 @@ In the [digit_recognition/model_creation](../../services/digit_recognition/model
 cp mnist_model.h5 ../model_serving
 ```
 
-In the [digit_recognition/model_serving](../../services/digit_recognition/model_serving) directory, build the Docker image with the following commands.
-
-```sh
-# Access the Minikube's Docker environment
-eval $(minikube docker-env)
-
-# Build the Docker image
-docker build -t csia-pme/digit-recognition .
-
-# Exit the Minikube's Docker environment
-eval $(minikube docker-env -u)
-```
-
 In the [digit_recognition/model_serving](../../services/digit_recognition/model_serving) directory, start the machine learning backend with the following commands.
 
 ```sh
 # Start the digit_recognition backend
 kubectl apply \
-    -f kubernetes/digit-recognition.service.yml \
-    -f kubernetes/digit-recognition.pod.yml
+    -f kubernetes/digit-recognition.config-map.yml \
+    -f kubernetes/digit-recognition.stateful.yml \
+    -f kubernetes/digit-recognition.service.yml
 ```
 
 Access the `digit_recognition` documentation on <http://localhost:8383/docs>.
