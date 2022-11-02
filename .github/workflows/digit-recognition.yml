@@ -45,10 +45,10 @@ jobs:
         # Only run on main
         if: github.ref == 'refs/heads/main'
         shell: bash
-        working-directory: services/digit_recognition/model_serving
+        working-directory: services/digit_recognition/model_serving/kubernetes
         env:
-          APP_SERVICE: https://digit-recognition-csia-pme.kube.isc.heia-fr.ch
           APP_ENGINE: https://engine-csia-pme.kube.isc.heia-fr.ch
+          APP_SERVICE: https://digit-recognition-csia-pme.kube.isc.heia-fr.ch
         run: |
           # Set digit_recognition configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' digit-recognition.config-map.yml | envsubst > new-digit-recognition.config-map.yml && mv new-digit-recognition.config-map.yml digit-recognition.config-map.yml
@@ -60,7 +60,7 @@ jobs:
         with:
           kube-config: ${{ secrets.KUBE_CONFIG }}
           kube-namespace: csia-pme-prod
-          kubectl-context: ./services/digit_recognition/model_serving
+          kubectl-context: ./services/digit_recognition/model_serving/kubernetes
           kubectl-args: |
             apply \
               -f digit-recognition.config-map.yml \

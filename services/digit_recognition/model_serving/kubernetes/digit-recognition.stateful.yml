@@ -6,19 +6,19 @@ metadata:
   labels:
     app: digit-recognition
 spec:
-  serviceName: engine
+  serviceName: digit-recognition
   replicas: 1
   selector:
     matchLabels:
-      app: engine
+      app: digit-recognition
   template:
     metadata:
       labels:
-        app: engine
+        app: digit-recognition
     spec:
       containers:
       - name: digit-recognition
-        image: ghcr.io/csia-pme/digit-recognition:latest
+        image: ghcr.io/csia-pme/csia-pme-digit-recognition:latest
         # If you use the local image, uncomment the next line - there is no need to pull the image
         # imagePullPolicy: Never
         ports:
