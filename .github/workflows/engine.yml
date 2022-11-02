@@ -24,30 +24,31 @@ jobs:
       #   with:
       #     python-app-path: ./engine
 
-      - name: Build and push Docker image to GitHub
-        # Only run on main
-        if: github.ref == 'refs/heads/main'
-        uses: ./.github/actions/build-and-push-docker-image-to-github
-        with:
-          docker-registry-username: ${{ github.actor }}
-          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          docker-image-name: ${{ github.repository }}-engine
-          docker-image-context: ./engine
+      # TODO: Re-enable this
+      # - name: Build and push Docker image to GitHub
+      #   # Only run on main
+      #   if: github.ref == 'refs/heads/main'
+      #   uses: ./.github/actions/build-and-push-docker-image-to-github
+      #   with:
+      #     docker-registry-username: ${{ github.actor }}
+      #     docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
+      #     docker-image-name: ${{ github.repository }}-engine
+      #     docker-image-context: ./engine
 
       - name: Prepare configuration files with secrets from GitHub Secrets
         # Only run on main
         if: github.ref == 'refs/heads/main'
         shell: bash
-        working-directory: ./engine/kubernetes
+        working-directory: engine/kubernetes
         env:
           MINIO_ROOT_USER: ${{ secrets.ENGINE_MINIO_ROOT_USER }}
           MINIO_ROOT_PASSWORD: ${{ secrets.ENGINE_MINIO_ROOT_PASSWORD }}
-          MINIO_DOMAIN: ${{ secrets.ENGINE_MINIO_DOMAIN }}
-          MINIO_SERVER_URL: ${{ secrets.ENGINE_MINIO_SERVER_URL }}
-          MINIO_BROWSER_REDIRECT_URL: ${{ secrets.ENGINE_MINIO_BROWSER_REDIRECT_URL }}
+          MINIO_DOMAIN: minio-csia-pme.kube.isc.heia-fr.ch
+          MINIO_SERVER_URL: https://minio-csia-pme.kube.isc.heia-fr.ch
+          MINIO_BROWSER_REDIRECT_URL: https://console-minio-csia-pme.kube.isc.heia-fr.ch
         run: |
           # Set MinIO configuration
-          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' minio.config-map.yaml | envsubst > minio.config-map.yml
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' minio.config-map.yml | envsubst > new-minio.config-map.yml && mv new-minio.config-map.yml minio.config-map.yml
 
       - name: Deploy Engine on Kubernetes cluster
         # Only run on main
