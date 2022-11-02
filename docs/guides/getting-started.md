@@ -70,8 +70,9 @@ In the [engine](../../engine) directory, start the Engine with the following com
 # Start MinIO
 kubectl apply \
     -f kubernetes/minio.pvc.yml \
-    -f kubernetes/minio.service.yml \
-    -f kubernetes/minio.pod.yml
+    -f kubernetes/minio.config-map.yml \
+    -f kubernetes/minio.stateful.yml \
+    -f kubernetes/minio.service.yml
 
 # Start Mongo
 kubectl apply \
