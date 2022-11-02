@@ -41,14 +41,20 @@ jobs:
         shell: bash
         working-directory: engine/kubernetes
         env:
+          # MinIO
           MINIO_ROOT_USER: ${{ secrets.ENGINE_MINIO_ROOT_USER }}
           MINIO_ROOT_PASSWORD: ${{ secrets.ENGINE_MINIO_ROOT_PASSWORD }}
           MINIO_DOMAIN: minio-csia-pme.kube.isc.heia-fr.ch
           MINIO_SERVER_URL: https://minio-csia-pme.kube.isc.heia-fr.ch
           MINIO_BROWSER_REDIRECT_URL: https://console-minio-csia-pme.kube.isc.heia-fr.ch
+          # Mongo
+          MONGO_INITDB_ROOT_USERNAME: ${{ secrets.ENGINE_MONGO_INITDB_ROOT_USERNAME }}
+          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.ENGINE_MONGO_INITDB_ROOT_PASSWORD }}
         run: |
           # Set MinIO configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' minio.config-map.yml | envsubst > new-minio.config-map.yml && mv new-minio.config-map.yml minio.config-map.yml
+          # Set Mongo configuration
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' mongo.config-map.yml | envsubst > new-mongo.config-map.yml && mv new-mongo.config-map.yml mongo.config-map.yml
 
       - name: Deploy Engine on Kubernetes cluster
         # Only run on main
@@ -64,4 +70,8 @@ jobs:
               -f minio.config-map.yml \
               -f minio.stateful.yml \
               -f minio.service.yml \
-              -f minio.ingress.yml
+              -f minio.ingress.yml \
+              -f mongo.pvc.yml \
+              -f mongo.config-map.yml \
+              -f mongo.stateful.yml \
+              -f mongo.service.yml

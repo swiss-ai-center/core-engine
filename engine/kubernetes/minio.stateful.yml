@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  # This name uniquely identifies the pod
+  # This name uniquely identifies the stateful set
   name: minio-stateful
   labels:
     app: minio

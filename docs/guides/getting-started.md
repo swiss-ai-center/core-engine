@@ -77,8 +77,9 @@ kubectl apply \
 # Start Mongo
 kubectl apply \
     -f kubernetes/mongo.pvc.yml \
-    -f kubernetes/mongo.service.yml \
-    -f kubernetes/mongo.pod.yml
+    -f kubernetes/mongo.config-map.yml \
+    -f kubernetes/mongo.stateful.yml \
+    -f kubernetes/mongo.service.yml
 
 # Start the engine
 kubectl apply \

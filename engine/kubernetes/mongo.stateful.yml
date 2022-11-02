@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  # This name uniquely identifies the stateful set
+  name: mongo-stateful
+  labels:
+    app: mongo
+spec:
+  serviceName: mongo
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: mongo-pv-claim
+      containers:
+      - name: mongo
+        # Pulls the Mongo image from Docker Hub
+        image: mongo:6.0
+        envFrom:
+          - configMapRef:
+              name: mongo-config
+        ports:
+        - name: mongo
+          containerPort: 27017
+        volumeMounts:
+        - name: storage
+          mountPath: "/data/db"
