@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  # This name uniquely identifies the stateful set
+  name: face-analyzer-stateful
+  labels:
+    app: face-analyzer
+spec:
+  serviceName: face-analyzer
+  replicas: 1
+  selector:
+    matchLabels:
+      app: face-analyzer
+  template:
+    metadata:
+      labels:
+        app: face-analyzer
+    spec:
+      containers:
+      - name: face-analyzer
+        image: ghcr.io/csia-pme/csia-pme-face-analyzer:latest
+        # If you use the local image, uncomment the next line - there is no need to pull the image
+        # imagePullPolicy: Never
+        ports:
+        - name: http
+          containerPort: 80 
+        env:
+        - name: APP_HOST
+          value: 0.0.0.0
+        - name: APP_PORT
+          value: "80"
+        - name: APP_LOG
+          value: info
+        envFrom:
+          - configMapRef:
+              name: face-analyzer-config

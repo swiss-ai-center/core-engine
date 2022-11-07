@@ -173,26 +173,14 @@ Access the Engine documentation on <http://localhost:8080/docs> to validate the 
 
 ### `face_analyzer` backend
 
-In the [face_analyzer](../../services/face_analyzer) directory, build the Docker image with the following commands.
-
-```sh
-# Access the Minikube's Docker environment
-eval $(minikube docker-env)
-
-# Build the Docker image
-docker build -t csia-pme/face-analyzer .
-
-# Exit the Minikube's Docker environment
-eval $(minikube docker-env -u)
-```
-
 In the [face_analyzer](../../services/face_analyzer) directory, start the machine learning backend with the following commands.
 
 ```sh
 # Start the face_analyzer backend
 kubectl apply \
-    -f kubernetes/face-analyzer.service.yml \
-    -f kubernetes/face-analyzer.pod.yml
+    -f kubernetes/face-analyzer.config-map.yml \
+    -f kubernetes/face-analyzer.stateful.yml \
+    -f kubernetes/face-analyzer.service.yml
 ```
 
 Access the `face_analyzer` documentation on <http://localhost:8484/docs>.
