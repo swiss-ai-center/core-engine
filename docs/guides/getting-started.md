@@ -4,7 +4,7 @@ This page will guide you through the steps to run the project locally.
 
 ## Install Docker
 
-[Docker](https://minikube.sigs.k8s.io/) _"delivers software in packages called containers"_. Follow the [_Install Docker Engine_ - docs.docker.com](https://docs.docker.com/engine/install/) guide to install and configure Docker.
+[Docker](https://docker.com/) _"delivers software in packages called containers"_. Follow the [_Install Docker Engine_ - docs.docker.com](https://docs.docker.com/engine/install/) guide to install and configure Docker.
 
 ## Install minikube
 
@@ -116,7 +116,7 @@ When new machine learning backends are added to the Engine, they will be availab
 
 A machine learning service is a service that will register to the Engine in order to accept tasks to execute.
 
-Refer to the [Services](../services/index.md) documentation for all the available machine learning backend services.
+Refer to the [Services](../services/readme.md) documentation for all the available machine learning backend services.
 
 ### `average_shade` service
 

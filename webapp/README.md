@@ -1,3 +1,3 @@
 # Webapp
 
-_Check the [related documentation](../docs/webapp/index.md) for more information._
+_Check the [related documentation](../docs/webapp/readme.md) for more information._

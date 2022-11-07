@@ -1,6 +1,6 @@
 # Services
 
-_Check the [related documentation](../docs/services/index.md) for more information._
+_Check the [related documentation](../docs/services/readme.md) for more information._
 
 This directory contains the machine learning services that are developed or used in this project (in alphabetical order).
 
