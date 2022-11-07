@@ -34,7 +34,7 @@ jobs:
         # Only run on main
         if: github.ref == 'refs/heads/main'
         shell: bash
-        working-directory: services/average-shade/kubernetes
+        working-directory: services/average_shade/kubernetes
         env:
           APP_ENGINE: https://engine-csia-pme.kube.isc.heia-fr.ch
           APP_SERVICE: https://average-shade-csia-pme.kube.isc.heia-fr.ch
