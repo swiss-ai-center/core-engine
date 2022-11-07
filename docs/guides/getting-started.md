@@ -189,26 +189,14 @@ Access the Engine documentation on <http://localhost:8080/docs> to validate the 
 
 ### `face_detection` backend
 
-In the [face_detection](../../services/face_detection) directory, build the Docker image with the following commands.
-
-```sh
-# Access the Minikube's Docker environment
-eval $(minikube docker-env)
-
-# Build the Docker image
-docker build -t csia-pme/face-detection .
-
-# Exit the Minikube's Docker environment
-eval $(minikube docker-env -u)
-```
-
 In the [face_detection](../../services/face_detection) directory, start the machine learning backend with the following commands.
 
 ```sh
 # Start the face_detection backend
 kubectl apply \
-    -f kubernetes/face-detection.service.yml \
-    -f kubernetes/face-detection.pod.yml
+    -f kubernetes/face-detection.config-map.yml \
+    -f kubernetes/face-detection.stateful.yml \
+    -f kubernetes/face-detection.service.yml
 ```
 
 Access the `face_detection` documentation on <http://localhost:8585/docs>.
