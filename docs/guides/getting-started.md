@@ -120,26 +120,14 @@ Refer to the [Services](../services/index.md) documentation for all the availabl
 
 ### `average_shade` service
 
-In the [average_shade](../../services/average_shade) directory, build the Docker image with the following commands.
-
-```sh
-# Access the Minikube's Docker environment
-eval $(minikube docker-env)
-
-# Build the Docker image
-docker build -t csia-pme/average-shade .
-
-# Exit the Minikube's Docker environment
-eval $(minikube docker-env -u)
-```
-
 In the [average_shade](../../services/average_shade) directory, start the machine learning backend with the following commands.
 
 ```sh
 # Start the average_shade backend
 kubectl apply \
-    -f kubernetes/average-shade.service.yml \
-    -f kubernetes/average-shade.pod.yml
+    -f kubernetes/average-shade.config-map.yml \
+    -f kubernetes/average-shade.stateful.yml \
+    -f kubernetes/average-shade.service.yml
 ```
 
 Access the `average_shade` documentation on <http://localhost:8282/docs>.

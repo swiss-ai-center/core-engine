@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  # This name uniquely identifies the stateful set
+  name: average-shade-stateful
+  labels:
+    app: average-shade
+spec:
+  serviceName: average-shade
+  replicas: 1
+  selector:
+    matchLabels:
+      app: average-shade
+  template:
+    metadata:
+      labels:
+        app: average-shade
+    spec:
+      containers:
+      - name: average-shade
+        image: ghcr.io/csia-pme/csia-pme-average-shade:latest
+        # If you use the local image, uncomment the next line - there is no need to pull the image
+        # imagePullPolicy: Never
+        ports:
+        - name: http
+          containerPort: 80 
+        env:
+        - name: APP_HOST
+          value: 0.0.0.0
+        - name: APP_PORT
+          value: "80"
+        - name: APP_LOG
+          value: info
+        envFrom:
+          - configMapRef:
+              name: average-shade-config

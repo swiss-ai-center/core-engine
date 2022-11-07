@@ -6,6 +6,7 @@ on:
   push:
     paths:
       - .github/actions/build-and-push-docker-image-to-github/action.yml
+      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
       - .github/actions/test-python-app/action.yml
       - .github/workflows/average-shade.yml
       - services/average_shade/**/*
@@ -28,3 +29,30 @@ jobs:
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           docker-image-name: ${{ github.repository }}-average-shade
           docker-image-context: ./services/average_shade
+
+      - name: Prepare configuration files with secrets from GitHub Secrets
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        working-directory: services/average-shade/kubernetes
+        env:
+          APP_ENGINE: https://engine-csia-pme.kube.isc.heia-fr.ch
+          APP_SERVICE: https://average-shade-csia-pme.kube.isc.heia-fr.ch
+        run: |
+          # Set average_shade configuration
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' average-shade.config-map.yml | envsubst > new-average-shade.config-map.yml && mv new-average-shade.config-map.yml average-shade.config-map.yml
+
+      - name: Deploy average_shade on Kubernetes cluster
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
+        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        with:
+          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-namespace: csia-pme-prod
+          kubectl-context: ./services/average_shade/kubernetes
+          kubectl-args: |
+            apply \
+              -f average-shade.config-map.yml \
+              -f average-shade.stateful.yml \
+              -f average-shade.service.yml \
+              -f average-shade.ingress.yml
