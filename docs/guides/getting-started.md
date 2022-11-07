@@ -205,26 +205,14 @@ Access the Engine documentation on <http://localhost:8080/docs> to validate the 
 
 ### `image_processing` backend
 
-In the [image_processing](../../services/image_processing) directory, build the Docker image with the following commands.
-
-```sh
-# Access the Minikube's Docker environment
-eval $(minikube docker-env)
-
-# Build the Docker image
-docker build -t csia-pme/image-processing .
-
-# Exit the Minikube's Docker environment
-eval $(minikube docker-env -u)
-```
-
 In the [image_processing](../../services/image_processing) directory, start the machine learning backend with the following commands.
 
 ```sh
 # Start the image_processing backend
 kubectl apply \
-    -f kubernetes/image-processing.service.yml \
-    -f kubernetes/image-processing.pod.yml
+    -f kubernetes/image-processing.config-map.yml \
+    -f kubernetes/image-processing.stateful.yml \
+    -f kubernetes/image-processing.service.yml
 ```
 
 Access the `image_processing` documentation on <http://localhost:8181/docs>.
