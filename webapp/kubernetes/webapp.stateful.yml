@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  # This name uniquely identifies the stateful set
+  name: webapp-stateful
+  labels:
+    app: webapp
+spec:
+  serviceName: webapp
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+      - name: webapp
+        image: ghcr.io/csia-pme/csia-pme-webapp:latest
+        # If you use the local image, uncomment the next line - there is no need to pull the image
+        # imagePullPolicy: Never
+        ports:
+        - name: http
+          containerPort: 80
+

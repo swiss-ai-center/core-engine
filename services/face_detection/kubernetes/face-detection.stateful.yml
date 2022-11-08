@@ -23,7 +23,7 @@ spec:
         # imagePullPolicy: Never
         ports:
         - name: http
-          containerPort: 80 
+          containerPort: 80
         env:
         - name: APP_HOST
           value: 0.0.0.0

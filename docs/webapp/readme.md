@@ -3,73 +3,60 @@
 - [Code](../../webapp)
 - Access when deployed locally: <http://localhost:8686>
 
-## Getting Started with Create React App
+## Description
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This service allows to visualize services and pipelines from the [Engine](../engine/readme.md). This service was built and tested with React.
 
-### Available Scripts
+## Develop locally
 
-In the project directory, you can run:
+In the [webapp](../../webapp) directory, start the Webapp with the following commands.
 
-#### `npm start`
+```sh
+# Install the dependencies
+npm ci --legacy-peer-deps
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+# Optional: Edit the environment variables to change the Engine URL
+vim .env
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+# Start the Webapp
+npm run start
+```
 
-#### `npm test`
+A browser should open on <http://localhost:3000> with the Webapp running and querying the Engine.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Build the application
 
-#### `npm run build`
+In the [webapp](../../webapp) directory, build the Webapp with the following commands.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```sh
+# Install the dependencies
+npm ci --legacy-peer-deps
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# Build the Webapp
+npm run build
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+The output of the build is in the [build](../../webapp/build) directory.
 
-#### `npm run eject`
+Once a React application is built, the environment variables cannot be changed.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Build and run the Docker image
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+In order to build the Docker image, the application must be [built](#build-the-application) beforehand. Then, the Docker image can be built with the following commands.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```sh
+# Build the Docker image with a tag
+docker build -t csia-pme/webapp .
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+# Run the Docker image
+docker run -p 8686:80 csia-pme/webapp
+```
 
-### Learn More
+The Webapp is available on <http://localhost:8686>.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+> **Q**: _Why don't we build the React application within the Docker image?_\
+> **A**: This setup allows us to speed up the build process of the Docker image: it does not need to download and install all dependencies every time the `package.json` file is updated. In a CI/CD set up, the `node_modules` can be cached in the `build` stage and the output can be passed to the `publish` stage.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Run locally using Kubernetes
 
-#### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-#### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-#### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-#### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-#### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-#### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Refer to the [Getting started](../guides/getting-started.md) guide in order to run this service locally.

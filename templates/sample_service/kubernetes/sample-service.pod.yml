@@ -16,7 +16,7 @@ spec:
     # As we use the local image, there is no need to pull the image
     imagePullPolicy: Never
     ports:
-    - containerPort: 80 
+    - containerPort: 80
     env:
     - name: APP_HOST
       value: 0.0.0.0
