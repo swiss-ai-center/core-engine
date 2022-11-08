@@ -6,6 +6,7 @@ on:
   push:
     paths:
       - .github/actions/build-and-push-docker-image-to-github/action.yml
+      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
       - .github/actions/run-ml-experiment-with-dvc/action.yml
       - .github/actions/test-python-app/action.yml
       - .github/workflows/digit-recognition.yml
@@ -16,27 +17,63 @@ jobs:
   run-workflow:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Clone repository
+        uses: actions/checkout@v3
 
-      - uses: ./.github/actions/run-ml-experiment-with-dvc
+      - name: Run ML experiment with DVC
+        uses: ./.github/actions/run-ml-experiment-with-dvc
         with:
           ml-experiment-path: ./services/digit_recognition/model_creation
           aws-access-key-id: ${{ secrets.DIGIT_RECOGNITION_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.DIGIT_RECOGNITION_AWS_SECRET_ACCESS_KEY }}
 
-      # Move the model to model_serving directory
-      - shell: bash
+      - name: Move the model to model_serving directory
+        shell: bash
         run: mv ./services/digit_recognition/{model_creation,model_serving}/mnist_model.h5
 
-      - uses: ./.github/actions/test-python-app
+      - name: Lint Python app
+        uses: ./.github/actions/lint-python-app
         with:
           python-app-path: ./services/digit_recognition/model_serving
 
-      # Only run on main
-      - if: github.ref == 'refs/heads/main'
+      - name: Test Python app
+        uses: ./.github/actions/test-python-app
+        with:
+          python-app-path: ./services/digit_recognition/model_serving
+
+      - name: Build and push Docker image to GitHub
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/build-and-push-docker-image-to-github
         with:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           docker-image-name: ${{ github.repository }}-digit-recognition
           docker-image-context: ./services/digit_recognition/model_serving
+
+      - name: Prepare configuration files with secrets from GitHub Secrets
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        working-directory: services/digit_recognition/model_serving/kubernetes
+        env:
+          APP_ENGINE: https://engine-csia-pme.kube.isc.heia-fr.ch
+          APP_SERVICE: https://digit-recognition-csia-pme.kube.isc.heia-fr.ch
+        run: |
+          # Set digit_recognition configuration
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' digit-recognition.config-map.yml | envsubst > new-digit-recognition.config-map.yml && mv new-digit-recognition.config-map.yml digit-recognition.config-map.yml
+
+      - name: Deploy digit_recognition on Kubernetes cluster
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
+        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        with:
+          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-namespace: csia-pme-prod
+          kubectl-context: ./services/digit_recognition/model_serving/kubernetes
+          kubectl-args: |
+            apply \
+              -f digit-recognition.config-map.yml \
+              -f digit-recognition.stateful.yml \
+              -f digit-recognition.service.yml \
+              -f digit-recognition.ingress.yml

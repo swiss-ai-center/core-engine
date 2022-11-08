@@ -1,19 +1,22 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ingress-webapp
+  name: webapp-ingress
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "16m"
     nginx.org/client-max-body-size: "16m"
 spec:
   rules:
-  - host: pi-webapp.kube.isc.heia-fr.ch
+  - host: webapp-csia-pme.kube.isc.heia-fr.ch
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: service-webapp
+            name: webapp-service
             port:
               number: 80
+  tls:
+    - hosts:
+        - webapp-csia-pme.kube.isc.heia-fr.ch

@@ -1,0 +1,28 @@
+# Documentation: https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
+name: lint_python_app
+description: Lint a Python app
+
+inputs:
+  python-app-path:
+    description: Python app path
+    required: true
+    default: .
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    # https://flake8.pycqa.org/en/latest/
+    - name: Install Flake8
+      shell: bash
+      run: pip3 install flake8 flake8-print
+
+    - name: Lint Python code
+      shell: bash
+      working-directory: ${{ inputs.python-app-path }}
+      run: flake8 .

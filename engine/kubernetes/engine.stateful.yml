@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  # This name uniquely identifies the stateful set
+  name: engine-stateful
+  labels:
+    app: engine
+spec:
+  serviceName: engine
+  replicas: 1
+  selector:
+    matchLabels:
+      app: engine
+  template:
+    metadata:
+      labels:
+        app: engine
+    spec:
+      containers:
+      - name: engine
+        image: ghcr.io/csia-pme/csia-pme-engine:latest
+        # If you use the local image, uncomment the next line - there is no need to pull the image
+        # imagePullPolicy: Never
+        ports:
+        - name: http
+          containerPort: 80
+        env:
+        - name: APP_HOST
+          value: 0.0.0.0
+        - name: APP_PORT
+          value: "80"
+        - name: APP_ENGINE
+          value: "http://engine-service:8080"
+        - name: APP_LOG
+          value: info
+        - name: REG_STORAGE_TYPE
+          value: "S3"
+        - name: REG_DB_TYPE
+          value: "mongo"
+        envFrom:
+          - configMapRef:
+              name: engine-config

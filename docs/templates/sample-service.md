@@ -1,7 +1,7 @@
 # sample_service
 
 - [Code](../../templates/sample_service)
-- Access when deployed locally: <http://localhost:8181/docs>
+- Access when deployed locally: <http://localhost:8080/docs>
 
 ## Description
 This is a sample service, to get it running, watch for the TODOs and replace "SAMPLE_SERVICE" and "SAMPLE-SERVICE" in the files with the name of the service
