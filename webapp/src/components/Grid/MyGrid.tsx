@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, Card, CardActions, CardContent, Grid, Typography } from '@mui/material';
-import { getPipelines, getServices } from '../../utils/api';
+import { getServices } from '../../utils/api';
 import { Link } from 'react-router-dom';
 
 import "./styles.css";
@@ -20,7 +20,7 @@ const MyGrid: React.FC = () => {
     }
 
     const listPipelines = async () => {
-        const pipes = await getPipelines();
+        const pipes = await getServices('pipeline');
         if (pipes) {
             console.log(pipes);
             setPipelines(pipes);
@@ -56,7 +56,7 @@ const MyGrid: React.FC = () => {
                                         </Typography>
                                     </CardContent>
                                     <CardActions>
-                                        <a href={item.nodes[1].url}>
+                                        <a href={"/showcase?name=" + item.nodes[0].api.route + "&summary=" + item.nodes[0].api.summary}>
                                             <Button size="small">View</Button>
                                         </a>
                                     </CardActions>

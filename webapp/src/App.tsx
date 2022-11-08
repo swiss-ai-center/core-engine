@@ -1,15 +1,26 @@
 import React from 'react';
-import { Container, Box, AppBar, Toolbar, Link, Typography, ThemeProvider, Grid } from '@mui/material';
+import {
+    Container,
+    Box,
+    AppBar,
+    Toolbar,
+    Link,
+    Typography,
+    ThemeProvider,
+    Grid,
+    IconButton, Tooltip
+} from '@mui/material';
 import {
     BrowserRouter as Router,
     Route,
     Routes
 } from "react-router-dom";
-import Showcase from './pages/Showcase/Showcase';
-import Home from './pages/Home/Home';
+import Showcase from './pages/Showcase';
+import Home from './pages/Home';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Home as HomeIcon } from '@mui/icons-material';
+import { Home as HomeIcon, QueryStats } from '@mui/icons-material';
 import { createTheme } from '@mui/material/styles';
+import { EngineStats } from './components/EngineStats/EngineStats';
 
 function Copyright() {
     return (
@@ -43,6 +54,16 @@ function Copyright() {
 function App() {
     const title = "CSIA-PME";
     const theme = createTheme();
+    const [open, setOpen] = React.useState(false);
+
+    const handleOpenStats = () => {
+        setOpen(true);
+    }
+
+    const handleCloseStats = () => {
+        setOpen(false);
+    }
+
     return (<ThemeProvider theme={theme}>
 
             {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
@@ -56,12 +77,18 @@ function App() {
                     <Typography variant="h6" color="inherit" noWrap>
                         {title}
                     </Typography>
+                    <Tooltip title={"Engine stats"}>
+                        <IconButton sx={{marginLeft: "auto"}} color={"inherit"} size={"large"} onClick={() => handleOpenStats()}>
+                            <QueryStats/>
+                        </IconButton>
+                    </Tooltip>
                 </Toolbar>
             </AppBar>
             {/* End Header navbar */}
 
             <Container>
                 {/* Main content */}
+                <EngineStats trigger={open} onClose={handleCloseStats}/>
                 <Router>
                     <Routes>
                         <Route path={"/showcase"} element={<Showcase/>}/>

@@ -1,6 +1,6 @@
 const dagre = require("dagre");
 const nodeWidth = 200;
-const nodeHeight = 35;
+const nodeHeight = 215;
 
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -75,8 +75,6 @@ const getAlignedElements = (nodes: any[], edges: any[]) => {
         loopY += 2 * nodeHeight;
     })
 
-    console.log(nodes, edges)
-
     return {nodes, edges};
 };
 
@@ -150,7 +148,6 @@ function getNode(node: any) {
         case "branch":
             ["then", "else"].forEach((p) => {
                 next = next.concat(node[p].hasOwnProperty("next") ? node[p].next : []);
-                console.log(next);
             })
 
             if (node.hasOwnProperty("next")) {
@@ -172,15 +169,15 @@ function getNode(node: any) {
 
     return {
         id: node.id,
-        type: getTypeOfNode(node),
+        type: "customNode",
         next: next,
-        data: {label: label},
+        data: {label: label, body: node.api?.body ? node.api.body : null, bodyType: node.api?.bodyType ? node.api.bodyType : null},
         position: {x: 0, y: 0},
     };
 }
 
 
-function getTypeOfNode(node: any) {
+/*function getTypeOfNode(node: any) {
     switch (node.type) {
         case "entry":
             return "input";
@@ -189,4 +186,4 @@ function getTypeOfNode(node: any) {
         default:
             return "";
     }
-}
+}*/
