@@ -23,6 +23,11 @@ jobs:
         with:
           python-app-path: ./services/average_shade
 
+      - name: Lint Python app
+        uses: ./.github/actions/lint-python-app
+        with:
+          python-app-path: ./services/average_shade
+
       - name: Build and push Docker image to GitHub
         # Only run on main
         if: github.ref == 'refs/heads/main'

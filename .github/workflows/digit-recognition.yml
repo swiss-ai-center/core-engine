@@ -31,6 +31,11 @@ jobs:
         shell: bash
         run: mv ./services/digit_recognition/{model_creation,model_serving}/mnist_model.h5
 
+      - name: Lint Python app
+        uses: ./.github/actions/lint-python-app
+        with:
+          python-app-path: ./services/digit_recognition/model_serving
+
       - name: Test Python app
         uses: ./.github/actions/test-python-app
         with:

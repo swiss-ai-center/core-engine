@@ -18,6 +18,11 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v3
 
+      - name: Lint Python app
+        uses: ./.github/actions/lint-python-app
+        with:
+          python-app-path: ./services/face_analyzer
+
       - name: Test Python app
         uses: ./.github/actions/test-python-app
         with:
