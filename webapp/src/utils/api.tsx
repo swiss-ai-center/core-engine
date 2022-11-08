@@ -10,7 +10,8 @@ export const getServices = async (type: string = 'service') => {
 export const getServiceDescription = async (name: string) => {
     const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + name);
     if (response) {
-        return await response.json();
+        const data = await response.json();
+        return data;
     }
     return [];
 }
@@ -24,19 +25,42 @@ export const getStats = async () => {
     return [];
 }
 
-export const postService = async (name: string, body: any) => {
-    console.log(body);
-    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + name, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
-        body: body,
-    }).catch((error) => {
+export const postToService = async (serviceName: string, body: BodyInit | null | undefined) => {
+    try {
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/${serviceName}`, {
+            method: 'POST',
+            body,
+        });
+
+        if (response) {
+            const data = await response.json();
+            return data;
+        }
+        return false;
+    } catch (error) {
         return error;
-    });
-    if (response) {
-        return await response.json();
     }
-    return false;
+}
+
+export const postToServiceAsFormData = async (serviceName: string, parts: {field: string; value: string | Blob}[]) => {
+    try {
+        const body = new FormData();
+
+        for (const item of parts) {
+            body.append(item.field, item.value);
+        }
+
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/${serviceName}`, {
+            method: 'POST',
+            body,
+        });
+
+        if (response) {
+            const data = await response.json();
+            return data;
+        }
+        return false;
+    } catch (error) {
+        return error;
+    }
 }

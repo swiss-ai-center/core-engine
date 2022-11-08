@@ -14,7 +14,7 @@ import {
 import { Download, PlayArrow } from '@mui/icons-material';
 import { RunState, setRunState } from '../../utils/reducers/runStateSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { postService } from '../../utils/api';
+import { postToServiceAsFormData } from '../../utils/api';
 
 function mergeBody(body: any, bodyType: any) {
     let array: any = [];
@@ -30,7 +30,7 @@ function mergeBody(body: any, bodyType: any) {
     return array;
 }
 
-
+// TODO: Remove this if not needed
 const fileToBase64 = (file: File) => {
     return new Promise(resolve => {
         const reader = new FileReader();
@@ -48,7 +48,7 @@ const CustomNode = ({data, styles}: any) => {
     const dispatch = useDispatch();
     const run = useSelector((state: any) => state.runState.value);
 
-    const [array, setArray] = useState<any[]>([]);
+    const [array, setArray] = useState<{field: string; value: string | Blob}[]>([]);
     const [areItemsUploaded, setAreItemsUploaded] = React.useState(false);
 
     const checkIfAllItemsAreUploaded = useCallback(() => {
@@ -72,11 +72,7 @@ const CustomNode = ({data, styles}: any) => {
     }
 
     const runPipeline = async () => {
-        let body: any = {};
-        for (const item of array) {
-            body[item.field] = await fileToBase64(item.value);
-        }
-        const response = await postService(data.label.replace("-entry", ""), body);
+        const response = await postToServiceAsFormData(data.label.replace("-entry", ""), array);
         console.log(response);
         if (response) {
             dispatch(setRunState(RunState.RUNNING));
