@@ -18,13 +18,13 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v3
 
-      - name: Test Python app
-        uses: ./.github/actions/test-python-app
+      - name: Lint Python app
+        uses: ./.github/actions/lint-python-app
         with:
           python-app-path: ./services/average_shade
 
-      - name: Lint Python app
-        uses: ./.github/actions/lint-python-app
+      - name: Test Python app
+        uses: ./.github/actions/test-python-app
         with:
           python-app-path: ./services/average_shade
 

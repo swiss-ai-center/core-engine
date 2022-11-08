@@ -41,7 +41,6 @@ class Worker:
             img = cv2.imdecode(np.frombuffer(raw, np.uint8), cv2.IMREAD_COLOR)
             average_color_row = np.average(img, axis=0)
             average_color = np.average(average_color_row, axis=0)
-            print(average_color)
             task["result"] = {"Red": int(average_color[2]), "Green": int(average_color[1]),
                               "Blue": int(average_color[0])}
         except Exception as e:
