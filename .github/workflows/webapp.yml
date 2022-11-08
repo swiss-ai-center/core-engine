@@ -22,21 +22,23 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: 'npm'
 
       - name: Install dependencies
         working-directory: webapp
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build app
         working-directory: webapp
         env:
           REACT_APP_ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
+          # So it does not treat warnings as errors
+          CI: false
         run: npm run build
 
       - name: Build and push Docker image to GitHub
         # Only run on main
         if: github.ref == 'refs/heads/main'
+        uses: ./.github/actions/build-and-push-docker-image-to-github
         with:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
@@ -53,6 +55,6 @@ jobs:
           kubectl-context: ./webapp/kubernetes
           kubectl-args: |
             apply \
-              -f average-shade.stateful.yml \
-              -f average-shade.service.yml \
-              -f average-shade.ingress.yml
+              -f webapp.stateful.yml \
+              -f webapp.service.yml \
+              -f webapp.ingress.yml
