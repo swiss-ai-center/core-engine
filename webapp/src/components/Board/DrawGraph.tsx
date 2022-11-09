@@ -171,7 +171,12 @@ function getNode(node: any) {
         id: node.id,
         type: "customNode",
         next: next,
-        data: {label: label, body: node.api?.body ? node.api.body : null, bodyType: node.api?.bodyType ? node.api.bodyType : null},
+        data: {
+            label: label,
+            body: node.api?.body ? node.api.body : null,
+            bodyType: node.api?.bodyType ? node.api.bodyType : null,
+            resultType: node.api?.resultType ? node.api.resultType : null,
+        },
         position: {x: 0, y: 0},
     };
 }

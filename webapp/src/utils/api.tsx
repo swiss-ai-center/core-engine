@@ -10,8 +10,7 @@ export const getServices = async (type: string = 'service') => {
 export const getServiceDescription = async (name: string) => {
     const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + name);
     if (response) {
-        const data = await response.json();
-        return data;
+        return await response.json();
     }
     return [];
 }
@@ -19,30 +18,28 @@ export const getServiceDescription = async (name: string) => {
 export const getStats = async () => {
     const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/stats`);
     if (response) {
-        const data = await response.json();
-        return data;
+        return await response.json();
     }
     return [];
 }
 
-export const postToService = async (serviceName: string, body: BodyInit | null | undefined) => {
-    try {
-        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/${serviceName}`, {
-            method: 'POST',
-            body,
-        });
-
-        if (response) {
-            const data = await response.json();
-            return data;
-        }
-        return false;
-    } catch (error) {
-        return error;
+export const getTaskStatus = async (jobId: string) => {
+    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/tasks/${jobId}/status`);
+    if (response) {
+        return await response.json();
     }
+    return [];
 }
 
-export const postToServiceAsFormData = async (serviceName: string, parts: {field: string; value: string | Blob}[]) => {
+export const getResult = async (jobId: string) => {
+    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/tasks/` + jobId);
+    if (response) {
+        return response.blob();
+    }
+    return "";
+}
+
+export const postToService = async (serviceName: string, parts: {field: string; value: string | Blob}[]) => {
     try {
         const body = new FormData();
 
@@ -56,8 +53,7 @@ export const postToServiceAsFormData = async (serviceName: string, parts: {field
         });
 
         if (response) {
-            const data = await response.json();
-            return data;
+            return await response.json();
         }
         return false;
     } catch (error) {

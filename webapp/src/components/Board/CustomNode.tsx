@@ -2,19 +2,20 @@ import React, { useCallback, useState } from "react";
 
 import { Handle, Position } from "react-flow-renderer";
 import {
+    Box,
     Button,
     Card,
     CardActions,
-    CardContent,
+    CardContent, CircularProgress,
     Divider,
-    Input,
+    Input, LinearProgress,
     Tooltip,
     Typography
 } from '@mui/material';
 import { Download, PlayArrow } from '@mui/icons-material';
 import { RunState, setRunState } from '../../utils/reducers/runStateSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { postToServiceAsFormData } from '../../utils/api';
+import { getResult, getTaskStatus, postToService } from '../../utils/api';
 
 function mergeBody(body: any, bodyType: any) {
     let array: any = [];
@@ -23,33 +24,25 @@ function mergeBody(body: any, bodyType: any) {
             array.push({field: body, type: "*", isSet: false, value: null});
         } else {
             for (let i = 0; i < body.length; i++) {
-                array.push({field: body[i], type: bodyType[i].replace("[", "").replace("]", ""), isSet: false, value: null});
+                array.push({
+                    field: body[i],
+                    type: bodyType[i].replace("[", "").replace("]", ""),
+                    isSet: false,
+                    value: null
+                });
             }
         }
     }
     return array;
 }
 
-// TODO: Remove this if not needed
-const fileToBase64 = (file: File) => {
-    return new Promise(resolve => {
-        const reader = new FileReader();
-        // Read file content on file loaded event
-        reader.onload = function(event) {
-            resolve(event.target?.result);
-        };
-
-        // Convert data to base64
-        reader.readAsDataURL(file);
-    });
-};
-
 const CustomNode = ({data, styles}: any) => {
     const dispatch = useDispatch();
     const run = useSelector((state: any) => state.runState.value);
 
-    const [array, setArray] = useState<{field: string; value: string | Blob}[]>([]);
+    const [array, setArray] = useState<{ field: string; value: string | Blob }[]>([]);
     const [areItemsUploaded, setAreItemsUploaded] = React.useState(false);
+    const [jobId, setJobId] = React.useState("");
 
     const checkIfAllItemsAreUploaded = useCallback(() => {
         let allItemsAreUploaded = true;
@@ -60,6 +53,17 @@ const CustomNode = ({data, styles}: any) => {
         });
         setAreItemsUploaded(allItemsAreUploaded);
     }, [array]);
+
+    const checkTaskStatus = async (jobId: string) => {
+        const task = await getTaskStatus(jobId);
+        if (task.status === 'finished') {
+            dispatch(setRunState(RunState.ENDED));
+        } else if (task.status === 'failed') {
+            dispatch(setRunState(RunState.ERROR));
+        } else {
+            setTimeout(() => checkTaskStatus(jobId), 1000);
+        }
+    }
 
     const handleUpload = (field: string, value: any) => {
         setArray(prevState => prevState.map(item => {
@@ -72,16 +76,47 @@ const CustomNode = ({data, styles}: any) => {
     }
 
     const runPipeline = async () => {
-        const response = await postToServiceAsFormData(data.label.replace("-entry", ""), array);
-        console.log(response);
+        const response = await postToService(data.label.replace("-entry", ""), array);
         if (response) {
+            console.log(response);
+            setJobId(response.jobId);
             dispatch(setRunState(RunState.RUNNING));
+            checkTaskStatus(response.jobId);
         } else {
-            console.log("Error");
+            console.log("Error while running pipeline");
         }
     }
 
+    const downloadResult = async () => {
+        const file = await getResult(jobId);
+        if (file) {
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(file);
+            link.setAttribute('download', 'result.' + data.resultType);
+            document.body.appendChild(link);
+            link.click();
+        } else {
+            console.log("Error downloading file");
+        }
+    }
+
+    const actionContent = () => {
+        return <Box sx={{display: 'flex', width: '100%'}}>
+            <Button disabled={!areItemsUploaded || run === RunState.RUNNING} sx={{flexGrow: 1}} variant={"contained"}
+                    color={"success"} size={"small"}
+                    endIcon={<PlayArrow sx={{color: (run === RunState.RUNNING) ? 'transparent' : 'inherit'}}/>}
+                    onClick={() => runPipeline()}>
+                {run === RunState.RUNNING ? (
+                    <CircularProgress size={24} color={"primary"}
+                                      sx={{position: 'absolute', alignSelf: 'center',}}
+                    />
+                ) : (<>Run</>)}
+            </Button>
+        </Box>
+    }
+
     React.useEffect(() => {
+        console.log(data);
         setArray(mergeBody(data.body, data.bodyType));
     }, [data]);
 
@@ -96,44 +131,41 @@ const CustomNode = ({data, styles}: any) => {
             >
                 <CardContent sx={{flexGrow: 1}}>
                     <Typography variant={"subtitle1"} color={"secondary"}>{data.label}</Typography>
-                        {(data.body) ?
-                            array.map((item: any, index: number) => {
-                                return (
-                                    <div key={`div-${index}`}>
-                                        <Typography variant={"body2"} key={`field-${index}`} sx={{mt: 1}}>
-                                            {item.field}
-                                        </Typography>
-                                        {(item.type === "text/plain") ?
-                                            (<Input key={`input-${index}`} placeholder={"Enter text"}/>)
-                                            :
-                                            (<Tooltip title={"type(s): " + item.type} placement={"right"}>
-                                                <Button key={`btn-${index}`} variant={"outlined"} component={"label"}
-                                                        size={"small"} sx={{mb: 1, mt: 1}}
-                                                        color={item.isSet ? 'success' : 'primary'}>
-                                                    Upload
-                                                    <input
-                                                        accept={item.type}
-                                                        type={"file"}
-                                                        hidden
-                                                        onChange={(event) => handleUpload(item.field, event.target.files)}
-                                                    />
-                                                </Button>
-                                            </Tooltip>)}
-                                        <Divider />
-                                    </div>
-                                );
-                            })
-                            :
-                            <Typography></Typography>
-                        }
+                    {(data.body) ?
+                        array.map((item: any, index: number) => {
+                            return (
+                                <div key={`div-${index}`}>
+                                    <Typography variant={"body2"} key={`field-${index}`} sx={{mt: 1}}>
+                                        {item.field}
+                                    </Typography>
+                                    {(item.type === "text/plain") ?
+                                        (<Input key={`input-${index}`} placeholder={"Enter text"}/>)
+                                        :
+                                        (<Tooltip title={"type(s): " + item.type} placement={"right"}>
+                                            <Button key={`btn-${index}`} variant={"outlined"} component={"label"}
+                                                    size={"small"} sx={{mb: 1, mt: 1}}
+                                                    color={item.isSet ? 'success' : 'primary'}>
+                                                Upload
+                                                <input
+                                                    accept={item.type}
+                                                    type={"file"}
+                                                    hidden
+                                                    onChange={(event) => handleUpload(item.field, event.target.files)}
+                                                />
+                                            </Button>
+                                        </Tooltip>)}
+                                    <Divider/>
+                                </div>
+                            );
+                        })
+                        :
+                        <Typography></Typography>
+                    }
                 </CardContent>
                 {(data.label.includes("entry")) ?
                     (
                         <CardActions>
-                            <Button disabled={!areItemsUploaded} sx={{flexGrow: 1}} variant={"contained"}
-                                    color={"success"} size={"small"} endIcon={<PlayArrow/>} onClick={() => runPipeline()}>
-                                Run
-                            </Button>
+                            {actionContent()}
                         </CardActions>)
                     :
                     (<></>)}
@@ -141,7 +173,8 @@ const CustomNode = ({data, styles}: any) => {
                     (
                         <CardActions>
                             <Button disabled={!(run === RunState.ENDED)} sx={{flexGrow: 1}} variant={"contained"}
-                                    color={"info"} size={"small"} endIcon={<Download/>}>Download</Button>
+                                    color={"info"} size={"small"} endIcon={<Download/>}
+                                    onClick={downloadResult}>Download</Button>
                         </CardActions>)
                     :
                     (<></>)}

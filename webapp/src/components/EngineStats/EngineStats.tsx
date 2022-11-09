@@ -22,7 +22,7 @@ export const EngineStats: React.FC<{
 
     const [engineStatus, setEngineStatus] = useState<any>({})
 
-    useEffect(() => {
+    const loadStats = async () => {
         getStats()
             .then((resp) => {
                 setEngineStatus(resp);
@@ -30,7 +30,11 @@ export const EngineStats: React.FC<{
             .catch((err) => {
                 console.log("Unable to get the status of the engine : ", err);
             })
-    }, [])
+    }
+
+    useEffect(() => {
+        loadStats();
+    }, [trigger])
 
     return (
         <Modal open={trigger} onClose={onClose}>
