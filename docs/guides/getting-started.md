@@ -89,14 +89,33 @@ Access the MinIO console on <http://localhost:9001>.
 In the [webapp](../../webapp) directory, build the Docker image with the following commands.
 
 ```sh
+# Install Node dependencies
+npm ci --legacy-peer-deps
+
+# Optional: Edit the environment variables to change the Engine URL
+vim .env
+
+# Build the Webapp
+npm run build
+
 # Access the Minikube's Docker environment
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build --build-arg ENGINE_URL="http://localhost:8080" -t csia-pme/webapp .
+docker build -t ghcr.io/csia-pme/csia-pme-webapp:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)
+
+# Edit the `kubernetes/webapp.stateful.yml` file to use the local image by uncommented the line `imagePullPolicy`
+#
+# From
+#
+#        # imagePullPolicy: Never
+#
+# To
+#
+#        imagePullPolicy: Never
 ```
 
 In the [webapp](../../webapp) directory, start the Webapp with the following commands.
@@ -105,7 +124,7 @@ In the [webapp](../../webapp) directory, start the Webapp with the following com
 # Start the webapp
 kubectl apply \
     -f kubernetes/webapp.service.yml \
-    -f kubernetes/webapp.pod.yml
+    -f kubernetes/webapp.stateful.yml
 ```
 
 Access the Webapp on <http://localhost:8686>.

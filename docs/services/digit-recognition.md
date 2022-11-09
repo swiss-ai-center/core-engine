@@ -119,7 +119,7 @@ APP_HOST=0.0.0.0 APP_PORT=4040 APP_LOG=info APP_... python3 main.py
 
 #### Run locally using Kubernetes
 
-Refer to the [Get started](../guides/getting-started.md) documentation in order to run this service locally.
+Refer to the [Getting started](../guides/getting-started.md) documentation in order to run this service locally.
 
 #### Use
 
