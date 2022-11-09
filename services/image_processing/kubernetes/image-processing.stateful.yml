@@ -19,8 +19,8 @@ spec:
       containers:
       - name: image-processing
         image: ghcr.io/csia-pme/csia-pme-image-processing:latest
-        # If you use the local image, uncomment the next line - there is no need to pull the image
-        # imagePullPolicy: Never
+        # If you build the image locally, change the next line to `imagePullPolicy: Never` - there is no need to pull the image
+        imagePullPolicy: Always
         ports:
         - name: http
           containerPort: 80

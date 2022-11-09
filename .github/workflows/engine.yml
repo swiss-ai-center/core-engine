@@ -23,6 +23,7 @@ jobs:
         with:
           python-app-path: ./engine
 
+      # TODO: Uncomment this when tests are fixed
       # - name: Test Python app
       #   uses: ./.github/actions/test-python-app
       #   with:
