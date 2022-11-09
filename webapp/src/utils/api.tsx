@@ -32,7 +32,7 @@ export const getTaskStatus = async (jobId: string) => {
 }
 
 export const getResult = async (jobId: string) => {
-    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/tasks/` + jobId);
+    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/tasks/${jobId}`);
     if (response) {
         return response.blob();
     }

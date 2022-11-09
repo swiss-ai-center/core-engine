@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Modal, Typography } from '@mui/material';
 import { getStats } from '../../utils/api';
+import { useNotification } from '../../utils/useNotification';
 
 const style = {
     position: 'absolute' as 'absolute',
@@ -21,6 +22,7 @@ export const EngineStats: React.FC<{
 }> = ({trigger, onClose}) => {
 
     const [engineStatus, setEngineStatus] = useState<any>({})
+    const { displayNotification } = useNotification();
 
     const loadStats = async () => {
         getStats()
@@ -28,7 +30,7 @@ export const EngineStats: React.FC<{
                 setEngineStatus(resp);
             })
             .catch((err) => {
-                console.log("Unable to get the status of the engine : ", err);
+                displayNotification({message: `Error loading engine stats: ${err}`, type: "error"});
             })
     }
 

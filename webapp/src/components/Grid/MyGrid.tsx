@@ -4,10 +4,12 @@ import { getServices } from '../../utils/api';
 import { Link } from 'react-router-dom';
 
 import "./styles.css";
+import { useNotification } from '../../utils/useNotification';
 
 const MyGrid: React.FC = () => {
     const [pipelines, setPipelines] = React.useState([]);
     const [services, setServices] = React.useState([]);
+    const { displayNotification } = useNotification();
 
     const listServices = async () => {
         const services = await getServices();
@@ -15,18 +17,17 @@ const MyGrid: React.FC = () => {
             setServices(services);
         } else {
             setServices([]);
-            console.log("No services found");
+            displayNotification({message: "No services found", type: "info"});
         }
     }
 
     const listPipelines = async () => {
         const pipes = await getServices('pipeline');
         if (pipes) {
-            console.log(pipes);
             setPipelines(pipes);
         } else {
             setPipelines([]);
-            console.log("No pipelines found");
+            displayNotification({message: "No pipelines found", type: "info"});
         }
     }
 

@@ -13,9 +13,10 @@ import {
     Typography
 } from '@mui/material';
 import { Download, PlayArrow } from '@mui/icons-material';
-import { RunState, setRunState } from '../../utils/reducers/runStateSlice';
+import { RunState, setJobId, setRunState } from '../../utils/reducers/runStateSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { getResult, getTaskStatus, postToService } from '../../utils/api';
+import { useNotification } from '../../utils/useNotification';
 
 function mergeBody(body: any, bodyType: any) {
     let array: any = [];
@@ -39,10 +40,11 @@ function mergeBody(body: any, bodyType: any) {
 const CustomNode = ({data, styles}: any) => {
     const dispatch = useDispatch();
     const run = useSelector((state: any) => state.runState.value);
+    const jobId = useSelector((state: any) => state.runState.jobId);
+    const { displayNotification } = useNotification();
 
     const [array, setArray] = useState<{ field: string; value: string | Blob }[]>([]);
     const [areItemsUploaded, setAreItemsUploaded] = React.useState(false);
-    const [jobId, setJobId] = React.useState("");
 
     const checkIfAllItemsAreUploaded = useCallback(() => {
         let allItemsAreUploaded = true;
@@ -59,6 +61,7 @@ const CustomNode = ({data, styles}: any) => {
         if (task.status === 'finished') {
             dispatch(setRunState(RunState.ENDED));
         } else if (task.status === 'failed') {
+            displayNotification({message: "The pipeline ended with an error", type: "error", open: true, timeout: 2000});
             dispatch(setRunState(RunState.ERROR));
         } else {
             setTimeout(() => checkTaskStatus(jobId), 1000);
@@ -77,26 +80,28 @@ const CustomNode = ({data, styles}: any) => {
 
     const runPipeline = async () => {
         const response = await postToService(data.label.replace("-entry", ""), array);
-        if (response) {
-            console.log(response);
-            setJobId(response.jobId);
+        if (response.jobId) {
             dispatch(setRunState(RunState.RUNNING));
+            dispatch(setJobId(response.jobId));
+            displayNotification({message: "Pipeline started", type: "success", open: true, timeout: 2000});
             checkTaskStatus(response.jobId);
         } else {
-            console.log("Error while running pipeline");
+            console.log(response);
+            displayNotification({message: `Error while running pipeline: ${response.detail}`, type: "error", open: true, timeout: 2000});
         }
     }
 
     const downloadResult = async () => {
+        console.log(jobId);
         const file = await getResult(jobId);
         if (file) {
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(file);
-            link.setAttribute('download', 'result.' + data.resultType);
+            link.setAttribute('download', 'result.json');
             document.body.appendChild(link);
             link.click();
         } else {
-            console.log("Error downloading file");
+            displayNotification({message: "Error downloading file", type: "error", open: true, timeout: 2000});
         }
     }
 
