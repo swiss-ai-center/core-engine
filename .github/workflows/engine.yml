@@ -18,15 +18,15 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v3
 
-      - name: Test Python app
-        uses: ./.github/actions/test-python-app
-        with:
-          python-app-path: ./engine
-
       - name: Lint Python app
         uses: ./.github/actions/lint-python-app
         with:
           python-app-path: ./engine
+
+      # - name: Test Python app
+      #   uses: ./.github/actions/test-python-app
+      #   with:
+      #     python-app-path: ./engine
 
       - name: Build and push Docker image to GitHub
         # Only run on main
