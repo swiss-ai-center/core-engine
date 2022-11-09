@@ -24,8 +24,6 @@ def addRoute(route, body=None, bodyType=None, summary=None, description=None):
 		binaries = []
 		binariesType = []
 
-		print("bodyType", bodyType)
-
 		if type(body) is dict:
 			jobData.update(kwargs["data"].dict())
 			jobData.update(kwargs["dataType"].dict())
@@ -38,9 +36,6 @@ def addRoute(route, body=None, bodyType=None, summary=None, description=None):
 			for i in range(len(bodyType)):
 				binariesType.append(strToArray(bodyType[i]))
 
-		print("binaries", binaries)
-		print("binariesType", binariesType)
-
 		jsonParts = set()
 
 		if len(binaries) > 0:
@@ -49,7 +44,6 @@ def addRoute(route, body=None, bodyType=None, summary=None, description=None):
 			i = 0
 			for name in binaries:
 				obj = form[name]
-				print("obj", obj.content_type)
 				if obj.content_type not in binariesType[i]:
 					return JSONResponse(
 						status_code=400,
@@ -184,7 +178,6 @@ async def getTaskResultFile(taskId: str, fileName: str):
 
 @app.post("/services", summary="Create a new service or pipeline")
 async def createService(service: Union[interface.ServiceDescription, interface.PipelineDescription]):
-	print(service)
 	if service.type is interface.ServiceType.SERVICE:
 		serviceName = service.api.route
 		if serviceName in engine.endpoints:
