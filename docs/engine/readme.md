@@ -2,9 +2,8 @@
 
 - [Code](../../engine)
 - Engine URL when run locally: <http://localhost:8080/docs>
-- MinIO Console URL when run locally: <http://localhost:9001>
 - Engine URL when deployed on Fribourg's Kubernetes: <https://engine-csia-pme.kube.isc.heia-fr.ch/docs>
-- MinIO Console URL when deployed on Fribourg's Kubernetes: <https://console-minio-csia-pme.kube.isc.heia-fr.ch/login>
+- MinIO Console URL when deployed on Fribourg's Kubernetes: <https://console-minio-csia-pme.kube.isc.heia-fr.ch>
 
 ## Description
 
@@ -58,6 +57,8 @@ The engine will use the following environment variables if defined.
 
 ### Start the application
 
+In the [engine](../../engine) directory, start the Engine with the following commands.
+
 Generate the virtual environment and install the dependencies.
 
 ```sh
@@ -69,24 +70,32 @@ source .venv/bin/activate
 
 # Install the requirements
 pip install --requirement requirements.txt
+```
 
+Start the application.
+
+```sh
 # Start the application
-python3 main.py
+APP_PORT=8080 python3 main.py
 
 # Start the application with custom environment variables values
 APP_HOST=0.0.0.0 APP_PORT=4040 APP_LOG=info APP_... python3 main.py
 ```
 
+Access the Engine documentation on <http://localhost:8080/docs>.
+
 ### Run the tests
 
-To run the tests, the following additional packages must be installed.
+In the [engine](../../engine) directory, run the tests with the following commands.
+
+Install the additional packages.
 
 ```sh
 # Install required packages for testing
 pip3 install pytest pytest-asyncio aiofile
 ```
 
-Then, the tests can be run with the following commands.
+Run the tests.
 
 ```sh
 # Run the tests
@@ -129,6 +138,8 @@ minikube tunnel --bind-address 127.0.0.1
 ```
 
 ### Run locally using Kubernetes (with minikube) and a local Docker image
+
+**Note**: The Engine StatefulSet (`engine.stateful.yml` file) must be deleted and recreated every time a new Docker image is created.
 
 Start the Engine with the following commands. This will start the Engine with the a local Docker image for the Engine.
 
@@ -186,4 +197,4 @@ Create a tunnel to access the Kubernetes cluster from the local machine. The ter
 minikube tunnel --bind-address 127.0.0.1
 ```
 
-**Note**: The Engine StatefulSet (`engine.stateful.yml` file) must be deleted and recreated every time a new Docker image is created.
+Access the Engine documentation on <http://localhost:8080/docs>.
