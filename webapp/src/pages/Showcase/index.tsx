@@ -6,6 +6,7 @@ import { getServiceDescription } from '../../utils/api';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
 import PipelineConfiguration from '../../components/PipelineConfiguration/PipelineConfiguration';
 import { ArrowBack, Fullscreen } from '@mui/icons-material';
+import { useNotification } from '../../utils/useNotification';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -44,6 +45,7 @@ function TabPanel(props: TabPanelProps) {
 
 const Showcase: React.FC = () => {
     const [searchParams] = useSearchParams();
+    const { displayNotification } = useNotification();
     const name = searchParams.get('name') || '';
     const summary = searchParams.get('summary') || '';
 
@@ -59,11 +61,10 @@ const Showcase: React.FC = () => {
     const getPipeline = async (name: any) => {
         const pipeline = await getServiceDescription(name);
         if (pipeline) {
-            console.log(pipeline);
             setServices(pipeline);
         } else {
             setServices([]);
-            console.log("No services found");
+            displayNotification({message: "No pipeline found", type: "info"});
         }
     }
 

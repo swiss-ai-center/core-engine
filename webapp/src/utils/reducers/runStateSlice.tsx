@@ -12,16 +12,19 @@ export const runStateSlice = createSlice({
     name: 'runState',
     initialState: {
         value: RunState.STOPPED,
+        jobId: ''
     },
     reducers: {
         setRunState: (state, action) => {
             state.value = action.payload;
-            console.log(state.value);
+        },
+        setJobId: (state, action) => {
+            state.jobId = action.payload;
         }
     },
 })
 
 // Action creators are generated for each case reducer function
-export const { setRunState } = runStateSlice.actions
+export const { setRunState, setJobId } = runStateSlice.actions
 
 export default runStateSlice.reducer
