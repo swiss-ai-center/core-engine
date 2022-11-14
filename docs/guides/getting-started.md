@@ -49,87 +49,11 @@ kubectl get pods --all-namespaces
 
 ## Start the Engine
 
-In the [engine](../../engine) directory, start the Engine with the following commands.
-
-```sh
-# Start MinIO
-kubectl apply \
-    -f kubernetes/minio.pvc.yml \
-    -f kubernetes/minio.config-map.yml \
-    -f kubernetes/minio.stateful.yml \
-    -f kubernetes/minio.service.yml
-
-# Start Mongo
-kubectl apply \
-    -f kubernetes/mongo.pvc.yml \
-    -f kubernetes/mongo.config-map.yml \
-    -f kubernetes/mongo.stateful.yml \
-    -f kubernetes/mongo.service.yml
-
-# Start the engine
-kubectl apply \
-    -f kubernetes/engine.config-map.yml \
-    -f kubernetes/engine.stateful.yml \
-    -f kubernetes/engine.service.yml
-```
-
-Create a tunnel to access the Kubernetes cluster from the local machine. The terminal in which the tunnel is created must stay open.
-
-```sh
-# Open a tunnel to the Kubernetes cluster
-minikube tunnel --bind-address 127.0.0.1
-```
-
-Access the Engine documentation on <http://localhost:8080/docs>.
-
-Access the MinIO console on <http://localhost:9001>.
+_Follow the instructions described in the [Engine documention - Run locally using Kubernetes (with minikube) and official Docker images](../engine/readme.md#run-locally-using-kubernetes-with-minikube-and-official-docker-images)._
 
 ## Start the Webapp
 
-In the [webapp](../../webapp) directory, build the Docker image with the following commands.
-
-```sh
-# Install Node dependencies
-npm ci --legacy-peer-deps
-
-# Optional: Edit the environment variables to change the Engine URL
-vim .env
-
-# Build the Webapp
-npm run build
-
-# Access the Minikube's Docker environment
-eval $(minikube docker-env)
-
-# Build the Docker image
-docker build -t ghcr.io/csia-pme/csia-pme-webapp:latest .
-
-# Exit the Minikube's Docker environment
-eval $(minikube docker-env -u)
-
-# Edit the `kubernetes/webapp.stateful.yml` file to use the local image by uncommented the line `imagePullPolicy`
-#
-# From
-#
-#        # imagePullPolicy: Never
-#
-# To
-#
-#        imagePullPolicy: Never
-```
-
-In the [webapp](../../webapp) directory, start the Webapp with the following commands.
-
-```sh
-# Start the webapp
-kubectl apply \
-    -f kubernetes/webapp.service.yml \
-    -f kubernetes/webapp.stateful.yml
-```
-
-Access the Webapp on <http://localhost:8686>.
-
-When new machine learning backends are added to the Engine, they will be available in the Webapp.
+_Follow the instructions described in the [Webapp documention - Run locally using Kubernetes (with minikube) and a local Docker image](../webapp/readme.md#run-locally-using-kubernetes-with-minikube-and-a-local-docker-image)._
 
 ## Start a machine learning service
 
@@ -139,101 +63,20 @@ Refer to the [Services](../services/readme.md) documentation for all the availab
 
 ### `average_shade` service
 
-In the [average_shade](../../services/average_shade) directory, start the machine learning backend with the following commands.
-
-```sh
-# Start the average_shade backend
-kubectl apply \
-    -f kubernetes/average-shade.config-map.yml \
-    -f kubernetes/average-shade.stateful.yml \
-    -f kubernetes/average-shade.service.yml
-```
-
-Access the `average_shade` documentation on <http://localhost:8282/docs>.
-
-Access the Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Engine.
+_Follow the instructions described in the [average_shade documention - Run locally using Kubernetes (with minikube) and official Docker images](../services/average-shade.md#run-locally-using-kubernetes-with-minikube-and-official-docker-image)._
 
 ### `digit_recognition` service
 
-In the [digit_recognition/model_creation](../../services/digit_recognition/model_creation) directory, build the model with the following commands.
-
-```sh
-# Export the MinIO S3 credentials (ask them to other members of the team)
-export AWS_ACCESS_KEY_ID=***
-export AWS_SECRET_ACCESS_KEY=***
-
-# Pull the required data for the experiment from MinIO
-dvc pull
-
-# Force the reproduction of the experiment
-dvc repro --force
-```
-
-In the [digit_recognition/model_creation](../../services/digit_recognition/model_creation) directory, copy the built model to the [digit_recognition/model_serving](../../services/digit_recognition/model_serving) directory with the following commands.
-
-```sh
-# Copy the model to the serving directory
-cp mnist_model.h5 ../model_serving
-```
-
-In the [digit_recognition/model_serving](../../services/digit_recognition/model_serving) directory, start the machine learning backend with the following commands.
-
-```sh
-# Start the digit_recognition backend
-kubectl apply \
-    -f kubernetes/digit-recognition.config-map.yml \
-    -f kubernetes/digit-recognition.stateful.yml \
-    -f kubernetes/digit-recognition.service.yml
-```
-
-Access the `digit_recognition` documentation on <http://localhost:8383/docs>.
-
-Access the Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Engine.
+_Follow the instructions described in the [digit_recognition documention - Run locally using Kubernetes (with minikube) and official Docker images](../services/digit-recognition.md#run-locally-using-kubernetes-with-minikube-and-official-docker-image)._
 
 ### `face_analyzer` backend
 
-In the [face_analyzer](../../services/face_analyzer) directory, start the machine learning backend with the following commands.
-
-```sh
-# Start the face_analyzer backend
-kubectl apply \
-    -f kubernetes/face-analyzer.config-map.yml \
-    -f kubernetes/face-analyzer.stateful.yml \
-    -f kubernetes/face-analyzer.service.yml
-```
-
-Access the `face_analyzer` documentation on <http://localhost:8484/docs>.
-
-Access the Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Engine.
+_Follow the instructions described in the [digit_recognition documention - Run locally using Kubernetes (with minikube) and official Docker images](../services/face-analyzer.md#run-locally-using-kubernetes-with-minikube-and-official-docker-image)._
 
 ### `face_detection` backend
 
-In the [face_detection](../../services/face_detection) directory, start the machine learning backend with the following commands.
-
-```sh
-# Start the face_detection backend
-kubectl apply \
-    -f kubernetes/face-detection.config-map.yml \
-    -f kubernetes/face-detection.stateful.yml \
-    -f kubernetes/face-detection.service.yml
-```
-
-Access the `face_detection` documentation on <http://localhost:8585/docs>.
-
-Access the Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Engine.
+_Follow the instructions described in the [face_detection documention - Run locally using Kubernetes (with minikube) and official Docker images](../services/face-detection.md#run-locally-using-kubernetes-with-minikube-and-official-docker-image)._
 
 ### `image_processing` backend
 
-In the [image_processing](../../services/image_processing) directory, start the machine learning backend with the following commands.
-
-```sh
-# Start the image_processing backend
-kubectl apply \
-    -f kubernetes/image-processing.config-map.yml \
-    -f kubernetes/image-processing.stateful.yml \
-    -f kubernetes/image-processing.service.yml
-```
-
-Access the `image_processing` documentation on <http://localhost:8181/docs>.
-
-Access the Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Engine.
+_Follow the instructions described in the [image_processing documention - Run locally using Kubernetes (with minikube) and official Docker images](../services/image-processing.md#run-locally-using-kubernetes-with-minikube-and-official-docker-image)._

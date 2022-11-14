@@ -143,9 +143,9 @@ In the [model_serving](../../services/digit_recognition/model_serving) directory
 ```sh
 # Start the digit_recognition backend
 kubectl apply \
-    -f kubernetes/average-shade.config-map.yml \
-    -f kubernetes/average-shade.stateful.yml \
-    -f kubernetes/average-shade.service.yml
+    -f kubernetes/digit-recognition.config-map.yml \
+    -f kubernetes/digit-recognition.stateful.yml \
+    -f kubernetes/digit-recognition.service.yml
 ```
 
 Create a tunnel to access the Kubernetes cluster from the local machine. The terminal in which the tunnel is created must stay open.
@@ -161,7 +161,7 @@ Access the Engine documentation on <http://localhost:8080/docs> to validate the 
 
 #### Run locally using Kubernetes (with minikube) and a local Docker image
 
-**Note**: The service StatefulSet (`average-shade.stateful.yml` file) must be deleted and recreated every time a new Docker image is created.
+**Note**: The service StatefulSet (`digit-recognition.stateful.yml` file) must be deleted and recreated every time a new Docker image is created.
 
 Start the service with the following commands. This will start the service with the a local Docker image for the service.
 
@@ -172,12 +172,12 @@ In the [model_serving](../../services/digit_recognition/model_serving) directory
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/csia-pme/csia-pme-average-shade:latest .
+docker build -t ghcr.io/csia-pme/csia-pme-digit-recognition:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)
 
-# Edit the `kubernetes/average-shade.stateful.yml` file to use the local image by uncommented the line `imagePullPolicy`
+# Edit the `kubernetes/digit-recognition.stateful.yml` file to use the local image by uncommented the line `imagePullPolicy`
 #
 # From
 #
@@ -193,9 +193,9 @@ In the [model_serving](../../services/digit_recognition/model_serving) directory
 ```sh
 # Start the digit_recognition backend
 kubectl apply \
-    -f kubernetes/average-shade.config-map.yml \
-    -f kubernetes/average-shade.stateful.yml \
-    -f kubernetes/average-shade.service.yml
+    -f kubernetes/digit-recognition.config-map.yml \
+    -f kubernetes/digit-recognition.stateful.yml \
+    -f kubernetes/digit-recognition.service.yml
 ```
 
 Create a tunnel to access the Kubernetes cluster from the local machine. The terminal in which the tunnel is created must stay open.
