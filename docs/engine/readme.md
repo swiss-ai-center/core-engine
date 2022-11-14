@@ -76,10 +76,7 @@ Start the application.
 
 ```sh
 # Start the application
-APP_PORT=8080 python3 main.py
-
-# Start the application with custom environment variables values
-APP_HOST=0.0.0.0 APP_PORT=4040 APP_LOG=info APP_... python3 main.py
+APP_HOST=0.0.0.0 APP_PORT=8080 APP_ENGINE=http://localhost:8080 python3 main.py
 ```
 
 Access the Engine documentation on <http://localhost:8080/docs>.

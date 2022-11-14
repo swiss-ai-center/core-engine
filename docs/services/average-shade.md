@@ -48,10 +48,7 @@ Start the application.
 
 ```sh
 # Start the application
-APP_PORT=8282 APP_ENGINE=http://localhost:8080 APP_SERVICE=http://localhost:8282 python3 main.py
-
-# Start the application with custom environment variables values
-APP_HOST=0.0.0.0 APP_PORT=8282 APP_LOG=info APP_... python3 main.py
+APP_HOST=0.0.0.0 APP_PORT=8282 APP_ENGINE=http://localhost:8080 APP_SERVICE=http://localhost:8282 python3 main.py
 ```
 
 Access the `average_shade` documentation on <http://localhost:8282/docs>.
