@@ -11,27 +11,27 @@ class TasksService:
     def __init__(self, logger: Logger = Depends(), storage: Storage = Depends(), session: Session = Depends(get_session)):
         self.logger = logger
         self.storage = storage
-        self.db = session
+        self.session = session
 
-    def find_many(self, skip: int = 0, limit: int = 100) -> list[TaskRead] :
+    def find_many(self, skip: int = 0, limit: int = 100) -> list[TaskRead]:
         self.logger.debug("Find many tasks")
-        return self.db.exec(select(Task).offset(skip).limit(limit)).all()
+        return self.session.exec(select(Task).offset(skip).limit(limit)).all()
 
-    def create(self):
+    def create(self) -> TaskRead:
         self.logger.debug("Creating task")
         task = Task()
         task.status = TaskStatus.PENDING
 
-        self.db.add(task)
-        self.db.commit()
-        self.db.refresh(task)
+        self.session.add(task)
+        self.session.commit()
+        self.session.refresh(task)
         self.logger.debug(f"Created task with id {task.id}")
 
         return task
 
     def find_one(self, task_id: int) -> TaskRead:
         self.logger.debug("Find first task")
-        return self.db.get(Task, task_id)
+        return self.session.get(Task, task_id)
 
     # TODO: Implement update method
     def update(self):
