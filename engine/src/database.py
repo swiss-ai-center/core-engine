@@ -1,10 +1,6 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
 from fastapi import Depends
+from sqlmodel import Field, Session, SQLModel, create_engine
 import config
-
-Base = declarative_base()
 
 
 def initialize_db(settings: config.Settings = Depends(config.get_settings)):
@@ -12,15 +8,11 @@ def initialize_db(settings: config.Settings = Depends(config.get_settings)):
         settings.database_url, connect_args=settings.database_connect_args
     )
 
-    Base.metadata.create_all(bind=engine)
+    SQLModel.metadata.create_all(engine)
 
-    return sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    return engine
 
 
-# TODO: Correct linting errors below
-def get_db(SessionLocal: Session = Depends(initialize_db)):
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+def get_session(engine=Depends(initialize_db)):
+    with Session(engine) as session:
+        yield session

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from logger import Logger
 from .service import PipelinesService
-from .schemas.pipeline import PipelineSchema
+from .models import PipelineModel
 
 router = APIRouter()
 
@@ -10,7 +10,8 @@ router = APIRouter()
 async def get_all():
     return [{"pipeline1": "pipeline2"}]
 
-@router.get("/pipelines", summary="Get all pipelines", response_model=PipelineSchema)
+
+@router.get("/pipelines", summary="Get all pipelines", response_model=PipelineModel)
 async def get_services(pipelines_service: PipelinesService = Depends()):
     pipelines = await pipelines_service.get_pipelines()
     return pipelines
@@ -21,7 +22,7 @@ async def delete(pipeline_name: str, pipelines_service: PipelinesService = Depen
     await pipelines_service.delete(pipeline_name)
 
 
-@router.get("/pipelines/{pipeline_name}", summary="Get a pipeline description", response_model=PipelineSchema)
+@router.get("/pipelines/{pipeline_name}", summary="Get a pipeline description", response_model=PipelineModel)
 async def find_one(pipeline_name: str, pipelines_service: PipelinesService = Depends()):
     service = await pipelines_service.find_one(pipeline_name)
     return service
@@ -29,5 +30,5 @@ async def find_one(pipeline_name: str, pipelines_service: PipelinesService = Dep
 
 # TODO: implement pipeline creation
 @router.post("/pipelines", summary="Create a new pipeline")
-async def create(pipeline: PipelineSchema, pipelines_service: PipelinesService = Depends(), logger: Logger = Depends()):
+async def create(pipeline: PipelineModel, pipelines_service: PipelinesService = Depends(), logger: Logger = Depends()):
     pass

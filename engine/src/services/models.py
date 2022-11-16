@@ -1,6 +1,6 @@
 from pydantic.main import BaseModel
 
-from common.models.api_description import APIDescription
+from common.models import APIDescription
 
 
 class ServiceModel(BaseModel):

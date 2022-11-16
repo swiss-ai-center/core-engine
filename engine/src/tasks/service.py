@@ -1,24 +1,27 @@
 from fastapi import Depends
 from storage import Storage
-from sqlalchemy.orm import Session
-from database import get_db
+from sqlmodel import Session, select
+from database import get_session
 from logger import Logger
-from .models.task import TaskModel
+from .models import Task, TaskRead
+from .enums import TaskStatus
 
 
 class TasksService:
-    def __init__(self, logger: Logger = Depends(), storage: Storage = Depends(), db: Session = Depends(get_db)):
+    def __init__(self, logger: Logger = Depends(), storage: Storage = Depends(), session: Session = Depends(get_session)):
         self.logger = logger
         self.storage = storage
-        self.db = db
+        self.db = session
 
-    def find_many(self, skip: int = 0, limit: int = 100) -> list[TaskModel]:
+    def find_many(self, skip: int = 0, limit: int = 100) -> list[TaskRead] :
         self.logger.debug("Find many tasks")
-        return self.db.query(TaskModel).offset(skip).limit(limit).all()
+        return self.db.exec(select(Task).offset(skip).limit(limit)).all()
 
     def create(self):
         self.logger.debug("Creating task")
-        task = TaskModel()
+        task = Task()
+        task.status = TaskStatus.PENDING
+
         self.db.add(task)
         self.db.commit()
         self.db.refresh(task)
@@ -26,9 +29,9 @@ class TasksService:
 
         return task
 
-    def find_one(self, task_id: int) -> TaskModel:
+    def find_one(self, task_id: int) -> TaskRead:
         self.logger.debug("Find first task")
-        return self.db.query(TaskModel).get(task_id)
+        return self.db.get(Task, task_id)
 
     # TODO: Implement update method
     def update(self):
