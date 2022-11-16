@@ -1,18 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import JSONResponse, StreamingResponse
+from common.query_parameters.skip_and_limit import SkipAndLimit
 from .service import TasksService
 from .schemas.task import TaskSchema
-from common.query_parameters.skip_and_limit import SkipAndLimit
 
 router = APIRouter()
 
 
-@router.get("/tasks/{task_id}", summary="Get results of a task", responses={404: {"description": "Task Not Found"}},
+@router.get("/tasks/{task_id}", summary="Get one task", responses={404: {"description": "Task Not Found"}},
             response_model=TaskSchema)
-async def get_task_result(task_id: str, tasks_service: TasksService = Depends()):
+async def find_one(task_id: int, tasks_service: TasksService = Depends()):
     task = tasks_service.find_one(task_id)
 
-    if task == None:
+    if task is None:
         raise HTTPException(status_code=404)
 
     dto = TaskSchema.toTaskSchema(task)

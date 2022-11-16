@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Depends
-import config
+from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from pipelines.controller import router as pipelines_router
 from services.controller import router as services_router
 from stats.controller import router as stats_router
@@ -9,34 +9,31 @@ api_description = """
 CSIA-PME API - The **best** API in the world.
 """
 
+# Define the FastAPI application with information
 app = FastAPI(
     title="CSIA-PME API",
     description=api_description,
     version="0.0.1",
     contact={
         "name": "CSIA-PME",
-        "url": "https://github.com/csia-pme/csia-pme",
-        "email": None,
+        "url": "https://swiss-ai-center.ch/",
+        "email": "info@swiss-ai-center.ch",
     },
+    # TODO: Add license information
     # license_info={
     #     "name": "",
     #     "url": "",
     # },
 )
 
+# Include routers from other files
 app.include_router(pipelines_router, tags=['Pipelines'])
 app.include_router(services_router, tags=['Services'])
 app.include_router(stats_router, tags=['Stats'])
 app.include_router(tasks_router, tags=['Tasks'])
 
-@app.get("/", tags=['Demo'])
-async def root():
-    return {"message": "Hello World"}
 
-@app.get("/info", tags=['Demo'])
-async def info(settings: config.Settings = Depends(config.get_settings)):
-    return {
-        "app_name": settings.app_name,
-        "admin_email": settings.admin_email,
-        "items_per_user": settings.items_per_user,
-    }
+# Redirect to docs
+@app.get("/", include_in_schema=False)
+async def root():
+    return RedirectResponse("/docs")

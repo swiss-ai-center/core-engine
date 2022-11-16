@@ -5,10 +5,10 @@ from ..models.service import ServiceModel
 
 
 class ServiceSchema(BaseModel):
-    serviceId: int
+    service_id: int
     url: str
     api: APIDescription
 
     @staticmethod
     def toServiceSchema(service_model: ServiceModel):
-        return ServiceSchema(serviceId=service_model.id)
+        return ServiceSchema(service_id=service_model.id)

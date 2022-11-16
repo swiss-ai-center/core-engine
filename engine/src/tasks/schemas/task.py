@@ -3,7 +3,7 @@ from ..models.task import TaskModel
 
 
 class TaskSchema(BaseModel):
-	taskId: int
+	task_id: int
 
 	@staticmethod
 	def toTaskSchema(task_model: TaskModel):

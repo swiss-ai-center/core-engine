@@ -5,13 +5,14 @@ from database import get_db
 from logger import Logger
 from .models.task import TaskModel
 
+
 class TasksService:
     def __init__(self, logger: Logger = Depends(), storage: Storage = Depends(), db: Session = Depends(get_db)):
         self.logger = logger
         self.storage = storage
         self.db = db
 
-    def find_many(self, skip: int = 0, limit: int = 100) -> list[TaskModel] :
+    def find_many(self, skip: int = 0, limit: int = 100) -> list[TaskModel]:
         self.logger.debug("Find many tasks")
         return self.db.query(TaskModel).offset(skip).limit(limit).all()
 
