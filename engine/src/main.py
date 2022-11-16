@@ -5,9 +5,6 @@ from services.controller import router as services_router
 from stats.controller import router as stats_router
 from tasks.controller import router as tasks_router
 
-from database import engine, Base
-Base.metadata.create_all(bind=engine)
-
 api_description = """
 CSIA-PME API - The **best** API in the world.
 """

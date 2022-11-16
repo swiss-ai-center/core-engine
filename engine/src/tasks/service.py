@@ -25,9 +25,9 @@ class TasksService:
 
         return task
 
-    # TODO: Implement find_one method
-    def find_first(self):
+    def find_one(self, task_id: int) -> TaskModel:
         self.logger.debug("Find first task")
+        return self.db.query(TaskModel).get(task_id)
 
     # TODO: Implement update method
     def update(self):

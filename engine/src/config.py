@@ -2,9 +2,8 @@ from functools import lru_cache
 from pydantic import BaseSettings
 
 class Settings(BaseSettings):
-    app_name: str = "Awesome API"
-    admin_email: str
-    items_per_user: int = 50
+    database_url: str = "sqlite:///../engine.db"
+    database_connect_args: dict[str, bool | str | int] = {"check_same_thread": False}
 
     class Config:
         env_file = "../.env"
