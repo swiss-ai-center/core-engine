@@ -20,3 +20,13 @@ class ServicesService:
     # TODO: Implement create method
     def create(self, service_name, service):
         pass
+
+    # TODO: Implement delete method
+    def delete(self, service_name):
+        pass
+
+    # TODO: Implement find_one method
+    def find_one(self, service_name):
+        service = None
+
+        return service

@@ -200,15 +200,15 @@ app.add_middleware(
 # 	stats = await engine.getStats()
 # 	return JSONResponse(stats)
 
-@app.delete("/services/{serviceName}", summary="Remove a service or pipeline")
-async def deleteService(serviceName: str):
-	if serviceName in engine.endpoints:
-		await removeService(serviceName)
-
-@app.get("/services/{serviceName}", summary="Get the pipeline description", response_model=interface.PipelineDescription)
-async def getPipeline(serviceName: str):
-	pipeline = await engine.getPipeline(serviceName)
-	return pipeline
+# @app.delete("/services/{serviceName}", summary="Remove a service or pipeline")
+# async def deleteService(serviceName: str):
+# 	if serviceName in engine.endpoints:
+# 		await removeService(serviceName)
+#
+# @app.get("/services/{serviceName}", summary="Get the pipeline description", response_model=interface.PipelineDescription)
+# async def getPipeline(serviceName: str):
+# 	pipeline = await engine.getPipeline(serviceName)
+# 	return pipeline
 
 @app.post("/processing", include_in_schema=False)
 async def processCallback(task_id: str, request: Request):
