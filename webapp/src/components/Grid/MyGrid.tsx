@@ -6,15 +6,20 @@ import { Link } from 'react-router-dom';
 import "./styles.css";
 import { useNotification } from '../../utils/useNotification';
 
-const MyGrid: React.FC = () => {
+const MyGrid: React.FC<{
+    filter: string
+}> = ({filter}) => {
     const [pipelines, setPipelines] = React.useState([]);
     const [services, setServices] = React.useState([]);
+    const [filteredServices, setFilteredServices] = React.useState([]);
+    const [filteredPipelines, setFilteredPipelines] = React.useState([]);
     const {displayNotification} = useNotification();
 
     const listServices = async () => {
         const services = await getServices();
         if (services) {
             setServices(services);
+            setFilteredServices(services);
         } else {
             setServices([]);
             displayNotification({message: "No services found", type: "info"});
@@ -25,16 +30,29 @@ const MyGrid: React.FC = () => {
         const pipes = await getServices('pipeline');
         if (pipes) {
             setPipelines(pipes);
+            setFilteredPipelines(pipes);
         } else {
             setPipelines([]);
             displayNotification({message: "No pipelines found", type: "info"});
         }
     }
 
+    const filterItems = (items: any) => {
+        return items.filter((item: any) => item.nodes[0].id.toLowerCase().includes(filter.toLowerCase()) ||
+            item.nodes[0].api.summary.toLowerCase().includes(filter.toLowerCase()));
+    }
+
     React.useEffect(() => {
         listServices();
         listPipelines();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    React.useEffect(() => {
+        setFilteredServices(filterItems(services));
+        setFilteredPipelines(filterItems(pipelines));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filter]);
 
     return (
         <>
@@ -42,14 +60,14 @@ const MyGrid: React.FC = () => {
                 Services
             </Typography>
             <Grid container spacing={4}>
-                {services.length === 0 ? (
+                {filteredServices.length === 0 ? (
                     <Grid item xs={6} md={8}>
                         <Typography gutterBottom variant="h6" component="h2" marginBottom={2}>
                             No services found
                         </Typography>
                     </Grid>
                 ) : (
-                    services.map((item: any, index: number) => {
+                    filteredServices.map((item: any, index: number) => {
                             return (
                                 <Grid item xs={12} sm={6} md={4} key={index}>
                                     <Card
@@ -78,14 +96,14 @@ const MyGrid: React.FC = () => {
                 Pipelines
             </Typography>
             <Grid container spacing={4}>
-                {pipelines.length === 0 ? (
+                {filteredPipelines.length === 0 ? (
                     <Grid item xs={6} md={8}>
                         <Typography gutterBottom variant="h6" component="h2" marginBottom={2}>
                             No pipelines found
                         </Typography>
                     </Grid>
                 ) : (
-                    pipelines.map((item: any, index: number) => {
+                    filteredPipelines.map((item: any, index: number) => {
                             return (
                                 <Grid item xs={6} md={8} key={index}>
                                     <Card

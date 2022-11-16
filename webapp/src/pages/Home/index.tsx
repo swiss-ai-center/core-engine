@@ -1,9 +1,16 @@
-import { Box, Container, Typography } from '@mui/material';
+import { Box, Container, TextField, Typography } from '@mui/material';
 import React from 'react';
 import MyGrid from '../../components/Grid/MyGrid';
 
 
 const Home: React.FC = () => {
+
+    const [search, setSearch] = React.useState('');
+
+    const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearch(event.target.value);
+    }
+
     return (
         <Container>
             <main>
@@ -28,7 +35,8 @@ const Home: React.FC = () => {
                     </Container>
                 </Box>
                 <Container sx={{py: 8}} maxWidth="lg">
-                    <MyGrid/>
+                    <TextField sx={{mb: 2}} name={'search'} label={'Search'} value={search} onChange={handleSearch} fullWidth />
+                    <MyGrid filter={search}/>
                 </Container>
             </main>
         </Container>

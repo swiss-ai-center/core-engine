@@ -8,7 +8,7 @@ import {
     CardActions,
     CardContent, CircularProgress,
     Divider,
-    Input, LinearProgress,
+    Input,
     Tooltip,
     Typography
 } from '@mui/material';
@@ -86,13 +86,11 @@ const CustomNode = ({data, styles}: any) => {
             displayNotification({message: "Pipeline started", type: "success", open: true, timeout: 2000});
             checkTaskStatus(response.jobId);
         } else {
-            console.log(response);
             displayNotification({message: `Error while running pipeline: ${response.detail}`, type: "error", open: true, timeout: 2000});
         }
     }
 
     const downloadResult = async () => {
-        console.log(jobId);
         const file = await getResult(jobId);
         if (file) {
             const link = document.createElement('a');
@@ -107,13 +105,14 @@ const CustomNode = ({data, styles}: any) => {
 
     const actionContent = () => {
         return <Box sx={{display: 'flex', width: '100%'}}>
-            <Button disabled={!areItemsUploaded || run === RunState.RUNNING} sx={{flexGrow: 1}} variant={"contained"}
-                    color={"success"} size={"small"}
+            <Button disabled={!areItemsUploaded || run === RunState.RUNNING}
+                    sx={{flexGrow: 1}} color={"success"} variant={"contained"}
+                    size={"small"}
                     endIcon={<PlayArrow sx={{color: (run === RunState.RUNNING) ? 'transparent' : 'inherit'}}/>}
                     onClick={() => runPipeline()}>
                 {run === RunState.RUNNING ? (
-                    <CircularProgress size={24} color={"primary"}
-                                      sx={{position: 'absolute', alignSelf: 'center',}}
+                    <CircularProgress size={24}
+                                      sx={{position: 'absolute', alignSelf: 'center', color: 'white'}}
                     />
                 ) : (<>Run</>)}
             </Button>
@@ -121,7 +120,6 @@ const CustomNode = ({data, styles}: any) => {
     }
 
     React.useEffect(() => {
-        console.log(data);
         setArray(mergeBody(data.body, data.bodyType));
     }, [data]);
 

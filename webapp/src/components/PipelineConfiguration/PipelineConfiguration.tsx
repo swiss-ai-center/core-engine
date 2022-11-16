@@ -7,7 +7,6 @@ function PipelineConfiguration(service: any, show?: boolean) {
         <div style={{display: show ? "block": "none"}}>
             <ReactJson
                 indentWidth={2}
-                collapsed={3}
                 src={service}
             />
         </div>
