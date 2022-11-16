@@ -12,23 +12,27 @@ class TasksService:
         self.db = db
 
     def find_many(self, skip: int = 0, limit: int = 100) -> list[TaskModel] :
-        self.logger.info("Find many tasks")
+        self.logger.debug("Find many tasks")
         return self.db.query(TaskModel).offset(skip).limit(limit).all()
 
     def create(self):
-        self.logger.info("Create task")
+        self.logger.debug("Creating task")
         task = TaskModel()
         self.db.add(task)
         self.db.commit()
         self.db.refresh(task)
+        self.logger.debug(f"Created task with id {task.id}")
 
         return task
 
+    # TODO: Implement find_one method
     def find_first(self):
-        self.logger.info("Find first task")
+        self.logger.debug("Find first task")
 
+    # TODO: Implement update method
     def update(self):
-        self.logger.info("Update task")
+        self.logger.debug("Update task")
 
+    # TODO: Implement delete method
     def delete(self):
-        self.logger.info("Delete task")
+        self.logger.debug("Delete task")

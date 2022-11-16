@@ -13,6 +13,7 @@ class StatsService:
         self.logger = logger
         self.storage = storage
         self.db = db
+    # TODO: Implement stats method
     def stats(self):
         stats = None
 
