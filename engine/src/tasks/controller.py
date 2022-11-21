@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 
-from common.exception import NotFoundException, BadRequestException, UnprocessableEntityException
+from common.exception import NotFoundException
 from .service import TasksService
 from common.query_parameters import SkipAndLimit
 from .models import TaskRead, TaskUpdate, TaskCreate, Task
