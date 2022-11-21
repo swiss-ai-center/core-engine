@@ -36,4 +36,4 @@ app.include_router(tasks_router, tags=['Tasks'])
 # Redirect to docs
 @app.get("/", include_in_schema=False)
 async def root():
-    return RedirectResponse("/docs")
+    return RedirectResponse("/docs", status_code=301)

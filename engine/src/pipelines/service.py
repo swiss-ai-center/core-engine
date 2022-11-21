@@ -12,7 +12,7 @@ class PipelinesService:
         self.session = session
 
     # TODO: Implement get_services method
-    def get_pipelines(self):
+    def get_pipelines(self) -> list:
         pipelines = None
 
         return pipelines

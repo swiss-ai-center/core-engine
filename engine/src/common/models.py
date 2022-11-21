@@ -1,11 +1,16 @@
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, SQLModel, Column, DateTime, func
 from datetime import datetime
 from typing import List
 
 
 class CoreModel(SQLModel):
-    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
-    updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    created_at: datetime | None = Field(
+        sa_column=Column(DateTime(timezone=True), server_default=func.now())
+    )
+
+    updated_at: datetime | None = Field(
+        sa_column=Column(DateTime(timezone=True), onupdate=func.now())
+    )
 
 
 class APIDescription(SQLModel):
