@@ -1,5 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
+
+from common.exception import NotFoundException, BadRequestException
 from .service import TasksService
 from common.query_parameters import SkipAndLimit
 from .models import TaskRead, TaskUpdate, TaskCreate, Task
@@ -11,7 +13,7 @@ router = APIRouter()
 @router.get(
     "/tasks/{task_id}",
     summary="Get one task",
-    responses={404: {"description": "Task Not Found"}},
+    responses={404: {"detail": "Task Not Found"}},
     response_model=TaskRead,
 )
 async def get_one(
@@ -21,7 +23,7 @@ async def get_one(
     task = tasks_service.find_one(task_id)
 
     if not task:
-        raise HTTPException(status_code=404)
+        raise HTTPException(status_code=404, detail="Task Not Found")
 
     return task
 
@@ -55,6 +57,11 @@ async def create(task: TaskCreate, tasks_service: TasksService = Depends()):
 @router.patch(
     "/tasks/{task_id}",
     summary="Update a task",
+    responses={
+        404: {"detail": "Task Not Found"},
+        400: {"detail": "Bad Request"},
+        500: {"detail": "Internal Server Error"},
+    },
     response_model=TaskRead,
 )
 async def update(
@@ -62,7 +69,14 @@ async def update(
         task_update: TaskUpdate,
         tasks_service: TasksService = Depends(),
 ):
-    task = tasks_service.update(task_id, task_update)
+    try:
+        task = tasks_service.update(task_id, task_update)
+    except NotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except BadRequestException as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     return task
 
@@ -70,11 +84,23 @@ async def update(
 @router.delete(
     "/tasks/{task_id}",
     summary="Delete a task",
-    responses={204: {"description": "Successful Deletion"}},
+    responses={
+        204: {"detail": "Successful Deletion"},
+        404: {"detail": "Task Not Found"},
+        400: {"detail": "Bad Request"},
+        500: {"detail": "Internal Server Error"},
+    },
     status_code=204
 )
 async def delete(
         task_id: UUID,
         tasks_service: TasksService = Depends(),
 ):
-    tasks_service.delete(task_id)
+    try:
+        tasks_service.delete(task_id)
+    except NotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except BadRequestException as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
