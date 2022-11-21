@@ -1,4 +1,3 @@
-import pytest
 from fastapi.testclient import TestClient
 from main import app
 
@@ -8,8 +7,6 @@ client = TestClient(app)
 # TODO: check service-name when creating a task
 
 # TODO: use pytest fixture to create the test DB
-
-# TODO: check why the not found message is not correct
 
 
 def test_create_task_no_body():
@@ -101,21 +98,41 @@ def test_patch_task():
 
 
 def test_read_task_non_existent():
-    response = client.get("/items/bad_id")
+    response = client.get("/tasks/00000000-0000-0000-0000-000000000000")
     assert response.status_code == 404
-    # assert response.json() == {"detail": "Task Not Found"}
+    assert response.json() == {"detail": "Task Not Found"}
 
 
 def test_delete_task_non_existent():
-    response = client.delete("/items/bad_id")
+    response = client.delete("/tasks/00000000-0000-0000-0000-000000000000")
     assert response.status_code == 404
-    # assert response.json() == {"detail": "Task Not Found"}
+    assert response.json() == {"detail": "Task Not Found"}
 
 
 def test_patch_task_non_existent():
-    response = client.patch("/items/bad_id")
+    response = client.patch("/tasks/00000000-0000-0000-0000-000000000000", json={"status": "running"})
     assert response.status_code == 404
-    # assert response.json() == {"detail": "Task Not Found"}
+    assert response.json() == {"detail": "Task Not Found"}
+
+
+def test_read_task_non_processable():
+    response = client.get("/tasks/bad_id")
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["type"] == "type_error.uuid"
+
+
+def test_delete_task_non_processable():
+    response = client.delete("/tasks/bad_id")
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["type"] == "type_error.uuid"
+    print(response.json()["detail"])
+    print(response.json()["detail"][0]["type"])
+
+
+def test_patch_task_non_processable():
+    response = client.patch("/tasks/bad_id", json={"status": "running"})
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["type"] == "type_error.uuid"
 
 
 def test_delete_task():

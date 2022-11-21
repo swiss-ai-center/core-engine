@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 
-from common.exception import NotFoundException, BadRequestException
+from common.exception import NotFoundException, BadRequestException, UnprocessableEntityException
 from .service import TasksService
 from common.query_parameters import SkipAndLimit
 from .models import TaskRead, TaskUpdate, TaskCreate, Task
@@ -13,7 +13,11 @@ router = APIRouter()
 @router.get(
     "/tasks/{task_id}",
     summary="Get one task",
-    responses={404: {"detail": "Task Not Found"}},
+    responses={
+        404: {"detail": "Task Not Found"},
+        400: {"detail": "Bad Request"},
+        500: {"detail": "Internal Server Error"},
+    },
     response_model=TaskRead,
 )
 async def get_one(
@@ -21,7 +25,6 @@ async def get_one(
         tasks_service: TasksService = Depends()
 ):
     task = tasks_service.find_one(task_id)
-
     if not task:
         raise HTTPException(status_code=404, detail="Task Not Found")
 
@@ -59,7 +62,6 @@ async def create(task: TaskCreate, tasks_service: TasksService = Depends()):
     summary="Update a task",
     responses={
         404: {"detail": "Task Not Found"},
-        400: {"detail": "Bad Request"},
         500: {"detail": "Internal Server Error"},
     },
     response_model=TaskRead,
@@ -73,10 +75,6 @@ async def update(
         task = tasks_service.update(task_id, task_update)
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
-    except BadRequestException as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
     return task
 
@@ -87,7 +85,6 @@ async def update(
     responses={
         204: {"detail": "Successful Deletion"},
         404: {"detail": "Task Not Found"},
-        400: {"detail": "Bad Request"},
         500: {"detail": "Internal Server Error"},
     },
     status_code=204
@@ -100,7 +97,3 @@ async def delete(
         tasks_service.delete(task_id)
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
-    except BadRequestException as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
