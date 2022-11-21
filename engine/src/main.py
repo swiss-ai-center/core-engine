@@ -19,6 +19,10 @@ app = FastAPI(
         "url": "https://swiss-ai-center.ch/",
         "email": "info@swiss-ai-center.ch",
     },
+    swagger_ui_parameters={
+        "tagsSorter": "alpha",
+        "operationsSorter": "method",
+    },
     # TODO: Add license information
     # license_info={
     #     "name": "",

@@ -1,6 +1,4 @@
-from fastapi import Depends
-
-from common.exception import NotFoundException
+from fastapi import Depends, HTTPException
 from storage import Storage
 from sqlmodel import Session, select, desc
 from database import get_session
@@ -37,7 +35,7 @@ class TasksService:
         self.logger.debug("Update task")
         current_task = self.session.get(Task, task_id)
         if not current_task:
-            raise NotFoundException("Task Not Found")
+            raise HTTPException(status_code=404, detail="Task Not Found")
         task_data = task.dict(exclude_unset=True)
         self.logger.debug(f"Updating task {task_id} with data: {task_data}")
         for key, value in task_data.items():
@@ -52,7 +50,7 @@ class TasksService:
         self.logger.debug("Delete task")
         current_task = self.session.get(Task, task_id)
         if not current_task:
-            raise NotFoundException("Task Not Found")
+            raise HTTPException(status_code=404, detail="Task Not Found")
         self.session.delete(current_task)
         self.session.commit()
         self.logger.debug(f"Deleted task with id {current_task.id}")
