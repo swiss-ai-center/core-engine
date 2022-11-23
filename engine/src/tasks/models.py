@@ -1,5 +1,7 @@
 from typing import List
-from sqlmodel import Field, JSON, Column, SQLModel
+from sqlmodel import Field, JSON, Column, SQLModel, Relationship
+
+from services.models import Service
 from .enums import TaskStatus
 from common.models import CoreModel
 from uuid import UUID, uuid4
@@ -10,12 +12,11 @@ class TaskBase(CoreModel):
     Base class for Task
     used in subclasses
     """
-    # TODO: change service type to Service
-    service: str = Field(nullable=False)
     url: str = Field(nullable=False)
     data_in: List[str] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
     data_out: List[str] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
     status: TaskStatus = Field(default=TaskStatus.PENDING, nullable=False)
+    service_id: UUID = Field(nullable=False, foreign_key="service.id")
 
     # Needed for Column(JSON) to work
     class Config:
@@ -28,6 +29,7 @@ class Task(TaskBase, table=True):
     the one that is stored in the database
     """
     id: UUID = Field(default_factory=uuid4, primary_key=True)
+    service: Service = Relationship(back_populates="tasks")
 
 
 class TaskRead(TaskBase):
@@ -36,6 +38,14 @@ class TaskRead(TaskBase):
     This model is used to return a task to the user
     """
     id: UUID
+
+
+class TaskReadWithService(TaskRead):
+    """
+    Task read model with service
+    This model is used to return a task to the user with the service
+    """
+    service: Service
 
 
 class TaskCreate(TaskBase):

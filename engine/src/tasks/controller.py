@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from common.exception import NotFoundException
 from .service import TasksService
 from common.query_parameters import SkipAndLimit
-from .models import TaskRead, TaskUpdate, TaskCreate, Task
+from .models import TaskRead, TaskUpdate, TaskCreate, Task, TaskReadWithService
 from uuid import UUID
 
 router = APIRouter()
@@ -17,7 +17,7 @@ router = APIRouter()
         400: {"detail": "Bad Request"},
         500: {"detail": "Internal Server Error"},
     },
-    response_model=TaskRead,
+    response_model=TaskReadWithService,
 )
 def get_one(
         task_id: UUID,
@@ -33,7 +33,7 @@ def get_one(
 @router.get(
     "/tasks",
     summary="Get many tasks",
-    response_model=List[TaskRead],
+    response_model=List[TaskReadWithService],
 )
 def get_many_tasks(
         skip_and_limit: SkipAndLimit = Depends(),

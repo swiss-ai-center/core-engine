@@ -1,7 +1,6 @@
 from typing import List
 from uuid import UUID, uuid4
-
-from sqlmodel import Field, SQLModel, Column, JSON
+from sqlmodel import Field, SQLModel, Column, JSON, Relationship
 from common.models import CoreModel
 
 
@@ -27,6 +26,7 @@ class Service(ServiceBase, table=True):
     the one that is stored in the database
     """
     id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tasks: List["Task"] = Relationship(back_populates="service")
 
 
 class ServiceRead(ServiceBase):
@@ -35,6 +35,15 @@ class ServiceRead(ServiceBase):
     This model is used to return a service to the user
     """
     id: UUID
+
+
+class ServiceReadWithTasks(ServiceRead):
+    """
+    Service read model with tasks
+    This model is used to return a service to the user with the tasks
+    """
+    from tasks.models import TaskRead
+    tasks: List[TaskRead]
 
 
 class ServiceCreate(ServiceBase):

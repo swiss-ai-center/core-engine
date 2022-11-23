@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from common.exception import NotFoundException
 from .service import ServicesService
 from common.query_parameters import SkipAndLimit
-from .models import ServiceRead, ServiceUpdate, ServiceCreate, Service
+from .models import ServiceRead, ServiceUpdate, ServiceCreate, Service, ServiceReadWithTasks
 from uuid import UUID
 
 router = APIRouter()
@@ -17,7 +17,7 @@ router = APIRouter()
         400: {"detail": "Bad Request"},
         500: {"detail": "Internal Server Error"},
     },
-    response_model=ServiceRead,
+    response_model=ServiceReadWithTasks,
 )
 def get_one(
         service_id: UUID,
