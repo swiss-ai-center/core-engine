@@ -9,7 +9,8 @@ from common.exception import NotFoundException
 
 
 class TasksService:
-    def __init__(self, logger: Logger = Depends(), storage: Storage = Depends(), session: Session = Depends(get_session)):
+    def __init__(self, logger: Logger = Depends(), storage: Storage = Depends(),
+                 session: Session = Depends(get_session)):
         self.logger = logger
         self.storage = storage
         self.session = session

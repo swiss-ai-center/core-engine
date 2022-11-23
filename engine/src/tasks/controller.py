@@ -1,6 +1,5 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
-
 from common.exception import NotFoundException
 from .service import TasksService
 from common.query_parameters import SkipAndLimit
@@ -20,7 +19,7 @@ router = APIRouter()
     },
     response_model=TaskRead,
 )
-async def get_one(
+def get_one(
         task_id: UUID,
         tasks_service: TasksService = Depends()
 ):
@@ -36,7 +35,7 @@ async def get_one(
     summary="Get many tasks",
     response_model=List[TaskRead],
 )
-async def get_many_tasks(
+def get_many_tasks(
         skip_and_limit: SkipAndLimit = Depends(),
         tasks_service: TasksService = Depends(),
 ):
@@ -50,7 +49,7 @@ async def get_many_tasks(
     summary="Create a task",
     response_model=TaskRead,
 )
-async def create(task: TaskCreate, tasks_service: TasksService = Depends()):
+def create(task: TaskCreate, tasks_service: TasksService = Depends()):
     task_create = Task.from_orm(task)
     task = tasks_service.create(task_create)
 
@@ -66,7 +65,7 @@ async def create(task: TaskCreate, tasks_service: TasksService = Depends()):
     },
     response_model=TaskRead,
 )
-async def update(
+def update(
         task_id: UUID,
         task_update: TaskUpdate,
         tasks_service: TasksService = Depends(),
@@ -83,13 +82,13 @@ async def update(
     "/tasks/{task_id}",
     summary="Delete a task",
     responses={
-        204: {"detail": "Successful Deletion"},
+        204: {"detail": "Task Removed"},
         404: {"detail": "Task Not Found"},
         500: {"detail": "Internal Server Error"},
     },
     status_code=204
 )
-async def delete(
+def delete(
         task_id: UUID,
         tasks_service: TasksService = Depends(),
 ):

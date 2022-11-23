@@ -1,35 +1,98 @@
-from fastapi import APIRouter, Depends
-
-from .models import ServiceModel
+from typing import List
+from fastapi import APIRouter, Depends, HTTPException
+from common.exception import NotFoundException
 from .service import ServicesService
-from logger import Logger
+from common.query_parameters import SkipAndLimit
+from .models import ServiceRead, ServiceUpdate, ServiceCreate, Service
+from uuid import UUID
 
 router = APIRouter()
 
 
-@router.get("/services", summary="Get all services", response_model=ServiceModel)
-async def get_services(services_service: ServicesService = Depends()):
-    pipelines = await services_service.get_services()
-    return pipelines
+@router.get(
+    "/services/{service_id}",
+    summary="Get one service",
+    responses={
+        404: {"detail": "Service Not Found"},
+        400: {"detail": "Bad Request"},
+        500: {"detail": "Internal Server Error"},
+    },
+    response_model=ServiceRead,
+)
+def get_one(
+        service_id: UUID,
+        services_service: ServicesService = Depends()
+):
+    service = services_service.find_one(service_id)
+    if not service:
+        raise HTTPException(status_code=404, detail="Service Not Found")
 
-
-@router.delete("/services/{service_name}", summary="Remove a service")
-async def delete_service(service_name: str, services_service: ServicesService = Depends()):
-    await services_service.delete(service_name)
-
-
-@router.get("/services/{service_name}", summary="Get a service description", response_model=ServiceModel)
-async def getPipeline(service_name: str, services_service: ServicesService = Depends()):
-    service = await services_service.find_one(service_name)
     return service
 
 
-@router.post("/services", summary="Create a new service")
-async def create(service: ServiceModel, services_service: ServicesService = Depends(), logger: Logger = Depends()):
-    service_name = service.api.route
+@router.get(
+    "/services",
+    summary="Get many services",
+    response_model=List[ServiceRead],
+)
+def get_many_services(
+        skip_and_limit: SkipAndLimit = Depends(),
+        services_service: ServicesService = Depends(),
+):
+    services = services_service.find_many(skip_and_limit.skip, skip_and_limit.limit)
+
+    return services
+
+
+@router.post(
+    "/services",
+    summary="Create a service",
+    response_model=ServiceRead,
+)
+def create(service: ServiceCreate, services_service: ServicesService = Depends()):
+    service_create = Service.from_orm(service)
+    service = services_service.create(service_create)
+
+    return service
+
+
+@router.patch(
+    "/services/{service_id}",
+    summary="Update a service",
+    responses={
+        404: {"detail": "Service Not Found"},
+        500: {"detail": "Internal Server Error"},
+    },
+    response_model=ServiceRead,
+)
+def update(
+        service_id: UUID,
+        service_update: ServiceUpdate,
+        services_service: ServicesService = Depends(),
+):
     try:
-        services_service.create(service_name, service)
-    # TODO: create pipeline_from_service
-    except Exception as e:
-        logger.error(e)
-        return {"message": "Service already exists"}
+        service = services_service.update(service_id, service_update)
+    except NotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    return service
+
+
+@router.delete(
+    "/services/{service_id}",
+    summary="Delete a service",
+    responses={
+        204: {"detail": "Service Removed"},
+        404: {"detail": "Service Not Found"},
+        500: {"detail": "Internal Server Error"},
+    },
+    status_code=204
+)
+def delete(
+        service_id: UUID,
+        services_service: ServicesService = Depends(),
+):
+    try:
+        services_service.delete(service_id)
+    except NotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))

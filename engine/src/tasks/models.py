@@ -11,8 +11,8 @@ class TaskBase(CoreModel):
     used in subclasses
     """
     # TODO: change service type to Service
-    service: str = Field(default=None, nullable=False)
-    url: str = Field(default=None, nullable=False)
+    service: str = Field(nullable=False)
+    url: str = Field(nullable=False)
     data_in: List[str] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
     data_out: List[str] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
     status: TaskStatus = Field(default=TaskStatus.PENDING, nullable=False)
@@ -27,7 +27,7 @@ class Task(TaskBase, table=True):
     Task model
     the one that is stored in the database
     """
-    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
 
 
 class TaskRead(TaskBase):
