@@ -10,7 +10,7 @@ from uuid import UUID, uuid4
 class TaskBase(CoreModel):
     """
     Base class for Task
-    used in subclasses
+    This model is used in subclasses
     """
     data_in: List[str] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
     data_out: List[str] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
@@ -25,7 +25,7 @@ class TaskBase(CoreModel):
 class Task(TaskBase, table=True):
     """
     Task model
-    the one that is stored in the database
+    This model is the one that is stored in the database
     """
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     service: Service = Relationship(back_populates="tasks")

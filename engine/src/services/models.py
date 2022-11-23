@@ -2,11 +2,13 @@ from typing import List
 from uuid import UUID, uuid4
 from sqlmodel import Field, SQLModel, Column, JSON, Relationship
 from common.models import CoreModel
+from pipelines.models import PipelineServiceLink
 
 
 class ServiceBase(CoreModel):
     """
     Base class for Service
+    This model is used in subclasses
     """
     name: str = Field(nullable=False)
     url: str = Field(nullable=False)
@@ -25,10 +27,11 @@ class ServiceBase(CoreModel):
 class Service(ServiceBase, table=True):
     """
     Service model
-    the one that is stored in the database
+    This model is the one that is stored in the database
     """
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     tasks: List["Task"] = Relationship(back_populates="service")
+    pipelines: List["Pipeline"] = Relationship(back_populates="services", link_model=PipelineServiceLink)
 
 
 class ServiceRead(ServiceBase):
