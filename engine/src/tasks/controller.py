@@ -47,7 +47,7 @@ def get_many_tasks(
 @router.post(
     "/tasks",
     summary="Create a task",
-    response_model=TaskRead,
+    response_model=TaskReadWithService,
 )
 def create(task: TaskCreate, tasks_service: TasksService = Depends()):
     task_create = Task.from_orm(task)
@@ -63,7 +63,7 @@ def create(task: TaskCreate, tasks_service: TasksService = Depends()):
         404: {"detail": "Task Not Found"},
         500: {"detail": "Internal Server Error"},
     },
-    response_model=TaskRead,
+    response_model=TaskReadWithService,
 )
 def update(
         task_id: UUID,

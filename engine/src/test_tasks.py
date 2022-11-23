@@ -30,11 +30,21 @@ def client_fixture(session: Session):
     app.dependency_overrides.clear()
 
 
-# TODO: check service-name when creating a task
+service_1 = {
+  "name": "service-1",
+  "url": "http://test-service-1.local",
+  "summary": "string",
+  "description": "string",
+  "data_in_fields": [
+    "string"
+  ],
+  "data_out_fields": [
+    "string"
+  ]
+}
 
 task_1 = {
-    "service": "test-service-1",
-    "url": "http://test-service-1.local",
+    "service_id": None,
     "data_in": [
         "http://test-service-1.local/test_in",
     ],
@@ -44,8 +54,7 @@ task_1 = {
 }
 
 task_2 = {
-    "service": "test-service-2",
-    "url": "http://test-service-2.local",
+    "service_id": None,
     "data_in": [
         "http://test-service-2.local/test_in",
     ],
@@ -56,58 +65,87 @@ task_2 = {
 
 
 def test_create_task(client: TestClient):
-    response = client.post("/tasks", json=task_1)
-    response_data = response.json()
+    service_response = client.post("/services", json=service_1)
+    service_response_data = service_response.json()
 
-    assert response.status_code == 200
-    assert response_data["status"] == "pending"
+    task_1["service_id"] = service_response_data["id"]
+
+    task_response = client.post("/tasks", json=task_1)
+    task_response_data = task_response.json()
+
+    assert task_response.status_code == 200
+    assert task_response_data["status"] == "pending"
+    assert task_response_data["service_id"] == service_response_data["id"]
+    assert task_response_data["service"]["name"] == service_response_data["name"]
 
 
 def test_get_task(client: TestClient):
-    response = client.post("/tasks", json=task_1)
-    response_data = response.json()
+    service_response = client.post("/services", json=service_1)
+    service_response_data = service_response.json()
 
-    response = client.get(f"/tasks/{response_data['id']}")
-    response_data = response.json()
+    task_1["service_id"] = service_response_data["id"]
 
-    assert response.status_code == 200
-    assert response_data["status"] == "pending"
+    task_response = client.post("/tasks", json=task_1)
+    task_response_data = task_response.json()
+
+    task_response = client.get(f"/tasks/{task_response_data['id']}")
+    task_response_data = task_response.json()
+
+    assert task_response.status_code == 200
+    assert task_response_data["status"] == "pending"
 
 
 def test_get_tasks(client: TestClient):
+    service_response = client.post("/services", json=service_1)
+    service_response_data = service_response.json()
+
+    task_1["service_id"] = service_response_data["id"]
+    task_2["service_id"] = service_response_data["id"]
+
     client.post("/tasks/", json=task_1)
     client.post("/tasks/", json=task_2)
 
-    response = client.get("/tasks")
-    response_data = response.json()
+    tasks_response = client.get("/tasks")
+    tasks_response_data = tasks_response.json()
 
-    assert response.status_code == 200
-    assert len(response_data) == 2
+    assert tasks_response.status_code == 200
+    assert len(tasks_response_data) == 2
 
 
 def test_delete_task(client: TestClient):
-    response = client.post("/tasks", json=task_1)
-    response_data = response.json()
+    service_response = client.post("/services", json=service_1)
+    service_response_data = service_response.json()
 
-    response = client.delete(f"/tasks/{response_data['id']}")
+    task_1["service_id"] = service_response_data["id"]
 
-    assert response.status_code == 204
+    task_response = client.post("/tasks", json=task_1)
+    task_response_data = task_response.json()
+
+    task_response = client.delete(f"/tasks/{task_response_data['id']}")
+
+    assert task_response.status_code == 204
 
 
 def test_update_task(client: TestClient):
-    response = client.post("/tasks", json=task_1)
-    response_data = response.json()
+    service_response = client.post("/services", json=service_1)
+    service_response_data = service_response.json()
 
-    response = client.patch(
-        f"/tasks/{response_data['id']}",
+    task_1["service_id"] = service_response_data["id"]
+
+    task_response = client.post("/tasks", json=task_1)
+    task_response_data = task_response.json()
+
+    task_response = client.patch(
+        f"/tasks/{task_response_data['id']}",
         json={
             "status": "running"
         }
     )
+    task_response_data = task_response.json()
 
-    assert response.status_code == 200
-    assert response.json()["updated_at"] != "null"
-    assert response.json()["status"] == "running"
+    assert task_response.status_code == 200
+    assert task_response_data["updated_at"] != "null"
+    assert task_response_data["status"] == "running"
 
 
 def test_create_task_no_body(client: TestClient):

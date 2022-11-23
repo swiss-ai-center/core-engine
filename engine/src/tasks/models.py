@@ -12,7 +12,6 @@ class TaskBase(CoreModel):
     Base class for Task
     used in subclasses
     """
-    url: str = Field(nullable=False)
     data_in: List[str] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
     data_out: List[str] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
     status: TaskStatus = Field(default=TaskStatus.PENDING, nullable=False)
