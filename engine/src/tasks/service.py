@@ -1,10 +1,11 @@
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from storage import Storage
 from sqlmodel import Session, select, desc
 from database import get_session
 from logger import Logger
 from uuid import UUID
 from .models import Task, TaskUpdate
+from common.exception import NotFoundException
 
 
 class TasksService:
@@ -29,13 +30,14 @@ class TasksService:
 
     def find_one(self, task_id: UUID):
         self.logger.debug("Find task")
+
         return self.session.get(Task, task_id)
 
     def update(self, task_id: UUID, task: TaskUpdate):
         self.logger.debug("Update task")
         current_task = self.session.get(Task, task_id)
         if not current_task:
-            raise HTTPException(status_code=404, detail="Task Not Found")
+            raise NotFoundException("Task Not Found")
         task_data = task.dict(exclude_unset=True)
         self.logger.debug(f"Updating task {task_id} with data: {task_data}")
         for key, value in task_data.items():
@@ -50,7 +52,7 @@ class TasksService:
         self.logger.debug("Delete task")
         current_task = self.session.get(Task, task_id)
         if not current_task:
-            raise HTTPException(status_code=404, detail="Task Not Found")
+            raise NotFoundException("Task Not Found")
         self.session.delete(current_task)
         self.session.commit()
         self.logger.debug(f"Deleted task with id {current_task.id}")
