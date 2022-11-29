@@ -1,0 +1,30 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python src/prepare.py
+    deps:
+    - path: datasets/145_UCR_Anomaly_Lab2Cmac011215EPG1_5000_17210_17260.txt
+      md5: 92ad5797766697bd9a69e5438fd27976
+      size: 540018
+    - path: src/prepare.py
+      md5: f3c44c1a6635e709ad32cdef394412b7
+      size: 413
+    outs:
+    - path: datasets/prepare
+      md5: 5575b7d5637d414838c7cbb578107a6a.dir
+      size: 480997
+      nfiles: 1
+  model:
+    cmd: python src/model.py
+    deps:
+    - path: datasets/prepare/145_UCR_Anomaly_Lab2Cmac011215EPG1_5000_17210_17260.pkl
+      md5: 63a04ea0019c9de24adb66ed890c2f30
+      size: 480997
+    - path: src/model.py
+      md5: 4a16ed35280b8533bea7b4dd1c6308ad
+      size: 710
+    outs:
+    - path: results
+      md5: 7366033cef6be9ec8111442169d75984.dir
+      size: 210006
+      nfiles: 1
