@@ -1,4 +1,5 @@
 [core]
-    remote = myremote
-['remote "myremote"']
-    url = ../tmp/dvcstore
+    remote = minio
+['remote "minio"']
+    url = s3://stat-anno-detect
+    endpointurl = https://console-minio-csia-pme.kube.isc.heia-fr.ch/
