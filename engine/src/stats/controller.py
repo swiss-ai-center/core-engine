@@ -8,6 +8,6 @@ router = APIRouter()
 
 @router.get("/stats", summary="Get engine and pipelines statistics")
 async def get_stats(stats_service: StatsService = Depends()):
-    stats = await stats_service.stats()
+    stats = stats_service.stats()
 
     return JSONResponse(stats)

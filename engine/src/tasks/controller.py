@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from common.exception import NotFoundException
 from .service import TasksService
 from common.query_parameters import SkipAndLimit
-from .models import TaskRead, TaskUpdate, TaskCreate, Task, TaskReadWithService
+from .models import TaskRead, TaskUpdate, TaskCreate, Task, TaskReadWithServiceAndPipeline
 from uuid import UUID
 
 router = APIRouter()
@@ -17,7 +17,7 @@ router = APIRouter()
         400: {"detail": "Bad Request"},
         500: {"detail": "Internal Server Error"},
     },
-    response_model=TaskReadWithService,
+    response_model=TaskReadWithServiceAndPipeline,
 )
 def get_one(
         task_id: UUID,
@@ -33,7 +33,7 @@ def get_one(
 @router.get(
     "/tasks",
     summary="Get many tasks",
-    response_model=List[TaskReadWithService],
+    response_model=List[TaskReadWithServiceAndPipeline],
 )
 def get_many_tasks(
         skip_and_limit: SkipAndLimit = Depends(),
@@ -47,7 +47,7 @@ def get_many_tasks(
 @router.post(
     "/tasks",
     summary="Create a task",
-    response_model=TaskReadWithService,
+    response_model=TaskReadWithServiceAndPipeline,
 )
 def create(task: TaskCreate, tasks_service: TasksService = Depends()):
     task_create = Task.from_orm(task)
@@ -63,7 +63,7 @@ def create(task: TaskCreate, tasks_service: TasksService = Depends()):
         404: {"detail": "Task Not Found"},
         500: {"detail": "Internal Server Error"},
     },
-    response_model=TaskReadWithService,
+    response_model=TaskReadWithServiceAndPipeline,
 )
 def update(
         task_id: UUID,

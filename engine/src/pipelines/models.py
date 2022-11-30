@@ -1,9 +1,8 @@
 from typing import List
-from sqlmodel import Field, SQLModel, Relationship, Column, JSON
+from sqlmodel import Field, SQLModel, Relationship
 
 from common.models import CoreModel
 from uuid import UUID, uuid4
-
 
 class PipelineServiceLink(SQLModel, table=True):
     """
@@ -31,6 +30,7 @@ class Pipeline(PipelineBase, table=True):
     """
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     services: List["Service"] = Relationship(back_populates="pipelines", link_model=PipelineServiceLink)
+    tasks: List["Task"] = Relationship(back_populates="pipeline")
 
 
 class PipelineRead(PipelineBase):
@@ -41,13 +41,15 @@ class PipelineRead(PipelineBase):
     id: UUID
 
 
-class PipelineReadWithService(PipelineRead):
+class PipelineReadWithServiceAndTask(PipelineRead):
     """
     Pipeline read model with service
     This model is used to return a pipeline to the user with the service
     """
     from services.models import ServiceRead
+    from tasks.models import TaskRead
     services: List[ServiceRead]
+    tasks: List[TaskRead]
 
 
 class PipelineCreate(PipelineBase):
