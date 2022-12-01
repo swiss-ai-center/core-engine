@@ -28,7 +28,7 @@ function Copyright() {
             <Grid item xs={6}>
                 <Typography variant="body2" color="text.secondary" align="left">
                     {'Copyright © '}
-                    <Link color="inherit" href="https://hes-so.ch/">
+                    <Link color="inherit" href="https://hes-so.ch/" target={"_blank"}>
                         HES-SO
                     </Link>{' '}
                     {new Date().getFullYear()}
@@ -37,11 +37,11 @@ function Copyright() {
             </Grid>
             <Grid item display={"flex"} justifyContent={"flex-end"} xs={6}>
                 <Typography variant="body2" color="text.secondary" component={"span"}>
-                    <Link color="inherit" href="https://swiss-ai-center.ch/">
+                    <Link color="inherit" href="https://swiss-ai-center.ch/" target={"_blank"}>
                         Official Website
                     </Link>
                     {' | '}
-                    <Link color="inherit" href="https://github.com/csia-pme/csia-pme/">
+                    <Link color="inherit" href="https://github.com/csia-pme/csia-pme/" target={"_blank"}>
                         GitHub
                     </Link>
                 </Typography>

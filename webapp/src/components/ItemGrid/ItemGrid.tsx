@@ -1,12 +1,12 @@
 import React from 'react';
 import { Button, Card, CardActions, CardContent, Grid, Typography } from '@mui/material';
-import { getServices } from '../../utils/api';
+import { getPipelines, getServices } from '../../utils/api';
 import { Link } from 'react-router-dom';
 
 import "./styles.css";
 import { useNotification } from '../../utils/useNotification';
 
-const MyGrid: React.FC = () => {
+const ItemGrid: React.FC = () => {
     const [pipelines, setPipelines] = React.useState([]);
     const [services, setServices] = React.useState([]);
     const {displayNotification} = useNotification();
@@ -14,6 +14,7 @@ const MyGrid: React.FC = () => {
     const listServices = async () => {
         const services = await getServices();
         if (services) {
+            console.log(services);
             setServices(services);
         } else {
             setServices([]);
@@ -22,7 +23,7 @@ const MyGrid: React.FC = () => {
     }
 
     const listPipelines = async () => {
-        const pipes = await getServices('pipeline');
+        const pipes = await getPipelines();
         if (pipes) {
             setPipelines(pipes);
         } else {
@@ -34,6 +35,7 @@ const MyGrid: React.FC = () => {
     React.useEffect(() => {
         listServices();
         listPipelines();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -57,14 +59,14 @@ const MyGrid: React.FC = () => {
                                     >
                                         <CardContent sx={{flexGrow: 1}}>
                                             <Typography gutterBottom variant="h5" component="h2">
-                                                {item.nodes[0].api.route}
+                                                {item.name}
                                             </Typography>
                                             <Typography>
-                                                {item.nodes[0].api.summary}
+                                                {item.summary}
                                             </Typography>
                                         </CardContent>
                                         <CardActions>
-                                            <a href={"/showcase?name=" + item.nodes[0].api.route + "&summary=" + item.nodes[0].api.summary}>
+                                            <a href={"/showcase?id=" + item.id + "&summary=" + item.summary + "&type=service"}>
                                                 <Button size="small">View</Button>
                                             </a>
                                         </CardActions>
@@ -93,14 +95,14 @@ const MyGrid: React.FC = () => {
                                     >
                                         <CardContent sx={{flexGrow: 1}}>
                                             <Typography gutterBottom variant="h5" component="h2">
-                                                {item.nodes[0].api.route}
+                                                {item.name}
                                             </Typography>
                                             <Typography>
-                                                {item.nodes[0].api.summary}
+                                                {item.summary}
                                             </Typography>
                                         </CardContent>
                                         <CardActions>
-                                            <Link to={"/showcase?name=" + item.nodes[0].api.route}>
+                                            <Link to={"/showcase?id=" + item.id + "&summary=" + item.summary + "&type=pipeline"}>
                                                 <Button size="small">View</Button>
                                             </Link>
                                         </CardActions>
@@ -113,4 +115,4 @@ const MyGrid: React.FC = () => {
     );
 }
 
-export default MyGrid;
+export default ItemGrid;

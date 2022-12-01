@@ -5,19 +5,21 @@ const nodeHeight = 215;
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-export default function DrawGraph(serviceConfiguration: { nodes?: any; } | null) {
-
+export default function DrawGraph(serviceConfiguration: { services?: any; } | null) {
+    console.log(serviceConfiguration)
     let nodes: any[] = [];
     let edges: any[] = [];
 
     if (serviceConfiguration !== null && Object.keys(serviceConfiguration).length > 0) {
-        const nodesConfig = serviceConfiguration.nodes;
+        const nodesConfig = serviceConfiguration.services;
 
         for (let idx in nodesConfig) {
+            console.log(nodesConfig[idx])
             const node = nodesConfig[idx];
 
             if (node.type !== "loop") {
                 const newNode = getNode(node);
+                console.log(newNode)
                 const newEdges = getEdge(newNode);
                 nodes = [...nodes, newNode];
                 edges = [...edges, newEdges];
@@ -173,9 +175,9 @@ function getNode(node: any) {
         next: next,
         data: {
             label: label,
-            body: node.api?.body ? node.api.body : null,
+            body: node.data_in_fields ? node.data_in_fields : null,
             bodyType: node.api?.bodyType ? node.api.bodyType : null,
-            resultType: node.api?.resultType ? node.api.resultType : null,
+            resultType: node.data_out_fields ? node.data_out_fields : null,
         },
         position: {x: 0, y: 0},
     };

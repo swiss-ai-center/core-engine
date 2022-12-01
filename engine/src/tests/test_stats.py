@@ -118,7 +118,7 @@ def test_stats(client: TestClient):
     assert stats_response_data["tasks"]["total"] == 2
     assert stats_response_data["tasks"]["finished"] == 1
     assert stats_response_data["tasks"]["pending"] == 1
-    assert len(stats_response_data["services"]) == 1
+    assert len(stats_response_data["services"]) == 2
     assert len(stats_response_data["pipelines"]) == 1
     assert stats_response_data["services"][service_1["name"]] == 1
     assert stats_response_data["pipelines"][pipeline_1["name"]] == 1
@@ -134,7 +134,7 @@ def test_stats(client: TestClient):
     assert stats_response_data["tasks"]["finished"] == 1
     assert stats_response_data["tasks"]["pending"] == 2
     assert stats_response_data["tasks"]["running"] == 1
-    assert len(stats_response_data["services"]) == 1
+    assert len(stats_response_data["services"]) == 2
     assert len(stats_response_data["pipelines"]) == 1
     assert stats_response_data["services"][service_1["name"]] == 2
     assert stats_response_data["pipelines"][pipeline_1["name"]] == 2
@@ -148,7 +148,7 @@ def test_stats(client: TestClient):
     assert stats_response_data["tasks"]["finished"] == 1
     assert stats_response_data["tasks"]["pending"] == 2
     assert stats_response_data["tasks"]["error"] == 1
-    assert len(stats_response_data["services"]) == 1
+    assert len(stats_response_data["services"]) == 2
     assert len(stats_response_data["pipelines"]) == 1
     assert stats_response_data["services"][service_1["name"]] == 2
     assert stats_response_data["pipelines"][pipeline_1["name"]] == 2
@@ -162,7 +162,7 @@ def test_stats(client: TestClient):
     assert stats_response_data["tasks"]["finished"] == 1
     assert stats_response_data["tasks"]["pending"] == 2
     assert stats_response_data["tasks"]["unavailable"] == 1
-    assert len(stats_response_data["services"]) == 1
+    assert len(stats_response_data["services"]) == 2
     assert len(stats_response_data["pipelines"]) == 1
     assert stats_response_data["services"][service_1["name"]] == 2
     assert stats_response_data["pipelines"][pipeline_1["name"]] == 2

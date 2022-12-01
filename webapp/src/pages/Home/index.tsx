@@ -1,6 +1,6 @@
 import { Box, Container, Typography } from '@mui/material';
 import React from 'react';
-import MyGrid from '../../components/Grid/MyGrid';
+import ItemGrid from '../../components/ItemGrid/ItemGrid';
 
 
 const Home: React.FC = () => {
@@ -28,7 +28,7 @@ const Home: React.FC = () => {
                     </Container>
                 </Box>
                 <Container sx={{py: 8}} maxWidth="lg">
-                    <MyGrid/>
+                    <ItemGrid/>
                 </Container>
             </main>
         </Container>

@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Button, Container, Tab, Tabs, Typography } from '@mui/material';
 import { Link, useSearchParams } from 'react-router-dom';
 import Board from '../../components/Board/Board';
-import { getServiceDescription } from '../../utils/api';
+import { getPipelineDescription, getServiceDescription } from '../../utils/api';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
 import PipelineConfiguration from '../../components/PipelineConfiguration/PipelineConfiguration';
 import { ArrowBack, Fullscreen } from '@mui/icons-material';
@@ -46,30 +46,36 @@ function TabPanel(props: TabPanelProps) {
 const Showcase: React.FC = () => {
     const [searchParams] = useSearchParams();
     const { displayNotification } = useNotification();
-    const name = searchParams.get('name') || '';
+    const id = searchParams.get('id') || '';
     const summary = searchParams.get('summary') || '';
+    const type = searchParams.get('type') || '';
 
     const [value, setValue] = React.useState(0);
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
     };
 
-    const [services, setServices] = React.useState<any>([]);
+    const [description, setDescription] = React.useState<any>([]);
 
     const handle = useFullScreenHandle();
 
-    const getPipeline = async (name: any) => {
-        const pipeline = await getServiceDescription(name);
-        if (pipeline) {
-            setServices(pipeline);
+    const getDescription = async (id: string, type: string) => {
+        let desc = {};
+        if (type === 'service') {
+            desc = await getServiceDescription(id);
         } else {
-            setServices([]);
-            displayNotification({message: "No pipeline found", type: "info"});
+            desc = await getPipelineDescription(id);
+        }
+        if (desc) {
+            setDescription(desc);
+        } else {
+            setDescription([]);
+            displayNotification({message: "No description found", type: "warning"});
         }
     }
 
     React.useEffect(() => {
-        getPipeline(name);
+        getDescription(id, type);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -90,7 +96,7 @@ const Showcase: React.FC = () => {
                             color="text.primary"
                             gutterBottom
                         >
-                            {name}
+                            {description.name}
                         </Typography>
                         <Typography variant="h5" align="center" color="text.secondary" paragraph>
                             {summary}
@@ -119,7 +125,7 @@ const Showcase: React.FC = () => {
                                     borderRadius: '5px',
                                     borderColor: 'primary.main'
                                 }}>
-                                <Board services={services}/>
+                                <Board description={description}/>
                             </Box>
                         </FullScreen>
                     </TabPanel>
@@ -130,7 +136,7 @@ const Showcase: React.FC = () => {
                             borderColor: 'primary.main',
                             p: 2
                         }}>
-                            <PipelineConfiguration service={services} show={true}/>
+                            <PipelineConfiguration description={description} show={true}/>
                         </Box>
                     </TabPanel>
                     <TabPanel value={value} index={2}>

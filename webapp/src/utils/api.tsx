@@ -1,14 +1,29 @@
-export const getServices = async (type: string = 'service') => {
+export const getServices = async () => {
     const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services`);
     if (response) {
-        const data = await response.json();
-        return data.filter((pipeline: any) => pipeline.type === type);
+        return await response.json();
     }
     return [];
 }
 
-export const getServiceDescription = async (name: string) => {
-    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + name);
+export const getPipelines = async () => {
+    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines`);
+    if (response) {
+        return await response.json();
+    }
+    return [];
+}
+
+export const getServiceDescription = async (id: string) => {
+    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + id);
+    if (response) {
+        return await response.json();
+    }
+    return [];
+}
+
+export const getPipelineDescription = async (id: string) => {
+    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines/` + id);
     if (response) {
         return await response.json();
     }

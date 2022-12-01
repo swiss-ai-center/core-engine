@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pipelines.controller import router as pipelines_router
 from services.controller import router as services_router
 from stats.controller import router as stats_router
@@ -28,6 +29,14 @@ app = FastAPI(
     #     "name": "",
     #     "url": "",
     # },
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Include routers from other files

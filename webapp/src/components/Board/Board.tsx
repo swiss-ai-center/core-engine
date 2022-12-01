@@ -16,7 +16,7 @@ import { FullscreenExit } from '@mui/icons-material';
 
 import "./styles.css";
 
-const Board: React.FC<{services: any}> = ({services}) => {
+const Board: React.FC<{description: any}> = ({description}) => {
     const nodeTypes = useMemo(() => ({ customNode: SelectorNode }), []);
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -38,11 +38,11 @@ const Board: React.FC<{services: any}> = ({services}) => {
     }
 
     useEffect(() => {
-        const {nodes: layoutedNodes, edges: layoutedEdges} = DrawGraph(services);
+        const {nodes: layoutedNodes, edges: layoutedEdges} = DrawGraph(description);
         setNodes([...layoutedNodes]);
         setEdges([...layoutedEdges]);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [services])
+    }, [description])
 
     return (
         <ReactFlowProvider>

@@ -8,7 +8,7 @@ import {
     CardActions,
     CardContent, CircularProgress,
     Divider,
-    Input, LinearProgress,
+    Input,
     Tooltip,
     Typography
 } from '@mui/material';
@@ -136,7 +136,8 @@ const CustomNode = ({data, styles}: any) => {
             >
                 <CardContent sx={{flexGrow: 1}}>
                     <Typography variant={"subtitle1"} color={"secondary"}>{data.label}</Typography>
-                    {(data.body) ?
+                    {// TODO : correct this when FieldDescription is available in backend
+                        /*(data.body) ?
                         array.map((item: any, index: number) => {
                             return (
                                 <div key={`div-${index}`}>
@@ -165,9 +166,9 @@ const CustomNode = ({data, styles}: any) => {
                         })
                         :
                         <Typography></Typography>
-                    }
+                    */}
                 </CardContent>
-                {(data.label.includes("entry")) ?
+                {/*(data.label.includes("entry")) ?
                     (
                         <CardActions>
                             {actionContent()}
@@ -182,10 +183,10 @@ const CustomNode = ({data, styles}: any) => {
                                     onClick={downloadResult}>Download</Button>
                         </CardActions>)
                     :
-                    (<></>)}
+                    (<></>)*/}
             </Card>
 
-            {(!data.label.includes("entry")) ?
+            {/*(!data.label.includes("entry")) ?
                 <Handle
                     type="target"
                     position={Position.Left}
@@ -194,7 +195,7 @@ const CustomNode = ({data, styles}: any) => {
                 <Handle
                     type="source"
                     position={Position.Right}
-                /> : <></>}
+                /> : <></>*/}
         </>
     );
 };

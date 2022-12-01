@@ -1,3 +1,4 @@
+from pipelines.models import Pipeline
 from services.models import Service
 from tasks.models import TaskStatus
 from logger import Logger
@@ -26,22 +27,25 @@ class StatsService:
 
         services_tasks_count = dict()
         pipeline_tasks_count = dict()
+
+        services_list = self.session.query(Service).all()
+        for service in services_list:
+            services_tasks_count[service.name] = 0
+
+        pipeline_list = self.session.query(Pipeline).all()
+        for pipeline in pipeline_list:
+            pipeline_tasks_count[pipeline.name] = 0
+
         for task in task_service:
             if task.pipeline is not None:
-                if task.pipeline.name not in pipeline_tasks_count:
-                    pipeline_tasks_count[task.pipeline.name] = 1
-                else:
-                    pipeline_tasks_count[task.pipeline.name] += 1
+                pipeline_tasks_count[task.pipeline.name] += 1
             else:
-                if task.service.name not in services_tasks_count:
-                    services_tasks_count[task.service.name] = 1
-                else:
-                    services_tasks_count[task.service.name] += 1
+                services_tasks_count[task.service.name] += 1
 
         task_total = self.session.query(Task).count()
 
         task_status_count = self.session.query(Task.status, func.count(Task.status)).group_by(Task.status).all()
-        self.logger.info(task_status_count)
+
         for task in task_status_count:
             if task[0] == TaskStatus.RUNNING:
                 running = task[1]
