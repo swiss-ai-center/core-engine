@@ -33,7 +33,7 @@ def get_one(
 @router.get(
     "/tasks",
     summary="Get many tasks",
-    response_model=List[TaskReadWithServiceAndPipeline],
+    response_model=List[TaskRead],
 )
 def get_many_tasks(
         skip_and_limit: SkipAndLimit = Depends(),
