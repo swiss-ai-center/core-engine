@@ -1,5 +1,8 @@
+import re
 from typing import List
 from uuid import UUID, uuid4
+
+from pydantic.class_validators import validator
 from sqlmodel import Field, SQLModel, Column, JSON, Relationship
 from typing import TypedDict
 from common.models import CoreModel
@@ -12,7 +15,7 @@ class FieldDescription(TypedDict):
     Field description
     """
     name: str
-    type: FieldDescriptionType
+    type: List[FieldDescriptionType]
 
 
 class ServiceBase(CoreModel):
@@ -21,11 +24,18 @@ class ServiceBase(CoreModel):
     This model is used in subclasses
     """
     name: str = Field(nullable=False)
+    slug: str = Field(nullable=False, unique=True)
     url: str = Field(nullable=False)
     summary: str = Field(nullable=False)
     description: str | None = Field(default=None, nullable=True)
     data_in_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
     data_out_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
+
+    @validator("slug")
+    def slug_format(cls, v):
+        if not re.match(r"[a-z\-]+", v):
+            raise ValueError("Slug must be in kebab-case format. Example: my-service")
+        return v
 
     # Needed for Column(JSON) to work
     class Config:
@@ -73,6 +83,7 @@ class ServiceUpdate(SQLModel):
     This model is used to update a service
     """
     name: str | None
+    slug: str | None
     url: str | None
     summary: str | None
     description: str | None

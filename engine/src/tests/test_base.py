@@ -32,6 +32,7 @@ def client_fixture(session: Session):
 
 def test_default_route(client: TestClient):
     response = client.get("/")
+    # TODO: check to use the status code 301 for redirect
     assert response.status_code == 200
 
 

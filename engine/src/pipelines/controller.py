@@ -34,7 +34,7 @@ def get_one(
 @router.get(
     "/pipelines",
     summary="Get many pipelines",
-    response_model=List[Pipeline],
+    response_model=List[PipelineRead],
 )
 def get_many_pipelines(
         skip_and_limit: SkipAndLimit = Depends(),
