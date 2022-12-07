@@ -1,8 +1,18 @@
 from typing import List
 from uuid import UUID, uuid4
 from sqlmodel import Field, SQLModel, Column, JSON, Relationship
+from typing import TypedDict
 from common.models import CoreModel
 from pipelines.models import PipelineServiceLink
+from .enums import FieldDescriptionType
+
+
+class FieldDescription(TypedDict):
+    """
+    Field description
+    """
+    name: str
+    type: FieldDescriptionType
 
 
 class ServiceBase(CoreModel):
@@ -14,10 +24,8 @@ class ServiceBase(CoreModel):
     url: str = Field(nullable=False)
     summary: str = Field(nullable=False)
     description: str | None = Field(default=None, nullable=True)
-    # TODO: Should the `List[str]` be `List[FieldDescription]` where `FieldDesciption` consists of properties `name`, `type`?
-    data_in_fields: List[str] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
-    # TODO: Should the `List[str]` be `List[FieldDescription]` where `FieldDesciption` consists of properties `name`, `type`?
-    data_out_fields: List[str] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
+    data_in_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
+    data_out_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
 
     # Needed for Column(JSON) to work
     class Config:
