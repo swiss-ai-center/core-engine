@@ -43,6 +43,10 @@ To configure your credentials for DVC do not use the `dvc remote modify` instead
 pip install awscli
 ```
 
+Use aws configure to add your Access Key ID and your Secret Access Key
+```sh
+aws configure
+```
 
 # Add your dataset
 
@@ -51,4 +55,7 @@ Modify the path for your dataset
 dvc add path/data.csv
 ```
 
-# 
+Push to DVC
+```sh
+dvc push
+```
