@@ -31,15 +31,26 @@ def client_fixture(session: Session):
 
 
 service_1 = {
-  "name": "service-1",
+  "name": "Service 1",
+  "slug": "service-1",
   "url": "http://test-service-1.local",
   "summary": "string",
   "description": "string",
   "data_in_fields": [
-    "string"
+    {
+      "name": "string",
+      "type": [
+        "image/jpeg"
+      ]
+    }
   ],
   "data_out_fields": [
-    "string"
+    {
+      "name": "string",
+      "type": [
+        "image/jpeg"
+      ]
+    }
   ]
 }
 

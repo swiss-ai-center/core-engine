@@ -31,28 +31,50 @@ def client_fixture(session: Session):
 
 
 service_1 = {
-  "name": "service-1",
+  "name": "Service 1",
+  "slug": "service-1",
   "url": "http://test-service-1.local",
   "summary": "string",
   "description": "string",
   "data_in_fields": [
-    "string"
+    {
+      "name": "string",
+      "type": [
+        "image/jpeg"
+      ]
+    }
   ],
   "data_out_fields": [
-    "string"
+    {
+      "name": "string",
+      "type": [
+        "image/jpeg"
+      ]
+    }
   ]
 }
 
 service_2 = {
-  "name": "service-2",
+  "name": "Service 2",
+  "slug": "service-2",
   "url": "http://test-service-2.local",
   "summary": "string",
   "description": "string",
   "data_in_fields": [
-    "string"
+    {
+      "name": "string",
+      "type": [
+        "image/jpeg"
+      ]
+    }
   ],
   "data_out_fields": [
-    "string"
+    {
+      "name": "string",
+      "type": [
+        "image/jpeg"
+      ]
+    }
   ]
 }
 
@@ -113,6 +135,14 @@ def test_create_service_no_body(client: TestClient):
     response = client.post("/services")
 
     assert response.status_code == 422
+
+
+def test_create_service_bad_slug(client: TestClient):
+    service_1["slug"] = "Bad Slug"
+
+    service_response = client.post("/services", json=service_1)
+
+    assert service_response.status_code == 422
 
 
 def test_read_service_non_existent(client: TestClient):

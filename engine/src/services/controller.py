@@ -50,7 +50,6 @@ def get_many_services(
     response_model=ServiceRead,
 )
 def create(request: Request, service: ServiceCreate, services_service: ServicesService = Depends()):
-    print(service.__dict__)
     service_create = Service.from_orm(service)
     service = services_service.create(service_create, request.app)
 

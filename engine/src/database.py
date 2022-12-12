@@ -1,7 +1,5 @@
-from functools import lru_cache
 from fastapi import Depends
 from sqlmodel import Session, SQLModel, create_engine
-from sqlmodel.pool import StaticPool
 from config import Settings, get_settings
 
 

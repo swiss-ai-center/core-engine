@@ -30,12 +30,6 @@ def client_fixture(session: Session):
     app.dependency_overrides.clear()
 
 
-def test_default_route(client: TestClient):
-    response = client.get("/")
-    # TODO: check to use the status code 301 for redirect
-    assert response.status_code == 200
-
-
 def test_logger(caplog: pytest.LogCaptureFixture):
     from logger import Logger
     logger = Logger()
@@ -54,10 +48,3 @@ def test_logger(caplog: pytest.LogCaptureFixture):
     caplog.set_level("DEBUG")
     logger.debug(message="test_debug")
     assert "test_debug" in caplog.text
-
-
-# TODO: update tests when storage is implemented
-def test_storage():
-    from storage import Storage
-    storage = Storage()
-    storage.coucou()
