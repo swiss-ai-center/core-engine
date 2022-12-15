@@ -7,9 +7,14 @@ from sqlmodel import Session, select, desc
 from database import get_session
 from logger import Logger
 from uuid import UUID
-from .models import Service, ServiceUpdate, ServiceRead
+from .models import Service, ServiceUpdate
 from common.exception import NotFoundException
 
+
+def strToArray(string):
+    if string is None:
+        return []
+    return string.strip('][').replace(" ", "").split(",")
 
 class ServicesService:
     def __init__(self, logger: Logger = Depends(), storage: Storage = Depends(),
@@ -17,11 +22,6 @@ class ServicesService:
         self.logger = logger
         self.storage = storage
         self.session = session
-
-    def strToArray(self, string):
-        if string is None:
-            return []
-        return string.strip('][').replace(" ", "").split(",")
 
     def addRoute(self, app, id, name, slug, url, summary=None, description=None, data_in_fields=None,
                  data_out_fields=None):
@@ -118,3 +118,39 @@ class ServicesService:
         self.session.delete(current_service)
         self.session.commit()
         self.logger.debug(f"Deleted service with id {current_service.id}")
+
+    def check_service_availability(self, service_slug: str):
+        self.logger.info(f"Checking service availability for service {service_slug}")
+        # TODO: check if service is available with a ping
+        return True
+
+    def instantiate_services(self, app: FastAPI):
+        self.logger.info("Instantiating services")
+        services = self.find_many()
+        for service in services:
+            self.logger.info(f"Instantiating service {service.name}")
+            # TODO: check if service is available
+            if self.check_service_availability(service.slug):
+                self.addRoute(app, service.id, service.name, service.slug, service.url, service.summary, service.description,
+                              service.data_in_fields, service.data_out_fields)
+                self.logger.info(f"Service {service.name} instantiated")
+            else:
+                self.logger.warning(f"Service {service.name} is not available")
+                self.session.delete(service)
+        self.logger.info("Services instantiated")
+
+
+    async def check_services_availability(self, app_ref: FastAPI):
+        self.logger.info("Checking services availability")
+        services = self.find_many()
+        for service in services:
+            try:
+                if self.check_service_availability(service.slug):
+                    self.logger.info(f"Service {service.name} is available")
+                else:
+                    self.logger.warning(f"Service {service.name} is not available")
+                    self.session.delete(service)
+
+            except Exception as e:
+                self.logger.error(f"Service {service.name} is not available: {e}")
+
