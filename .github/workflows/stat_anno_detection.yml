@@ -27,11 +27,6 @@ jobs:
           aws-access-key-id: ${{ secrets.DIGIT_RECOGNITION_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.DIGIT_RECOGNITION_AWS_SECRET_ACCESS_KEY }}
 
-      - name: Lint Python app
-        uses: ./.github/actions/lint-python-app
-        with:
-          python-app-path: ./services/stat_anno_detection/model_serving
-
       - name: Build and push Docker image to GitHub
         # Only run on main
         if: github.ref == 'refs/heads/main'
