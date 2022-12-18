@@ -23,7 +23,7 @@ jobs:
       - name: Run ML experiment with DVC
         uses: ./.github/actions/run-ml-experiment-with-dvc
         with:
-          ml-experiment-path: ./services/digit_recognition/model_creation
+          ml-experiment-path: ./services/stat_anno_detection/model_creation
           aws-access-key-id: ${{ secrets.MINIO_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.MINIO_AWS_SECRET_ACCESS_KEY }}
 
@@ -49,10 +49,10 @@ jobs:
         working-directory: services/stat_anno_detection/model_serving/kubernetes
         env:
           APP_ENGINE: https://engine-csia-pme.kube.isc.heia-fr.ch
-          APP_SERVICE: https://digit-recognition-csia-pme.kube.isc.heia-fr.ch
+          APP_SERVICE: https://stat-anno-detection-csia-pme.kube.isc.heia-fr.ch
         run: |
           # Set digit_recognition configuration
-          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' digit-recognition.config-map.yml | envsubst > new-digit-recognition.config-map.yml && mv new-digit-recognition.config-map.yml digit-recognition.config-map.yml
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' stat-anno-detection.config-map.yml | envsubst > new-stat-anno-detection.config-map.yml && mv new-stat-anno-detection.config-map.yml stat-anno-detection.config-map.yml
 
       - name: Deploy digit_recognition on Kubernetes cluster
         # Only run on main
@@ -61,10 +61,10 @@ jobs:
         with:
           kube-config: ${{ secrets.KUBE_CONFIG }}
           kube-namespace: csia-pme-prod
-          kubectl-context: ./services/digit_recognition/model_serving/kubernetes
+          kubectl-context: ./services/stat_anno_detection/model_serving/kubernetes
           kubectl-args: |
             apply \
-              -f digit-recognition.config-map.yml \
-              -f digit-recognition.stateful.yml \
-              -f digit-recognition.service.yml \
-              -f digit-recognition.ingress.yml
+              -f stat-anno-detection.config-map.yml \
+              -f stat-anno-detection.stateful.yml \
+              -f stat-anno-detection.service.yml \
+              -f stat-anno-detection.ingress.yml
