@@ -26,4 +26,3 @@ __pycache__/
 
 .DS_Store
 
-services/stat_anno_detection/model_creation/datasets/
