@@ -25,3 +25,5 @@ __pycache__/
 ## macOS
 
 .DS_Store
+
+services/stat_anno_detection/model_creation/datasets/

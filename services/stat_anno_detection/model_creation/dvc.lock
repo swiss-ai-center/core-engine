@@ -21,10 +21,10 @@ stages:
       md5: 63a04ea0019c9de24adb66ed890c2f30
       size: 480997
     - path: src/model.py
-      md5: 4a16ed35280b8533bea7b4dd1c6308ad
-      size: 710
+      md5: b915512cd0fb7d6da92397852cff5db2
+      size: 922
     outs:
     - path: results
-      md5: 7366033cef6be9ec8111442169d75984.dir
-      size: 210006
+      md5: b1fc9f40b55414fab905eaa2c78951d1.dir
+      size: 240
       nfiles: 1

@@ -1,8 +1,6 @@
 [core]
-    remote = minio2
+    autostage = true
+    remote = minio
 ['remote "minio"']
     url = s3://stat-anno-detect
-    endpointurl = https://console-minio-csia-pme.kube.isc.heia-fr.ch/
-['remote "minio2"']
-    url = s3://stat-anno-detect
-    endpointurl = https://minio1.isc.heia-fr.ch:9015
+    endpointurl = https://minio-csia-pme.kube.isc.heia-fr.ch/
