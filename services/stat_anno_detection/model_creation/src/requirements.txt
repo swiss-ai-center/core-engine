@@ -1,4 +1,4 @@
-dvc
+dvc[s3]
 pandas
 adtk
 matplotlib
