@@ -24,8 +24,8 @@ jobs:
         uses: ./.github/actions/run-ml-experiment-with-dvc
         with:
           ml-experiment-path: ./services/stat_anno_detection/model_creation
-          aws-access-key-id: ${{ secrets.MINIO_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.MINIO_AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.DIGIT_RECOGNITION_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DIGIT_RECOGNITION_AWS_SECRET_ACCESS_KEY }}
 
       - name: Lint Python app
         uses: ./.github/actions/lint-python-app
