@@ -7,21 +7,21 @@ stages:
       md5: 92ad5797766697bd9a69e5438fd27976
       size: 540018
     - path: src/prepare.py
-      md5: f3c44c1a6635e709ad32cdef394412b7
-      size: 413
+      md5: 140eaa74c45c05afd2b9cf65e6731b95
+      size: 430
     outs:
     - path: datasets/prepare
-      md5: 5575b7d5637d414838c7cbb578107a6a.dir
-      size: 480997
+      md5: 3fd1ed3b1a56fe1d1a22f5ab0f54f2d5.dir
+      size: 86786
       nfiles: 1
   model:
     cmd: python src/model.py
     deps:
-    - path: datasets/prepare/145_UCR_Anomaly_Lab2Cmac011215EPG1_5000_17210_17260.pkl
-      md5: 63a04ea0019c9de24adb66ed890c2f30
-      size: 480997
+    - path: datasets/prepare/145_UCR_Anomaly_Lab2Cmac011215EPG1_5000_17210_17260.zip
+      md5: 3c560d5204e1d8f3ffcaf74cf3d61754
+      size: 86786
     - path: src/model.py
-      md5: b915512cd0fb7d6da92397852cff5db2
+      md5: a5cfa8ae801a1acc963aaaf9715aeebb
       size: 922
     outs:
     - path: results

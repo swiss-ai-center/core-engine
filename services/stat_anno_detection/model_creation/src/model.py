@@ -7,7 +7,7 @@ import json
 
 
 def main():
-    df = pd.read_pickle("datasets/prepare/145_UCR_Anomaly_Lab2Cmac011215EPG1_5000_17210_17260.pkl")
+    df = pd.read_pickle("datasets/prepare/145_UCR_Anomaly_Lab2Cmac011215EPG1_5000_17210_17260.zip")
     esd_ad = GeneralizedESDTestAD(alpha=0.3)
     anomalies = esd_ad.fit_detect(df["value"])
     Path("results").mkdir(parents=True, exist_ok=True)
