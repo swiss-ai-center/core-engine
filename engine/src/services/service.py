@@ -136,6 +136,8 @@ class ServicesService:
                 self.logger.info(f"Service {service.name} instantiated")
             else:
                 self.logger.warning(f"Service {service.name} is not available")
+                # TODO: remove route
+                # TODO: check if remove or set unavailable
                 self.session.delete(service)
         self.logger.info("Services instantiated")
 
@@ -146,9 +148,12 @@ class ServicesService:
         for service in services:
             try:
                 if self.check_service_availability(service.slug):
+                    # TODO: check if route is already present
                     self.logger.info(f"Service {service.name} is available")
                 else:
                     self.logger.warning(f"Service {service.name} is not available")
+                    # TODO: remove route
+                    # TODO: check if remove or set unavailable
                     self.session.delete(service)
 
             except Exception as e:

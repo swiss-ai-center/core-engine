@@ -7,6 +7,9 @@ class Logger:
         self.logger = logging.getLogger('uvicorn')
         self.logger.setLevel(os.environ["APP_LOG_LEVEL"] if "APP_LOG_LEVEL" in os.environ else "INFO")
 
+    def set_level(self, level):
+        self.logger.setLevel(level)
+
     def debug(self, message):
         self.logger.debug(message)
 

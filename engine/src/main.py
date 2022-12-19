@@ -68,7 +68,7 @@ async def startup_event():
     # Instantiate services in database
     services_service.instantiate_services(app)
     # TODO: Add storage service
-    tick = 5
+    tick = 30
 
     # Check for services that are not running
     checkServicesTimer = Timer(
