@@ -46,10 +46,10 @@ jobs:
           APP_ENGINE: https://engine-csia-pme.kube.isc.heia-fr.ch
           APP_SERVICE: https://stat-anno-detection-csia-pme.kube.isc.heia-fr.ch
         run: |
-          # Set digit_recognition configuration
+          # Set stat-anno-detection configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' stat-anno-detection.config-map.yml | envsubst > new-stat-anno-detection.config-map.yml && mv new-stat-anno-detection.config-map.yml stat-anno-detection.config-map.yml
 
-      - name: Deploy digit_recognition on Kubernetes cluster
+      - name: Deploy stat-anno-detection Kubernetes cluster
         # Only run on main
         if: github.ref == 'refs/heads/36-create-first-anomaly-detection-service'
         uses: ./.github/actions/execute-command-on-kubernetes-cluster

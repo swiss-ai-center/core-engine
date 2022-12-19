@@ -19,4 +19,4 @@ spec:
               number: 80
   tls:
     - hosts:
-        - dstat-anno-detection-csia-pme.kube.isc.heia-fr.ch
+        - stat-anno-detection-csia-pme.kube.isc.heia-fr.ch
