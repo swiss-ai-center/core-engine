@@ -8,22 +8,18 @@ class Environment(str, Enum):
     DEVELOPMENT = "development"
     TEST = "test"
 
-    CRITICAL
-ERROR
-WARNING
-INFO
-DEBUG
-NOTSET
-
 
 class LogLevel(str, Enum):
-    PRODUCTION = "production"
-    DEVELOPMENT = "development"
-    TEST = "test"
+    CRITICAL = "critical"
+    ERROR = "error"
+    WARNING = "warning"
+    INFO = "info"
+    DEBUG = "debug"
+
 
 class Settings(BaseSettings):
     environment: Environment = Environment.PRODUCTION
-    log_level: 
+    log_level: LogLevel = LogLevel.INFO
     aws_access_key_id: str
     aws_secret_access_key: str
     aws_region: str = "eu-central-2"

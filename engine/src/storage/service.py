@@ -8,6 +8,7 @@ from aiobotocore.session import get_session
 class StorageService():
     def __init__(self, logger: Logger = Depends(), settings: Settings = Depends(get_settings)):
         self.logger = logger
+        self.logger.set_source(__name__)
         self.aws_access_key_id = settings.aws_access_key_id
         self.aws_secret_access_key = settings.aws_secret_access_key
         self.aws_region = settings.aws_region

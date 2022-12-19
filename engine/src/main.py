@@ -10,6 +10,7 @@ from services.service import ServicesService
 from stats.controller import router as stats_router
 from tasks.controller import router as tasks_router
 from storage.controller import router as storage_router
+from storage.service import StorageService
 from config import get_settings, Environment
 from database import initialize_db
 from timer import Timer
@@ -74,11 +75,11 @@ async def startup_event():
     # https://github.com/tiangolo/fastapi/issues/425
     engine = initialize_db(settings)
     session = get_session(engine)
-
-    logger = Logger()
+    logger = Logger(settings)
 
     # TODO: Add storage service
-    services_service = ServicesService(logger, None, *session)
+    storage_service = StorageService(logger, settings)
+    services_service = ServicesService(logger, storage_service, *session)
 
     # Instantiate services in database
     services_service.instantiate_services(app)

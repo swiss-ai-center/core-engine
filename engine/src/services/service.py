@@ -16,14 +16,16 @@ def strToArray(string):
         return []
     return string.strip('][').replace(" ", "").split(",")
 
+
 class ServicesService:
     def __init__(self, logger: Logger = Depends(), storage: StorageService = Depends(),
                  session: Session = Depends(get_session)):
         self.logger = logger
+        self.logger.set_source(__name__)
         self.storage = storage
         self.session = session
 
-    def addRoute(self, app, id, name, slug, url, summary=None, description=None, data_in_fields=None,
+    def add_route(self, app, id, name, slug, url, summary=None, description=None, data_in_fields=None,
                  data_out_fields=None):
         # This should be wrapped in a functor, however a bug in starlette prevents the handler to be correctly called if __call__ is declared async. This should be fixed in version 0.21.0 (https://github.com/encode/starlette/pull/1444).
         async def handler(*args, **kwargs):
@@ -83,10 +85,19 @@ class ServicesService:
         self.session.refresh(service)
         self.logger.debug(f"Created service with id {service.id}")
 
-        self.logger.debug("Adding route")
-        self.addRoute(app, service.id, service.name, service.slug, service.url, service.summary, service.description,
-                      service.data_in_fields, service.data_out_fields)
-        self.logger.debug("Route added")
+        self.logger.debug("Adding route...")
+        self.add_route(
+            app,
+            service.id,
+            service.name,
+            service.slug,
+            service.url,
+            service.summary,
+            service.description,
+            service.data_in_fields,
+            service.data_out_fields,
+        )
+        self.logger.debug("Route added...")
 
         return service
 
@@ -125,21 +136,35 @@ class ServicesService:
         return True
 
     def instantiate_services(self, app: FastAPI):
-        self.logger.info("Instantiating services")
+        self.logger.info("Instantiating services...")
         services = self.find_many()
-        for service in services:
-            self.logger.info(f"Instantiating service {service.name}")
-            # TODO: check if service is available
-            if self.check_service_availability(service.slug):
-                self.addRoute(app, service.id, service.name, service.slug, service.url, service.summary, service.description,
-                              service.data_in_fields, service.data_out_fields)
-                self.logger.info(f"Service {service.name} instantiated")
-            else:
-                self.logger.warning(f"Service {service.name} is not available")
-                # TODO: remove route
-                # TODO: check if remove or set unavailable
-                self.session.delete(service)
-        self.logger.info("Services instantiated")
+
+        if len(services) == 0:
+            self.logger.info("No services in database.")
+        else:
+            for service in services:
+                self.logger.info(f"Instantiating service {service.name}")
+                # TODO: check if service is available
+                if self.check_service_availability(service.slug):
+                    self.add_route(
+                        app,
+                        service.id,
+                        service.name,
+                        service.slug,
+                        service.url,
+                        service.summary,
+                        service.description,
+                        service.data_in_fields,
+                        service.data_out_fields,
+                    )
+                    self.logger.info(f"Service {service.name} instantiated")
+                else:
+                    self.logger.warning(f"Service {service.name} is not available")
+                    # TODO: remove route
+                    # TODO: check if remove or set unavailable
+                    self.session.delete(service)
+
+            self.logger.info("Services instantiated.")
 
 
     async def check_services_availability(self, app_ref: FastAPI):

@@ -12,6 +12,7 @@ class TasksService:
     def __init__(self, logger: Logger = Depends(), storage: StorageService = Depends(),
                  session: Session = Depends(get_session)):
         self.logger = logger
+        self.logger.set_source(__name__)
         self.storage = storage
         self.session = session
 

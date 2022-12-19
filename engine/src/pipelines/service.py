@@ -4,7 +4,7 @@ from sqlmodel import Session, select, desc
 from database import get_session
 from logger import Logger
 from uuid import UUID
-from .models import Pipeline, PipelineUpdate, PipelineServiceLink
+from .models import Pipeline, PipelineUpdate
 from common.exception import NotFoundException
 
 
@@ -12,6 +12,7 @@ class PipelinesService:
     def __init__(self, logger: Logger = Depends(), storage: StorageService = Depends(),
                  session: Session = Depends(get_session)):
         self.logger = logger
+        self.logger.set_source(__name__)
         self.storage = storage
         self.session = session
 
