@@ -166,21 +166,24 @@ class ServicesService:
 
             self.logger.info("Services instantiated.")
 
-
     async def check_services_availability(self, app_ref: FastAPI):
         self.logger.info("Checking services availability")
         services = self.find_many()
-        for service in services:
-            try:
-                if self.check_service_availability(service.slug):
-                    # TODO: check if route is already present
-                    self.logger.info(f"Service {service.name} is available")
-                else:
-                    self.logger.warning(f"Service {service.name} is not available")
-                    # TODO: remove route
-                    # TODO: check if remove or set unavailable
-                    self.session.delete(service)
 
-            except Exception as e:
-                self.logger.error(f"Service {service.name} is not available: {e}")
+        if len(services) == 0:
+            self.logger.info("No services in database.")
+        else:
+            for service in services:
+                try:
+                    if self.check_service_availability(service.slug):
+                        # TODO: check if route is already present
+                        self.logger.info(f"Service {service.name} is available")
+                    else:
+                        self.logger.warning(f"Service {service.name} is not available")
+                        # TODO: remove route
+                        # TODO: check if remove or set unavailable
+                        self.session.delete(service)
+
+                except Exception as e:
+                    self.logger.error(f"Unable to check {service.name}: {e}")
 
