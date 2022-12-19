@@ -1,0 +1,65 @@
+# Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
+name: stat_anno_detection_workflow
+run-name: stat_anno_detection workflow
+
+on:
+  push:
+    paths:
+      - .github/actions/build-and-push-docker-image-to-github/action.yml
+      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
+      - .github/actions/run-ml-experiment-with-dvc/action.yml
+      - .github/actions/test-python-app/action.yml
+      - .github/workflows/stat_anno_detection.yml
+      - services/stat_anno_detection/model_creation/**/*
+      - services/stat_anno_detection/model_serving/**/*
+
+jobs:
+  run-workflow:
+    runs-on: ubuntu-latest 
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Run ML experiment with DVC
+        uses: ./.github/actions/run-ml-experiment-with-dvc
+        with:
+          ml-experiment-path: ./services/stat_anno_detection/model_creation
+          aws-access-key-id: ${{ secrets.DIGIT_RECOGNITION_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DIGIT_RECOGNITION_AWS_SECRET_ACCESS_KEY }}
+
+      - name: Build and push Docker image to GitHub
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
+        uses: ./.github/actions/build-and-push-docker-image-to-github
+        with:
+          docker-registry-username: ${{ github.actor }}
+          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          docker-image-name: ${{ github.repository }}-stat-anno-detection
+          docker-image-context: ./services/stat_anno_detection/model_serving
+
+      - name: Prepare configuration files with secrets from GitHub Secrets
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        working-directory: services/stat_anno_detection/model_serving/kubernetes
+        env:
+          APP_ENGINE: https://engine-csia-pme.kube.isc.heia-fr.ch
+          APP_SERVICE: https://stat-anno-detection-csia-pme.kube.isc.heia-fr.ch
+        run: |
+          # Set stat-anno-detection configuration
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' stat-anno-detection.config-map.yml | envsubst > new-stat-anno-detection.config-map.yml && mv new-stat-anno-detection.config-map.yml stat-anno-detection.config-map.yml
+
+      - name: Deploy stat-anno-detection Kubernetes cluster
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
+        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        with:
+          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-namespace: csia-pme-prod
+          kubectl-context: ./services/stat_anno_detection/model_serving/kubernetes
+          kubectl-args: |
+            apply \
+              -f stat-anno-detection.config-map.yml \
+              -f stat-anno-detection.stateful.yml \
+              -f stat-anno-detection.service.yml \
+              -f stat-anno-detection.ingress.yml
