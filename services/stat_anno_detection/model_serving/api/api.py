@@ -1,6 +1,8 @@
 import os
 import httpx
 import logging
+
+import pandas as pd
 from fastapi import FastAPI, UploadFile
 
 from .worker import Worker, Callback
@@ -48,9 +50,11 @@ app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
 timers = []
 
 @app.post("/compute", response_model=interface.TaskId)
-async def post(data: UploadFile, callback_url: str = None, task_id: str = None):
+async def post(text: UploadFile, callback_url: str = None, task_id: str = None):
 	if task_id is None:
 		task_id = str(interface.uid())
-	task = {"callback_url": callback_url, "task_id": task_id, "data": data}
+	# with open("test.txt", "wb") as f:
+	# 	f.write(text.file.read())
+	task = {"callback_url": callback_url, "task_id": task_id, "text": text}
 	await worker.addTask(task)
 	return interface.TaskId(task_id=task_id)

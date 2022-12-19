@@ -16,8 +16,10 @@ class TaskId(BaseModel):
 def engineAPI():
     return {
         "route": "stat-anno-detection",
-        "body": ["csv"],
-        "bodyType": ["[text/csv]"],
+        "body": ["text"],
+        "bodyType": ["[text/csv, text/plain]"],
+        # "bodyType": ["[application/json]"],
+        # "bodyType": ["[image/png, image/jpeg]"],
         "resultType": ["[application/json]"],
         "summary": "Find anomalies in a time series"
     }
