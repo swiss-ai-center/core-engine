@@ -13,11 +13,6 @@ class CoreModel(SQLModel):
     )
 
 
-class FieldDescription(SQLModel):
-    name: str = Field(str, nullable=False)
-    type: str = Field(str, nullable=False)
-
-
 class APIDescription(SQLModel):
     route: str
     summary: str | None

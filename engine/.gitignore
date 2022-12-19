@@ -2,3 +2,6 @@
 
 ## Database
 *.db
+
+## MinIO data
+minio-data

@@ -1,5 +1,5 @@
 from fastapi import Depends
-from storage import Storage
+from storage.service import StorageService
 from sqlmodel import Session, select, desc
 from database import get_session
 from logger import Logger
@@ -9,7 +9,7 @@ from common.exception import NotFoundException
 
 
 class TasksService:
-    def __init__(self, logger: Logger = Depends(), storage: Storage = Depends(),
+    def __init__(self, logger: Logger = Depends(), storage: StorageService = Depends(),
                  session: Session = Depends(get_session)):
         self.logger = logger
         self.storage = storage

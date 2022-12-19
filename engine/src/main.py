@@ -9,9 +9,13 @@ from services.controller import router as services_router
 from services.service import ServicesService
 from stats.controller import router as stats_router
 from tasks.controller import router as tasks_router
+from storage.controller import router as storage_router
+from config import get_settings, Environment
+from database import initialize_db
 from timer import Timer
 
 timers = []
+settings = get_settings()
 
 api_description = """
 CSIA-PME API - The **best** API in the world.
@@ -52,34 +56,48 @@ app.include_router(services_router, tags=['Services'])
 app.include_router(stats_router, tags=['Stats'])
 app.include_router(tasks_router, tags=['Tasks'])
 
+# For developing purposes only
+if (settings.environment == Environment.DEVELOPMENT):
+    app.include_router(storage_router, tags=['Storage'])
+
+
 # Redirect to docs
 @app.get("/", include_in_schema=False)
 async def root():
     return RedirectResponse("/docs", status_code=301)
 
+
 @app.on_event("startup")
 async def startup_event():
     # Manual instances because startup events doesn't support Dependency Injection
-    settings = get_settings()
+    # https://github.com/tiangolo/fastapi/issues/2057
+    # https://github.com/tiangolo/fastapi/issues/425
     engine = initialize_db(settings)
     session = get_session(engine)
+
     logger = Logger()
+
+    # TODO: Add storage service
     services_service = ServicesService(logger, None, *session)
+
     # Instantiate services in database
     services_service.instantiate_services(app)
-    # TODO: Add storage service
+
     tick = 30
 
     # Check for services that are not running
-    checkServicesTimer = Timer(
+    check_services_timer = Timer(
         timeout=tick,
         callback=services_service.check_services_availability,
-        app_ref=app)
-    checkServicesTimer.start()
-    timers.append(checkServicesTimer)
+        app_ref=app,
+    )
+
+    check_services_timer.start()
+
+    timers.append(check_services_timer)
+
 
 @app.on_event("shutdown")
 async def shutdown_event():
     for timer in timers:
         timer.stop()
-

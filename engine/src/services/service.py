@@ -2,7 +2,7 @@ import json
 from inspect import Parameter, Signature
 from fastapi import FastAPI, UploadFile, Request, Depends
 from fastapi.responses import JSONResponse
-from storage import Storage
+from storage.service import StorageService
 from sqlmodel import Session, select, desc
 from database import get_session
 from logger import Logger
@@ -17,7 +17,7 @@ def strToArray(string):
     return string.strip('][').replace(" ", "").split(",")
 
 class ServicesService:
-    def __init__(self, logger: Logger = Depends(), storage: Storage = Depends(),
+    def __init__(self, logger: Logger = Depends(), storage: StorageService = Depends(),
                  session: Session = Depends(get_session)):
         self.logger = logger
         self.storage = storage
