@@ -1,7 +1,7 @@
 import os
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from uuid import uuid4
-from common.exception import NotFoundException
+from common.exceptions import NotFoundException
 from .service import StorageService
 from .models import FileRead
 
@@ -21,8 +21,8 @@ async def create(file: UploadFile, storage_service: StorageService = Depends()):
 
     try:
         await storage_service.upload(file.file._file, key)
-    except NotFoundException as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     return FileRead(key=key)
 

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from config import get_settings
@@ -9,11 +9,14 @@ from services.controller import router as services_router
 from services.service import ServicesService
 from stats.controller import router as stats_router
 from tasks.controller import router as tasks_router
+from tasks.service import TasksService
 from storage.controller import router as storage_router
 from storage.service import StorageService
 from config import get_settings, Environment
 from database import initialize_db
 from timer import Timer
+from http_client import HttpClient
+
 
 timers = []
 settings = get_settings()
@@ -74,12 +77,18 @@ async def startup_event():
     # https://github.com/tiangolo/fastapi/issues/2057
     # https://github.com/tiangolo/fastapi/issues/425
     engine = initialize_db(settings)
-    session = get_session(engine)
+    session_generator = get_session(engine)
+    session = next(session_generator)
     logger = Logger(settings)
+    logger.set_source(__name__)
+    http_client = HttpClient()
 
-    # TODO: Add storage service
     storage_service = StorageService(logger, settings)
-    services_service = ServicesService(logger, storage_service, *session)
+    tasks_service = TasksService(logger, session)
+    services_service = ServicesService(logger, storage_service, tasks_service, settings, session, http_client)
+
+    # Check storage
+    await storage_service.check_storage_availability()
 
     # Instantiate services in database
     services_service.instantiate_services(app)

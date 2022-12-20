@@ -1,19 +1,20 @@
 from fastapi import Depends
-from storage.service import StorageService
 from sqlmodel import Session, select, desc
 from database import get_session
 from logger import Logger
 from uuid import UUID
 from .models import Task, TaskUpdate
-from common.exception import NotFoundException
+from common.exceptions import NotFoundException
 
 
 class TasksService:
-    def __init__(self, logger: Logger = Depends(), storage: StorageService = Depends(),
-                 session: Session = Depends(get_session)):
+    def __init__(
+        self,
+        logger: Logger = Depends(),
+        session: Session = Depends(get_session),
+    ):
         self.logger = logger
         self.logger.set_source(__name__)
-        self.storage = storage
         self.session = session
 
     def find_many(self, skip: int = 0, limit: int = 100):

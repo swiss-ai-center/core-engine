@@ -5,7 +5,7 @@ from database import get_session
 from logger import Logger
 from uuid import UUID
 from .models import Pipeline, PipelineUpdate
-from common.exception import NotFoundException
+from common.exceptions import NotFoundException
 
 
 class PipelinesService:

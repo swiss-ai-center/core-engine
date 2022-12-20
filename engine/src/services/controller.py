@@ -1,6 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request
-from common.exception import NotFoundException
+from common.exceptions import NotFoundException, ConflictException
 from timer import Timer
 from .service import ServicesService
 from common.query_parameters import SkipAndLimit
@@ -49,12 +49,19 @@ def get_many_services(
     "/services",
     summary="Create a service",
     response_model=ServiceRead,
+    responses={
+        409: {"detail": "Service Conflict"},
+        500: {"detail": "Internal Server Error"},
+    },
 )
 def create(request: Request, service: ServiceCreate, services_service: ServicesService = Depends()):
-    service_create = Service.from_orm(service)
-    service = services_service.create(service_create, request.app)
+    try:
+        service_create = Service.from_orm(service)
+        service = services_service.create(service_create, request.app)
 
-    return service
+        return service
+    except ConflictException as e:
+        raise HTTPException(status_code=409, detail=str(e))
 
 
 @router.patch(

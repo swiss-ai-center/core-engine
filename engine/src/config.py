@@ -20,11 +20,11 @@ class LogLevel(str, Enum):
 class Settings(BaseSettings):
     environment: Environment = Environment.PRODUCTION
     log_level: LogLevel = LogLevel.INFO
-    aws_access_key_id: str
-    aws_secret_access_key: str
-    aws_region: str = "eu-central-2"
     database_url: str = "sqlite:///../engine.db"
     database_connect_args: dict[str, bool | str | int] = {"check_same_thread": False}
+    s3_access_key_id: str
+    s3_secret_access_key: str
+    s3_region: str = "eu-central-2"
     s3_host: str
     s3_bucket: str
 

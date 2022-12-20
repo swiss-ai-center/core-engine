@@ -1,6 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
-from common.exception import NotFoundException
+from common.exceptions import NotFoundException
 from .service import PipelinesService
 from services.service import ServicesService
 from common.query_parameters import SkipAndLimit

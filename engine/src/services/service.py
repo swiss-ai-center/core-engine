@@ -1,77 +1,184 @@
-import json
+import os
 from inspect import Parameter, Signature
-from fastapi import FastAPI, UploadFile, Request, Depends
+from fastapi import FastAPI, UploadFile, Depends
 from fastapi.responses import JSONResponse
+from makefun import with_signature
+from uuid import UUID
 from storage.service import StorageService
+from tasks.service import TasksService
+from tasks.models import Task, TaskReadWithServiceAndPipeline
 from sqlmodel import Session, select, desc
+from uuid import uuid4
 from database import get_session
 from logger import Logger
-from uuid import UUID
-from .models import Service, ServiceUpdate
-from common.exception import NotFoundException
-
-
-def strToArray(string):
-    if string is None:
-        return []
-    return string.strip('][').replace(" ", "").split(",")
+from config import Settings, get_settings
+from .models import Service, ServiceUpdate, ServiceTask
+from common.exceptions import NotFoundException, ConflictException
+from http_client import HttpClient
+# TODO: Remove this import when code fixed to use `HttpClient`
+import httpx
 
 
 class ServicesService:
-    def __init__(self, logger: Logger = Depends(), storage: StorageService = Depends(),
-                 session: Session = Depends(get_session)):
+    def __init__(
+        self,
+        logger: Logger = Depends(),
+        storage_service: StorageService = Depends(),
+        tasks_service: TasksService = Depends(),
+        settings: Settings = Depends(get_settings),
+        session: Session = Depends(get_session),
+        http_client: HttpClient = Depends(),
+    ):
         self.logger = logger
-        self.logger.set_source(__name__)
-        self.storage = storage
+        self.storage_service = storage_service
+        self.tasks_service = tasks_service
+        self.settings = settings
         self.session = session
+        self.http_client = http_client
 
-    def add_route(self, app, id, name, slug, url, summary=None, description=None, data_in_fields=None,
-                 data_out_fields=None):
-        # This should be wrapped in a functor, however a bug in starlette prevents the handler to be correctly called if __call__ is declared async. This should be fixed in version 0.21.0 (https://github.com/encode/starlette/pull/1444).
-        async def handler(*args, **kwargs):
-            jobData = {}
-            jsonParts = set()
+        self.logger.set_source(__name__)
 
-            request = kwargs["req"]
-            form = await request.form()
-            i = 0
-            for field_desc in data_in_fields:
-                obj = form[field_desc["name"]]
-                if obj.content_type not in field_desc["type"][i]:
+    def add_route(
+        self,
+        app: FastAPI,
+        service: Service
+    ):
+        # Create the `handler` signature from service's `data_in_fields`
+        handler_params = []
+        for data_in_field in service.data_in_fields:
+            handler_params.append(
+                Parameter(
+                    data_in_field["name"],
+                    kind=Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=UploadFile,
+                )
+            )
+
+        @with_signature(Signature(handler_params))
+        async def handler(*args, **kwargs: UploadFile):
+            """
+            This function represents a service function.
+            It handles the files described by the service, upload them to the S3 bucket
+            and create the task with the uploaded files. It will then forward the task to
+            the service in order to the service to execute them.
+
+            The function signature is described using the `with_signature` annotation that
+            allows FastAPI to generate the OpenAPI spec. As the function has an undefined
+            number of arguments at runtime, we have to access these arguments through the
+            `kwargs` argument.
+            """
+
+            # The files for the tasks
+            task_files = []
+
+            # Iterate over the uploaded files
+            for param_index, (_, file) in enumerate(kwargs.items()):
+                # Get the content type of the file
+                file_content_type = file.content_type
+
+                # Get the file name of the part
+                file_part_name = service.data_in_fields[param_index]["name"]
+
+                # Get the accepted content types for the file
+                accepted_file_content_types = service.data_in_fields[param_index]["type"]
+
+                # Check if the content type of the uploaded file is accepted
+                if file_content_type not in accepted_file_content_types:
                     return JSONResponse(
                         status_code=400,
                         content={
-                            "error": "Invalid content type",
-                            "message": "The content type of the file must be " + field_desc.type + "."
-                        })
-                else:
-                    i += 1
-                    if obj.content_type == "application/json":
-                        payload = await obj.read()
-                        jobData.update(json.loads(payload))
-                        jsonParts.add(name)
-                    else:
-                        jobData[name] = obj
-            task_prototype = {
-                "route": url,
-                "jobData": jobData,
-                "binaries": data_in_fields,
-            }
-            # TODO: change when storage is implemented
-            self.logger.info(f"Task prototype: {task_prototype}")
+                            "error": "Invalid Content Type",
+                            "message": f"The content type of the file '{file_part_name}' must be of type {accepted_file_content_types}."
+                        }
+                    )
 
-            return {"id": id}
+                # Upload the file to S3
+                original_filename = file.filename
+                original_extension = os.path.splitext(original_filename)[1]
 
-        # Change the function signature with expected types from the api description so that the api doc is correctly generated
-        params = []
-        for param in data_in_fields:
-            params.append(Parameter(param["name"], kind=Parameter.POSITIONAL_ONLY, annotation=UploadFile))
-        params.append(Parameter("req", kind=Parameter.POSITIONAL_ONLY, annotation=Request))
-        handler.__signature__ = Signature(params)
-        app.add_api_route("/" + slug, handler, methods=["POST"], summary=summary,
-                          description=description, tags=[name])
-        # Force the regeneration of the schema
-        app.openapi_schema = None
+                key = f'{uuid4()}{original_extension}'
+
+                try:
+                    await self.storage_service.upload(file.file._file, key)
+                except Exception:
+                    return JSONResponse(
+                        status_code=500,
+                        content={
+                            "error": "Storage upload",
+                            "message": f"The upload of file '{file_part_name}' has failed."
+                        }
+                    )
+
+                task_files.append(key)
+
+            # Create the task
+            task = Task()
+            task.data_in = task_files
+            task.service = service
+            # TODO: How to manage the pipeline?
+            # task.pipeline = pipeline
+
+            # Save the task in database
+            task = self.tasks_service.create(task)
+
+            # Create the service task
+            service_task = ServiceTask(
+                s3_access_key_id=self.settings.s3_access_key_id,
+                s3_secret_access_key=self.settings.s3_secret_access_key,
+                s3_region=self.settings.s3_region,
+                s3_host=self.settings.s3_host,
+                s3_bucket=self.settings.s3_bucket,
+                task=task,
+            )
+
+            # Submit the service task to the remote service
+            try:
+                # TODO: Replace this part using the `self.http_client`
+                with httpx.Client() as client:
+                    # TODO: Do we have to hardcode the `/compute`?
+                    # Can't we set two attributes `api-docs` and `submit-task-url` in the `Service` model?
+                    await client.post(f"{service.url}/compute", data=service_task)
+
+                    # Return the created task to the end-user
+                    return task
+            except Exception:
+                self.logger.warning("Service cannot be reached")
+                self.logger.debug("Removing files from storage...")
+
+                # Remove files from storage
+                for task_file in task_files:
+                    await self.storage_service.delete(task_file)
+
+                self.logger.debug("Files from storage removed.")
+
+                self.logger.debug("Removing task...")
+
+                # Remove the task previousely created
+                self.tasks_service.delete(task.id)
+
+                self.logger.debug("Task removed.")
+
+                return JSONResponse(
+                    status_code=500,
+                    content={
+                        "error": "Service task submission",
+                        "message": f"The submission of the task to the service '{service.name}' has failed."
+                    }
+                )
+
+        app.add_api_route(
+            f"/{service.slug}",
+            handler,
+            methods=["POST"],
+            summary=service.summary,
+            description=service.description,
+            tags=[service.name],
+            responses={
+                400: {"detail": "Invalid Content Type"},
+                500: {"detail": "Internal Server Error"},
+            },
+            response_model=TaskReadWithServiceAndPipeline,
+        )
 
     def find_many(self, skip: int = 0, limit: int = 100):
         self.logger.debug("Find many services")
@@ -80,26 +187,21 @@ class ServicesService:
     def create(self, service: Service, app: FastAPI):
         self.logger.debug("Creating service")
 
-        self.session.add(service)
-        self.session.commit()
-        self.session.refresh(service)
-        self.logger.debug(f"Created service with id {service.id}")
+        found_service = self.session.exec(select(Service).where(Service.slug == service.slug)).first()
 
-        self.logger.debug("Adding route...")
-        self.add_route(
-            app,
-            service.id,
-            service.name,
-            service.slug,
-            service.url,
-            service.summary,
-            service.description,
-            service.data_in_fields,
-            service.data_out_fields,
-        )
-        self.logger.debug("Route added...")
+        if found_service:
+            raise ConflictException("Service already existing with same slug")
+        else:
+            self.session.add(service)
+            self.session.commit()
+            self.session.refresh(service)
+            self.logger.debug(f"Created service with id {service.id}")
 
-        return service
+            self.logger.debug("Adding route...")
+            self.add_route(app, service)
+            self.logger.debug("Route added...")
+
+            return service
 
     def find_one(self, service_id: UUID):
         self.logger.debug("Find service")
@@ -146,17 +248,7 @@ class ServicesService:
                 self.logger.info(f"Instantiating service {service.name}")
                 # TODO: check if service is available
                 if self.check_service_availability(service.slug):
-                    self.add_route(
-                        app,
-                        service.id,
-                        service.name,
-                        service.slug,
-                        service.url,
-                        service.summary,
-                        service.description,
-                        service.data_in_fields,
-                        service.data_out_fields,
-                    )
+                    self.add_route(app, service)
                     self.logger.info(f"Service {service.name} instantiated")
                 else:
                     self.logger.warning(f"Service {service.name} is not available")
@@ -167,7 +259,7 @@ class ServicesService:
             self.logger.info("Services instantiated.")
 
     async def check_services_availability(self, app_ref: FastAPI):
-        self.logger.info("Checking services availability")
+        self.logger.info("Checking services availability...")
         services = self.find_many()
 
         if len(services) == 0:
@@ -186,4 +278,3 @@ class ServicesService:
 
                 except Exception as e:
                     self.logger.error(f"Unable to check {service.name}: {e}")
-

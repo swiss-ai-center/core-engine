@@ -1,7 +1,7 @@
 import re
 from typing import List
 from uuid import UUID, uuid4
-
+from pydantic import BaseModel
 from pydantic.class_validators import validator
 from sqlmodel import Field, SQLModel, Column, JSON, Relationship
 from typing import TypedDict
@@ -89,3 +89,27 @@ class ServiceUpdate(SQLModel):
     description: str | None
     data_in_fields: List[str] | None
     data_out_fields: List[str] | None
+
+
+class ServiceTaskBase(BaseModel):
+    """
+    Base class for Service task
+    This model is used in subclasses
+    """
+    from tasks.models import TaskRead
+
+    s3_access_key_id: str
+    s3_secret_access_key: str
+    s3_region: str
+    s3_host: str
+    s3_bucket: str
+    task: TaskRead
+
+
+class ServiceTask(ServiceTaskBase):
+    """
+    Service task
+    This model is sent to the service with the informations
+    related to S3 as well as the task to execute
+    """
+    pass
