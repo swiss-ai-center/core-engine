@@ -10,19 +10,17 @@ from tasks.models import Task, TaskReadWithServiceAndPipeline
 from sqlmodel import Session, select, desc
 from uuid import uuid4
 from database import get_session
-from logger import Logger
+from logger import Logger, get_logger
 from config import Settings, get_settings
 from .models import Service, ServiceUpdate, ServiceTask
 from common.exceptions import NotFoundException, ConflictException
 from http_client import HttpClient
-# TODO: Remove this import when code fixed to use `HttpClient`
-import httpx
 
 
 class ServicesService:
     def __init__(
         self,
-        logger: Logger = Depends(),
+        logger: Logger = Depends(get_logger),
         storage_service: StorageService = Depends(),
         tasks_service: TasksService = Depends(),
         settings: Settings = Depends(get_settings),
@@ -93,13 +91,9 @@ class ServicesService:
                     )
 
                 # Upload the file to S3
-                original_filename = file.filename
-                original_extension = os.path.splitext(original_filename)[1]
-
-                key = f'{uuid4()}{original_extension}'
-
+                file_key = None
                 try:
-                    await self.storage_service.upload(file.file._file, key)
+                    file_key = await self.storage_service.upload(file)
                 except Exception:
                     return JSONResponse(
                         status_code=500,
@@ -109,7 +103,7 @@ class ServicesService:
                         }
                     )
 
-                task_files.append(key)
+                task_files.append(file_key)
 
             # Create the task
             task = Task()

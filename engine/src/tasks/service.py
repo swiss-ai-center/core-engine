@@ -1,7 +1,7 @@
 from fastapi import Depends
 from sqlmodel import Session, select, desc
 from database import get_session
-from logger import Logger
+from logger import Logger, get_logger
 from uuid import UUID
 from .models import Task, TaskUpdate
 from common.exceptions import NotFoundException
@@ -10,7 +10,7 @@ from common.exceptions import NotFoundException
 class TasksService:
     def __init__(
         self,
-        logger: Logger = Depends(),
+        logger: Logger = Depends(get_logger),
         session: Session = Depends(get_session),
     ):
         self.logger = logger

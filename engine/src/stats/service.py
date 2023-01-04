@@ -1,7 +1,7 @@
 from pipelines.models import Pipeline
 from services.models import Service
 from tasks.models import TaskStatus
-from logger import Logger
+from logger import Logger, get_logger
 from fastapi import Depends
 from sqlmodel import Session, func, select
 from database import get_session
@@ -9,7 +9,7 @@ from tasks.models import Task
 
 
 class StatsService:
-    def __init__(self, logger: Logger = Depends(),
+    def __init__(self, logger: Logger = Depends(get_logger),
                  session: Session = Depends(get_session)):
         self.logger = logger
         self.logger.set_source(__name__)

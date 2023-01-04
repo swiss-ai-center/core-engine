@@ -1,9 +1,10 @@
-# Highly inspired by: https://skonik.me/uploading-large-file-to-s3-using-aiobotocore/
+import os
 from fastapi import Depends
 from config import Settings, get_settings
-from logger import Logger
+from logger import Logger, get_logger
 from aiobotocore.session import get_session
 from botocore.exceptions import EndpointConnectionError
+from uuid import uuid4
 
 
 class StorageService():
@@ -11,7 +12,7 @@ class StorageService():
 
     def __init__(
         self,
-        logger: Logger = Depends(),
+        logger: Logger = Depends(get_logger),
         settings: Settings = Depends(get_settings),
     ):
         self.logger = logger
@@ -44,7 +45,29 @@ class StorageService():
 
     async def upload(
             self,
-            file,
+            upload_file,
+    ):
+        original_filename = upload_file.filename
+        original_extension = os.path.splitext(original_filename)[1]
+
+        key = f"{uuid4()}{original_extension}"
+        file = await upload_file.read()
+
+        session = get_session()
+
+        async with session.create_client(
+            's3',
+            region_name=self.s3_region,
+            aws_secret_access_key=self.s3_secret_access_key,
+            aws_access_key_id=self.s3_access_key_id,
+            endpoint_url=self.s3_host
+        ) as client:
+            await client.put_object(Bucket=self.s3_bucket, Key=key, Body=file)
+
+        return key
+
+    async def get_file(
+            self,
             key,
     ):
         session = get_session()
@@ -56,7 +79,29 @@ class StorageService():
             aws_access_key_id=self.s3_access_key_id,
             endpoint_url=self.s3_host
         ) as client:
-            await client.put_object(Bucket=self.s3_bucket, Key=key, Body=file)
+            response = await client.get_object(Bucket=self.s3_bucket, Key=key)
+
+            async with response['Body'] as stream:
+                file = await stream.read()
+                return file
+
+    async def get_file_as_chunks(
+            self,
+            key,
+    ):
+        session = get_session()
+
+        async with session.create_client(
+            's3',
+            region_name=self.s3_region,
+            aws_secret_access_key=self.s3_secret_access_key,
+            aws_access_key_id=self.s3_access_key_id,
+            endpoint_url=self.s3_host
+        ) as client:
+            response = await client.get_object(Bucket=self.s3_bucket, Key=key)
+
+            async for chunk in response['Body']:
+                yield chunk
 
     async def delete(
             self,

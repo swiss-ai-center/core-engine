@@ -7,10 +7,8 @@ class Logger:
     PADDING = '\t'
 
     def __init__(self, settings: Settings = Depends(get_settings)):
-        self.settings = settings
         self.logger = logging.getLogger('uvicorn')
         self.set_level(settings.log_level.value.upper())
-        self.source = __name__
 
     def set_level(self, level):
         self.logger.setLevel(level)
@@ -34,3 +32,7 @@ class Logger:
 
     def critical(self, message):
         self.logger.critical(f'[{self.source}]:{self.PADDING}{message}')
+
+
+def get_logger(settings=Depends(get_settings)):
+    return Logger(settings)

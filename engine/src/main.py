@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from config import get_settings
 from database import initialize_db, get_session
-from logger import Logger
+from logger import get_logger
 from pipelines.controller import router as pipelines_router
 from services.controller import router as services_router
 from services.service import ServicesService
@@ -79,13 +79,11 @@ async def startup_event():
     engine = initialize_db(settings)
     session_generator = get_session(engine)
     session = next(session_generator)
-    logger = Logger(settings)
-    logger.set_source(__name__)
     http_client = HttpClient()
 
-    storage_service = StorageService(logger, settings)
-    tasks_service = TasksService(logger, session)
-    services_service = ServicesService(logger, storage_service, tasks_service, settings, session, http_client)
+    storage_service = StorageService(get_logger(settings), settings)
+    tasks_service = TasksService(get_logger(settings), session)
+    services_service = ServicesService(get_logger(settings), storage_service, tasks_service, settings, session, http_client)
 
     # Check storage
     await storage_service.check_storage_availability()

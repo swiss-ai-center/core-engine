@@ -3,4 +3,4 @@ import httpx
 
 class HttpClient(httpx.AsyncClient):
     def __init__(self):
-        super()
+        super().__init__()

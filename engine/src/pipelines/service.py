@@ -2,14 +2,14 @@ from fastapi import Depends
 from storage.service import StorageService
 from sqlmodel import Session, select, desc
 from database import get_session
-from logger import Logger
+from logger import Logger, get_logger
 from uuid import UUID
 from .models import Pipeline, PipelineUpdate
 from common.exceptions import NotFoundException
 
 
 class PipelinesService:
-    def __init__(self, logger: Logger = Depends(), storage: StorageService = Depends(),
+    def __init__(self, logger: Logger = Depends(get_logger), storage: StorageService = Depends(),
                  session: Session = Depends(get_session)):
         self.logger = logger
         self.logger.set_source(__name__)

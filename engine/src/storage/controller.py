@@ -1,6 +1,5 @@
-import os
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
-from uuid import uuid4
+from fastapi.responses import StreamingResponse
 from common.exceptions import NotFoundException
 from .service import StorageService
 from .models import FileRead
@@ -13,18 +12,33 @@ router = APIRouter()
     summary="Upload a file to storage",
     response_model=FileRead,
 )
-async def create(file: UploadFile, storage_service: StorageService = Depends()):
-    original_filename = file.filename
-    original_extension = os.path.splitext(original_filename)[1]
-
-    key = f'{uuid4()}{original_extension}'
+async def upload(file: UploadFile, storage_service: StorageService = Depends()):
+    key = None
 
     try:
-        await storage_service.upload(file.file._file, key)
+        key = await storage_service.upload(file)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
     return FileRead(key=key)
+
+
+@router.get(
+    "/storage",
+    summary="Download a file to storage",
+)
+async def download(key: str, storage_service: StorageService = Depends()):
+    try:
+        headers = {
+            'Content-Disposition': f'attachment; filename="{key}"'
+        }
+
+        return StreamingResponse(
+            storage_service.get_file_as_chunks(key),
+            headers=headers,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete(
