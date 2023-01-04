@@ -9,7 +9,6 @@ from contextlib import AsyncExitStack
 from fastapi.testclient import TestClient
 from api.api import app
 
-# TODO modify tests
 client = TestClient(app)
 
 def imgPath(name):

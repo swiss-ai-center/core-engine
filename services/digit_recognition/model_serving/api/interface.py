@@ -15,9 +15,21 @@ class TaskId(BaseModel):
 
 def engineAPI():
     return {
-        "route": "digit-recognition",
-        "body": ["image"],
-        "bodyType": ["[image/png, image/jpeg]"],
-        "resultType": ["[application/json]"],
-        "summary": "Recognizes a digit in an image using mnist trained model"
+        "name": "Digit Recognition",
+        "slug": "digit_recognition",
+        "url": "digit-recognition",
+        "summary": "Recognizes a digit in an image using mnist trained model",
+        "description": "Recognizes a digit in an image using mnist trained model",
+        "data_in_fields": [
+            {
+                "name": "image",
+                "type": ["image/png", "image/jpeg", "image/jpg"],
+            }
+        ],
+        "data_out_fields": [
+            {
+                "name": "result",
+                "type": ["application/json"],
+            }
+        ],
     }
