@@ -133,14 +133,10 @@ class ServicesService:
 
             # Submit the service task to the remote service
             try:
-                # TODO: Replace this part using the `self.http_client`
-                with httpx.Client() as client:
-                    # TODO: Do we have to hardcode the `/compute`?
-                    # Can't we set two attributes `api-docs` and `submit-task-url` in the `Service` model?
-                    await client.post(f"{service.url}/compute", data=service_task)
+                await self.http_client.post(f"{service.url}/compute", data=service_task)
 
-                    # Return the created task to the end-user
-                    return task
+                # Return the created task to the end-user
+                return task
             except Exception:
                 self.logger.warning("Service cannot be reached")
                 self.logger.debug("Removing files from storage...")
@@ -232,12 +228,15 @@ class ServicesService:
         self.session.commit()
         self.logger.debug(f"Deleted service with id {current_service.id}")
 
-    def check_service_availability(self, service_slug: str):
+    async def check_service_availability(self, service_slug: str, service_url: str):
         self.logger.info(f"Checking service availability for service {service_slug}")
-        # TODO: check if service is available with a ping
-        return True
+        self.logger.debug(f"Checking url {service_url}")
+        res = await self.http_client.get(f"{service_url}/ping")
+        if res.status_code == 200:
+            return True
+        return False
 
-    def instantiate_services(self, app: FastAPI):
+    async def instantiate_services(self, app: FastAPI):
         self.logger.info("Instantiating services...")
         services = self.find_many()
 
@@ -245,16 +244,18 @@ class ServicesService:
             self.logger.info("No services in database.")
         else:
             for service in services:
-                self.logger.info(f"Instantiating service {service.name}")
-                # TODO: check if service is available
-                if self.check_service_availability(service.slug):
-                    self.add_route(app, service)
-                    self.logger.info(f"Service {service.name} instantiated")
-                else:
-                    self.logger.warning(f"Service {service.name} is not available")
-                    # TODO: remove route
-                    # TODO: check if remove or set unavailable
-                    self.session.delete(service)
+                try:
+                    self.logger.info(f"Instantiating service {service.name}")
+                    if await self.check_service_availability(service.slug, service.url):
+                        self.add_route(app, service)
+                        self.logger.info(f"Service {service.name} instantiated")
+                    else:
+                        self.logger.warning(f"Service {service.name} is not available")
+                        self.unregister_service(app, service)
+
+                except Exception as e:
+                    self.logger.warning(f"Service {service.name} cannot be instantiated")
+                    self.unregister_service(app, service)
 
             self.logger.info("Services instantiated.")
 
@@ -267,14 +268,27 @@ class ServicesService:
         else:
             for service in services:
                 try:
-                    if self.check_service_availability(service.slug):
+                    if await self.check_service_availability(service.slug, service.url):
                         # TODO: check if route is already present
                         self.logger.info(f"Service {service.name} is available")
                     else:
                         self.logger.warning(f"Service {service.name} is not available")
-                        # TODO: remove route
-                        # TODO: check if remove or set unavailable
-                        self.session.delete(service)
+                        self.unregister_service(app_ref, service)
 
                 except Exception as e:
-                    self.logger.error(f"Unable to check {service.name}: {e}")
+                    self.logger.warning(f"Service {service.name} cannot be joined: {e}")
+                    self.unregister_service(app_ref, service)
+
+    def unregister_service(self, app: FastAPI, service: Service):
+        self.logger.info(f"Unregistering service {service.name}")
+
+        # TODO: check if remove or set unavailable
+        self.session.delete(service)
+        self.session.commit()
+
+        for route in app.routes:
+            if route.path == f"/{service.slug}":
+                app.routes.remove(route)
+                break
+
+        self.logger.info(f"Service {service.name} unregistered")

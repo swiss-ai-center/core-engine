@@ -91,7 +91,7 @@ async def startup_event():
     await storage_service.check_storage_availability()
 
     # Instantiate services in database
-    services_service.instantiate_services(app)
+    await services_service.instantiate_services(app)
 
     tick = 30
 

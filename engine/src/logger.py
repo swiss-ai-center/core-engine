@@ -15,7 +15,7 @@ class Logger:
     def set_level(self, level):
         self.logger.setLevel(level)
 
-    # TODO: It seems that the logger instance is shared accross all the services
+    # TODO: It seems that the logger instance is shared across all the services
     # so the source is always the same.
     def set_source(self, source):
         self.source = source

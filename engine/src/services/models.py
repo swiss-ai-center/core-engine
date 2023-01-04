@@ -109,7 +109,7 @@ class ServiceTaskBase(BaseModel):
 class ServiceTask(ServiceTaskBase):
     """
     Service task
-    This model is sent to the service with the informations
+    This model is sent to the service with the information
     related to S3 as well as the task to execute
     """
     pass

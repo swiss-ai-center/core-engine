@@ -19,6 +19,6 @@ class File(FileBase):
 class FileRead(FileBase):
     """
     File read model
-    This model is used to return a task to the user
+    This model is used to return a file to the user
     """
     pass
