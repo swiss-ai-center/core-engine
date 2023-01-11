@@ -1,7 +1,5 @@
 from typing import List, TypedDict
-
 from pydantic import BaseModel
-
 from .enums import FieldDescriptionType
 
 
@@ -48,12 +46,11 @@ class DigitRecognitionService(Service):
         super().__init__(
             name="Digit recognition",
             slug="digit-recognition",
-            url="http://digit-recognition:8001",
+            url="http://localhost:8001",
             summary="Digit recognition service",
             description="Digit recognition service",
             data_in_fields=[
-                FieldDescription(name="image", type=[FieldDescriptionType.IMAGE_JPG, FieldDescriptionType.IMAGE_PNG,
-                                                     FieldDescriptionType.IMAGE_JPEG]),
+                FieldDescription(name="image", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
             ],
             data_out_fields=[
                 FieldDescription(name="digit", type=[FieldDescriptionType.TEXT_PLAIN]),

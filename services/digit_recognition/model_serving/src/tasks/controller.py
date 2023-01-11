@@ -1,18 +1,22 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
-
-from tasks.models import Task
+from common.exceptions import NotFoundException
+from tasks.models import ServiceTask
+from tasks.service import TasksService
 
 router = APIRouter()
 
 
 @router.get("/status/{task_id}", summary="Get task status")
-async def get_task_status(task_id: str):
-    # TODO: get task status
-    return JSONResponse(status_code=200, content={"status": "ok"})
+async def get_task_status(task_id: str, tasks_service: TasksService = Depends()):
+    try:
+        status = await tasks_service.get_task_status(task_id)
+        return JSONResponse(status_code=200, content={"status": status})
+    except NotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.post("/compute", summary="Compute task")
-async def compute(task: Task, callback_url: str = None):
-    # TODO: compute task
-    return JSONResponse(status_code=200, content={"id": "task_id"})
+async def compute(task: ServiceTask, tasks_service: TasksService = Depends()):
+    await tasks_service.add_task(task)
+    return JSONResponse(status_code=200, content={"status": "Task added to the queue"})

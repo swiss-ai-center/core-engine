@@ -3,10 +3,8 @@ COPY requirements.txt /tmp/requirements.txt
 RUN pip3 install -r /tmp/requirements.txt
 
 RUN mkdir /app
-COPY main.py /app
-COPY mnist_model.h5 /app
-COPY api /app/api
+COPY src /app
 
 WORKDIR /app
 
-ENTRYPOINT [ "python3", "/app/main.py" ]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]

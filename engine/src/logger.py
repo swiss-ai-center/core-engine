@@ -7,14 +7,13 @@ class Logger:
     PADDING = '\t'
 
     def __init__(self, settings: Settings = Depends(get_settings)):
+        self.source = __name__
         self.logger = logging.getLogger('uvicorn')
         self.set_level(settings.log_level.value.upper())
 
     def set_level(self, level):
         self.logger.setLevel(level)
 
-    # TODO: It seems that the logger instance is shared across all the services
-    # so the source is always the same.
     def set_source(self, source):
         self.source = source
 

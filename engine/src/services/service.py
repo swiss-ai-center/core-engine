@@ -15,6 +15,7 @@ from config import Settings, get_settings
 from .models import Service, ServiceUpdate, ServiceTask
 from common.exceptions import NotFoundException, ConflictException
 from http_client import HttpClient
+from fastapi.encoders import jsonable_encoder
 
 
 class ServicesService:
@@ -127,12 +128,12 @@ class ServicesService:
 
             # Submit the service task to the remote service
             try:
-                await self.http_client.post(f"{service.url}/compute", data=service_task)
+                await self.http_client.post(f"{service.url}/compute", json=jsonable_encoder(service_task))
 
                 # Return the created task to the end-user
                 return task
-            except Exception:
-                self.logger.warning("Service cannot be reached")
+            except Exception as e:
+                self.logger.warning(f"Service cannot be reached: {str(e)}")
                 self.logger.debug("Removing files from storage...")
 
                 # Remove files from storage

@@ -9,9 +9,9 @@ from common.exceptions import NotFoundException
 
 class TasksService:
     def __init__(
-        self,
-        logger: Logger = Depends(get_logger),
-        session: Session = Depends(get_session),
+            self,
+            logger: Logger = Depends(get_logger),
+            session: Session = Depends(get_session),
     ):
         self.logger = logger
         self.logger.set_source(__name__)
@@ -43,8 +43,8 @@ class TasksService:
             raise NotFoundException("Task Not Found")
         task_data = task.dict(exclude_unset=True)
         self.logger.debug(f"Updating task {task_id} with data: {task_data}")
-        for key, value in task_data.items():
-            setattr(current_task, key, value)
+        setattr(current_task, "status", task_data["status"])
+        setattr(current_task, "data_out", task_data["data_out"])
         self.session.add(current_task)
         self.session.commit()
         self.session.refresh(current_task)

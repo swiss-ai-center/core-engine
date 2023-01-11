@@ -1,5 +1,5 @@
 import os
-from fastapi import Depends
+from fastapi import Depends, UploadFile
 from config import Settings, get_settings
 from logger import Logger, get_logger
 from aiobotocore.session import get_session
@@ -7,13 +7,13 @@ from botocore.exceptions import EndpointConnectionError
 from uuid import uuid4
 
 
-class StorageService():
+class StorageService:
     FAKE_KEY_ID = '0000-0000-0000-0000'
 
     def __init__(
-        self,
-        logger: Logger = Depends(get_logger),
-        settings: Settings = Depends(get_settings),
+            self,
+            logger: Logger = Depends(get_logger),
+            settings: Settings = Depends(get_settings),
     ):
         self.logger = logger
         self.logger.set_source(__name__)
@@ -28,14 +28,14 @@ class StorageService():
         session = get_session()
 
         async with session.create_client(
-            's3',
-            region_name=self.s3_region,
-            aws_secret_access_key=self.s3_secret_access_key,
-            aws_access_key_id=self.s3_access_key_id,
-            endpoint_url=self.s3_host
+                's3',
+                region_name=self.s3_region,
+                aws_secret_access_key=self.s3_secret_access_key,
+                aws_access_key_id=self.s3_access_key_id,
+                endpoint_url=self.s3_host
         ) as client:
             try:
-                # Isn't there a way to check connectivity with the S3 host other than this..?
+                # Isn't there a way to check connectivity with the S3 host other than this?
                 await client.get_object(Bucket=self.s3_bucket, Key=self.FAKE_KEY_ID)
             except EndpointConnectionError:
                 self.logger.info("Cannot connect to storage.")
@@ -45,7 +45,7 @@ class StorageService():
 
     async def upload(
             self,
-            upload_file,
+            upload_file: UploadFile,
     ):
         original_filename = upload_file.filename
         original_extension = os.path.splitext(original_filename)[1]
@@ -56,11 +56,11 @@ class StorageService():
         session = get_session()
 
         async with session.create_client(
-            's3',
-            region_name=self.s3_region,
-            aws_secret_access_key=self.s3_secret_access_key,
-            aws_access_key_id=self.s3_access_key_id,
-            endpoint_url=self.s3_host
+                's3',
+                region_name=self.s3_region,
+                aws_secret_access_key=self.s3_secret_access_key,
+                aws_access_key_id=self.s3_access_key_id,
+                endpoint_url=self.s3_host
         ) as client:
             await client.put_object(Bucket=self.s3_bucket, Key=key, Body=file)
 
@@ -73,11 +73,11 @@ class StorageService():
         session = get_session()
 
         async with session.create_client(
-            's3',
-            region_name=self.s3_region,
-            aws_secret_access_key=self.s3_secret_access_key,
-            aws_access_key_id=self.s3_access_key_id,
-            endpoint_url=self.s3_host
+                's3',
+                region_name=self.s3_region,
+                aws_secret_access_key=self.s3_secret_access_key,
+                aws_access_key_id=self.s3_access_key_id,
+                endpoint_url=self.s3_host
         ) as client:
             response = await client.get_object(Bucket=self.s3_bucket, Key=key)
 
@@ -92,11 +92,11 @@ class StorageService():
         session = get_session()
 
         async with session.create_client(
-            's3',
-            region_name=self.s3_region,
-            aws_secret_access_key=self.s3_secret_access_key,
-            aws_access_key_id=self.s3_access_key_id,
-            endpoint_url=self.s3_host
+                's3',
+                region_name=self.s3_region,
+                aws_secret_access_key=self.s3_secret_access_key,
+                aws_access_key_id=self.s3_access_key_id,
+                endpoint_url=self.s3_host
         ) as client:
             response = await client.get_object(Bucket=self.s3_bucket, Key=key)
 
@@ -110,10 +110,10 @@ class StorageService():
         session = get_session()
 
         async with session.create_client(
-            's3',
-            region_name=self.s3_region,
-            aws_secret_access_key=self.s3_secret_access_key,
-            aws_access_key_id=self.s3_access_key_id,
-            endpoint_url=self.s3_host
+                's3',
+                region_name=self.s3_region,
+                aws_secret_access_key=self.s3_secret_access_key,
+                aws_access_key_id=self.s3_access_key_id,
+                endpoint_url=self.s3_host
         ) as client:
             await client.delete_object(Bucket=self.s3_bucket, Key=key)

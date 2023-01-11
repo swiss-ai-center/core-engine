@@ -4,13 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from config import get_settings
 from http_client import HttpClient
-from logger import Logger
+from logger import get_logger
 from service.controller import router as service_router
 from service.service import ServiceService
-from worker.service import WorkerService
+from storage.service import StorageService
 from tasks.controller import router as tasks_router
+from tasks.service import TasksService
 
-
+tasks_service: TasksService | None = None
 api_description = """
 Recognizes a digit in an image using mnist trained model
 """
@@ -57,15 +58,16 @@ async def root():
 
 @app.on_event("startup")
 async def startup_event():
+    global tasks_service
     settings = get_settings()
-    logger = Logger(settings)
-    logger.set_source(__name__)
+    logger = get_logger(settings)
     http_client = HttpClient()
-
-    # worker = WorkerService(logger, settings)
-    # worker.start()
-
+    storage_service = StorageService(logger)
+    tasks_service = TasksService(logger, settings, http_client, storage_service)
     service_service = ServiceService(logger, settings, http_client)
+
+    # Announce the service to its engine
+    # TODO: enhance this to allow multiple engines to be used
     announced = False
     retries = settings.engine_announce_retries
     while not announced and retries > 0:
@@ -73,3 +75,14 @@ async def startup_event():
         retries -= 1
         if not announced:
             time.sleep(settings.engine_announce_retry_delay)
+            if retries == 0:
+                logger.warning(f"Aborting service announcement after {settings.engine_announce_retries} retries")
+
+    # Start the tasks service
+    tasks_service.start()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    global tasks_service
+    await tasks_service.stop()

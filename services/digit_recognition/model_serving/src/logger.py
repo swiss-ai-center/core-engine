@@ -1,5 +1,5 @@
-from fastapi import Depends
 import logging
+from fastapi import Depends
 from config import Settings, get_settings
 
 
@@ -7,16 +7,13 @@ class Logger:
     PADDING = '\t'
 
     def __init__(self, settings: Settings = Depends(get_settings)):
-        self.settings = settings
+        self.source = __name__
         self.logger = logging.getLogger('uvicorn')
         self.set_level(settings.log_level.value.upper())
-        self.source = __name__
 
     def set_level(self, level):
         self.logger.setLevel(level)
 
-    # TODO: It seems that the logger instance is shared across all the services
-    # so the source is always the same.
     def set_source(self, source):
         self.source = source
 
@@ -34,3 +31,7 @@ class Logger:
 
     def critical(self, message):
         self.logger.critical(f'[{self.source}]:{self.PADDING}{message}')
+
+
+def get_logger(settings=Depends(get_settings)):
+    return Logger(settings)
