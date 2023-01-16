@@ -1,6 +1,5 @@
-import os
 from inspect import Parameter, Signature
-from fastapi import FastAPI, UploadFile, Depends
+from fastapi import FastAPI, UploadFile, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from makefun import with_signature
 from uuid import UUID
@@ -11,21 +10,23 @@ from sqlmodel import Session, select, desc
 from database import get_session
 from logger import Logger, get_logger
 from config import Settings, get_settings
+from .enums import ServiceStatus
 from .models import Service, ServiceUpdate, ServiceTask
 from common.exceptions import NotFoundException, ConflictException
 from http_client import HttpClient
 from fastapi.encoders import jsonable_encoder
+from httpx import HTTPError
 
 
 class ServicesService:
     def __init__(
-        self,
-        logger: Logger = Depends(get_logger),
-        storage_service: StorageService = Depends(),
-        tasks_service: TasksService = Depends(),
-        settings: Settings = Depends(get_settings),
-        session: Session = Depends(get_session),
-        http_client: HttpClient = Depends(),
+            self,
+            logger: Logger = Depends(get_logger),
+            storage_service: StorageService = Depends(),
+            tasks_service: TasksService = Depends(),
+            settings: Settings = Depends(get_settings),
+            session: Session = Depends(get_session),
+            http_client: HttpClient = Depends(),
     ):
         self.logger = logger
         self.storage_service = storage_service
@@ -37,10 +38,15 @@ class ServicesService:
         self.logger.set_source(__name__)
 
     def add_route(
-        self,
-        app: FastAPI,
-        service: Service
+            self,
+            app: FastAPI,
+            service: Service
     ):
+        """
+        Add a route to the API for a service. Define a function that will be called when the route is called.
+        :param app: The FastAPI app reference
+        :param service: The service to add a route for
+        """
         # Create the `handler` signature from service's `data_in_fields`
         handler_params = []
         for data_in_field in service.data_in_fields:
@@ -86,7 +92,8 @@ class ServicesService:
                         status_code=400,
                         content={
                             "error": "Invalid Content Type",
-                            "message": f"The content type of the file '{file_part_name}' must be of type {accepted_file_content_types}."
+                            "message": f"The content type of the file '{file_part_name}' must be of type "
+                                       f"{accepted_file_content_types}."
                         }
                     )
 
@@ -127,12 +134,17 @@ class ServicesService:
 
             # Submit the service task to the remote service
             try:
-                await self.http_client.post(f"{service.url}/compute", json=jsonable_encoder(service_task))
+                res = await self.http_client.post(f"{service.url}/compute", json=jsonable_encoder(service_task))
+                if res.status_code != 200:
+                    self.logger.warning(f"Service {service.name} returned an error: {res.text}")
+                    raise HTTPException(status_code=res.status_code, detail=res.text)
 
                 # Return the created task to the end-user
                 return task
             except Exception as e:
-                self.logger.warning(f"Service cannot be reached: {str(e)}")
+                if isinstance(e, HTTPError):
+                    self.logger.warning(f"Service cannot be reached: {str(e)}")
+
                 self.logger.debug("Removing files from storage...")
 
                 # Remove files from storage
@@ -148,13 +160,11 @@ class ServicesService:
 
                 self.logger.debug("Task removed.")
 
-                return JSONResponse(
+                raise HTTPException(
                     status_code=500,
-                    content={
-                        "error": "Service task submission",
-                        "message": f"The submission of the task to the service '{service.name}' has failed."
-                    }
+                    detail=f"The submission of the task to the service '{service.name}' has failed."
                 )
+
 
         app.add_api_route(
             f"/{service.slug}",
@@ -171,16 +181,38 @@ class ServicesService:
         )
 
     def find_many(self, skip: int = 0, limit: int = 100):
+        """
+        Find many services.
+        :param skip: The number of services to skip.
+        :param limit: The maximum number of services to return.
+        :return: The list of services.
+        """
         self.logger.debug("Find many services")
         return self.session.exec(select(Service).order_by(desc(Service.created_at)).offset(skip).limit(limit)).all()
 
+    def find_one(self, service_id: UUID):
+        """
+        Find a service by its id.
+        :param service_id:
+        :return: The service if found, None otherwise
+        """
+        self.logger.debug(f"Find service with id {service_id}")
+
+        return self.session.get(Service, service_id)
+
     def create(self, service: Service, app: FastAPI):
+        """
+        Create a new service.
+        :param service: The service to create
+        :param app: The FastAPI app reference
+        :return: The created service
+        """
         self.logger.debug("Creating service")
 
         found_service = self.session.exec(select(Service).where(Service.slug == service.slug)).first()
 
         if found_service:
-            raise ConflictException("Service already existing with same slug")
+            raise ConflictException(f"Service with slug '{service.slug}' already exists.")
         else:
             self.session.add(service)
             self.session.commit()
@@ -193,12 +225,13 @@ class ServicesService:
 
             return service
 
-    def find_one(self, service_id: UUID):
-        self.logger.debug("Find service")
-
-        return self.session.get(Service, service_id)
-
     def update(self, service_id: UUID, service: ServiceUpdate):
+        """
+        Update a service.
+        :param service_id: The id of the service to update.
+        :param service: The service modifications.
+        :return: The updated service.
+        """
         self.logger.debug("Update service")
         current_service = self.session.get(Service, service_id)
         if not current_service:
@@ -214,6 +247,10 @@ class ServicesService:
         return current_service
 
     def delete(self, service_id: UUID):
+        """
+        Delete a service.
+        :param service_id: The id of the service to delete.
+        """
         self.logger.debug("Delete service")
         current_service = self.session.get(Service, service_id)
         if not current_service:
@@ -223,14 +260,21 @@ class ServicesService:
         self.logger.debug(f"Deleted service with id {current_service.id}")
 
     async def check_one_service_availability(self, service_slug: str, service_url: str):
+        """
+        Check if a service is available by calling its /status endpoint.
+        :param service_slug: The slug of the service to check.
+        :param service_url: The URL of the service to check.
+        :return: True if the service is available, False otherwise.
+        """
         self.logger.info(f"Checking service availability for service {service_slug}")
         self.logger.debug(f"Checking url {service_url}")
-        res = await self.http_client.get(f"{service_url}/ping")
-        if res.status_code == 200:
-            return True
-        return False
+        await self.http_client.get(f"{service_url}/status")
 
     async def instantiate_services(self, app: FastAPI):
+        """
+        Instantiate services from database and add routes to the API
+        :param app: FastAPI app reference
+        """
         self.logger.info("Instantiating services...")
         services = self.find_many()
 
@@ -240,44 +284,26 @@ class ServicesService:
             for service in services:
                 try:
                     self.logger.info(f"Instantiating service {service.name}")
-                    if await self.check_one_service_availability(service.slug, service.url):
-                        self.add_route(app, service)
-                        self.logger.info(f"Service {service.name} instantiated")
-                    else:
-                        self.logger.warning(f"Service {service.name} is not available")
-                        self.unregister_service(app, service)
-
-                except Exception as e:
-                    self.logger.warning(f"Service {service.name} cannot be instantiated")
+                    await self.check_one_service_availability(service.slug, service.url)
+                    self.add_route(app, service)
+                    self.logger.info(f"Service {service.name} instantiated")
+                except HTTPError as e:
+                    self.logger.warning(f"Service {service.name} cannot be instantiated: {str(e)}")
                     self.unregister_service(app, service)
 
             self.logger.info("Services instantiated.")
 
-    async def check_all_services_availability(self, app_ref: FastAPI):
-        self.logger.info("Checking services availability...")
-        services = self.find_many()
-
-        if len(services) == 0:
-            self.logger.info("No services in database.")
-        else:
-            for service in services:
-                try:
-                    if await self.check_one_service_availability(service.slug, service.url):
-                        self.logger.info(f"Service {service.name} is available")
-                    else:
-                        self.logger.warning(f"Service {service.name} is not available")
-                        self.unregister_service(app_ref, service)
-
-                except Exception as e:
-                    self.logger.warning(f"Service {service.name} cannot be joined: {e}")
-                    self.unregister_service(app_ref, service)
-
     def unregister_service(self, app: FastAPI, service: Service):
+        """
+        Unregister a service from the API and set its status to unavailable
+        :param app: The FastAPI app reference
+        :param service: The service to unregister
+        """
         self.logger.info(f"Unregistering service {service.name}")
 
-        # TODO: check if remove or set unavailable
-        self.session.delete(service)
-        self.session.commit()
+        # Set the service as unavailable
+        updated_service = self.update(service.id, ServiceUpdate(status=ServiceStatus.UNAVAILABLE))
+        self.logger.debug(f"Service {service.name} status set to {updated_service.status.value}")
 
         for route in app.routes:
             if route.path == f"/{service.slug}":
@@ -285,3 +311,23 @@ class ServicesService:
                 break
 
         self.logger.info(f"Service {service.name} unregistered")
+
+    async def check_all_services_availability(self, app_ref: FastAPI):
+        """
+        Check all services availability and update the routes accordingly
+        :param app_ref: the FastAPI app reference
+        """
+        self.logger.info("Checking services availability...")
+        services = self.find_many()
+
+        if len(services) == 0:
+            self.logger.info("No services in database.")
+        else:
+            for service in services:
+                if service.status == ServiceStatus.AVAILABLE:
+                    try:
+                        await self.check_one_service_availability(service.slug, service.url)
+                        self.logger.info(f"Service {service.name} is available")
+                    except HTTPError as e:
+                        self.logger.warning(f"Service {service.name} cannot be joined: {str(e)}")
+                        self.unregister_service(app_ref, service)

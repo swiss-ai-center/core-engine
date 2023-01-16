@@ -177,7 +177,7 @@ def test_delete_service_non_existent(client: TestClient):
 
 
 def test_patch_service_non_existent(client: TestClient):
-    response = client.patch("/services/00000000-0000-0000-0000-000000000000", json={"status": "running"})
+    response = client.patch("/services/00000000-0000-0000-0000-000000000000", json={"status": "available"})
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Service Not Found"}
@@ -198,7 +198,7 @@ def test_delete_service_non_processable(client: TestClient):
 
 
 def test_patch_service_non_processable(client: TestClient):
-    response = client.patch("/services/bad_id", json={"status": "running"})
+    response = client.patch("/services/bad_id", json={"status": "available"})
 
     assert response.status_code == 422
     assert response.json()["detail"][0]["type"] == "type_error.uuid"

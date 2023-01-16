@@ -7,7 +7,7 @@ from sqlmodel import Field, SQLModel, Column, JSON, Relationship
 from typing import TypedDict
 from common.models import CoreModel
 from pipelines.models import PipelineServiceLink
-from .enums import FieldDescriptionType
+from .enums import FieldDescriptionType, ServiceStatus
 
 
 class FieldDescription(TypedDict):
@@ -28,6 +28,7 @@ class ServiceBase(CoreModel):
     url: str = Field(nullable=False)
     summary: str = Field(nullable=False)
     description: str | None = Field(default=None, nullable=True)
+    status: ServiceStatus = Field(default=ServiceStatus.AVAILABLE, nullable=False)
     data_in_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
     data_out_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
 
@@ -87,8 +88,9 @@ class ServiceUpdate(SQLModel):
     url: str | None
     summary: str | None
     description: str | None
-    data_in_fields: List[str] | None
-    data_out_fields: List[str] | None
+    status: ServiceStatus | None
+    data_in_fields: List[FieldDescription] | None
+    data_out_fields: List[FieldDescription] | None
 
 
 class ServiceTaskBase(BaseModel):

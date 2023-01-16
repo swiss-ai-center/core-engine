@@ -1,6 +1,6 @@
 from typing import List, TypedDict
 from pydantic import BaseModel
-from .enums import FieldDescriptionType
+from .enums import FieldDescriptionType, ServiceStatus
 
 
 class FieldDescription(TypedDict):
@@ -21,6 +21,7 @@ class Service(BaseModel):
     url: str
     summary: str
     description: str | None
+    status: ServiceStatus
     data_in_fields: List[FieldDescription] | None
     data_out_fields: List[FieldDescription] | None
 
@@ -49,6 +50,7 @@ class DigitRecognitionService(Service):
             url="http://localhost:8001",
             summary="Digit recognition service",
             description="Digit recognition service",
+            status=ServiceStatus.AVAILABLE,
             data_in_fields=[
                 FieldDescription(name="image", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
             ],

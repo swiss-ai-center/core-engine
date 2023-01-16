@@ -11,8 +11,9 @@ from logger import Logger
 from fastapi import Depends
 from fastapi.encoders import jsonable_encoder
 from keras import models
-from service.enums import FieldDescriptionType
 from service.models import DigitRecognitionService
+
+from common.exceptions import QueueFullException
 from storage.service import StorageService
 from tasks.enums import TaskStatus
 from tasks.models import ServiceTask, TaskUpdate
@@ -96,6 +97,8 @@ class TasksService:
         Add a task to the queue
         :param task: The task to add
         """
+        if self.is_full():
+            raise QueueFullException("Queue is full")
         await self.tasks.put(task)
         self.amount_of_tasks += 1
         self.logger.info(f"Added task {task.task.id} to the queue | Queue size: {self.tasks.qsize()}")
