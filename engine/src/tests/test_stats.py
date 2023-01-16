@@ -131,7 +131,10 @@ def test_stats(client: TestClient):
 
     client.post("/tasks", json=task_1)
     task_response = client.post("/tasks", json=task_2)
-    client.patch(f'/tasks/{task_response.json()["id"]}', json={"status": "finished"})
+    client.patch(f'/tasks/{task_response.json()["id"]}', json={"status": "finished",
+                                                               "data_out": [
+                                                                   "http://test-service-1.local/test_out",
+                                                               ]})
 
     stats_response = client.get("/stats")
     stats_response_data = stats_response.json()
@@ -147,7 +150,11 @@ def test_stats(client: TestClient):
 
     client.post("/tasks", json=task_1)
     task_response = client.post("/tasks", json=task_2)
-    client.patch(f'/tasks/{task_response.json()["id"]}', json={"status": "running"})
+    client.patch(f'/tasks/{task_response.json()["id"]}', json={"status": "processing",
+                                                               "data_out": [
+                                                                   "http://test-service-1.local/test_out",
+                                                               ]
+                                                               })
 
     stats_response = client.get("/stats")
     stats_response_data = stats_response.json()
@@ -155,13 +162,16 @@ def test_stats(client: TestClient):
     assert stats_response_data["tasks"]["total"] == 4
     assert stats_response_data["tasks"]["finished"] == 1
     assert stats_response_data["tasks"]["pending"] == 2
-    assert stats_response_data["tasks"]["running"] == 1
+    assert stats_response_data["tasks"]["processing"] == 1
     assert len(stats_response_data["services"]) == 2
     assert len(stats_response_data["pipelines"]) == 1
     assert stats_response_data["services"][service_1["name"]] == 2
     assert stats_response_data["pipelines"][pipeline_1["name"]] == 2
 
-    client.patch(f'/tasks/{task_response.json()["id"]}', json={"status": "error"})
+    client.patch(f'/tasks/{task_response.json()["id"]}', json={"status": "error",
+                                                               "data_out": [
+                                                                   "http://test-service-1.local/test_out",
+                                                               ]})
 
     stats_response = client.get("/stats")
     stats_response_data = stats_response.json()
@@ -175,7 +185,10 @@ def test_stats(client: TestClient):
     assert stats_response_data["services"][service_1["name"]] == 2
     assert stats_response_data["pipelines"][pipeline_1["name"]] == 2
 
-    client.patch(f'/tasks/{task_response.json()["id"]}', json={"status": "unavailable"})
+    client.patch(f'/tasks/{task_response.json()["id"]}', json={"status": "unavailable",
+                                                               "data_out": [
+                                                                   "http://test-service-1.local/test_out",
+                                                               ]})
 
     stats_response = client.get("/stats")
     stats_response_data = stats_response.json()

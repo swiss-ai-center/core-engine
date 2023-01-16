@@ -3,6 +3,7 @@ from http_client import HttpClient
 from logger import Logger
 from fastapi import Depends
 from config import Settings, get_settings
+from tasks.service import TasksService
 from .models import DigitRecognitionService
 
 
@@ -12,11 +13,13 @@ class ServiceService:
             logger: Logger = Depends(),
             settings: Settings = Depends(get_settings),
             http_client: HttpClient = Depends(),
+            tasks_service: TasksService = Depends()
     ):
         self.logger = logger
         self.settings = settings
         self.http_client = http_client
         self.logger.set_source(__name__)
+        self.tasks_service = tasks_service
 
     async def announce_service(self):
         """
@@ -37,3 +40,9 @@ class ServiceService:
         except Exception as e:
             self.logger.warning(f"Failed to notify the engine: {str(e)}")
             return False
+
+    def is_full(self):
+        """
+        Check if the service is full
+        """
+        return self.tasks_service.is_full()

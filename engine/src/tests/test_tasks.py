@@ -31,27 +31,27 @@ def client_fixture(session: Session):
 
 
 service_1 = {
-  "name": "Service 1",
-  "slug": "service-1",
-  "url": "http://test-service-1.local",
-  "summary": "string",
-  "description": "string",
-  "data_in_fields": [
-    {
-      "name": "string",
-      "type": [
-        "image/jpeg"
-      ]
-    }
-  ],
-  "data_out_fields": [
-    {
-      "name": "string",
-      "type": [
-        "image/jpeg"
-      ]
-    }
-  ]
+    "name": "Service 1",
+    "slug": "service-1",
+    "url": "http://test-service-1.local",
+    "summary": "string",
+    "description": "string",
+    "data_in_fields": [
+        {
+            "name": "string",
+            "type": [
+                "image/jpeg"
+            ]
+        }
+    ],
+    "data_out_fields": [
+        {
+            "name": "string",
+            "type": [
+                "image/jpeg"
+            ]
+        }
+    ]
 }
 
 task_1 = {
@@ -149,14 +149,17 @@ def test_update_task(client: TestClient):
     task_response = client.patch(
         f"/tasks/{task_response_data['id']}",
         json={
-            "status": "running"
+            "status": "processing",
+            "data_out": [
+                "http://test-service-1.local/test_out",
+            ]
         }
     )
     task_response_data = task_response.json()
 
     assert task_response.status_code == 200
     assert task_response_data["updated_at"] != "null"
-    assert task_response_data["status"] == "running"
+    assert task_response_data["status"] == "processing"
 
 
 def test_create_task_no_body(client: TestClient):
@@ -187,7 +190,12 @@ def test_delete_task_non_existent(client: TestClient):
 
 
 def test_patch_task_non_existent(client: TestClient):
-    response = client.patch("/tasks/00000000-0000-0000-0000-000000000000", json={"status": "running"})
+    response = client.patch("/tasks/00000000-0000-0000-0000-000000000000",
+                            json={"status": "processing",
+                                  "data_out": [
+                                      "http://test-service-1.local/test_out",
+                                  ]}
+                            )
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Task Not Found"}
@@ -208,7 +216,11 @@ def test_delete_task_non_processable(client: TestClient):
 
 
 def test_patch_task_non_processable(client: TestClient):
-    response = client.patch("/tasks/bad_id", json={"status": "running"})
+    response = client.patch("/tasks/bad_id", json={"status": "running",
+                                                   "data_out": [
+                                                       "http://test-service-1.local/test_out",
+                                                   ]
+                                                   })
 
     assert response.status_code == 422
     assert response.json()["detail"][0]["type"] == "type_error.uuid"

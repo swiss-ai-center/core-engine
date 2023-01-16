@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from common.exceptions import NotFoundException
+from logger import get_logger, Logger
 from .service import StorageService
 from .models import FileRead
 
@@ -24,20 +25,20 @@ async def upload(file: UploadFile, storage_service: StorageService = Depends()):
 
 
 @router.get(
-    "/storage",
-    summary="Download a file to storage",
+    "/storage/{key}",
+    summary="Download a file from storage",
 )
-async def download(key: str, storage_service: StorageService = Depends()):
+async def download(key: str, storage_service: StorageService = Depends(), logger: Logger = Depends(get_logger)):
     try:
         headers = {
             'Content-Disposition': f'attachment; filename="{key}"'
         }
-
         return StreamingResponse(
             storage_service.get_file_as_chunks(key),
             headers=headers,
         )
     except Exception as e:
+        logger.error(f"Error while downloading file: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

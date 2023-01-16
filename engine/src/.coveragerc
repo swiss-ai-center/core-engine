@@ -3,3 +3,6 @@ omit =
     tests/*.py
     config.py
     database.py
+[report]
+exclude_lines =
+    pragma: no cover

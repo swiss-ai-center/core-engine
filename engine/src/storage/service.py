@@ -3,7 +3,7 @@ from fastapi import Depends, UploadFile
 from config import Settings, get_settings
 from logger import Logger, get_logger
 from aiobotocore.session import get_session
-from botocore.exceptions import EndpointConnectionError
+from botocore.exceptions import EndpointConnectionError, ClientError
 from uuid import uuid4
 
 
@@ -40,80 +40,94 @@ class StorageService:
             except EndpointConnectionError:
                 self.logger.info("Cannot connect to storage.")
                 exit(0)
-            except Exception:
+            except ClientError:
                 self.logger.info("Successfully connected to storage.")
 
     async def upload(
             self,
             upload_file: UploadFile,
     ):
-        original_filename = upload_file.filename
-        original_extension = os.path.splitext(original_filename)[1]
+        try:
+            original_filename = upload_file.filename
+            original_extension = os.path.splitext(original_filename)[1]
 
-        key = f"{uuid4()}{original_extension}"
-        file = await upload_file.read()
+            key = f"{uuid4()}{original_extension}"
+            file = await upload_file.read()
 
-        session = get_session()
+            session = get_session()
 
-        async with session.create_client(
-                's3',
-                region_name=self.s3_region,
-                aws_secret_access_key=self.s3_secret_access_key,
-                aws_access_key_id=self.s3_access_key_id,
-                endpoint_url=self.s3_host
-        ) as client:
-            await client.put_object(Bucket=self.s3_bucket, Key=key, Body=file)
+            async with session.create_client(
+                    's3',
+                    region_name=self.s3_region,
+                    aws_secret_access_key=self.s3_secret_access_key,
+                    aws_access_key_id=self.s3_access_key_id,
+                    endpoint_url=self.s3_host
+            ) as client:
+                await client.put_object(Bucket=self.s3_bucket, Key=key, Body=file)
 
-        return key
+            return key
+        except ClientError as e:
+            self.logger.error(f"Error uploading file: {e}")
+            return None
 
     async def get_file(
             self,
             key,
     ):
-        session = get_session()
+        try:
+            session = get_session()
 
-        async with session.create_client(
-                's3',
-                region_name=self.s3_region,
-                aws_secret_access_key=self.s3_secret_access_key,
-                aws_access_key_id=self.s3_access_key_id,
-                endpoint_url=self.s3_host
-        ) as client:
-            response = await client.get_object(Bucket=self.s3_bucket, Key=key)
+            async with session.create_client(
+                    's3',
+                    region_name=self.s3_region,
+                    aws_secret_access_key=self.s3_secret_access_key,
+                    aws_access_key_id=self.s3_access_key_id,
+                    endpoint_url=self.s3_host
+            ) as client:
+                response = await client.get_object(Bucket=self.s3_bucket, Key=key)
 
-            async with response['Body'] as stream:
-                file = await stream.read()
-                return file
+                async with response['Body'] as stream:
+                    file = await stream.read()
+                    return file
+        except ClientError as e:
+            self.logger.error(f"Error getting file: {e}")
+            return None
 
     async def get_file_as_chunks(
             self,
             key,
     ):
-        session = get_session()
+        try:
+            session = get_session()
 
-        async with session.create_client(
-                's3',
-                region_name=self.s3_region,
-                aws_secret_access_key=self.s3_secret_access_key,
-                aws_access_key_id=self.s3_access_key_id,
-                endpoint_url=self.s3_host
-        ) as client:
-            response = await client.get_object(Bucket=self.s3_bucket, Key=key)
+            async with session.create_client(
+                    's3',
+                    region_name=self.s3_region,
+                    aws_secret_access_key=self.s3_secret_access_key,
+                    aws_access_key_id=self.s3_access_key_id,
+                    endpoint_url=self.s3_host
+            ) as client:
+                response = await client.get_object(Bucket=self.s3_bucket, Key=key)
 
-            async for chunk in response['Body']:
-                yield chunk
+                async for chunk in response['Body']:
+                    yield chunk
+        except ClientError as e:
+            self.logger.error(f"Error getting file: {e}")
 
     async def delete(
             self,
             key,
     ):
-        session = get_session()
+        try:
+            session = get_session()
 
-        async with session.create_client(
-                's3',
-                region_name=self.s3_region,
-                aws_secret_access_key=self.s3_secret_access_key,
-                aws_access_key_id=self.s3_access_key_id,
-                endpoint_url=self.s3_host
-        ) as client:
-            await client.delete_object(Bucket=self.s3_bucket, Key=key)
+            async with session.create_client(
+                    's3',
+                    region_name=self.s3_region,
+                    aws_secret_access_key=self.s3_secret_access_key,
+                    aws_access_key_id=self.s3_access_key_id,
+                    endpoint_url=self.s3_host
+            ) as client:
+                await client.delete_object(Bucket=self.s3_bucket, Key=key)
+        except ClientError as e:
+            self.logger.error(f"Error deleting file: {e}")

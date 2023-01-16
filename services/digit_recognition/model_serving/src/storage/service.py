@@ -1,6 +1,7 @@
 from fastapi import Depends
 from logger import Logger, get_logger
 from aiobotocore.session import get_session
+from botocore.exceptions import ClientError
 from uuid import uuid4
 
 
@@ -46,7 +47,7 @@ class StorageService:
                 await client.put_object(Bucket=bucket, Key=key, Body=upload_file)
 
             return key
-        except Exception as e:
+        except ClientError as e:
             self.logger.error(f"Error uploading file: {e}")
             return None
 
@@ -84,7 +85,7 @@ class StorageService:
                 async with response['Body'] as stream:
                     file = await stream.read()
                     return file
-        except Exception as e:
+        except ClientError as e:
             self.logger.error(f"Error getting file: {e}")
             return None
 
@@ -120,15 +121,15 @@ class StorageService:
 
                 async for chunk in response['Body']:
                     yield chunk
-        except Exception as e:
+        except ClientError as e:
             self.logger.error(f"Error getting file as chunks: {e}")
 
     async def delete(
             self,
             key,
             region_name,
-            aws_secret_access_key,
-            aws_access_key_id,
+            secret_access_key,
+            access_key_id,
             endpoint_url,
             bucket,
     ):
@@ -147,10 +148,10 @@ class StorageService:
             async with session.create_client(
                     's3',
                     region_name=region_name,
-                    aws_secret_access_key=aws_secret_access_key,
-                    aws_access_key_id=aws_access_key_id,
+                    aws_secret_access_key=secret_access_key,
+                    aws_access_key_id=access_key_id,
                     endpoint_url=endpoint_url
             ) as client:
                 await client.delete_object(Bucket=bucket, Key=key)
-        except Exception as e:
+        except ClientError as e:
             self.logger.error(f"Error deleting file: {e}")

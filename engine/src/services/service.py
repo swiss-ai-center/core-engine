@@ -8,7 +8,6 @@ from storage.service import StorageService
 from tasks.service import TasksService
 from tasks.models import Task, TaskReadWithServiceAndPipeline
 from sqlmodel import Session, select, desc
-from uuid import uuid4
 from database import get_session
 from logger import Logger, get_logger
 from config import Settings, get_settings
@@ -144,7 +143,7 @@ class ServicesService:
 
                 self.logger.debug("Removing task...")
 
-                # Remove the task previousely created
+                # Remove the task previously created
                 self.tasks_service.delete(task.id)
 
                 self.logger.debug("Task removed.")
@@ -223,7 +222,7 @@ class ServicesService:
         self.session.commit()
         self.logger.debug(f"Deleted service with id {current_service.id}")
 
-    async def check_service_availability(self, service_slug: str, service_url: str):
+    async def check_one_service_availability(self, service_slug: str, service_url: str):
         self.logger.info(f"Checking service availability for service {service_slug}")
         self.logger.debug(f"Checking url {service_url}")
         res = await self.http_client.get(f"{service_url}/ping")
@@ -241,7 +240,7 @@ class ServicesService:
             for service in services:
                 try:
                     self.logger.info(f"Instantiating service {service.name}")
-                    if await self.check_service_availability(service.slug, service.url):
+                    if await self.check_one_service_availability(service.slug, service.url):
                         self.add_route(app, service)
                         self.logger.info(f"Service {service.name} instantiated")
                     else:
@@ -254,7 +253,7 @@ class ServicesService:
 
             self.logger.info("Services instantiated.")
 
-    async def check_services_availability(self, app_ref: FastAPI):
+    async def check_all_services_availability(self, app_ref: FastAPI):
         self.logger.info("Checking services availability...")
         services = self.find_many()
 
@@ -263,8 +262,7 @@ class ServicesService:
         else:
             for service in services:
                 try:
-                    if await self.check_service_availability(service.slug, service.url):
-                        # TODO: check if route is already present
+                    if await self.check_one_service_availability(service.slug, service.url):
                         self.logger.info(f"Service {service.name} is available")
                     else:
                         self.logger.warning(f"Service {service.name} is not available")

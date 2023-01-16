@@ -16,7 +16,7 @@ class StatsService:
         self.session = session
 
     def stats(self):
-        running = 0
+        processing = 0
         finished = 0
         error = 0
         pending = 0
@@ -46,8 +46,8 @@ class StatsService:
         task_status_count = self.session.query(Task.status, func.count(Task.status)).group_by(Task.status).all()
 
         for task in task_status_count:
-            if task[0] == TaskStatus.RUNNING:
-                running = task[1]
+            if task[0] == TaskStatus.PROCESSING:
+                processing = task[1]
             elif task[0] == TaskStatus.FINISHED:
                 finished = task[1]
             elif task[0] == TaskStatus.ERROR:
@@ -58,7 +58,7 @@ class StatsService:
                 unavailable = task[1]
 
         stats = {"tasks": {"total": task_total,
-                           "running": running,
+                           "processing": processing,
                            "finished": finished,
                            "pending": pending,
                            "error": error,

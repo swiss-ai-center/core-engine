@@ -4,6 +4,7 @@ from main import app
 from database import get_session
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
+from config import get_settings
 
 
 @pytest.fixture(name="session")
@@ -31,8 +32,8 @@ def client_fixture(session: Session):
 
 
 def test_logger(caplog: pytest.LogCaptureFixture):
-    from logger import Logger
-    logger = Logger()
+    from logger import get_logger
+    logger = get_logger(get_settings())
     caplog.set_level("INFO")
     logger.set_level("INFO")
     logger.info(message="test_info")

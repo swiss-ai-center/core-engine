@@ -20,6 +20,7 @@ class LogLevel(str, Enum):
 class Settings(BaseSettings):
     engine: str = "http://localhost:8000"
     environment: Environment = Environment.PRODUCTION
+    max_tasks: int = 50
     log_level: LogLevel = LogLevel.INFO
     engine_announce_retries: int = 5
     engine_announce_retry_delay: int = 3

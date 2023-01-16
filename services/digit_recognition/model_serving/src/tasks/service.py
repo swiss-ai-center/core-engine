@@ -50,6 +50,7 @@ class WorkQueue(Queue):
 
 class TasksService:
     # TODO: Check if there is a better way than using a global variable to store the queue
+    #  (and also remove the amount of tasks variable)
     tasks = WorkQueue()
 
     def __init__(self, logger: Logger = Depends(), settings: Settings = Depends(get_settings),
@@ -62,12 +63,20 @@ class TasksService:
         self.service_instance = DigitRecognitionService()
         self.model = models.load_model("mnist_model.h5")
         self.running = False
+        self.amount_of_tasks = 0
         # current_task is the task actually processed
         self.current_task = None
         # current_task_data_in is a dictionary containing the data downloaded from the storage used in processing
         self.current_task_data_in = dict()
         # current_task_data_out is a dictionary containing the data to be uploaded to the storage as result of the task
         self.current_task_data_out = dict()
+
+    def is_full(self):
+        """
+        Check if the queue is full
+        :return: True if the queue is full, False otherwise
+        """
+        return self.amount_of_tasks >= self.settings.max_tasks
 
     def start(self):
         """
@@ -88,6 +97,7 @@ class TasksService:
         :param task: The task to add
         """
         await self.tasks.put(task)
+        self.amount_of_tasks += 1
         self.logger.info(f"Added task {task.task.id} to the queue | Queue size: {self.tasks.qsize()}")
 
     async def get_task_status(self, task_id):
@@ -111,7 +121,7 @@ class TasksService:
         # Get task from the queue
         self.current_task = await self.tasks.get()
         self.logger.info(f"Got task {self.current_task} from the queue")
-        self.current_task.task.status = TaskStatus.RUNNING
+        self.current_task.task.status = TaskStatus.FETCHING
         data_in_desc = self.service_instance.get_data_in_fields()
         # Get the data from the storage
         for i in range(len(self.current_task.task.data_in)):
@@ -144,6 +154,7 @@ class TasksService:
         and store the result
         """
         try:
+            self.current_task.task.status = TaskStatus.RUNNING
             self.logger.info(f"Processing task {self.current_task.task.id}")
             # Get raw image data
             raw = self.current_task_data_in["image"]
@@ -174,19 +185,29 @@ class TasksService:
         Update the task status
         and store the result on S3
         """
-        for ext in self.service_instance.get_data_out_fields():
-            data_bytes = self.current_task_data_out[ext["name"]].encode()
-            key = await self.storage.upload(data_bytes,
-                                            get_extension(ext["type"][0]),
-                                            self.current_task.s3_region,
-                                            self.current_task.s3_secret_access_key,
-                                            self.current_task.s3_access_key_id,
-                                            self.current_task.s3_host,
-                                            self.current_task.s3_bucket)
-            if self.current_task.task.data_out is None:
-                self.current_task.task.data_out = []
-            self.current_task.task.data_out.append(key)
-        self.current_task.task.status = TaskStatus.FINISHED
+        self.current_task.task.status = TaskStatus.SAVING
+        try:
+            for ext in self.service_instance.get_data_out_fields():
+                data_bytes = self.current_task_data_out[ext["name"]].encode()
+                key = await self.storage.upload(data_bytes,
+                                                get_extension(ext["type"][0]),
+                                                self.current_task.s3_region,
+                                                self.current_task.s3_secret_access_key,
+                                                self.current_task.s3_access_key_id,
+                                                self.current_task.s3_host,
+                                                self.current_task.s3_bucket)
+                if self.current_task.task.data_out is None:
+                    self.current_task.task.data_out = []
+                self.current_task.task.data_out.append(key)
+            self.current_task.task.status = TaskStatus.FINISHED
+        except Exception as e:
+            self.logger.error(f"Failed to save result: {str(e)}")
+            self.current_task.task.status = TaskStatus.ERROR
+        finally:
+            self.amount_of_tasks -= 1
+            self.current_task = None
+            self.current_task_data_in = {}
+            self.current_task_data_out = {}
 
     async def notify_engine(self):
         """
