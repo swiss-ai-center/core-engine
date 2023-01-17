@@ -32,7 +32,7 @@ def client_fixture(session: Session):
 
 
 def test_logger(caplog: pytest.LogCaptureFixture):
-    from logger import get_logger
+    from logger.logger import get_logger
     logger = get_logger(get_settings())
     caplog.set_level("INFO")
     logger.set_level("INFO")

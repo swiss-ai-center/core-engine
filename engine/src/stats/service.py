@@ -1,9 +1,9 @@
 from pipelines.models import Pipeline
 from services.models import Service
 from tasks.models import TaskStatus
-from logger import Logger, get_logger
+from logger.logger import Logger, get_logger
 from fastapi import Depends
-from sqlmodel import Session, func, select
+from sqlmodel import Session, func
 from database import get_session
 from tasks.models import Task
 

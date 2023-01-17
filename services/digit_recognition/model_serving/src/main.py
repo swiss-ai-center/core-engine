@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from config import get_settings
 from http_client import HttpClient
-from logger import get_logger
+from logger.logger import get_logger
 from service.controller import router as service_router
 from service.service import ServiceService
 from storage.service import StorageService

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from database import get_session
-from logger import get_logger
+from logger.logger import get_logger
 from pipelines.controller import router as pipelines_router
 from services.controller import router as services_router
 from services.service import ServicesService
