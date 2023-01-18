@@ -89,14 +89,14 @@ class ServicesService:
 
         if is_service_response_ok:
             self.logger.debug(f"The service {service.name} will be saved in the database as available")
-            self.register_service(app, service)
+            self.enable_service(app, service)
             return service
         else:
             self.logger.debug(
                 f"The service {service.name} did not respond with an OK status,"
                 "it will be saved in the database as unavailable"
             )
-            self.unregister_service(app, service)
+            self.disable_service(app, service)
             raise HTTPException(
                 status_code=500,
                 detail=f"The service {service.name} did not respond with an OK status,"
@@ -137,13 +137,13 @@ class ServicesService:
         self.session.commit()
         self.logger.debug(f"Deleted service with id {current_service.id}")
 
-    def register_service(self, app: FastAPI, service: Service):
+    def enable_service(self, app: FastAPI, service: Service):
         """
-        Register a service from the API and set its status to available
+        Enable a service from the API and set its status to available
         :param app: The FastAPI app reference
-        :param service: The service to register
+        :param service: The service to enable
         """
-        self.logger.info(f"Registering service {service.name}")
+        self.logger.info(f"Enabling service {service.name}")
 
         # Set the service as available
         updated_service = self.update(service.id, ServiceUpdate(status=ServiceStatus.AVAILABLE))
@@ -276,7 +276,7 @@ class ServicesService:
                 except HTTPException as e:
                     self.logger.warning(f"Service {service.name} returned an error: {str(e)}")
                     await clean_up()
-                    raise HTTPException(status_code=e.status_code, detail=e.detail)
+                    raise e
                 except HTTPError as e:
                     self.logger.error(f"Sending request to the service {service.name} failed: {str(e)}")
                     await clean_up()
@@ -302,13 +302,13 @@ class ServicesService:
                 response_model=TaskReadWithServiceAndPipeline,
             )
 
-    def unregister_service(self, app: FastAPI, service: Service):
+    def disable_service(self, app: FastAPI, service: Service):
         """
-        Unregister a service from the API and set its status to unavailable
+        Disable a service from the API and set its status to unavailable
         :param app: The FastAPI app reference
         :param service: The service to unregister
         """
-        self.logger.info(f"Unregistering service {service.name}")
+        self.logger.info(f"Disabling service {service.name}")
 
         # Set the service as unavailable
         updated_service = self.update(service.id, ServiceUpdate(status=ServiceStatus.UNAVAILABLE))
@@ -351,14 +351,17 @@ class ServicesService:
             self.logger.info("No services in database.")
         else:
             for service in services:
-                try:
-                    await self.check_if_service_is_reachable_and_ok(service)
-                except HTTPException as e:
-                    self.logger.warning(f"Service {service.name} ({service.slug}) did not return an OK: {str(e)}")
-                    self.unregister_service(app, service)
-                except UnreachableException as e:
-                    self.logger.error(f"Service {service.name} ({service.slug}) unreachable: {str(e)}")
-                    self.unregister_service(app, service)
+                if service.status == ServiceStatus.AVAILABLE:
+                    try:
+                        await self.check_if_service_is_reachable_and_ok(service)
+                    except HTTPException as e:
+                        self.logger.warning(f"Service {service.name} ({service.slug}) did not return an OK: {str(e)}")
+                        self.disable_service(app, service)
+                    except UnreachableException as e:
+                        self.logger.error(f"Service {service.name} ({service.slug}) unreachable: {str(e)}")
+                        self.disable_service(app, service)
+                    else:
+                        self.logger.error(f"Service {service.name} ({service.slug}) reachable and OK")
+                        self.enable_service(app, service)
                 else:
-                    self.logger.error(f"Service {service.name} ({service.slug}) reachable and OK")
-                    self.register_service(app, service)
+                    self.logger.info(f"Service {service.name} ({service.slug}) is unavailable. You can change its status manually or by restarting the service")
