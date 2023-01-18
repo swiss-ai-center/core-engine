@@ -4,6 +4,7 @@ from main import app
 from database import get_session
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
+from pytest_httpserver import HTTPServer
 
 
 @pytest.fixture(name="session")
@@ -28,6 +29,16 @@ def client_fixture(session: Session):
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(name="service_instance")
+def service_instance_fixture(httpserver: HTTPServer):
+    httpserver.expect_request("/status").respond_with_json({}, status=200)
+    httpserver.expect_request("/compute").respond_with_json({}, status=200)
+
+    yield httpserver
+
+    httpserver.clear()
 
 
 service_1 = {
@@ -116,9 +127,16 @@ def test_stats_empty(client: TestClient):
     assert len(stats_response_data["pipelines"]) == 0
 
 
-def test_stats(client: TestClient):
-    service_response_1 = client.post("/services", json=service_1)
-    service_response_2 = client.post("/services", json=service_2)
+def test_stats(client: TestClient, service_instance: HTTPServer):
+    service_1_copy = service_1.copy()
+    service_2_copy = service_2.copy()
+
+    service_1_copy["url"] = service_instance.url_for("")
+    service_2_copy["url"] = service_instance.url_for("")
+
+    service_response_1 = client.post("/services", json=service_1_copy)
+    service_response_2 = client.post("/services", json=service_2_copy)
+
     pipeline_1["services"] = []
     pipeline_1["services"].append(service_response_1.json()["id"])
     pipeline_1["services"].append(service_response_2.json()["id"])
@@ -131,10 +149,15 @@ def test_stats(client: TestClient):
 
     client.post("/tasks", json=task_1)
     task_response = client.post("/tasks", json=task_2)
-    client.patch(f'/tasks/{task_response.json()["id"]}', json={"status": "finished",
-                                                               "data_out": [
-                                                                   "http://test-service-1.local/test_out",
-                                                               ]})
+    client.patch(
+      f'/tasks/{task_response.json()["id"]}',
+      json={
+        "status": "finished",
+        "data_out": [
+          "http://test-service-1.local/test_out",
+        ],
+      },
+    )
 
     stats_response = client.get("/stats")
     stats_response_data = stats_response.json()
@@ -150,11 +173,15 @@ def test_stats(client: TestClient):
 
     client.post("/tasks", json=task_1)
     task_response = client.post("/tasks", json=task_2)
-    client.patch(f'/tasks/{task_response.json()["id"]}', json={"status": "processing",
-                                                               "data_out": [
-                                                                   "http://test-service-1.local/test_out",
-                                                               ]
-                                                               })
+    client.patch(
+      f'/tasks/{task_response.json()["id"]}',
+      json={
+        "status": "processing",
+        "data_out": [
+            "http://test-service-1.local/test_out",
+        ],
+      },
+    )
 
     stats_response = client.get("/stats")
     stats_response_data = stats_response.json()
@@ -168,10 +195,15 @@ def test_stats(client: TestClient):
     assert stats_response_data["services"][service_1["name"]] == 2
     assert stats_response_data["pipelines"][pipeline_1["name"]] == 2
 
-    client.patch(f'/tasks/{task_response.json()["id"]}', json={"status": "error",
-                                                               "data_out": [
-                                                                   "http://test-service-1.local/test_out",
-                                                               ]})
+    client.patch(
+      f'/tasks/{task_response.json()["id"]}',
+      json={
+        "status": "error",
+        "data_out": [
+            "http://test-service-1.local/test_out",
+        ],
+      },
+    )
 
     stats_response = client.get("/stats")
     stats_response_data = stats_response.json()
@@ -185,10 +217,15 @@ def test_stats(client: TestClient):
     assert stats_response_data["services"][service_1["name"]] == 2
     assert stats_response_data["pipelines"][pipeline_1["name"]] == 2
 
-    client.patch(f'/tasks/{task_response.json()["id"]}', json={"status": "unavailable",
-                                                               "data_out": [
-                                                                   "http://test-service-1.local/test_out",
-                                                               ]})
+    client.patch(
+      f'/tasks/{task_response.json()["id"]}',
+      json={
+        "status": "unavailable",
+        "data_out": [
+            "http://test-service-1.local/test_out",
+        ],
+      },
+    )
 
     stats_response = client.get("/stats")
     stats_response_data = stats_response.json()

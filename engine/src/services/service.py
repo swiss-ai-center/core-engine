@@ -12,7 +12,7 @@ from logger import Logger, get_logger
 from config import Settings, get_settings
 from .enums import ServiceStatus
 from .models import Service, ServiceUpdate, ServiceTask
-from common.exceptions import NotFoundException, ConflictException
+from common.exceptions import NotFoundException, ConflictException, UnreachableException
 from http_client import HttpClient
 from fastapi.encoders import jsonable_encoder
 from httpx import HTTPError
@@ -37,149 +37,6 @@ class ServicesService:
 
         self.logger.set_source(__name__)
 
-    def add_route(
-            self,
-            app: FastAPI,
-            service: Service
-    ):
-        """
-        Add a route to the API for a service. Define a function that will be called when the route is called.
-        :param app: The FastAPI app reference
-        :param service: The service to add a route for
-        """
-        # Create the `handler` signature from service's `data_in_fields`
-        handler_params = []
-        for data_in_field in service.data_in_fields:
-            handler_params.append(
-                Parameter(
-                    data_in_field["name"],
-                    kind=Parameter.POSITIONAL_OR_KEYWORD,
-                    annotation=UploadFile,
-                )
-            )
-
-        @with_signature(Signature(handler_params))
-        async def handler(*args, **kwargs: UploadFile):
-            """
-            This function represents a service function.
-            It handles the files described by the service, upload them to the S3 bucket
-            and create the task with the uploaded files. It will then forward the task to
-            the service in order to the service to execute them.
-
-            The function signature is described using the `with_signature` annotation that
-            allows FastAPI to generate the OpenAPI spec. As the function has an undefined
-            number of arguments at runtime, we have to access these arguments through the
-            `kwargs` argument.
-            """
-
-            # The files for the tasks
-            task_files = []
-
-            # Iterate over the uploaded files
-            for param_index, (_, file) in enumerate(kwargs.items()):
-                # Get the content type of the file
-                file_content_type = file.content_type
-
-                # Get the file name of the part
-                file_part_name = service.data_in_fields[param_index]["name"]
-
-                # Get the accepted content types for the file
-                accepted_file_content_types = service.data_in_fields[param_index]["type"]
-
-                # Check if the content type of the uploaded file is accepted
-                if file_content_type not in accepted_file_content_types:
-                    return JSONResponse(
-                        status_code=400,
-                        content={
-                            "error": "Invalid Content Type",
-                            "message": f"The content type of the file '{file_part_name}' must be of type "
-                                       f"{accepted_file_content_types}."
-                        }
-                    )
-
-                # Upload the file to S3
-                file_key = None
-                try:
-                    file_key = await self.storage_service.upload(file)
-                except Exception:
-                    return JSONResponse(
-                        status_code=500,
-                        content={
-                            "error": "Storage upload",
-                            "message": f"The upload of file '{file_part_name}' has failed."
-                        }
-                    )
-
-                task_files.append(file_key)
-
-            # Create the task
-            task = Task()
-            task.data_in = task_files
-            task.service = service
-            # TODO: How to manage the pipeline?
-            # task.pipeline = pipeline
-
-            # Save the task in database
-            task = self.tasks_service.create(task)
-
-            # Create the service task
-            service_task = ServiceTask(
-                s3_access_key_id=self.settings.s3_access_key_id,
-                s3_secret_access_key=self.settings.s3_secret_access_key,
-                s3_region=self.settings.s3_region,
-                s3_host=self.settings.s3_host,
-                s3_bucket=self.settings.s3_bucket,
-                task=task,
-            )
-
-            # Submit the service task to the remote service
-            try:
-                res = await self.http_client.post(f"{service.url}/compute", json=jsonable_encoder(service_task))
-                if res.status_code != 200:
-                    self.logger.warning(f"Service {service.name} returned an error: {res.text}")
-                    raise HTTPException(status_code=res.status_code, detail=res.text)
-
-                # Return the created task to the end-user
-                return task
-            except Exception as e:
-                if isinstance(e, HTTPError):
-                    self.logger.warning(f"Service cannot be reached: {str(e)}")
-
-                self.logger.debug("Removing files from storage...")
-
-                # Remove files from storage
-                for task_file in task_files:
-                    await self.storage_service.delete(task_file)
-
-                self.logger.debug("Files from storage removed.")
-
-                self.logger.debug("Removing task...")
-
-                # Remove the task previously created
-                self.tasks_service.delete(task.id)
-
-                self.logger.debug("Task removed.")
-
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"The submission of the task to the service '{service.name}' has failed."
-                )
-
-
-        app.add_api_route(
-            f"/{service.slug}",
-            handler,
-            methods=["POST"],
-            summary=service.summary,
-            description=service.description,
-            tags=[service.name],
-            responses={
-                400: {"detail": "Invalid Content Type"},
-                500: {"detail": "Internal Server Error"},
-            },
-            response_model=TaskReadWithServiceAndPipeline,
-        )
-
     def find_many(self, skip: int = 0, limit: int = 100):
         """
         Find many services.
@@ -200,7 +57,7 @@ class ServicesService:
 
         return self.session.get(Service, service_id)
 
-    def create(self, service: Service, app: FastAPI):
+    async def create(self, service: Service, app: FastAPI):
         """
         Create a new service.
         :param service: The service to create
@@ -213,17 +70,38 @@ class ServicesService:
 
         if found_service:
             raise ConflictException(f"Service with slug '{service.slug}' already exists.")
-        else:
-            self.session.add(service)
-            self.session.commit()
-            self.session.refresh(service)
-            self.logger.debug(f"Created service with id {service.id}")
 
-            self.logger.debug("Adding route...")
-            self.add_route(app, service)
-            self.logger.debug("Route added...")
+        self.logger.debug(f"Checking service {service.name} before adding it to the engine...")
 
+        is_service_response_ok = True
+
+        try:
+            await self.check_if_service_is_reachable_and_ok(service)
+        except UnreachableException as e:
+            self.logger.debug(f"The service {service.name} is unreachable, it will not be added to the engine: {str(e)}")
+            raise HTTPException(status_code=503, detail=str(e))
+        except HTTPException:
+            is_service_response_ok = False
+
+        self.session.add(service)
+        self.session.commit()
+        self.session.refresh(service)
+
+        if is_service_response_ok:
+            self.logger.debug(f"The service {service.name} will be saved in the database as available")
+            self.register_service(app, service)
             return service
+        else:
+            self.logger.debug(
+                f"The service {service.name} did not respond with an OK status,"
+                "it will be saved in the database as unavailable"
+            )
+            self.unregister_service(app, service)
+            raise HTTPException(
+                status_code=500,
+                detail=f"The service {service.name} did not respond with an OK status,"
+                "it will be saved in the database as unavailable"
+            )
 
     def update(self, service_id: UUID, service: ServiceUpdate):
         """
@@ -259,39 +137,170 @@ class ServicesService:
         self.session.commit()
         self.logger.debug(f"Deleted service with id {current_service.id}")
 
-    async def check_one_service_availability(self, service_slug: str, service_url: str):
+    def register_service(self, app: FastAPI, service: Service):
         """
-        Check if a service is available by calling its /status endpoint.
-        :param service_slug: The slug of the service to check.
-        :param service_url: The URL of the service to check.
-        :return: True if the service is available, False otherwise.
+        Register a service from the API and set its status to available
+        :param app: The FastAPI app reference
+        :param service: The service to register
         """
-        self.logger.info(f"Checking service availability for service {service_slug}")
-        self.logger.debug(f"Checking url {service_url}")
-        await self.http_client.get(f"{service_url}/status")
+        self.logger.info(f"Registering service {service.name}")
 
-    async def instantiate_services(self, app: FastAPI):
-        """
-        Instantiate services from database and add routes to the API
-        :param app: FastAPI app reference
-        """
-        self.logger.info("Instantiating services...")
-        services = self.find_many()
+        # Set the service as available
+        updated_service = self.update(service.id, ServiceUpdate(status=ServiceStatus.AVAILABLE))
 
-        if len(services) == 0:
-            self.logger.info("No services in database.")
-        else:
-            for service in services:
+        self.logger.debug(f"Service {service.name} status set to {updated_service.status.value}")
+
+        is_service_route_present = False
+
+        for route in app.routes:
+            if route.path == f"/{service.slug}":
+                is_service_route_present = True
+                break
+
+        # Add the route to the app if not present
+        if not is_service_route_present:
+            # Create the `handler` signature from service's `data_in_fields`
+            handler_params = []
+            for data_in_field in service.data_in_fields:
+                handler_params.append(
+                    Parameter(
+                        data_in_field["name"],
+                        kind=Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=UploadFile,
+                    )
+                )
+
+            service_id = service.id
+
+            @with_signature(Signature(handler_params))
+            async def handler(*args, **kwargs: UploadFile):
+                """
+                This function represents a service function.
+                It handles the files described by the service, upload them to the S3 bucket
+                and create the task with the uploaded files. It will then forward the task to
+                the service in order to the service to execute them.
+
+                The function signature is described using the `with_signature` annotation that
+                allows FastAPI to generate the OpenAPI spec. As the function has an undefined
+                number of arguments at runtime, we have to access these arguments through the
+                `kwargs` argument.
+                """
+
+                # The files for the tasks
+                task_files = []
+
+                # Iterate over the uploaded files
+                for param_index, (_, file) in enumerate(kwargs.items()):
+                    # Get the content type of the file
+                    file_content_type = file.content_type
+
+                    # Get the file name of the part
+                    file_part_name = service.data_in_fields[param_index]["name"]
+
+                    # Get the accepted content types for the file
+                    accepted_file_content_types = service.data_in_fields[param_index]["type"]
+
+                    # Check if the content type of the uploaded file is accepted
+                    if file_content_type not in accepted_file_content_types:
+                        return JSONResponse(
+                            status_code=400,
+                            content={
+                                "error": "Invalid Content Type",
+                                "message": f"The content type of the file '{file_part_name}' must be of type "
+                                        f"{accepted_file_content_types}."
+                            }
+                        )
+
+                    # Upload the file to S3
+                    file_key = None
+                    try:
+                        file_key = await self.storage_service.upload(file)
+                    except Exception:
+                        return JSONResponse(
+                            status_code=500,
+                            content={
+                                "error": "Storage upload",
+                                "message": f"The upload of file '{file_part_name}' has failed."
+                            }
+                        )
+
+                    task_files.append(file_key)
+
+                # Create the task
+                task = Task()
+                task.data_in = task_files
+                task.service_id = service_id
+                # TODO: How to manage the pipeline?
+                # task.pipeline = pipeline
+
+                # Save the task in database
+                task = self.tasks_service.create(task)
+
+                # Create the service task
+                service_task = ServiceTask(
+                    s3_access_key_id=self.settings.s3_access_key_id,
+                    s3_secret_access_key=self.settings.s3_secret_access_key,
+                    s3_region=self.settings.s3_region,
+                    s3_host=self.settings.s3_host,
+                    s3_bucket=self.settings.s3_bucket,
+                    task=task,
+                )
+
+                async def clean_up():
+                    self.logger.debug("Removing files from storage...")
+
+                    # Remove files from storage
+                    for task_file in task_files:
+                        await self.storage_service.delete(task_file)
+
+                    self.logger.debug("Files from storage removed.")
+
+                    self.logger.debug("Removing task...")
+
+                    # Remove the task previously created
+                    self.tasks_service.delete(task.id)
+
+                    self.logger.debug("Task removed.")
+
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"The submission of the task to the service '{service.name}' has failed."
+                    )
+
+                # Submit the service task to the remote service
                 try:
-                    self.logger.info(f"Instantiating service {service.name}")
-                    await self.check_one_service_availability(service.slug, service.url)
-                    self.add_route(app, service)
-                    self.logger.info(f"Service {service.name} instantiated")
-                except HTTPError as e:
-                    self.logger.warning(f"Service {service.name} cannot be instantiated: {str(e)}")
-                    self.unregister_service(app, service)
+                    res = await self.http_client.post(f"{service.url}/compute", json=jsonable_encoder(service_task))
 
-            self.logger.info("Services instantiated.")
+                    if res.status_code != 200:
+                        raise HTTPException(status_code=res.status_code, detail=res.text)
+                except HTTPException as e:
+                    self.logger.warning(f"Service {service.name} returned an error: {str(e)}")
+                    await clean_up()
+                    raise HTTPException(status_code=e.status_code, detail=e.detail)
+                except HTTPError as e:
+                    self.logger.error(f"Sending request to the service {service.name} failed: {str(e)}")
+                    await clean_up()
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Sending request to the service {service.name} failed: {str(e)}",
+                    )
+                else:
+                    # Return the created task to the end-user
+                    return task
+
+            app.add_api_route(
+                f"/{service.slug}",
+                handler,
+                methods=["POST"],
+                summary=service.summary,
+                description=service.description,
+                tags=[service.name],
+                responses={
+                    400: {"detail": "Invalid Content Type"},
+                    500: {"detail": "Internal Server Error"},
+                },
+                response_model=TaskReadWithServiceAndPipeline,
+            )
 
     def unregister_service(self, app: FastAPI, service: Service):
         """
@@ -303,6 +312,7 @@ class ServicesService:
 
         # Set the service as unavailable
         updated_service = self.update(service.id, ServiceUpdate(status=ServiceStatus.UNAVAILABLE))
+
         self.logger.debug(f"Service {service.name} status set to {updated_service.status.value}")
 
         for route in app.routes:
@@ -312,7 +322,24 @@ class ServicesService:
 
         self.logger.info(f"Service {service.name} unregistered")
 
-    async def check_all_services_availability(self, app_ref: FastAPI):
+    async def check_if_service_is_reachable_and_ok(self, service: Service):
+        """
+        Check if an service is reachable and that its response's is OK (status code 200).
+        :param service: The service to check.
+        :return: Throw UnreachableException if not reachable or throw HTTPException
+                 if status code is different from 200
+        """
+        self.logger.debug(f"Checking service {service.url}/status")
+
+        try:
+            res = await self.http_client.get(f"{service.url}/status")
+
+            if res.status_code != 200:
+                raise HTTPException(status_code=res.status_code, detail=res.text)
+        except HTTPError as e:
+            raise UnreachableException(f"Service {service.name} ({service.slug}) unreachable: {str(e)}")
+
+    async def check_services_availability(self, app: FastAPI):
         """
         Check all services availability and update the routes accordingly
         :param app_ref: the FastAPI app reference
@@ -324,10 +351,14 @@ class ServicesService:
             self.logger.info("No services in database.")
         else:
             for service in services:
-                if service.status == ServiceStatus.AVAILABLE:
-                    try:
-                        await self.check_one_service_availability(service.slug, service.url)
-                        self.logger.info(f"Service {service.name} is available")
-                    except HTTPError as e:
-                        self.logger.warning(f"Service {service.name} cannot be joined: {str(e)}")
-                        self.unregister_service(app_ref, service)
+                try:
+                    await self.check_if_service_is_reachable_and_ok(service)
+                except HTTPException as e:
+                    self.logger.warning(f"Service {service.name} ({service.slug}) did not return an OK: {str(e)}")
+                    self.unregister_service(app, service)
+                except UnreachableException as e:
+                    self.logger.error(f"Service {service.name} ({service.slug}) unreachable: {str(e)}")
+                    self.unregister_service(app, service)
+                else:
+                    self.logger.error(f"Service {service.name} ({service.slug}) reachable and OK")
+                    self.register_service(app, service)

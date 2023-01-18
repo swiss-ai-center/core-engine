@@ -15,7 +15,6 @@ from config import get_settings, Environment
 from database import initialize_db
 from timer import Timer
 from http_client import HttpClient
-import asyncio
 
 
 timers = []
@@ -86,18 +85,16 @@ async def startup_event():
     services_service = ServicesService(get_logger(settings), storage_service, tasks_service, settings, session, http_client)
 
     # Check storage
-    asyncio.create_task(storage_service.check_storage_availability())
+    await storage_service.check_storage_availability()
 
     # Instantiate services in database
-    asyncio.create_task(services_service.instantiate_services(app))
-
-    tick = 30
+    await services_service.check_services_availability(app)
 
     # Check for services that are not running
     check_services_timer = Timer(
-        timeout=tick,
-        callback=services_service.check_all_services_availability,
-        app_ref=app,
+        timeout=settings.check_services_availability_interval,
+        callback=services_service.check_services_availability,
+        app=app,
     )
 
     check_services_timer.start()

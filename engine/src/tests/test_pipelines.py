@@ -4,6 +4,7 @@ from main import app
 from database import get_session
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
+from pytest_httpserver import HTTPServer
 
 
 @pytest.fixture(name="session")
@@ -28,6 +29,16 @@ def client_fixture(session: Session):
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(name="service_instance")
+def service_instance_fixture(httpserver: HTTPServer):
+    httpserver.expect_request("/status").respond_with_json({}, status=200)
+    httpserver.expect_request("/compute").respond_with_json({}, status=200)
+
+    yield httpserver
+
+    httpserver.clear()
 
 
 service_1 = {
@@ -93,9 +104,16 @@ pipeline_2 = {
 }
 
 
-def test_create_pipeline(client: TestClient):
-    service_response_1 = client.post("/services", json=service_1)
-    service_response_2 = client.post("/services", json=service_2)
+def test_create_pipeline(client: TestClient, service_instance: HTTPServer):
+    service_1_copy = service_1.copy()
+    service_2_copy = service_2.copy()
+
+    service_1_copy["url"] = service_instance.url_for("")
+    service_2_copy["url"] = service_instance.url_for("")
+
+    service_response_1 = client.post("/services", json=service_1_copy)
+    service_response_2 = client.post("/services", json=service_2_copy)
+
     pipeline_1["services"] = []
     pipeline_1["services"].append(service_response_1.json()["id"])
     pipeline_1["services"].append(service_response_2.json()["id"])
@@ -105,9 +123,16 @@ def test_create_pipeline(client: TestClient):
     assert pipeline_response.status_code == 200
 
 
-def test_get_pipeline(client: TestClient):
-    service_response_1 = client.post("/services", json=service_1)
-    service_response_2 = client.post("/services", json=service_2)
+def test_get_pipeline(client: TestClient, service_instance: HTTPServer):
+    service_1_copy = service_1.copy()
+    service_2_copy = service_2.copy()
+
+    service_1_copy["url"] = service_instance.url_for("")
+    service_2_copy["url"] = service_instance.url_for("")
+
+    service_response_1 = client.post("/services", json=service_1_copy)
+    service_response_2 = client.post("/services", json=service_2_copy)
+
     pipeline_1["services"] = []
     pipeline_1["services"].append(service_response_1.json()["id"])
     pipeline_1["services"].append(service_response_2.json()["id"])
@@ -119,9 +144,16 @@ def test_get_pipeline(client: TestClient):
     assert pipeline_response.status_code == 200
 
 
-def test_get_pipelines(client: TestClient):
-    service_response_1 = client.post("/services", json=service_1)
-    service_response_2 = client.post("/services", json=service_2)
+def test_get_pipelines(client: TestClient, service_instance: HTTPServer):
+    service_1_copy = service_1.copy()
+    service_2_copy = service_2.copy()
+
+    service_1_copy["url"] = service_instance.url_for("")
+    service_2_copy["url"] = service_instance.url_for("")
+
+    service_response_1 = client.post("/services", json=service_1_copy)
+    service_response_2 = client.post("/services", json=service_2_copy)
+
     pipeline_1["services"] = []
     pipeline_1["services"].append(service_response_1.json()["id"])
     pipeline_1["services"].append(service_response_2.json()["id"])
@@ -139,9 +171,16 @@ def test_get_pipelines(client: TestClient):
     assert len(pipelines_response_data) == 2
 
 
-def test_delete_pipeline(client: TestClient):
-    service_response_1 = client.post("/services", json=service_1)
-    service_response_2 = client.post("/services", json=service_2)
+def test_delete_pipeline(client: TestClient, service_instance: HTTPServer):
+    service_1_copy = service_1.copy()
+    service_2_copy = service_2.copy()
+
+    service_1_copy["url"] = service_instance.url_for("")
+    service_2_copy["url"] = service_instance.url_for("")
+
+    service_response_1 = client.post("/services", json=service_1_copy)
+    service_response_2 = client.post("/services", json=service_2_copy)
+
     pipeline_1["services"] = []
     pipeline_1["services"].append(service_response_1.json()["id"])
     pipeline_1["services"].append(service_response_2.json()["id"])
@@ -154,9 +193,16 @@ def test_delete_pipeline(client: TestClient):
     assert pipeline_response.status_code == 204
 
 
-def test_update_pipeline(client: TestClient):
-    service_response_1 = client.post("/services", json=service_1)
-    service_response_2 = client.post("/services", json=service_2)
+def test_update_pipeline(client: TestClient, service_instance: HTTPServer):
+    service_1_copy = service_1.copy()
+    service_2_copy = service_2.copy()
+
+    service_1_copy["url"] = service_instance.url_for("")
+    service_2_copy["url"] = service_instance.url_for("")
+
+    service_response_1 = client.post("/services", json=service_1_copy)
+    service_response_2 = client.post("/services", json=service_2_copy)
+
     pipeline_1["services"] = []
     pipeline_1["services"].append(service_response_1.json()["id"])
     pipeline_1["services"].append(service_response_2.json()["id"])

@@ -24,6 +24,7 @@ def get_one(
         tasks_service: TasksService = Depends()
 ):
     task = tasks_service.find_one(task_id)
+
     if not task:
         raise HTTPException(status_code=404, detail="Task Not Found")
 

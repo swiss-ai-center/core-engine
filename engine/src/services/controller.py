@@ -54,10 +54,14 @@ def get_many_services(
         500: {"detail": "Internal Server Error"},
     },
 )
-def create(request: Request, service: ServiceCreate, services_service: ServicesService = Depends()):
+async def create(
+    request: Request,
+    service: ServiceCreate,
+    services_service: ServicesService = Depends(),
+):
     try:
         service_create = Service.from_orm(service)
-        service = services_service.create(service_create, request.app)
+        service = await services_service.create(service_create, request.app)
 
         return service
     except ConflictException as e:

@@ -7,6 +7,7 @@ httpx==0.23.1
 makefun==1.15.0
 sqlmodel==0.0.8
 pytest==7.2.0
+pytest-asyncio==0.20.3
 pytest-cov==4.0.0
 python-dotenv==0.21.0
 pytest-httpserver==1.0.6

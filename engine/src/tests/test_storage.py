@@ -39,63 +39,111 @@ def client_fixture(session: Session):
 
     app.dependency_overrides[get_session] = get_session_override
 
+    client = TestClient(app)
+    yield client
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture(name="misconfigured_client")
+def misconfigured_client_fixture(session: Session):
+    def get_session_override():
+        return session
+
+    def get_settings_override():
+        settings = get_settings()
+        settings.s3_host = "http://wrong-s3.host"
+
+        return settings
+
+    app.dependency_overrides[get_session] = get_session_override
+    app.dependency_overrides[get_settings] = get_settings_override
+
     with TestClient(app) as client:
         yield client
     app.dependency_overrides.clear()
 
 
-@pytest.mark.asyncio
-async def test_storage(storage: StorageService):
-    # Test upload file
-    file_to_upload = UploadFile(filename="test.json", file=open("tests/test.json", "rb"))
-    key = await storage.upload(file_to_upload)
-    assert key.split(".")[1] == "json"
-
-    # Test download file
-    file = await storage.get_file(key)
-    assert file == b'{"test": "this is a text file for testing purposes"}\n'
-
-    # Test download file with wrong key
-    file = await storage.get_file("wrong_key")
-    assert file is None
-
-    # Test download chunk
-    chunks = []
-    async for chunk in storage.get_file_as_chunks(key):
-        chunks.append(chunk)
-    assert b"".join(chunks) == b'{"test": "this is a text file for testing purposes"}\n'
-
-    # Test download chunk with wrong key
-    chunks = []
-    async for chunk in storage.get_file_as_chunks("wrong_key"):
-        chunks.append(chunk)
-    assert b"".join(chunks) == b''
-
-    # Test delete file
-    await storage.delete(key)
-    assert await storage.get_file(key) is None
-
-
-@pytest.mark.asyncio
-async def test_storage_with_client(client: TestClient):
+def test_upload_file(client: TestClient):
     file_to_upload = open("tests/test.json", "rb")
-    response = client.post("/storage", files={"file": file_to_upload})
-    assert response.status_code == 200
-    assert response.json()["key"].split(".")[1] == "json"
-    key = response.json()["key"]
 
-    response = client.get(f"/storage/{key}")
+    response = client.post("/storage", files={"file": file_to_upload})
+    json = response.json()
+    file_key = json["key"]
+    file_extension = file_key.split(".")[1]
+
+    assert response.status_code == 200
+    assert file_extension == "json"
+
+
+def test_download_file(client: TestClient):
+    file_to_upload = open("tests/test.json", "rb")
+
+    response = client.post("/storage", files={"file": file_to_upload})
+    json = response.json()
+    file_key = json["key"]
+
+    response = client.get(f"/storage/{file_key}")
+
     assert response.status_code == 200
     assert response.content == b'{"test": "this is a text file for testing purposes"}\n'
 
-    # TODO: check why is 200 returned instead of 404
-    response = client.get(f"/storage/wrong_key")
+
+def test_delete_file(client: TestClient):
+    file_to_upload = open("tests/test.json", "rb")
+
+    response = client.post("/storage", files={"file": file_to_upload})
+    json = response.json()
+    file_key = json["key"]
+
+    response = client.delete(f"/storage/{file_key}")
+
+    assert response.status_code == 204
+
+
+def test_download_wrong_file(client: TestClient):
+    response = client.get("/storage/wrong_file_key")
+
     assert response.status_code == 404
-    assert response.content == b'{"detail":"File not found"}'
 
-    response = client.delete(f"/storage/{key}")
-    assert response.status_code == 204
 
-    # TODO: check why is 204 returned instead of 404
-    response = client.delete(f"/storage/wrong_key")
-    assert response.status_code == 204
+def test_delete_wrong_file(client: TestClient):
+    response = client.delete("/storage/wrong_file_key")
+
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_get_file_as_bytes(storage: StorageService):
+    file_to_upload = UploadFile(filename="test.json", file=open("tests/test.json", "rb"))
+    file_key = await storage.upload(file_to_upload)
+
+    file = await storage.get_file_as_bytes(file_key)
+    assert file == b'{"test": "this is a text file for testing purposes"}\n'
+
+
+@pytest.mark.asyncio
+async def test_get_file_as_chunks(storage: StorageService):
+    file_to_upload = UploadFile(filename="test.json", file=open("tests/test.json", "rb"))
+    file_key = await storage.upload(file_to_upload)
+
+    chunks = []
+    async for chunk in storage.get_file_as_chunks(file_key):
+        chunks.append(chunk)
+
+    assert b"".join(chunks) == b'{"test": "this is a text file for testing purposes"}\n'
+
+
+def test_upload_file_with_misconfigured_client(misconfigured_client: TestClient):
+    file_to_upload = open("tests/test.json", "rb")
+
+    response = misconfigured_client.post("/storage", files={"file": file_to_upload})
+
+    assert response.status_code == 500
+
+
+@pytest.mark.asyncio
+async def test_check_storage_availability(storage: StorageService):
+    with pytest.raises(SystemExit) as e:
+        await storage.check_storage_availability()
+    assert e.type == SystemExit
+    assert e.value.code == 1

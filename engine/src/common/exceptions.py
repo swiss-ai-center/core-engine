@@ -12,3 +12,11 @@ class ConflictException(Exception):
     def __init__(self, message):
         self.message = message
         super().__init__(self.message)
+
+
+class UnreachableException(Exception):
+    """Exception raised when a resource is unreachable."""
+
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)

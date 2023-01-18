@@ -4,6 +4,7 @@ from main import app
 from database import get_session
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
+from pytest_httpserver import HTTPServer
 
 
 @pytest.fixture(name="session")
@@ -28,6 +29,16 @@ def client_fixture(session: Session):
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(name="service_instance")
+def service_instance_fixture(httpserver: HTTPServer):
+    httpserver.expect_request("/status").respond_with_json({}, status=200)
+    httpserver.expect_request("/compute").respond_with_json({}, status=200)
+
+    yield httpserver
+
+    httpserver.clear()
 
 
 service_1 = {
@@ -75,8 +86,12 @@ task_2 = {
 }
 
 
-def test_create_task(client: TestClient):
-    service_response = client.post("/services", json=service_1)
+def test_create_task(client: TestClient, service_instance: HTTPServer):
+    # Change the URL of the service to match the mocked service
+    service_copy = service_1.copy()
+    service_copy["url"] = service_instance.url_for("")
+
+    service_response = client.post("/services", json=service_copy)
     service_response_data = service_response.json()
 
     task_1["service_id"] = service_response_data["id"]
@@ -90,8 +105,12 @@ def test_create_task(client: TestClient):
     assert task_response_data["service"]["name"] == service_response_data["name"]
 
 
-def test_get_task(client: TestClient):
-    service_response = client.post("/services", json=service_1)
+def test_get_task(client: TestClient, service_instance: HTTPServer):
+    # Change the URL of the service to match the mocked service
+    service_copy = service_1.copy()
+    service_copy["url"] = service_instance.url_for("")
+
+    service_response = client.post("/services", json=service_copy)
     service_response_data = service_response.json()
 
     task_1["service_id"] = service_response_data["id"]
@@ -106,8 +125,12 @@ def test_get_task(client: TestClient):
     assert task_response_data["status"] == "pending"
 
 
-def test_get_tasks(client: TestClient):
-    service_response = client.post("/services", json=service_1)
+def test_get_tasks(client: TestClient, service_instance: HTTPServer):
+    # Change the URL of the service to match the mocked service
+    service_copy = service_1.copy()
+    service_copy["url"] = service_instance.url_for("")
+
+    service_response = client.post("/services", json=service_copy)
     service_response_data = service_response.json()
 
     task_1["service_id"] = service_response_data["id"]
@@ -123,8 +146,12 @@ def test_get_tasks(client: TestClient):
     assert len(tasks_response_data) == 2
 
 
-def test_delete_task(client: TestClient):
-    service_response = client.post("/services", json=service_1)
+def test_delete_task(client: TestClient, service_instance: HTTPServer):
+    # Change the URL of the service to match the mocked service
+    service_copy = service_1.copy()
+    service_copy["url"] = service_instance.url_for("")
+
+    service_response = client.post("/services", json=service_copy)
     service_response_data = service_response.json()
 
     task_1["service_id"] = service_response_data["id"]
@@ -137,8 +164,12 @@ def test_delete_task(client: TestClient):
     assert task_response.status_code == 204
 
 
-def test_update_task(client: TestClient):
-    service_response = client.post("/services", json=service_1)
+def test_update_task(client: TestClient, service_instance: HTTPServer):
+    # Change the URL of the service to match the mocked service
+    service_copy = service_1.copy()
+    service_copy["url"] = service_instance.url_for("")
+
+    service_response = client.post("/services", json=service_copy)
     service_response_data = service_response.json()
 
     task_1["service_id"] = service_response_data["id"]
@@ -190,12 +221,15 @@ def test_delete_task_non_existent(client: TestClient):
 
 
 def test_patch_task_non_existent(client: TestClient):
-    response = client.patch("/tasks/00000000-0000-0000-0000-000000000000",
-                            json={"status": "processing",
-                                  "data_out": [
-                                      "http://test-service-1.local/test_out",
-                                  ]}
-                            )
+    response = client.patch(
+        "/tasks/00000000-0000-0000-0000-000000000000",
+        json={
+            "status": "processing",
+            "data_out": [
+                "http://test-service-1.local/test_out",
+            ],
+        },
+    )
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Task Not Found"}
@@ -216,11 +250,15 @@ def test_delete_task_non_processable(client: TestClient):
 
 
 def test_patch_task_non_processable(client: TestClient):
-    response = client.patch("/tasks/bad_id", json={"status": "running",
-                                                   "data_out": [
-                                                       "http://test-service-1.local/test_out",
-                                                   ]
-                                                   })
+    response = client.patch(
+        "/tasks/bad_id",
+        json={
+            "status": "running",
+            "data_out": [
+                "http://test-service-1.local/test_out",
+            ],
+        },
+    )
 
     assert response.status_code == 422
     assert response.json()["detail"][0]["type"] == "type_error.uuid"

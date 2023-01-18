@@ -13,7 +13,10 @@ router = APIRouter()
     summary="Upload a file to storage",
     response_model=FileRead,
 )
-async def upload(file: UploadFile, storage_service: StorageService = Depends()):
+async def upload(
+    file: UploadFile,
+    storage_service: StorageService = Depends(),
+):
     key = None
 
     try:
@@ -28,18 +31,31 @@ async def upload(file: UploadFile, storage_service: StorageService = Depends()):
     "/storage/{key}",
     summary="Download a file from storage",
 )
-async def download(key: str, storage_service: StorageService = Depends(), logger: Logger = Depends(get_logger)):
+async def download(
+    key: str,
+    storage_service: StorageService = Depends(),
+    logger: Logger = Depends(get_logger),
+):
     try:
-        headers = {
-            'Content-Disposition': f'attachment; filename="{key}"'
-        }
-        return StreamingResponse(
-            storage_service.get_file_as_chunks(key),
-            headers=headers,
-        )
+        # TODO: Can we move this check in the service file?
+        # It seems an exception thrown in a generator function is not catched.
+        await storage_service.check_if_file_exists(key)
+    except NotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         logger.error(f"Error while downloading file: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+    headers = {
+        'Content-Disposition': f'attachment; filename="{key}"'
+    }
+
+    chunks_generator = storage_service.get_file_as_chunks(key)
+
+    return StreamingResponse(
+        chunks_generator,
+        headers=headers,
+    )
 
 
 @router.delete(
@@ -54,8 +70,14 @@ async def download(key: str, storage_service: StorageService = Depends(), logger
 async def delete(
         key: str,
         services_service: StorageService = Depends(),
+        logger: Logger = Depends(get_logger),
 ):
     try:
-        await services_service.delete(key)
+        await services_service.check_if_file_exists(key)
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error while downloading file: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+    await services_service.delete(key)

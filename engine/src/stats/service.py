@@ -16,6 +16,8 @@ class StatsService:
         self.session = session
 
     def stats(self):
+        # TODO: We could define a model in `models.py` file to describe what a
+        # statistic payload should look like.
         processing = 0
         finished = 0
         error = 0
@@ -27,6 +29,8 @@ class StatsService:
         services_tasks_count = dict()
         pipeline_tasks_count = dict()
 
+        # TODO: We should clean up these stats using the adapted SQL requests (count, group by).
+        # This will be more performant and easier to maintain
         services_list = self.session.query(Service).all()
         for service in services_list:
             services_tasks_count[service.name] = 0
@@ -57,6 +61,7 @@ class StatsService:
             elif task[0] == TaskStatus.UNAVAILABLE:
                 unavailable = task[1]
 
+        # TODO: Use the model to return the payload, not JSON
         stats = {"tasks": {"total": task_total,
                            "processing": processing,
                            "finished": finished,
