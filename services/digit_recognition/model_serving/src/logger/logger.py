@@ -1,6 +1,6 @@
-import logging
 from fastapi import Depends
 from config import Settings, get_settings
+import logging
 
 
 class Logger:
@@ -18,19 +18,19 @@ class Logger:
         self.source = source
 
     def debug(self, message):
-        self.logger.debug(f'[{self.source}]:{self.PADDING}{message}')
+        self.logger.debug(f'[{self.source}]: {self.PADDING}{message}')
 
     def info(self, message):
-        self.logger.info(f'[{self.source}]:{self.PADDING}{message}')
+        self.logger.info(f'[{self.source}]: {self.PADDING}{message}')
 
     def warning(self, message):
-        self.logger.warning(f'[{self.source}]:{self.PADDING}{message}')
+        self.logger.warning(f'[{self.source}]: {self.PADDING}{message}')
 
     def error(self, message):
-        self.logger.error(f'[{self.source}]:{self.PADDING}{message}')
+        self.logger.error(f'[{self.source}]: {self.PADDING}{message}')
 
     def critical(self, message):
-        self.logger.critical(f'[{self.source}]:{self.PADDING}{message}')
+        self.logger.critical(f'[{self.source}]: {self.PADDING}{message}')
 
 
 def get_logger(settings=Depends(get_settings)):

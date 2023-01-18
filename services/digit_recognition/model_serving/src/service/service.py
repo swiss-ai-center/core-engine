@@ -1,6 +1,6 @@
 from fastapi.encoders import jsonable_encoder
 from http_client import HttpClient
-from logger import Logger
+from logger.logger import Logger
 from fastapi import Depends
 from config import Settings, get_settings
 from tasks.service import TasksService
@@ -27,13 +27,14 @@ class ServiceService:
         """
         try:
             entity = jsonable_encoder(DigitRecognitionService())
-            self.logger.info(f'Announcing service {entity}')
+            self.logger.debug(f'Announcing service: {entity}')
             res = await self.http_client.post(self.settings.engine + "/services", json=entity)
             if res.status_code == 409:
                 self.logger.warning(f"Service already exists in the engine")
                 self.logger.info(f"Updating service in the engine")
                 services = await self.http_client.get(self.settings.engine + "/services")
-                service_id = next((service['id'] for service in services.json() if service['slug'] == entity['slug']), None)
+                service_id = next((service['id'] for service in services.json() if service['slug'] == entity['slug']),
+                                  None)
                 res_update = await self.http_client.patch(self.settings.engine + f"/services/{service_id}", json=entity)
                 if res_update.status_code != 200:
                     self.logger.error(f"Error updating service in the engine: {res_update.text}")

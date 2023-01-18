@@ -7,7 +7,7 @@ from asyncio import Queue
 from common.exceptions import NotFoundException
 from config import Settings, get_settings
 from http_client import HttpClient
-from logger import Logger
+from logger.logger import Logger
 from fastapi import Depends
 from fastapi.encoders import jsonable_encoder
 from keras import models

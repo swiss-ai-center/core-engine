@@ -8,7 +8,7 @@ from tasks.service import TasksService
 from tasks.models import Task, TaskReadWithServiceAndPipeline
 from sqlmodel import Session, select, desc
 from database import get_session
-from logger import Logger, get_logger
+from logger.logger import Logger, get_logger
 from config import Settings, get_settings
 from .enums import ServiceStatus
 from .models import Service, ServiceUpdate, ServiceTask
@@ -207,7 +207,7 @@ class ServicesService:
                             content={
                                 "error": "Invalid Content Type",
                                 "message": f"The content type of the file '{file_part_name}' must be of type "
-                                        f"{accepted_file_content_types}."
+                                           f"{accepted_file_content_types}."
                             }
                         )
 
