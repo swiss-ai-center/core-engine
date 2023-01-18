@@ -134,6 +134,7 @@ class TasksService:
                                                self.current_task.s3_access_key_id,
                                                self.current_task.s3_host,
                                                self.current_task.s3_bucket)
+            print(data)
             # Creating an accepted extensions list
             accepted_extension_list = []
             for mime in data_in_desc[i]["type"]:
@@ -150,6 +151,8 @@ class TasksService:
             # Each data downloaded is stored in a dictionary using api description as key, so the file list must be in
             # the same order as the api description
             self.current_task_data_in[data_in_desc[i]["name"]] = data
+            self.logger.info(f"Data: {data}")
+            self.logger.info(f"Got {data_in_desc[i]['name']} from the storage")
 
     async def process_task(self):
         """
@@ -157,10 +160,11 @@ class TasksService:
         and store the result
         """
         try:
-            self.current_task.task.status = TaskStatus.RUNNING
+            self.current_task.task.status = TaskStatus.PROCESSING
             self.logger.info(f"Processing task {self.current_task.task.id}")
             # Get raw image data
             raw = self.current_task_data_in["image"]
+            self.logger.info(f"Got image data: {raw}")
             # Convert to image object
             image = cv2.imdecode(np.frombuffer(raw, np.uint8), cv2.IMREAD_GRAYSCALE)
             # Get the shape of the model
@@ -208,9 +212,6 @@ class TasksService:
             self.current_task.task.status = TaskStatus.ERROR
         finally:
             self.amount_of_tasks -= 1
-            self.current_task = None
-            self.current_task_data_in = {}
-            self.current_task_data_out = {}
 
     async def notify_engine(self):
         """

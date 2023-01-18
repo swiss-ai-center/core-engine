@@ -1,6 +1,3 @@
-import { FieldDescription, Service } from '../../models/Service';
-import { Pipeline } from '../../models/Pipeline';
-
 const dagre = require("dagre");
 const nodeWidth = 200;
 const nodeHeight = 215;
@@ -8,65 +5,36 @@ const nodeHeight = 215;
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-export default function DrawGraph(entity: Service | Pipeline | null) {
-    console.log(entity)
+export default function OldDrawGraph(serviceConfiguration: { services?: any; } | null) {
+    console.log(serviceConfiguration)
     let nodes: any[] = [];
     let edges: any[] = [];
 
-    if (entity && entity instanceof Service) {
-        const entryNode = generateEntryNode(entity.slug, entity.data_in_fields);
-        const serviceNode = generateNode(entity.slug);
-        const exitNode = generateExitNode(entity.slug, entity.data_out_fields);
-        nodes = [entryNode, serviceNode, exitNode];
-        edges = [
-            {id: "e1", source: entryNode.id, target: serviceNode.id, animated: false},
-            {id: "e2", source: serviceNode.id, target: exitNode.id, animated: false},
-        ];
+    if (serviceConfiguration !== null && Object.keys(serviceConfiguration).length > 0) {
+        const nodesConfig = serviceConfiguration.services;
+
+        for (let idx in nodesConfig) {
+            console.log(nodesConfig[idx])
+            const node = nodesConfig[idx];
+
+            if (node.type !== "loop") {
+                const newNode = getNode(node);
+                console.log(newNode)
+                const newEdges = getEdge(newNode);
+                nodes = [...nodes, newNode];
+                edges = [...edges, newEdges];
+            } else {
+                const newNodes = handleLoop(node);
+                nodes = nodes.concat(newNodes);
+                edges = edges.concat(newNodes.map((n) => getEdge(n).flat()));
+            }
+        }
         edges = edges.flat()
         return getAlignedElements(nodes, edges);
-
-    } else if (entity) {
-        // TODO: implement pipeline graph
     }
 
     return {nodes, edges}
 
-}
-
-const generateNode = (slug: string) => {
-    return {
-        id: slug,
-        type: "customNode",
-        next: slug+"-exit",
-        data: {
-            label: slug,
-        }
-    }
-}
-
-const generateEntryNode = (slug: string, data_in_fields: FieldDescription[]) => {
-    return {
-        id: slug+"-entry",
-        type: "customNode",
-        next: slug,
-        data: {
-            label: slug+"-entry",
-            data_in_fields: data_in_fields,
-        },
-        position: {x: 0, y: 0},
-    }
-}
-
-const generateExitNode = (slug: string, data_out_fields: FieldDescription[]) => {
-    return {
-        id: slug+"-exit",
-        type: "customNode",
-        next: [],
-        data: {
-            label: slug+"-exit",
-            data_out_fields: data_out_fields,
-        }
-    }
 }
 
 const getAlignedElements = (nodes: any[], edges: any[]) => {
@@ -214,3 +182,15 @@ function getNode(node: any) {
         position: {x: 0, y: 0},
     };
 }
+
+
+/*function getTypeOfNode(node: any) {
+    switch (node.type) {
+        case "entry":
+            return "input";
+        case "end":
+            return "output";
+        default:
+            return "";
+    }
+}*/

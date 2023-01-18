@@ -6,9 +6,11 @@ import { Link } from 'react-router-dom';
 import "./styles.css";
 import { useNotification } from '../../utils/useNotification';
 
-const ItemGrid: React.FC = () => {
+const ItemGrid: React.FC<{ filter: string }> = ({filter}) => {
     const [pipelines, setPipelines] = React.useState([]);
     const [services, setServices] = React.useState([]);
+    const [filteredServices, setFilteredServices] = React.useState([]);
+    const [filteredPipelines, setFilteredPipelines] = React.useState([]);
     const {displayNotification} = useNotification();
 
     const listServices = async () => {
@@ -16,6 +18,7 @@ const ItemGrid: React.FC = () => {
         if (services) {
             console.log(services);
             setServices(services);
+            setFilteredServices(services);
         } else {
             setServices([]);
             displayNotification({message: "No services found", type: "info"});
@@ -26,10 +29,18 @@ const ItemGrid: React.FC = () => {
         const pipes = await getPipelines();
         if (pipes) {
             setPipelines(pipes);
+            setFilteredPipelines(pipes);
         } else {
             setPipelines([]);
             displayNotification({message: "No pipelines found", type: "info"});
         }
+    }
+
+    const filterItems = (items: any) => {
+        return items.filter((item: any) => item.slug.toLowerCase().includes(filter.toLowerCase()) ||
+            item.name.toLowerCase().includes(filter.toLowerCase()) ||
+            item.summary.toLowerCase().includes(filter.toLowerCase()) ||
+            item.description.toLowerCase().includes(filter.toLowerCase()));
     }
 
     React.useEffect(() => {
@@ -38,20 +49,26 @@ const ItemGrid: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    React.useEffect(() => {
+        setFilteredServices(filterItems(services));
+        setFilteredPipelines(filterItems(pipelines));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filter]);
+
     return (
         <>
             <Typography gutterBottom variant="h4" component="h2" marginBottom={2}>
                 Services
             </Typography>
             <Grid container spacing={4}>
-                {services.length === 0 ? (
+                {filteredServices.length === 0 ? (
                     <Grid item xs={6} md={8}>
                         <Typography gutterBottom variant="h6" component="h2" marginBottom={2}>
-                            No services found
+                            No service found
                         </Typography>
                     </Grid>
                 ) : (
-                    services.map((item: any, index: number) => {
+                    filteredServices.map((item: any, index: number) => {
                             return (
                                 <Grid item xs={12} sm={6} md={4} key={index}>
                                     <Card
@@ -66,9 +83,10 @@ const ItemGrid: React.FC = () => {
                                             </Typography>
                                         </CardContent>
                                         <CardActions>
-                                            <a href={"/showcase?id=" + item.id + "&summary=" + item.summary + "&type=service"}>
+                                            <Link
+                                                to={"/showcase?id=" + item.id + "&summary=" + item.summary + "&type=service"}>
                                                 <Button size="small">View</Button>
-                                            </a>
+                                            </Link>
                                         </CardActions>
                                     </Card>
                                 </Grid>
@@ -80,14 +98,14 @@ const ItemGrid: React.FC = () => {
                 Pipelines
             </Typography>
             <Grid container spacing={4}>
-                {pipelines.length === 0 ? (
+                {filteredPipelines.length === 0 ? (
                     <Grid item xs={6} md={8}>
                         <Typography gutterBottom variant="h6" component="h2" marginBottom={2}>
-                            No pipelines found
+                            No pipeline found
                         </Typography>
                     </Grid>
                 ) : (
-                    pipelines.map((item: any, index: number) => {
+                    filteredPipelines.map((item: any, index: number) => {
                             return (
                                 <Grid item xs={6} md={8} key={index}>
                                     <Card
@@ -102,7 +120,8 @@ const ItemGrid: React.FC = () => {
                                             </Typography>
                                         </CardContent>
                                         <CardActions>
-                                            <Link to={"/showcase?id=" + item.id + "&summary=" + item.summary + "&type=pipeline"}>
+                                            <Link
+                                                to={"/showcase?id=" + item.id + "&summary=" + item.summary + "&type=pipeline"}>
                                                 <Button size="small">View</Button>
                                             </Link>
                                         </CardActions>

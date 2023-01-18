@@ -78,7 +78,8 @@ class ServicesService:
         try:
             await self.check_if_service_is_reachable_and_ok(service)
         except UnreachableException as e:
-            self.logger.debug(f"The service {service.name} is unreachable, it will not be added to the engine: {str(e)}")
+            self.logger.debug(
+                f"The service {service.name} is unreachable, it will not be added to the engine: {str(e)}")
             raise HTTPException(status_code=503, detail=str(e))
         except HTTPException:
             is_service_response_ok = False
@@ -100,7 +101,7 @@ class ServicesService:
             raise HTTPException(
                 status_code=500,
                 detail=f"The service {service.name} did not respond with an OK status,"
-                "it will be saved in the database as unavailable"
+                       "it will be saved in the database as unavailable"
             )
 
     def update(self, service_id: UUID, service: ServiceUpdate):
@@ -324,7 +325,7 @@ class ServicesService:
 
     async def check_if_service_is_reachable_and_ok(self, service: Service):
         """
-        Check if an service is reachable and that its response's is OK (status code 200).
+        Check if a service is reachable and that its response's is OK (status code 200).
         :param service: The service to check.
         :return: Throw UnreachableException if not reachable or throw HTTPException
                  if status code is different from 200
@@ -342,7 +343,7 @@ class ServicesService:
     async def check_services_availability(self, app: FastAPI):
         """
         Check all services availability and update the routes accordingly
-        :param app_ref: the FastAPI app reference
+        :param app: the FastAPI app reference
         """
         self.logger.info("Checking services availability...")
         services = self.find_many()
@@ -364,4 +365,6 @@ class ServicesService:
                         self.logger.error(f"Service {service.name} ({service.slug}) reachable and OK")
                         self.enable_service(app, service)
                 else:
-                    self.logger.info(f"Service {service.name} ({service.slug}) is unavailable. You can change its status manually or by restarting the service")
+                    self.logger.info(
+                        f"Service {service.name} ({service.slug}) is unavailable. You can change its status manually "
+                        f"or by restarting the service")

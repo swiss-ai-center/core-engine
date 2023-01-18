@@ -9,17 +9,24 @@ import ReactFlow, {
     MiniMap
 } from 'react-flow-renderer';
 
-import DrawGraph from './DrawGraph';
+import OldDrawGraph from './OldDrawGraph';
 import SelectorNode from './CustomNode';
 import { ControlButton } from 'reactflow';
 import { FullscreenExit } from '@mui/icons-material';
 
 import "./styles.css";
+import { useSelector } from 'react-redux';
+import { grey } from '@mui/material/colors';
+import DrawGraph from './DrawGraph';
+import { Service } from '../../models/Service';
 
-const Board: React.FC<{description: any}> = ({description}) => {
-    const nodeTypes = useMemo(() => ({ customNode: SelectorNode }), []);
+const Board: React.FC<{ description: any }> = ({description}) => {
+    const nodeTypes = useMemo(() => ({customNode: SelectorNode}), []);
+    const colorMode = useSelector((state: any) => state.colorMode.value);
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+    const lightgrey = grey[300];
+    const darkgrey = grey[900];
 
     const onConnect = useCallback(
         (params: any) => setEdges((eds: any) => addEdge({...params, animated: true}, eds)),
@@ -31,23 +38,28 @@ const Board: React.FC<{description: any}> = ({description}) => {
         return (
             <Controls>
                 <ControlButton onClick={() => document.exitFullscreen()}>
-                    <FullscreenExit />
+                    <FullscreenExit/>
                 </ControlButton>
             </Controls>
         );
     }
 
     useEffect(() => {
-        const {nodes: layoutedNodes, edges: layoutedEdges} = DrawGraph(description);
-        setNodes([...layoutedNodes]);
-        setEdges([...layoutedEdges]);
+        console.log(description);
+        if (description) {
+            const service = Object.assign(new Service(), description);
+            const {nodes: layoutedNodes, edges: layoutedEdges} = DrawGraph(service);
+            console.log(layoutedNodes);
+            setNodes([...layoutedNodes]);
+            setEdges([...layoutedEdges]);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [description])
 
     return (
         <ReactFlowProvider>
             <ReactFlow
-                id="board"
+                id={"board"}
                 nodes={nodes}
                 edges={edges}
                 onNodesChange={onNodesChange}
@@ -56,9 +68,14 @@ const Board: React.FC<{description: any}> = ({description}) => {
                 nodeTypes={nodeTypes}
                 fitView
             >
-                <CustomControls />
-                <Background />
-                <MiniMap/>
+                <CustomControls/>
+                <Background/>
+                <MiniMap style={{backgroundColor: colorMode === 'dark' ? darkgrey : lightgrey,
+                                 padding:0, margin:0}}
+                         nodeStrokeColor={() => {
+                             return 'primary';
+                         }}
+                />
             </ReactFlow>
         </ReactFlowProvider>
     );

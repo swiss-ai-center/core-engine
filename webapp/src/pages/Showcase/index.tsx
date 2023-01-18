@@ -55,7 +55,7 @@ const Showcase: React.FC = () => {
         setValue(newValue);
     };
 
-    const [description, setDescription] = React.useState<any>([]);
+    const [description, setDescription] = React.useState<any>(null);
 
     const handle = useFullScreenHandle();
 
@@ -63,13 +63,15 @@ const Showcase: React.FC = () => {
         let desc = {};
         if (type === 'service') {
             desc = await getServiceDescription(id);
+            console.log(desc);
         } else {
             desc = await getPipelineDescription(id);
         }
         if (desc) {
+            console.log(desc);
             setDescription(desc);
         } else {
-            setDescription([]);
+            setDescription(null);
             displayNotification({message: "No description found", type: "warning"});
         }
     }
@@ -96,7 +98,7 @@ const Showcase: React.FC = () => {
                             color="text.primary"
                             gutterBottom
                         >
-                            {description.name}
+                            {description ? description.name : ''}
                         </Typography>
                         <Typography variant="h5" align="center" color="text.secondary" paragraph>
                             {summary}

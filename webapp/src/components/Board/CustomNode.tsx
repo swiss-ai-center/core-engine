@@ -13,37 +13,30 @@ import {
     Typography
 } from '@mui/material';
 import { Download, PlayArrow } from '@mui/icons-material';
-import { RunState, setJobId, setRunState } from '../../utils/reducers/runStateSlice';
+import { RunState, setTaskId, setRunState, setResultIdList } from '../../utils/reducers/runStateSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { getResult, getTaskStatus, postToService } from '../../utils/api';
+import { getResult, getTask, postToService } from '../../utils/api';
 import { useNotification } from '../../utils/useNotification';
+import { FieldDescription, FieldDescriptionWithSetAndValue } from '../../models/Service';
 
-function mergeBody(body: any, bodyType: any) {
-    let array: any = [];
-    if (body) {
-        if (typeof body === 'string') {
-            array.push({field: body, type: "*", isSet: false, value: null});
-        } else {
-            for (let i = 0; i < body.length; i++) {
-                array.push({
-                    field: body[i],
-                    type: bodyType[i].replace("[", "").replace("]", ""),
-                    isSet: false,
-                    value: null
-                });
-            }
-        }
-    }
-    return array;
+function createAllowedTypesString(allowedTypes: string[]) {
+    return allowedTypes.join(', ');
+}
+
+function addIsSetToFields(fields: FieldDescription[]): FieldDescriptionWithSetAndValue[] {
+    return fields.map(field => {
+        return {...field, isSet: false, value: null};
+    });
 }
 
 const CustomNode = ({data, styles}: any) => {
     const dispatch = useDispatch();
     const run = useSelector((state: any) => state.runState.value);
-    const jobId = useSelector((state: any) => state.runState.jobId);
+    const taskId = useSelector((state: any) => state.runState.taskId);
+    const resultIdList = useSelector((state: any) => state.runState.resultIdList);
     const { displayNotification } = useNotification();
 
-    const [array, setArray] = useState<{ field: string; value: string | Blob }[]>([]);
+    const [array, setArray] = useState<FieldDescriptionWithSetAndValue[]>([]);
     const [areItemsUploaded, setAreItemsUploaded] = React.useState(false);
 
     const checkIfAllItemsAreUploaded = useCallback(() => {
@@ -56,21 +49,24 @@ const CustomNode = ({data, styles}: any) => {
         setAreItemsUploaded(allItemsAreUploaded);
     }, [array]);
 
-    const checkTaskStatus = async (jobId: string) => {
-        const task = await getTaskStatus(jobId);
+    const checkTaskStatus = async (id: string) => {
+        const task = await getTask(id);
+        console.log(task);
         if (task.status === 'finished') {
+            console.log(task.data_out)
+            dispatch(setResultIdList(task.data_out));
             dispatch(setRunState(RunState.ENDED));
-        } else if (task.status === 'failed') {
+        } else if (task.status === 'error') {
             displayNotification({message: "The pipeline ended with an error", type: "error", open: true, timeout: 2000});
             dispatch(setRunState(RunState.ERROR));
         } else {
-            setTimeout(() => checkTaskStatus(jobId), 1000);
+            setTimeout(() => checkTaskStatus(id), 1000);
         }
     }
 
     const handleUpload = (field: string, value: any) => {
         setArray(prevState => prevState.map(item => {
-            if (item.field === field) {
+            if (item.name === field) {
                 return {...item, value: value[0], isSet: true}
             }
             return item;
@@ -80,28 +76,34 @@ const CustomNode = ({data, styles}: any) => {
 
     const runPipeline = async () => {
         const response = await postToService(data.label.replace("-entry", ""), array);
-        if (response.jobId) {
+        console.log(response);
+        if (response.id) {
+            console.log(1);
             dispatch(setRunState(RunState.RUNNING));
-            dispatch(setJobId(response.jobId));
+            dispatch(setTaskId(response.id));
             displayNotification({message: "Pipeline started", type: "success", open: true, timeout: 2000});
-            checkTaskStatus(response.jobId);
+            checkTaskStatus(response.id);
         } else {
-            console.log(response);
+            console.log(2);
             displayNotification({message: `Error while running pipeline: ${response.detail}`, type: "error", open: true, timeout: 2000});
         }
     }
 
     const downloadResult = async () => {
-        console.log(jobId);
-        const file = await getResult(jobId);
-        if (file) {
-            const link = document.createElement('a');
-            link.href = window.URL.createObjectURL(file);
-            link.setAttribute('download', 'result.json');
-            document.body.appendChild(link);
-            link.click();
-        } else {
-            displayNotification({message: "Error downloading file", type: "error", open: true, timeout: 2000});
+        console.log(123)
+        console.log(resultIdList)
+        for (const id of resultIdList) {
+            console.log(id);
+            const file = await getResult(id);
+            if (file) {
+                const link = document.createElement('a');
+                link.href = window.URL.createObjectURL(file);
+                link.setAttribute('download', 'result.'+id.split('.')[1]);
+                document.body.appendChild(link);
+                link.click();
+            } else {
+                displayNotification({message: "Error downloading file" + id, type: "error", open: true, timeout: 2000});
+            }
         }
     }
 
@@ -122,7 +124,9 @@ const CustomNode = ({data, styles}: any) => {
 
     React.useEffect(() => {
         console.log(data);
-        setArray(mergeBody(data.body, data.bodyType));
+        if (data.data_in_fields) {
+            setArray(addIsSetToFields(data.data_in_fields));
+        }
     }, [data]);
 
     React.useEffect(() => {
@@ -135,14 +139,13 @@ const CustomNode = ({data, styles}: any) => {
                 sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
             >
                 <CardContent sx={{flexGrow: 1}}>
-                    <Typography variant={"subtitle1"} color={"secondary"}>{data.label}</Typography>
-                    {// TODO : correct this when FieldDescription is available in backend
-                        /*(data.body) ?
+                    <Typography variant={"subtitle1"} color={"primary"}>{data.label}</Typography>
+                    {(data.data_in_fields) ?
                         array.map((item: any, index: number) => {
                             return (
                                 <div key={`div-${index}`}>
                                     <Typography variant={"body2"} key={`field-${index}`} sx={{mt: 1}}>
-                                        {item.field}
+                                        {item.name}
                                     </Typography>
                                     {(item.type === "text/plain") ?
                                         (<Input key={`input-${index}`} placeholder={"Enter text"}/>)
@@ -153,10 +156,10 @@ const CustomNode = ({data, styles}: any) => {
                                                     color={item.isSet ? 'success' : 'primary'}>
                                                 Upload
                                                 <input
-                                                    accept={item.type}
+                                                    accept={createAllowedTypesString(item.type)}
                                                     type={"file"}
                                                     hidden
-                                                    onChange={(event) => handleUpload(item.field, event.target.files)}
+                                                    onChange={(event) => handleUpload(item.name, event.target.files)}
                                                 />
                                             </Button>
                                         </Tooltip>)}
@@ -166,16 +169,16 @@ const CustomNode = ({data, styles}: any) => {
                         })
                         :
                         <Typography></Typography>
-                    */}
+                    }
                 </CardContent>
-                {/*(data.label.includes("entry")) ?
+                {(data.label.includes("entry")) ?
                     (
                         <CardActions>
                             {actionContent()}
                         </CardActions>)
                     :
                     (<></>)}
-                {(data.label.includes("end")) ?
+                {(data.label.includes("exit")) ?
                     (
                         <CardActions>
                             <Button disabled={!(run === RunState.ENDED)} sx={{flexGrow: 1}} variant={"contained"}
@@ -183,19 +186,19 @@ const CustomNode = ({data, styles}: any) => {
                                     onClick={downloadResult}>Download</Button>
                         </CardActions>)
                     :
-                    (<></>)*/}
+                    (<></>)}
             </Card>
 
-            {/*(!data.label.includes("entry")) ?
+            {(data.label && !data.label.includes("entry")) ?
                 <Handle
                     type="target"
                     position={Position.Left}
                 /> : <></>}
-            {(!data.label.includes("end")) ?
+            {(data.label && !data.label.includes("exit")) ?
                 <Handle
                     type="source"
                     position={Position.Right}
-                /> : <></>*/}
+                /> : <></>}
         </>
     );
 };

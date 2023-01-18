@@ -1,3 +1,4 @@
+import asyncio
 import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -66,20 +67,23 @@ async def startup_event():
     tasks_service = TasksService(logger, settings, http_client, storage_service)
     service_service = ServiceService(logger, settings, http_client)
 
-    # Announce the service to its engine
-    # TODO: enhance this to allow multiple engines to be used
-    announced = False
-    retries = settings.engine_announce_retries
-    while not announced and retries > 0:
-        announced = await service_service.announce_service()
-        retries -= 1
-        if not announced:
-            time.sleep(settings.engine_announce_retry_delay)
-            if retries == 0:
-                logger.warning(f"Aborting service announcement after {settings.engine_announce_retries} retries")
-
     # Start the tasks service
     tasks_service.start()
+
+    async def announce():
+        # TODO: enhance this to allow multiple engines to be used
+        announced = False
+        retries = settings.engine_announce_retries
+        while not announced and retries > 0:
+            announced = await service_service.announce_service()
+            retries -= 1
+            if not announced:
+                time.sleep(settings.engine_announce_retry_delay)
+                if retries == 0:
+                    logger.warning(f"Aborting service announcement after {settings.engine_announce_retries} retries")
+
+    # Announce the service to its engine
+    asyncio.ensure_future(announce())
 
 
 @app.on_event("shutdown")

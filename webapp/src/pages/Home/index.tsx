@@ -1,9 +1,15 @@
-import { Box, Container, Typography } from '@mui/material';
+import { Box, Container, TextField, Typography } from '@mui/material';
 import React from 'react';
 import ItemGrid from '../../components/ItemGrid/ItemGrid';
 
 
 const Home: React.FC = () => {
+    const [search, setSearch] = React.useState('');
+
+    const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearch(event.target.value);
+    };
+
     return (
         <Container>
             <main>
@@ -19,16 +25,15 @@ const Home: React.FC = () => {
                             CSIA-PME
                         </Typography>
                         <Typography variant="h5" align="justify" color="text.secondary" paragraph>
-                            CSIA-PME is a project of the Swiss AI Center of the HES-SO University of Applied
-                            Sciences and Arts of Western Switzerland.
-                            The purpose is to provide a platform for the development of AI applications in
-                            different domains in PME.
-                            This page is a prototype of the platform with demos.
+                            CSIA-PME is a project of the Swiss AI Center of the University of Applied Sciences Western
+                            Switzerland HES-SO. The objective is to provide a platform for the development of AI
+                            applications for SMEs in different domains.
                         </Typography>
                     </Container>
                 </Box>
                 <Container sx={{py: 8}} maxWidth="lg">
-                    <ItemGrid/>
+                    <TextField sx={{mb: 2}} name={'search'} label={'Search'} value={search} onChange={handleSearch} fullWidth />
+                    <ItemGrid filter={search}/>
                 </Container>
             </main>
         </Container>
@@ -36,4 +41,4 @@ const Home: React.FC = () => {
 }
 
 
-    export default Home;
+export default Home;
