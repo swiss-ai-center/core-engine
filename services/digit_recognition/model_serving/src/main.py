@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from config import get_settings
+from pydantic import Field
 from http_client import HttpClient
 from logger.logger import get_logger
 from service.controller import router as service_router
@@ -11,8 +12,67 @@ from service.service import ServiceService
 from storage.service import StorageService
 from tasks.controller import router as tasks_router
 from tasks.service import TasksService
+from service.models import Service, FieldDescription
+from service.enums import ServiceStatus, FieldDescriptionType
 
-tasks_service: TasksService | None = None
+# Imports required by the service's model
+from keras import models
+import cv2
+import numpy as np
+
+
+class MyService(Service):
+    """
+    Digit recognition service model
+    """
+
+    # Any additionnal fields must be excluded for Pydantic to work
+    model: object = Field(exclude=True)
+
+    def __init__(self):
+        super().__init__(
+            name="Digit recognition",
+            slug="digit-recognition",
+            url="http://localhost:8001",
+            summary="Digit recognition service",
+            description="Digit recognition service",
+            status=ServiceStatus.AVAILABLE,
+            data_in_fields=[
+                FieldDescription(name="image", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
+            ],
+            data_out_fields=[
+                FieldDescription(name="digit", type=[FieldDescriptionType.TEXT_PLAIN]),
+            ]
+        )
+
+        self.model = models.load_model("../mnist_model.h5")
+
+    async def process(self, data):
+        # Get raw image data
+        raw = data["image"]
+        # Convert to image object
+        image = cv2.imdecode(np.frombuffer(raw, np.uint8), cv2.IMREAD_GRAYSCALE)
+        # Get the shape of the model
+        shape = self.model.input.shape[1]
+        # Compute the size
+        size = int(np.sqrt(shape))
+        # Resize the image to the size of the model
+        resized = cv2.resize(image, (size, size))
+        # Normalize the image
+        normalized = resized / 255.0
+        # Reshape the image
+        flattened = np.reshape(normalized, [-1, shape])
+        # Predict the image
+        prediction = self.model.predict(flattened)
+        # Get the index of the highest probability
+        guessed = np.argmax(prediction)
+
+        # Save the results in a type that can be encoded later (str, json, ...)
+        return {
+            "digit": str(guessed)
+        }
+
+
 api_description = """
 Recognizes a digit in an image using mnist trained model
 """
@@ -56,16 +116,27 @@ app.add_middleware(
 async def root():
     return RedirectResponse("/docs", status_code=301)
 
+tasks_service: TasksService | None = None
+
 
 @app.on_event("startup")
 async def startup_event():
+    # Manual instances because startup events doesn't support Dependency Injection
+    # https://github.com/tiangolo/fastapi/issues/2057
+    # https://github.com/tiangolo/fastapi/issues/425
+
+    # Global variable
     global tasks_service
+
     settings = get_settings()
     logger = get_logger(settings)
     http_client = HttpClient()
     storage_service = StorageService(logger)
+    my_service = MyService()
     tasks_service = TasksService(logger, settings, http_client, storage_service)
-    service_service = ServiceService(logger, settings, http_client)
+    service_service = ServiceService(logger, settings, http_client, tasks_service)
+
+    tasks_service.set_service(my_service)
 
     # Start the tasks service
     tasks_service.start()
@@ -73,11 +144,13 @@ async def startup_event():
     async def announce():
         # TODO: enhance this to allow multiple engines to be used
         announced = False
+
         retries = settings.engine_announce_retries
         while not announced and retries > 0:
-            announced = await service_service.announce_service()
+            announced = await service_service.announce_service(my_service)
             retries -= 1
             if not announced:
+                # TODO: Differences between `time.sleep` and `asyncio.sleep`?
                 time.sleep(settings.engine_announce_retry_delay)
                 if retries == 0:
                     logger.warning(f"Aborting service announcement after {settings.engine_announce_retries} retries")
@@ -88,5 +161,7 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
+    # Global variable
     global tasks_service
+
     await tasks_service.stop()

@@ -10,7 +10,7 @@ class TaskBase(BaseModel):
     """
     data_in: List[str] | None
     data_out: List[str] | None
-    status: TaskStatus
+    status: TaskStatus | None
     service_id: UUID
     pipeline_id: UUID | None
 

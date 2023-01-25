@@ -352,7 +352,7 @@ class ServicesService:
             self.logger.info("No services in database.")
         else:
             for service in services:
-                if service.status == ServiceStatus.AVAILABLE:
+                # if service.status == ServiceStatus.AVAILABLE:
                     try:
                         await self.check_if_service_is_reachable_and_ok(service)
                     except HTTPException as e:
@@ -362,9 +362,10 @@ class ServicesService:
                         self.logger.error(f"Service {service.name} ({service.slug}) unreachable: {str(e)}")
                         self.disable_service(app, service)
                     else:
-                        self.logger.error(f"Service {service.name} ({service.slug}) reachable and OK")
+                        self.logger.info(f"Service {service.name} ({service.slug}) reachable and OK")
                         self.enable_service(app, service)
-                else:
-                    self.logger.info(
-                        f"Service {service.name} ({service.slug}) is unavailable. You can change its status manually "
-                        f"or by restarting the service")
+                # else:
+                #     self.logger.info(
+                #         f"Service {service.name} ({service.slug}) is unavailable. You can change its status manually "
+                #         f"or by restarting the service"
+                #     )

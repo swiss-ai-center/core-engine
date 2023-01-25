@@ -1,69 +1,143 @@
-import os
-import asyncio
 import pytest
-
-from api.worker import Worker
-from aiofile import async_open
-from contextlib import AsyncExitStack
-
 from fastapi.testclient import TestClient
-from api.api import app
+from pytest_httpserver import HTTPServer
+from config import get_settings
+from logger.logger import get_logger
+from storage.service import StorageService
+from main import app
+import time
 
-client = TestClient(app)
 
-def imgPath(name):
-	return os.path.join(os.path.dirname(os.path.realpath(__file__)), name)
+@pytest.fixture(name="storage")
+def storage_fixture():
+    settings = get_settings()
+    logger = get_logger(settings)
 
-async def img(name):
-	stack = AsyncExitStack()
-	fctx = async_open(imgPath(name), "rb")
-	f = await stack.enter_async_context(fctx)
-	return f
+    storage = StorageService(logger=logger)
 
-class Collect():
-	def __init__(self):
-		super().__init__()
-		self.result = None
-		self.event = asyncio.Event()
+    yield storage
 
-	async def addTask(self, task):
-		self.result = task
-		self.event.set()
 
-	async def finished(self):
-		await self.event.wait()
-		return self.result
+@pytest.fixture(name="client")
+def client_fixture(reachable_engine_instance: HTTPServer):
+    def get_settings_override():
+        settings = get_settings()
+        settings.engine_url = reachable_engine_instance.url_for("")
+        settings.engine_announce_retries = 2
+        settings.engine_announce_retry_delay = 1
+        settings.max_tasks = 2
 
-class AsyncReader:
-	def __init__(self, raw):
-		self.raw = raw
+        return settings
 
-	async def read(self):
-		return self.raw
+    app.dependency_overrides[get_settings] = get_settings_override
 
-def setup_workers():
-	worker = Worker()
-	collect = Collect()
-	worker.chain(collect)
-	worker.start()
-	return worker, collect
+    # client = TestClient(app)
+    # yield client
 
-def test_root_notfound():
-	response = client.get("/")
-	assert response.status_code == 404
+    with TestClient(app) as client:
+        # We wait for the app to announce itself to the engine (ugly)
+        time.sleep(5)
+        yield client
 
-def test_docs():
-	response = client.get("/docs")
-	assert response.status_code == 200
+    app.dependency_overrides.clear()
 
-@pytest.mark.asyncio
-async def test_digit_recognition():
-	worker, collect = setup_workers()
-	await worker.addTask({"image": await img("two.jpg")})
-	finishedTask = await collect.finished()
-	await worker.stop()
 
-	assert "result" in finishedTask
-	result = finishedTask["result"]
-	assert "digit" in result
-	assert type(result["digit"]) is int
+@pytest.fixture(name="reachable_engine_instance")
+def reachable_engine_instance_fixture(httpserver: HTTPServer):
+    httpserver.expect_request("/services").respond_with_json({}, status=200)
+
+    yield httpserver
+
+    httpserver.clear()
+
+
+@pytest.fixture(name="unreachable_engine_instance")
+def unreachable_engine_instance_fixture(httpserver: HTTPServer):
+    httpserver.expect_request("/services").respond_with_json({}, status=500)
+
+    yield httpserver
+
+    httpserver.clear()
+
+
+@pytest.fixture(name="app_with_reachable_engine_instance")
+def app_with_reachable_engine_instance(reachable_engine_instance: HTTPServer):
+    def get_settings_override():
+        settings = get_settings()
+        settings.engine_url = reachable_engine_instance.url_for("")
+        settings.engine_announce_retries = 2
+        settings.engine_announce_retry_delay = 1
+        settings.max_tasks = 2
+
+        return settings
+
+    # I don't understand why, in this specific case, I need to call the `get_settings_override` function
+    # for this to work where elsewhere I can pass the function as it is...
+    app.dependency_overrides[get_settings] = get_settings_override()
+
+    yield app
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture(name="app_with_unreachable_engine_instance")
+def app_with_unreachable_engine_instance(unreachable_engine_instance: HTTPServer):
+    def get_settings_override():
+        settings = get_settings()
+        settings.engine_url = unreachable_engine_instance.url_for("")
+        settings.engine_announce_retries = 2
+        settings.engine_announce_retry_delay = 1
+        settings.max_tasks = 2
+
+        return settings
+
+    # I don't understand why, in this specific case, I need to call the `get_settings_override` function
+    # for this to work where elsewhere I can pass the function as it is...
+    app.dependency_overrides[get_settings] = get_settings_override()
+
+    yield app
+    app.dependency_overrides.clear()
+
+
+def test_accounce_to_reachable_engine(caplog: pytest.LogCaptureFixture, app_with_reachable_engine_instance):
+    with TestClient(app_with_reachable_engine_instance):
+        # We wait for the app to announce itself to the engine (ugly)
+        time.sleep(5)
+
+        # We look for `WARNING` messages in the logs to check if the service wasn't
+        # able to announce itself to the engine.
+        #
+        # This is not a good way to test the app as any other warnings will make the test
+        # passes.
+        warning_logs_found = False
+        for record in caplog.records:
+            if record.levelname == "WARNING":
+                warning_logs_found = True
+                break
+
+        assert not warning_logs_found
+
+
+def test_accounce_to_unreachable_engine(caplog: pytest.LogCaptureFixture, app_with_unreachable_engine_instance):
+    with TestClient(app_with_unreachable_engine_instance):
+        # We wait for the app to announce itself to the engine (ugly)
+        time.sleep(5)
+
+        # We look for `WARNING` messages in the logs to check if the service wasn't
+        # able to announce itself to the engine.
+        #
+        # This is not a good way to test the app as any other warnings will make the test
+        # passes.
+        warning_logs_found = False
+        for record in caplog.records:
+            if record.levelname == "WARNING":
+                warning_logs_found = True
+                break
+
+        assert warning_logs_found
+
+
+def test_status(client: TestClient):
+    status_response = client.get("/status")
+
+    # Check the output
+    assert status_response.status_code == 200

@@ -1,0 +1,46 @@
+networks:
+  minio:
+    name: minio
+
+services:
+  minio:
+    container_name: minio
+    image: quay.io/minio/minio:${MINIO_IMAGE_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      # The MinIO root user
+      - MINIO_ROOT_USER=minio
+      # The MinIO root password
+      - MINIO_ROOT_PASSWORD=minio123
+    command: server --address ":9000" --console-address ":9001" /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - ./minio-data:/data:rw
+
+  mc:
+    container_name: mc
+    image: minio/mc:${MC_IMAGE_VERSION:-latest}
+    depends_on:
+      - minio
+    environment:
+      # The MinIO root user
+      - MINIO_ROOT_USER=minio
+      # The MinIO root password
+      - MINIO_ROOT_PASSWORD=minio123
+    networks:
+      - minio
+    entrypoint: >
+      sh -c "
+        mc config host rm local;
+        mc config host add --api s3v4 local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD};
+        mc mb --ignore-existing local/engine;
+      "

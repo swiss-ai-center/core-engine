@@ -1,3 +1,4 @@
+from abc import ABCMeta, abstractmethod
 from typing import List, TypedDict
 from pydantic import BaseModel
 from .enums import FieldDescriptionType, ServiceStatus
@@ -11,7 +12,7 @@ class FieldDescription(TypedDict):
     type: List[FieldDescriptionType]
 
 
-class Service(BaseModel):
+class Service(BaseModel, metaclass=ABCMeta):
     """
     Service model
     """
@@ -37,24 +38,6 @@ class Service(BaseModel):
         """
         return self.data_out_fields
 
-
-class DigitRecognitionService(Service):
-    """
-    Digit recognition service model
-    """
-
-    def __init__(self):
-        super().__init__(
-            name="Digit recognition",
-            slug="digit-recognition",
-            url="http://localhost:8001",
-            summary="Digit recognition service",
-            description="Digit recognition service",
-            status=ServiceStatus.AVAILABLE,
-            data_in_fields=[
-                FieldDescription(name="image", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
-            ],
-            data_out_fields=[
-                FieldDescription(name="digit", type=[FieldDescriptionType.TEXT_PLAIN]),
-            ]
-        )
+    @abstractmethod
+    async def process(self, data):
+        pass

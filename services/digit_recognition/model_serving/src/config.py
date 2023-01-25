@@ -18,7 +18,7 @@ class LogLevel(str, Enum):
 
 
 class Settings(BaseSettings):
-    engine: str = "http://localhost:8000"
+    engine_url: str = "http://localhost:8000"
     environment: Environment = Environment.PRODUCTION
     max_tasks: int = 50
     log_level: LogLevel = LogLevel.INFO

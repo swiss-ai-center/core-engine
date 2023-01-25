@@ -16,7 +16,7 @@ class StorageService:
     async def upload(
             self,
             upload_file: bytes,
-            file_extension: str,
+            file_extension_with_dot: str,
             region_name: str,
             secret_access_key: str,
             access_key_id: str,
@@ -26,14 +26,14 @@ class StorageService:
         """
         Uploads a file to the storage service
         :param upload_file: The file to upload (bytes)
-        :param file_extension: The file extension
+        :param file_extension: The file extension (with the dot)
         :param region_name: The region name of the S3 server
         :param secret_access_key: The secret access key of the S3 server
         :param access_key_id: The access key id of the S3 server
         :param endpoint_url: The endpoint url of the S3 server
         :param bucket: The bucket name on the S3 server
         """
-        key = f"{uuid4()}{file_extension}"
+        key = f"{uuid4()}{file_extension_with_dot}"
         session = get_session()
 
         try:
@@ -88,41 +88,6 @@ class StorageService:
         except ClientError as e:
             self.logger.error(f"Error getting file: {e}")
             return None
-
-    async def get_file_as_chunks(
-            self,
-            key: str,
-            region_name: str,
-            secret_access_key: str,
-            access_key_id: str,
-            endpoint_url: str,
-            bucket: str,
-    ):
-        """
-        Gets a file from the storage service
-        :param key: The key of the file to retrieve
-        :param region_name: The region name of the S3 server
-        :param secret_access_key: The secret access key of the S3 server
-        :param access_key_id: The access key id of the S3 server
-        :param endpoint_url: The endpoint url of the S3 server
-        :param bucket: The bucket name on the S3 server
-        :return: The file as chunks
-        """
-        session = get_session()
-        try:
-            async with session.create_client(
-                    's3',
-                    region_name=region_name,
-                    aws_secret_access_key=secret_access_key,
-                    aws_access_key_id=access_key_id,
-                    endpoint_url=endpoint_url
-            ) as client:
-                response = await client.get_object(Bucket=bucket, Key=key)
-
-                async for chunk in response['Body']:
-                    yield chunk
-        except ClientError as e:
-            self.logger.error(f"Error getting file as chunks: {e}")
 
     async def delete(
             self,
