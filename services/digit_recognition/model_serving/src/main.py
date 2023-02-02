@@ -26,16 +26,16 @@ class MyService(Service):
     Digit recognition service model
     """
 
-    # Any additionnal fields must be excluded for Pydantic to work
+    # Any additional fields must be excluded for Pydantic to work
     model: object = Field(exclude=True)
 
     def __init__(self):
         super().__init__(
-            name="Digit recognition",
+            name="Digit Recognition",
             slug="digit-recognition",
             url="http://localhost:8001",
-            summary="Digit recognition service",
-            description="Digit recognition service",
+            summary=api_description,
+            description=api_description,
             status=ServiceStatus.AVAILABLE,
             data_in_fields=[
                 FieldDescription(name="image", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
@@ -116,7 +116,7 @@ app.add_middleware(
 async def root():
     return RedirectResponse("/docs", status_code=301)
 
-tasks_service: TasksService | None = None
+service_service: ServiceService | None = None
 
 
 @app.on_event("startup")
@@ -126,7 +126,7 @@ async def startup_event():
     # https://github.com/tiangolo/fastapi/issues/425
 
     # Global variable
-    global tasks_service
+    global service_service
 
     settings = get_settings()
     logger = get_logger(settings)
@@ -162,6 +162,6 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     # Global variable
-    global tasks_service
-
-    await tasks_service.stop()
+    global service_service
+    my_service = MyService()
+    await service_service.graceful_shutdown(my_service)

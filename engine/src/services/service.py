@@ -302,6 +302,7 @@ class ServicesService:
                 },
                 response_model=TaskReadWithServiceAndPipeline,
             )
+            app.openapi_schema = None
 
     def disable_service(self, app: FastAPI, service: Service):
         """
@@ -319,7 +320,10 @@ class ServicesService:
         for route in app.routes:
             if route.path == f"/{service.slug}":
                 app.routes.remove(route)
+                self.logger.debug(f"Route {route.path} removed from FastAPI app")
+                app.openapi_schema = None
                 break
+
 
         self.logger.info(f"Service {service.name} unregistered")
 

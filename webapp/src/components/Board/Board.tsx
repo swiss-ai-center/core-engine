@@ -1,24 +1,15 @@
 import React, { useEffect, useCallback, useMemo } from 'react';
 import ReactFlow, {
-    addEdge,
-    ReactFlowProvider,
-    Background,
-    Controls,
-    useNodesState,
-    useEdgesState,
-    MiniMap
+    addEdge, ReactFlowProvider, Background, Controls, useNodesState, useEdgesState, MiniMap
 } from 'react-flow-renderer';
-
-import OldDrawGraph from './OldDrawGraph';
 import SelectorNode from './CustomNode';
 import { ControlButton } from 'reactflow';
 import { FullscreenExit } from '@mui/icons-material';
-
-import "./styles.css";
 import { useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
 import DrawGraph from './DrawGraph';
 import { Service } from '../../models/Service';
+import "./styles.css";
 
 const Board: React.FC<{ description: any }> = ({description}) => {
     const nodeTypes = useMemo(() => ({customNode: SelectorNode}), []);
@@ -45,7 +36,6 @@ const Board: React.FC<{ description: any }> = ({description}) => {
     }
 
     useEffect(() => {
-        console.log(description);
         if (description) {
             const service = Object.assign(new Service(), description);
             const {nodes: layoutedNodes, edges: layoutedEdges} = DrawGraph(service);
@@ -67,11 +57,14 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                 onConnect={onConnect}
                 nodeTypes={nodeTypes}
                 fitView
+                about={colorMode === 'dark' ? 'dark' : 'light'}
             >
                 <CustomControls/>
                 <Background/>
-                <MiniMap style={{backgroundColor: colorMode === 'dark' ? darkgrey : lightgrey,
-                                 padding:0, margin:0}}
+                <MiniMap style={{
+                    backgroundColor: colorMode === 'dark' ? darkgrey : lightgrey,
+                    padding: 0, margin: 0
+                }}
                          nodeStrokeColor={() => {
                              return 'primary';
                          }}

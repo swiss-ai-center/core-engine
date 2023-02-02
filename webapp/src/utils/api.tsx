@@ -2,39 +2,41 @@ import { FieldDescriptionWithSetAndValue } from '../models/Service';
 
 export const getServices = async () => {
     const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services`);
-    if (response) {
-        return await response.json();
+    if (response.status === 200) {
+        const json = await response.json();
+        return json.filter((item: any) => item.status === 'available');
     }
     return [];
 }
 
 export const getPipelines = async () => {
     const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines`);
-    if (response) {
-        return await response.json();
+    if (response.status === 200) {
+        const json = await response.json();
+        return json.filter((item: any) => item.status === 'available');
     }
     return [];
 }
 
 export const getServiceDescription = async (id: string) => {
     const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + id);
-    if (response) {
+    if (response.status === 200) {
         return await response.json();
     }
-    return [];
+    return null;
 }
 
 export const getPipelineDescription = async (id: string) => {
     const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines/` + id);
-    if (response) {
+    if (response.status === 200) {
         return await response.json();
     }
-    return [];
+    return null;
 }
 
 export const getStats = async () => {
     const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/stats`);
-    if (response) {
+    if (response.status === 200) {
         return await response.json();
     }
     return [];
@@ -42,7 +44,7 @@ export const getStats = async () => {
 
 export const getTask = async (id: string) => {
     const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/tasks/${id}`);
-    if (response) {
+    if (response.status === 200) {
         return await response.json();
     }
     return [];
@@ -50,11 +52,9 @@ export const getTask = async (id: string) => {
 
 export const getResult = async (id: string) => {
     const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/storage/${id}`);
-    if (response) {
-        console.log(response)
+    if (response.status === 200) {
         return response.blob();
     }
-    console.log("no response")
     return "";
 }
 
@@ -73,14 +73,11 @@ export const postToService = async (serviceSlug: string, parts: FieldDescription
             body,
         });
 
-        if (response) {
-            console.log(response);
+        if (response.status === 200) {
             return await response.json();
         }
-        console.log("oskour")
         return false;
     } catch (error) {
-        console.log(error);
         return error;
     }
 }

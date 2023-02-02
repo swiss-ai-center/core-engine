@@ -7,6 +7,7 @@ import { FullScreen, useFullScreenHandle } from 'react-full-screen';
 import PipelineConfiguration from '../../components/PipelineConfiguration/PipelineConfiguration';
 import { ArrowBack, Fullscreen } from '@mui/icons-material';
 import { useNotification } from '../../utils/useNotification';
+import { useNavigate} from 'react-router-dom';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -49,6 +50,7 @@ const Showcase: React.FC = () => {
     const id = searchParams.get('id') || '';
     const summary = searchParams.get('summary') || '';
     const type = searchParams.get('type') || '';
+    const navigate = useNavigate();
 
     const [value, setValue] = React.useState(0);
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -60,19 +62,29 @@ const Showcase: React.FC = () => {
     const handle = useFullScreenHandle();
 
     const getDescription = async (id: string, type: string) => {
-        let desc = {};
-        if (type === 'service') {
-            desc = await getServiceDescription(id);
-            console.log(desc);
-        } else {
-            desc = await getPipelineDescription(id);
+        if (!id || !type) {
+            displayNotification({message: "No id or type provided", type: "warning"});
+            // navigate to home
+            navigate('/');
         }
-        if (desc) {
-            console.log(desc);
-            setDescription(desc);
-        } else {
-            setDescription(null);
-            displayNotification({message: "No description found", type: "warning"});
+        let desc = {};
+        try {
+            if (type === 'service') {
+                desc = await getServiceDescription(id);
+            } else {
+                desc = await getPipelineDescription(id);
+            }
+            if (desc) {
+                setDescription(desc);
+            } else {
+                displayNotification({message: "No description found", type: "warning"});
+                // navigate to home
+                navigate('/');
+            }
+        } catch (e: any) {
+            displayNotification({message: e.message, type: "error"});
+            // navigate to home
+            navigate('/');
         }
     }
 
@@ -86,7 +98,9 @@ const Showcase: React.FC = () => {
             <main>
                 <Container maxWidth={'lg'}>
                     <Link to="/">
-                        <Button variant={'outlined'} sx={{mt: 2}} startIcon={<ArrowBack />}>Back</Button>
+                        <Button variant={'outlined'} color={'secondary'} sx={{mt: 2}} startIcon={<ArrowBack />}>
+                            Back
+                        </Button>
                     </Link>
                 </Container>
                 <Box sx={{pt: 4, pb: 4}}>
@@ -114,7 +128,8 @@ const Showcase: React.FC = () => {
                         </Tabs>
                     </Box>
                     <TabPanel value={value} index={0}>
-                        <Button sx={{mb: 2}} variant={'outlined'} onClick={handle.enter} startIcon={<Fullscreen />}>
+                        <Button sx={{mb: 2}} color={'secondary'} variant={'outlined'}
+                                onClick={handle.enter} startIcon={<Fullscreen />}>
                             Go Fullscreen
                         </Button>
                         <FullScreen handle={handle}>

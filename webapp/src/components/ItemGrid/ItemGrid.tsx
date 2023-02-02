@@ -2,9 +2,8 @@ import React from 'react';
 import { Button, Card, CardActions, CardContent, Grid, Typography } from '@mui/material';
 import { getPipelines, getServices } from '../../utils/api';
 import { Link } from 'react-router-dom';
-
-import "./styles.css";
 import { useNotification } from '../../utils/useNotification';
+import "./styles.css";
 
 const ItemGrid: React.FC<{ filter: string }> = ({filter}) => {
     const [pipelines, setPipelines] = React.useState([]);

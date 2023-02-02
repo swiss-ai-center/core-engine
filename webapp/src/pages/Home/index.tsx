@@ -32,7 +32,9 @@ const Home: React.FC = () => {
                     </Container>
                 </Box>
                 <Container sx={{py: 8}} maxWidth="lg">
-                    <TextField sx={{mb: 2}} name={'search'} label={'Search'} value={search} onChange={handleSearch} fullWidth />
+                    <TextField sx={{mb: 2}} name={'search'} label={'Search'}
+                               value={search} onChange={handleSearch} fullWidth
+                    />
                     <ItemGrid filter={search}/>
                 </Container>
             </main>

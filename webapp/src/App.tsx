@@ -1,20 +1,8 @@
 import React from 'react';
 import {
-    Container,
-    Box,
-    AppBar,
-    Toolbar,
-    Link,
-    Typography,
-    ThemeProvider,
-    Grid,
-    IconButton, Tooltip, PaletteMode
+    Container, Box, AppBar, Toolbar, Link, Typography, ThemeProvider, Grid, IconButton, Tooltip, PaletteMode
 } from '@mui/material';
-import {
-    BrowserRouter as Router,
-    Route,
-    Routes
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Showcase from './pages/Showcase';
 import Home from './pages/Home';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -25,7 +13,24 @@ import { grey } from '@mui/material/colors';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleColorMode } from './utils/reducers/colorModeSlice';
 
-function Copyright() {
+declare module '@mui/material/styles' {
+    interface Palette {
+        background_color: Palette['primary'];
+    }
+
+    interface PaletteOptions {
+        background_color: PaletteOptions['primary'];
+    }
+}
+
+// declare module to extend the theme colors
+declare module '@mui/material/AppBar' {
+    interface AppBarPropsColorOverrides {
+        background_color: true;
+    }
+}
+
+function Copyright(colorMode: any) {
     return (
         <Grid container justifyContent={"space-between"}>
             <Grid item alignItems={"center"} justifyContent={"left"} display={"flex"}>
@@ -39,7 +44,8 @@ function Copyright() {
             <Grid item alignItems={"center"} justifyContent={"center"} display={"flex"}>
                 <Link color={"primary"} href={"https://swiss-ai-center.ch/"} target={"_blank"}
                       sx={{textDecoration: "none"}}>
-                    <img src={"/logo_full.png"} alt={"Swiss AI Center"} height={"40px"} style={{marginRight: "10px"}}/>
+                    <img src={colorMode.colorMode === "light" ? "/logo_full.png" : "/logo_full_white.png"}
+                         alt={"Swiss AI Center"} height={"50px"}/>
                 </Link>
             </Grid>
             <Grid item alignItems={"center"} justifyContent={"right"} display={"flex"}>
@@ -74,18 +80,24 @@ function App() {
                 ? {
                     // palette values for light mode
                     primary: {
-                        main: '#e6081d',
+                        main: '#da0066',
                     },
                     secondary: {
+                        main: '#83d6de'
+                    },
+                    background_color: {
                         main: lightgrey,
                     }
                 }
                 : {
                     // palette values for dark mode
                     primary: {
-                        main: '#e6081d'
+                        main: '#da0066'
                     },
                     secondary: {
+                        main: '#83d6de'
+                    },
+                    background_color: {
                         main: darkgrey,
                     }
                 }),
@@ -96,6 +108,7 @@ function App() {
     const theme = React.useMemo(
         () =>
             createTheme(getDesignTokens(colorMode)),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [colorMode],
     );
     const [open, setOpen] = React.useState(false);
@@ -116,7 +129,7 @@ function App() {
             {/* End CssBaseline */}
 
             {/* Header navbar */}
-            <AppBar position="relative" color={"secondary"}>
+            <AppBar position="relative" color={"background_color"}>
                 <Toolbar>
                     <Grid container justifyContent={"space-between"} alignItems={"center"}>
                         <Grid item>
@@ -162,8 +175,8 @@ function App() {
             </Container>
 
             {/* Footer */}
-            <Box sx={{bgcolor: 'secondary.main', p: 4, mt: 'auto'}} component="footer">
-                <Copyright/>
+            <Box sx={{bgcolor: 'background_color.main', p: 4, mt: 'auto'}} component="footer">
+                <Copyright colorMode={colorMode}/>
             </Box>
             {/* End footer */}
 

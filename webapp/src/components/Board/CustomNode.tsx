@@ -1,16 +1,7 @@
 import React, { useCallback, useState } from "react";
-
 import { Handle, Position } from "react-flow-renderer";
 import {
-    Box,
-    Button,
-    Card,
-    CardActions,
-    CardContent, CircularProgress,
-    Divider,
-    Input,
-    Tooltip,
-    Typography
+    Box, Button, Card, CardActions, CardContent, CircularProgress, Divider, Input, Tooltip, Typography
 } from '@mui/material';
 import { Download, PlayArrow } from '@mui/icons-material';
 import { RunState, setTaskId, setRunState, setResultIdList } from '../../utils/reducers/runStateSlice';
@@ -32,9 +23,9 @@ function addIsSetToFields(fields: FieldDescription[]): FieldDescriptionWithSetAn
 const CustomNode = ({data, styles}: any) => {
     const dispatch = useDispatch();
     const run = useSelector((state: any) => state.runState.value);
-    const taskId = useSelector((state: any) => state.runState.taskId);
+    useSelector((state: any) => state.runState.taskId);
     const resultIdList = useSelector((state: any) => state.runState.resultIdList);
-    const { displayNotification } = useNotification();
+    const {displayNotification} = useNotification();
 
     const [array, setArray] = useState<FieldDescriptionWithSetAndValue[]>([]);
     const [areItemsUploaded, setAreItemsUploaded] = React.useState(false);
@@ -57,7 +48,12 @@ const CustomNode = ({data, styles}: any) => {
             dispatch(setResultIdList(task.data_out));
             dispatch(setRunState(RunState.ENDED));
         } else if (task.status === 'error') {
-            displayNotification({message: "The pipeline ended with an error", type: "error", open: true, timeout: 2000});
+            displayNotification({
+                message: "The pipeline ended with an error",
+                type: "error",
+                open: true,
+                timeout: 2000
+            });
             dispatch(setRunState(RunState.ERROR));
         } else {
             setTimeout(() => checkTaskStatus(id), 1000);
@@ -85,24 +81,32 @@ const CustomNode = ({data, styles}: any) => {
             checkTaskStatus(response.id);
         } else {
             console.log(2);
-            displayNotification({message: `Error while running pipeline: ${response.detail}`, type: "error", open: true, timeout: 2000});
+            displayNotification({
+                message: `Error while running pipeline: ${response.detail}`,
+                type: "error",
+                open: true,
+                timeout: 2000
+            });
         }
     }
 
     const downloadResult = async () => {
-        console.log(123)
-        console.log(resultIdList)
         for (const id of resultIdList) {
             console.log(id);
             const file = await getResult(id);
             if (file) {
                 const link = document.createElement('a');
                 link.href = window.URL.createObjectURL(file);
-                link.setAttribute('download', 'result.'+id.split('.')[1]);
+                link.setAttribute('download', 'result.' + id.split('.')[1]);
                 document.body.appendChild(link);
                 link.click();
             } else {
-                displayNotification({message: "Error downloading file" + id, type: "error", open: true, timeout: 2000});
+                displayNotification({
+                    message: "Error downloading file" + id,
+                    type: "error",
+                    open: true,
+                    timeout: 2000
+                });
             }
         }
     }
@@ -123,10 +127,12 @@ const CustomNode = ({data, styles}: any) => {
     }
 
     React.useEffect(() => {
-        console.log(data);
+        dispatch(setRunState(RunState.STOPPED));
+        dispatch(setResultIdList([]));
         if (data.data_in_fields) {
             setArray(addIsSetToFields(data.data_in_fields));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data]);
 
     React.useEffect(() => {
@@ -153,13 +159,15 @@ const CustomNode = ({data, styles}: any) => {
                                         (<Tooltip title={"type(s): " + item.type} placement={"right"}>
                                             <Button key={`btn-${index}`} variant={"outlined"} component={"label"}
                                                     size={"small"} sx={{mb: 1, mt: 1}}
-                                                    color={item.isSet ? 'success' : 'primary'}>
+                                                    color={item.isSet ? 'success' : 'secondary'}>
                                                 Upload
                                                 <input
                                                     accept={createAllowedTypesString(item.type)}
                                                     type={"file"}
                                                     hidden
-                                                    onChange={(event) => handleUpload(item.name, event.target.files)}
+                                                    onChange={
+                                                        (event) => handleUpload(item.name, event.target.files)
+                                                    }
                                                 />
                                             </Button>
                                         </Tooltip>)}

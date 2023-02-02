@@ -1,10 +1,9 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request
 from common.exceptions import NotFoundException, ConflictException
-from timer import Timer
 from .service import ServicesService
 from common.query_parameters import SkipAndLimit
-from .models import ServiceRead, ServiceUpdate, ServiceCreate, Service, ServiceReadWithTasks
+from .models import ServiceRead, ServiceUpdate, ServiceCreate, Service, ServiceReadWithTasks, ServiceStatus
 from uuid import UUID
 
 router = APIRouter()
@@ -78,12 +77,17 @@ async def create(
     response_model=ServiceRead,
 )
 def update(
+        request: Request,
         service_id: UUID,
         service_update: ServiceUpdate,
         services_service: ServicesService = Depends(),
 ):
     try:
         service = services_service.update(service_id, service_update)
+        if service.status == ServiceStatus.AVAILABLE:
+            services_service.enable_service(request.app, service)
+        else:
+            services_service.disable_service(request.app, service)
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
 
