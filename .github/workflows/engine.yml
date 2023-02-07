@@ -23,11 +23,10 @@ jobs:
         with:
           python-app-path: ./engine
 
-      # TODO: Uncomment this when tests are fixed
-      # - name: Test Python app
-      #   uses: ./.github/actions/test-python-app
-      #   with:
-      #     python-app-path: ./engine
+      - name: Test Python app
+        uses: ./.github/actions/test-python-app
+        with:
+          python-app-path: ./engine
 
       - name: Build and push Docker image to GitHub
         # Only run on main

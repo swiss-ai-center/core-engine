@@ -50,7 +50,8 @@ def get_many_pipelines(
     summary="Create a pipeline",
     response_model=PipelineRead,
 )
-def create(pipeline: PipelineCreate, pipelines_service: PipelinesService = Depends(), services_service: ServicesService = Depends()):
+def create(pipeline: PipelineCreate, pipelines_service: PipelinesService = Depends(),
+           services_service: ServicesService = Depends()):
     links = []
     for service_id in pipeline.services:
         links.append(services_service.find_one(service_id))

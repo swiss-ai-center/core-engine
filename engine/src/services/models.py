@@ -49,8 +49,8 @@ class Service(ServiceBase, table=True):
     This model is the one that is stored in the database
     """
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    tasks: List["Task"] = Relationship(back_populates="service")
-    pipelines: List["Pipeline"] = Relationship(back_populates="services", link_model=PipelineServiceLink)
+    tasks: List["Task"] = Relationship(back_populates="service")  # noqa F821
+    pipelines: List["Pipeline"] = Relationship(back_populates="services", link_model=PipelineServiceLink)  # noqa F821
 
 
 class ServiceRead(ServiceBase):

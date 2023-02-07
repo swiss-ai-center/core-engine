@@ -7,7 +7,7 @@ from timer import Timer
 async def test_timer():
     testing_timer = Timer(
         timeout=0.1,
-        callback=lambda: print("test"),
+        callback=lambda: print("test"),  # noqa: T201
         app_ref=None,
     )
 

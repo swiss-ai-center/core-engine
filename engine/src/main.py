@@ -16,7 +16,6 @@ from database import initialize_db
 from timer import Timer
 from http_client import HttpClient
 
-
 timers = []
 settings = get_settings()
 
@@ -82,7 +81,8 @@ async def startup_event():
 
     storage_service = StorageService(get_logger(settings), settings)
     tasks_service = TasksService(get_logger(settings), session)
-    services_service = ServicesService(get_logger(settings), storage_service, tasks_service, settings, session, http_client)
+    services_service = ServicesService(get_logger(settings), storage_service, tasks_service, settings, session,
+                                       http_client)
 
     # Check storage
     await storage_service.check_storage_availability()

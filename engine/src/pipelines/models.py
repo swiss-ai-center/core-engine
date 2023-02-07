@@ -1,8 +1,8 @@
 from typing import List
 from sqlmodel import Field, SQLModel, Relationship
-
 from common.models import CoreModel
 from uuid import UUID, uuid4
+
 
 class PipelineServiceLink(SQLModel, table=True):
     """
@@ -29,8 +29,8 @@ class Pipeline(PipelineBase, table=True):
     This model is the one that is stored in the database
     """
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    services: List["Service"] = Relationship(back_populates="pipelines", link_model=PipelineServiceLink)
-    tasks: List["Task"] = Relationship(back_populates="pipeline")
+    services: List["Service"] = Relationship(back_populates="pipelines", link_model=PipelineServiceLink)  # noqa F821
+    tasks: List["Task"] = Relationship(back_populates="pipeline")  # noqa F821
 
 
 class PipelineRead(PipelineBase):
