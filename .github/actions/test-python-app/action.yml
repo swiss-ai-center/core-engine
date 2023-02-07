@@ -29,4 +29,4 @@ runs:
     - name: Run Python tests
       shell: bash
       working-directory: ${{ inputs.python-app-path }}
-      run: python3 -m pytest --asyncio-mode=auto
+      run: pytest --cov-report term:skip-covered --cov-report term-missing --cov=. -s --cov-config=.coveragerc

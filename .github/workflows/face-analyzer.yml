@@ -26,7 +26,7 @@ jobs:
       - name: Test Python app
         uses: ./.github/actions/test-python-app
         with:
-          python-app-path: ./services/face_analyzer
+          python-app-path: ./services/face_analyzer/src
 
       - name: Build and push Docker image to GitHub
         # Only run on main
