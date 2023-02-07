@@ -1,6 +1,8 @@
 import os
 import httpx
 import logging
+
+import pandas as pd
 from fastapi import FastAPI, UploadFile
 
 from .worker import Worker, Callback
@@ -47,11 +49,12 @@ callback = Callback()
 app = FastAPI(on_startup=[startup], on_shutdown=[shutdown])
 timers = []
 
-# TODO: adapt the parameters to be compliant with the interface
 @app.post("/compute", response_model=interface.TaskId)
-async def post(image: UploadFile, callback_url: str = None, task_id: str = None):
+async def post(text: UploadFile, callback_url: str = None, task_id: str = None):
 	if task_id is None:
 		task_id = str(interface.uid())
-	task = {"callback_url": callback_url, "task_id": task_id, "image": image}
+	# with open("test.txt", "wb") as f:
+	# 	f.write(text.file.read())
+	task = {"callback_url": callback_url, "task_id": task_id, "text": text}
 	await worker.addTask(task)
 	return interface.TaskId(task_id=task_id)

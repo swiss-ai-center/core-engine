@@ -12,7 +12,7 @@ def uid():
 class TaskId(BaseModel):
     task_id: str
 
-
+# TODO: Adapt the routes to your needs
 # if the service has only one route
 def engineAPI():
     return {

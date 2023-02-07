@@ -4,7 +4,8 @@
 - Access when deployed locally: <http://localhost:8080/docs>
 
 ## Description
-This is a sample service, to get it running, watch for the TODOs and replace "SAMPLE_SERVICE" and "SAMPLE-SERVICE" in the files with the name of the service
+This is a sample service, to get it running, watch for the TODOs and replace "SAMPLE_SERVICE" and "SAMPLE-SERVICE" in the files with the name of the service.
+The core function of the service is the "process" method where the actual processing of the data is done.
 
 TODO: DESCRIBE SERVICE HERE...
 
