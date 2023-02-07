@@ -63,11 +63,11 @@ class TasksService:
     current_task_data_out = dict()
 
     def __init__(
-        self,
-        logger: Logger = Depends(),
-        settings: Settings = Depends(get_settings),
-        http_client: HttpClient = Depends(),
-        storage: StorageService = Depends(),
+            self,
+            logger: Logger = Depends(),
+            settings: Settings = Depends(get_settings),
+            http_client: HttpClient = Depends(),
+            storage: StorageService = Depends(),
     ):
         self.logger = logger
         self.settings = settings
@@ -118,7 +118,7 @@ class TasksService:
         """
         if TasksService.current_task and TasksService.current_task.task.id == task_id:
             return TasksService.current_task.task.status
-        
+
         task = await TasksService.tasks.find(task_id)
 
         if task is None:
