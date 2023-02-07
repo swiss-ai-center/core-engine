@@ -2,11 +2,12 @@ import React from 'react';
 import { Box, Button, Container, Tab, Tabs, Typography } from '@mui/material';
 import { Link, useSearchParams } from 'react-router-dom';
 import Board from '../../components/Board/Board';
-import { getServiceDescription } from '../../utils/api';
+import { getPipelineDescription, getServiceDescription } from '../../utils/api';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
 import PipelineConfiguration from '../../components/PipelineConfiguration/PipelineConfiguration';
 import { ArrowBack, Fullscreen } from '@mui/icons-material';
 import { useNotification } from '../../utils/useNotification';
+import { useNavigate} from 'react-router-dom';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -46,30 +47,49 @@ function TabPanel(props: TabPanelProps) {
 const Showcase: React.FC = () => {
     const [searchParams] = useSearchParams();
     const { displayNotification } = useNotification();
-    const name = searchParams.get('name') || '';
+    const id = searchParams.get('id') || '';
     const summary = searchParams.get('summary') || '';
+    const type = searchParams.get('type') || '';
+    const navigate = useNavigate();
 
     const [value, setValue] = React.useState(0);
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
     };
 
-    const [services, setServices] = React.useState<any>([]);
+    const [description, setDescription] = React.useState<any>(null);
 
     const handle = useFullScreenHandle();
 
-    const getPipeline = async (name: any) => {
-        const pipeline = await getServiceDescription(name);
-        if (pipeline) {
-            setServices(pipeline);
-        } else {
-            setServices([]);
-            displayNotification({message: "No pipeline found", type: "info"});
+    const getDescription = async (id: string, type: string) => {
+        if (!id || !type) {
+            displayNotification({message: "No id or type provided", type: "warning"});
+            // navigate to home
+            navigate('/');
+        }
+        let desc = {};
+        try {
+            if (type === 'service') {
+                desc = await getServiceDescription(id);
+            } else {
+                desc = await getPipelineDescription(id);
+            }
+            if (desc) {
+                setDescription(desc);
+            } else {
+                displayNotification({message: "No description found", type: "warning"});
+                // navigate to home
+                navigate('/');
+            }
+        } catch (e: any) {
+            displayNotification({message: e.message, type: "error"});
+            // navigate to home
+            navigate('/');
         }
     }
 
     React.useEffect(() => {
-        getPipeline(name);
+        getDescription(id, type);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -78,7 +98,9 @@ const Showcase: React.FC = () => {
             <main>
                 <Container maxWidth={'lg'}>
                     <Link to="/">
-                        <Button variant={'outlined'} sx={{mt: 2}} startIcon={<ArrowBack />}>Back</Button>
+                        <Button variant={'outlined'} color={'secondary'} sx={{mt: 2}} startIcon={<ArrowBack />}>
+                            Back
+                        </Button>
                     </Link>
                 </Container>
                 <Box sx={{pt: 4, pb: 4}}>
@@ -90,7 +112,7 @@ const Showcase: React.FC = () => {
                             color="text.primary"
                             gutterBottom
                         >
-                            {name}
+                            {description ? description.name : ''}
                         </Typography>
                         <Typography variant="h5" align="center" color="text.secondary" paragraph>
                             {summary}
@@ -106,7 +128,8 @@ const Showcase: React.FC = () => {
                         </Tabs>
                     </Box>
                     <TabPanel value={value} index={0}>
-                        <Button sx={{mb: 2}} variant={'outlined'} onClick={handle.enter} startIcon={<Fullscreen />}>
+                        <Button sx={{mb: 2}} color={'secondary'} variant={'outlined'}
+                                onClick={handle.enter} startIcon={<Fullscreen />}>
                             Go Fullscreen
                         </Button>
                         <FullScreen handle={handle}>
@@ -119,7 +142,7 @@ const Showcase: React.FC = () => {
                                     borderRadius: '5px',
                                     borderColor: 'primary.main'
                                 }}>
-                                <Board services={services}/>
+                                <Board description={description}/>
                             </Box>
                         </FullScreen>
                     </TabPanel>
@@ -130,7 +153,7 @@ const Showcase: React.FC = () => {
                             borderColor: 'primary.main',
                             p: 2
                         }}>
-                            <PipelineConfiguration service={services} show={true}/>
+                            <PipelineConfiguration description={description} show={true}/>
                         </Box>
                     </TabPanel>
                     <TabPanel value={value} index={2}>

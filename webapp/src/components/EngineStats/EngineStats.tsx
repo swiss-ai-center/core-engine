@@ -8,7 +8,7 @@ const style = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 400,
+    width: 300,
     bgcolor: 'background.paper',
     border: '2px solid',
     borderColor: 'primary.main',
@@ -22,7 +22,7 @@ export const EngineStats: React.FC<{
 }> = ({trigger, onClose}) => {
 
     const [engineStatus, setEngineStatus] = useState<any>({})
-    const { displayNotification } = useNotification();
+    const {displayNotification} = useNotification();
 
     const loadStats = async () => {
         getStats()
@@ -36,6 +36,7 @@ export const EngineStats: React.FC<{
 
     useEffect(() => {
         loadStats();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [trigger])
 
     return (
@@ -44,21 +45,40 @@ export const EngineStats: React.FC<{
                 <Typography id="modal-modal-title" variant="h6" component="h2">
                     Engine stats
                 </Typography>
-                <Box id="modal-modal-description" sx={{ mt: 2 }}>
+                <Box id="modal-modal-description" sx={{mt: 2}}>
                     <dl>
                         <dt>Statistics of the engine</dt>
-                        { Object.keys(engineStatus).length > 0
-                            ? Object.keys(engineStatus["jobs"]).map((k) => {
-                                return (<dd key={k}>{k.charAt(0).toUpperCase()}{k.slice(1)} : {engineStatus.jobs[k]}</dd>)
+                        {Object.keys(engineStatus).length > 0 ?
+                            Object.keys(engineStatus["tasks"]).map((k) => {
+                                return (
+                                    <dd key={k}>
+                                        {k.charAt(0).toUpperCase()}{k.slice(1)} : {engineStatus.tasks[k]}
+                                    </dd>
+                                )
                             })
-                            : "No statistics on jobs found"}
+                            : "No statistics on tasks found"}
 
                         <dt>Statistics per services</dt>
-                        {Object.keys(engineStatus).length > 0
-                            ? Object.keys(engineStatus.services).map((k) => {
-                                return (<dd key={k}>{k.charAt(0).toUpperCase()}{k.slice(1)} : {engineStatus.services[k]}</dd>)
+                        {Object.keys(engineStatus).length > 0 ?
+                            Object.keys(engineStatus.services).map((k) => {
+                                return (
+                                    <dd key={k}>
+                                        {k.charAt(0).toUpperCase()}{k.slice(1)} : {engineStatus.services[k]}
+                                    </dd>
+                                )
                             })
-                            : "No statistics on jobs found"}
+                            : "No statistics on services found"}
+
+                        <dt>Statistics per pipelines</dt>
+                        {Object.keys(engineStatus).length > 0 ?
+                            Object.keys(engineStatus.pipelines).map((k) => {
+                                return (
+                                    <dd key={k}>
+                                        {k.charAt(0).toUpperCase()}{k.slice(1)} : {engineStatus.pipelines[k]}
+                                    </dd>
+                                )
+                            })
+                            : "No statistics on pipelines found"}
                     </dl>
                 </Box>
             </Box>
