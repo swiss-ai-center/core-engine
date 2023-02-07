@@ -52,7 +52,13 @@ class MyService(Service):
         buff = io.BytesIO(raw)
         img_pil = Image.open(buff)
         img = np.array(img_pil)
-        diagnos = DeepFace.analyze(img_path=img, actions=['age', 'gender', 'race', 'emotion'], enforce_detection=True, detector_backend="retinaface", prog_bar=False)
+        diagnos = DeepFace.analyze(
+            img_path=img,
+            actions=['age', 'gender', 'race', 'emotion'],
+            enforce_detection=True,
+            detector_backend="retinaface",
+            prog_bar=False
+        )
 
         return {
             "result": str(diagnos)
@@ -108,6 +114,7 @@ app.add_middleware(
 @app.get("/", include_in_schema=False)
 async def root():
     return RedirectResponse("/docs", status_code=301)
+
 
 service_service: ServiceService | None = None
 
