@@ -10,11 +10,11 @@ from .models import Service
 
 class ServiceService:
     def __init__(
-        self,
-        logger: Logger = Depends(),
-        settings: Settings = Depends(get_settings),
-        http_client: HttpClient = Depends(),
-        tasks_service: TasksService = Depends(),
+            self,
+            logger: Logger = Depends(),
+            settings: Settings = Depends(get_settings),
+            http_client: HttpClient = Depends(),
+            tasks_service: TasksService = Depends(),
     ):
         self.logger = logger
         self.settings = settings
@@ -63,20 +63,24 @@ class ServiceService:
         """
         Gracefully shutdown the service
         """
-        self.logger.info("Gracefully shutting down service")
-        self.logger.info("Stopping tasks service")
-        service_id = await self.get_service_id(my_service.slug)
-        service_json = jsonable_encoder({"status": ServiceStatus.UNAVAILABLE})
-        res_update = await self.http_client.patch(f"{self.settings.engine_url}/services/{service_id}",
-                                                  json=service_json)
-        if res_update.status_code != 200:
-            self.logger.error(f"Error updating service in the engine: {res_update.text}")
-            return False
-        self.logger.info("Successfully updated service in the engine")
+        try:
+            self.logger.info("Gracefully shutting down service")
+            self.logger.info("Stopping tasks service")
+            service_id = await self.get_service_id(my_service.slug)
+            service_json = jsonable_encoder({"status": ServiceStatus.UNAVAILABLE})
+            # TODO: modify to handle multiple engines
+            res_update = await self.http_client.patch(f"{self.settings.engine_url}/services/{service_id}",
+                                                      json=service_json)
+            if res_update.status_code != 200:
+                self.logger.error(f"Error updating service in the engine: {res_update.text}")
+            else:
+                self.logger.info("Successfully updated service in the engine")
 
-        await self.tasks_service.stop()
-        self.logger.info("Successfully stopped tasks service")
-        return True
+        except Exception as e:
+            self.logger.error(f"Error updating service in the engine: {str(e)}")
+        finally:
+            await self.tasks_service.stop()
+            self.logger.info("Successfully stopped tasks service")
 
     def is_full(self):
         """

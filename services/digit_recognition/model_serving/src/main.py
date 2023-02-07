@@ -150,7 +150,6 @@ async def startup_event():
             announced = await service_service.announce_service(my_service)
             retries -= 1
             if not announced:
-                # TODO: Differences between `time.sleep` and `asyncio.sleep`?
                 time.sleep(settings.engine_announce_retry_delay)
                 if retries == 0:
                     logger.warning(f"Aborting service announcement after {settings.engine_announce_retries} retries")
