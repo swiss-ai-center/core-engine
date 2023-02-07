@@ -1,13 +1,12 @@
-import pytest
-from fastapi.testclient import TestClient
-from pytest_httpserver import HTTPServer
-from config import get_settings
-from logger.logger import get_logger
-from storage.service import StorageService
-from main import app
-import time
-
 # TODO: Fix this test
+# import pytest
+# from fastapi.testclient import TestClient
+# from pytest_httpserver import HTTPServer
+# from config import get_settings
+# from logger.logger import get_logger
+# from storage.service import StorageService
+# from main import app
+# import time
 # @pytest.fixture(name="storage")
 # def storage_fixture():
 #     settings = get_settings()
