@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  # This name uniquely identifies the stateful set
+  # TODO: 1. CHANGE THE NAME OF THE STATEFUL SET
+  name: sample-service-stateful
+  labels:
+    # TODO: 2. CHANGE THE APP LABEL
+    app: sample-service
+spec:
+  # TODO: 3. CHANGE THE NAME OF THE SERVICE
+  serviceName: sample-service
+  replicas: 1
+  selector:
+    matchLabels:
+      # TODO: 4. CHANGE THE APP LABEL
+      app: sample-service
+  template:
+    metadata:
+      labels:
+        # TODO: 5. CHANGE THE APP LABEL
+        app: sample-service
+    spec:
+      containers:
+      # TODO: 6. CHANGE THE NAME OF THE CONTAINER
+      - name: sample-service
+        # TODO: 7. CHANGE THE IMAGE NAME
+        image: ghcr.io/csia-pme/csia-pme-sample-service:latest
+        # If you build the image locally, change the next line to `imagePullPolicy: Never` - there is no need to pull the image
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 80
+        env:
+        - name: MAX_TASKS
+          value: "50"
+        - name: ENGINE_ANNOUNCE_RETRIES
+          value: "5"
+        - name: ENGINE_ANNOUNCE_RETRY_DELAY
+          value: "3"
+        envFrom:
+          - configMapRef:
+              # TODO: 8. CHANGE THE NAME OF THE CONFIG MAP
+              name: sample-service-config

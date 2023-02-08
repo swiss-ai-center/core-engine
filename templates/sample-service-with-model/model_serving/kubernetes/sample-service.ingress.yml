@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  # TODO: 1. CHANGE THE NAME OF THE INGRESS
+  name: sample-service-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "16m"
+    nginx.org/client-max-body-size: "16m"
+spec:
+  rules:
+  # TODO: 2. CHANGE THE HOST
+  - host: sample-service-csia-pme.kube.isc.heia-fr.ch
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            # TODO: 3. CHANGE THE NAME OF THE SERVICE
+            name: sample-service-service
+            port:
+              number: 80
+  tls:
+    - hosts:
+        # TODO: 4. CHANGE THE HOST
+        - sample-service-csia-pme.kube.isc.heia-fr.ch

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  # TODO: 1. CHANGE THE NAME OF THE SERVICE
+  name: sample-service-service
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 8383
+      targetPort: 80
+      protocol: TCP
+  selector:
+    # TODO: 2. CHANGE THE APP LABEL
+    app: sample-service
