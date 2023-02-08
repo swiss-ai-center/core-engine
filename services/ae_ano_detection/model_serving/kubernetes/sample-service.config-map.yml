@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # TODO: 1. CHANGE THE NAME OF THE CONFIG MAP
+  name: sample-service-config
+  labels:
+    # TODO: 2. CHANGE THE APP LABEL
+    app: sample-service
+data:
+  ENVIRONMENT: development
+  LOG_LEVEL: debug
+  ENGINE_URL: http://localhost:8000

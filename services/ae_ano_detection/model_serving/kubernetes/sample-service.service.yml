@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+<<<<<<< refs/remotes/origin/main:services/ae_anno_detection/model_serving/kubernetes/ml-ae-anno-detection.service.yml
+  name: ml-ae-anno-detection-service
+=======
+  # TODO: 1. CHANGE THE NAME OF THE SERVICE
+  name: sample-service-service
+>>>>>>> Update for new engine:services/ae_ano_detection/model_serving/kubernetes/sample-service.service.yml
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 8383
+      targetPort: 80
+      protocol: TCP
+  selector:
+<<<<<<< refs/remotes/origin/main:services/ae_anno_detection/model_serving/kubernetes/ml-ae-anno-detection.service.yml
+    app: ml-ae-anno-detection
+=======
+    # TODO: 2. CHANGE THE APP LABEL
+    app: sample-service
+>>>>>>> Update for new engine:services/ae_ano_detection/model_serving/kubernetes/sample-service.service.yml
