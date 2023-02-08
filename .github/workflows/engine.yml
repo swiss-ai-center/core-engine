@@ -14,54 +14,54 @@ on:
 jobs:
   run-workflow:
     runs-on: ubuntu-latest
-    # services:
-    #   # https://stackoverflow.com/questions/60849745/how-can-i-run-a-command-in-github-action-service-containers
-    #   minio:
-    #     image: bitnami/minio:latest
-    #     env:
-    #       MINIO_ROOT_USER: minio
-    #       MINIO_ROOT_PASSWORD: minio123
-    #     ports:
-    #       - 9000:9000
-    #     options: --name=minio
+    services:
+      # https://stackoverflow.com/questions/60849745/how-can-i-run-a-command-in-github-action-service-containers
+      minio:
+        image: bitnami/minio:latest
+        env:
+          MINIO_ROOT_USER: minio
+          MINIO_ROOT_PASSWORD: minio123
+        ports:
+          - 9000:9000
+        options: --name=minio
 
     steps:
-      # - name: Create the MinIO bucket
-      #   env:
-      #     MINIO_HOST: http://localhost:9000
-      #     MINIO_ROOT_USER: minio
-      #     MINIO_ROOT_PASSWORD: minio123
-      #   run: |
-      #     # Download mc
-      #     curl https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
+      - name: Create the MinIO bucket
+        env:
+          MINIO_HOST: http://localhost:9000
+          MINIO_ROOT_USER: minio
+          MINIO_ROOT_PASSWORD: minio123
+        run: |
+          # Download mc
+          curl https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
 
-      #     # Set permissions for mc
-      #     chmod +x mc
+          # Set permissions for mc
+          chmod +x mc
 
-      #     # Create the bucket
-      #     ./mc config host rm local
-      #     ./mc config host add --api s3v4 local $MINIO_HOST $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD
-      #     ./mc mb --ignore-existing local/engine
+          # Create the bucket
+          ./mc config host rm local
+          ./mc config host add --api s3v4 local $MINIO_HOST $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD
+          ./mc mb --ignore-existing local/engine
 
       - name: Clone repository
         uses: actions/checkout@v3
 
-      # - name: Lint Python app
-      #   uses: ./.github/actions/lint-python-app
-      #   with:
-      #     python-app-path: ./engine
+      - name: Lint Python app
+        uses: ./.github/actions/lint-python-app
+        with:
+          python-app-path: ./engine
 
-      # - name: Test Python app
-      #   uses: ./.github/actions/test-python-app
-      #   env:
-      #     S3_ACCESS_KEY_ID: minio
-      #     S3_SECRET_ACCESS_KEY: minio123
-      #     S3_REGION: eu-central-2
-      #     S3_HOST: http://localhost:9000
-      #     S3_BUCKET: engine
-      #     DATABASE_URL: sqlite:///engine.db"
-      #   with:
-      #     python-app-path: ./engine
+      - name: Test Python app
+        uses: ./.github/actions/test-python-app
+        env:
+          S3_ACCESS_KEY_ID: minio
+          S3_SECRET_ACCESS_KEY: minio123
+          S3_REGION: eu-central-2
+          S3_HOST: http://localhost:9000
+          S3_BUCKET: engine
+          DATABASE_URL: sqlite:///engine.db"
+        with:
+          python-app-path: ./engine
 
       - name: Build and push Docker image to GitHub
         id: build-and-push-docker-image-to-github
