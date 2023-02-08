@@ -9,6 +9,9 @@ on:
       - .github/workflows/base-image.yml
       - docker-images/base_image/**/*
 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
   run-workflow:
     runs-on: ubuntu-latest

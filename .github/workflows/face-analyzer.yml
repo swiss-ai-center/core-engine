@@ -16,6 +16,9 @@ on:
       - .github/workflows/face-analyzer.yml
       - services/face_analyzer/**/*
 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
   run-workflow:
     runs-on: ubuntu-latest

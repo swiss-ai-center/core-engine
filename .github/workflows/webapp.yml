@@ -11,6 +11,9 @@ on:
       - .github/workflows/webapp.yml
       - webapp/**/*
 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
   run-workflow:
     runs-on: ubuntu-latest
