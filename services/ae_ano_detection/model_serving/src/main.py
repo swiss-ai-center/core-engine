@@ -71,9 +71,6 @@ class MyService(Service):
         # Calculate the reconstruction error for each point in the time series
         reconstruction_error = np.square(X_test - reconstructed_X).mean(axis=1)
 
-        # Data points with a high reconstruction error are likely to be anomalies
-        anomalies = np.where(reconstruction_error > 1)[0].tolist()
-
         err = pd.DataFrame(X_test)
         fig, ax = plt.subplots(figsize=(20, 6))
 
@@ -124,9 +121,11 @@ class MyService(Service):
 
         return autoencoder
 
+
 api_description = """
 Anomaly detection of a time series with an autoencoder
 """
+
 
 # Define the FastAPI application with information
 app = FastAPI(
