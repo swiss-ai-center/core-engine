@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: mongo-config
-  labels:
-    app: mongo
-data:
-  MONGO_INITDB_ROOT_USERNAME: mongo
-  MONGO_INITDB_ROOT_PASSWORD: secret

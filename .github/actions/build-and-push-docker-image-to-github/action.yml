@@ -21,6 +21,11 @@ inputs:
     required: true
     default: .
 
+outputs:
+  docker-image-tags:
+    description: "Docker image tags"
+    value: ${{ steps.meta.outputs.tags }}
+
 runs:
   using: composite
   steps:
