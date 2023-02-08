@@ -1,19 +1,31 @@
-FROM ghcr.io/csia-pme/csia-pme-base-image:latest
-<<<<<<< refs/remotes/origin/main:services/ae_anno_detection/model_serving/Dockerfile
-COPY ./requirements.txt /tmp/requirements.txt
-=======
-COPY requirements.txt /tmp/requirements.txt
->>>>>>> Update for new engine:services/ae_ano_detection/model_serving/Dockerfile
-RUN pip3 install -r /tmp/requirements.txt
+# Base image
+FROM python:3.10
 
-RUN mkdir /app
-COPY main.py /app
-COPY api /app/api
-
-<<<<<<< refs/remotes/origin/main:services/ae_anno_detection/model_serving/Dockerfile
-ENTRYPOINT [ "python3", "/app/main.py"]
-=======
+# Work directory
 WORKDIR /app
 
-ENTRYPOINT [ "python3", "/app/main.py" ]
->>>>>>> Update for new engine:services/ae_ano_detection/model_serving/Dockerfile
+# Copy requirements file
+COPY ./requirements.txt .
+
+# Install dependencies
+RUN pip install --requirement requirements.txt
+
+# Copy sources
+COPY src src
+
+# Environment variables
+ENV ENVIRONMENT=${ENVIRONMENT}
+ENV LOG_LEVEL=${LOG_LEVEL}
+ENV ENGINE_URL=${ENGINE_URL}
+ENV MAX_TASKS=${MAX_TASKS}
+ENV ENGINE_ANNOUNCE_RETRIES=${ENGINE_ANNOUNCE_RETRIES}
+ENV ENGINE_ANNOUNCE_RETRY_DELAY=${ENGINE_ANNOUNCE_RETRY_DELAY}
+
+# Exposed ports
+EXPOSE 80
+
+# Switch to src directory
+WORKDIR "/app/src"
+
+# Command to run on start
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80", "--log-config", "logger/log_config.yaml"]
