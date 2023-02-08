@@ -23,7 +23,7 @@ spec:
           imagePullPolicy: Always
           ports:
             - name: http
-              containerPort: 8000
+              containerPort: 80
           env:
             - name: CHECK_SERVICES_AVAILABILITY_INTERVAL
               value: "30"

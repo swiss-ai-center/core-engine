@@ -26,7 +26,7 @@ ENV S3_BUCKET=${S3_BUCKET}
 ENV CHECK_SERVICES_AVAILABILITY_INTERVAL=${CHECK_SERVICES_AVAILABILITY_INTERVAL}
 
 # Exposed ports
-EXPOSE 8000
+EXPOSE 80
 
 # Command to run on start
-CMD ["uvicorn", "main:app", "--log-config", "logger/log_config.yaml"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80", "--log-config", "logger/log_config.yaml"]
