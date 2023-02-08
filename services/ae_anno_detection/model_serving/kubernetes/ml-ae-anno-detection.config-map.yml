@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: stat-anno-detection-config
-  labels:
-    app: stat-anno-detection
-data:
-  APP_ENGINE: http://engine-service:8080
-  APP_SERVICE: http://ml-ae-anno-detection-service:8383
