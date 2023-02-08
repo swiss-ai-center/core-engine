@@ -11,7 +11,10 @@ COPY ./requirements.txt .
 RUN pip install --requirement requirements.txt
 
 # Copy sources
-COPY src .
+COPY src src
+
+# Copy model
+COPY mnist_model.h5 .
 
 # Environment variables
 ENV ENVIRONMENT=${ENVIRONMENT}
@@ -23,6 +26,9 @@ ENV ENGINE_ANNOUNCE_RETRY_DELAY=${ENGINE_ANNOUNCE_RETRY_DELAY}
 
 # Exposed ports
 EXPOSE 80
+
+# Switch to src directory
+WORKDIR "/app/src"
 
 # Command to run on start
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80", "--log-config", "logger/log_config.yaml"]

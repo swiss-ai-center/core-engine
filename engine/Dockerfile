@@ -11,7 +11,7 @@ COPY ./requirements.txt .
 RUN pip install --requirement requirements.txt
 
 # Copy sources
-COPY src .
+COPY src src
 
 # Environment variables
 ENV ENVIRONMENT=${ENVIRONMENT}
@@ -27,6 +27,9 @@ ENV CHECK_SERVICES_AVAILABILITY_INTERVAL=${CHECK_SERVICES_AVAILABILITY_INTERVAL}
 
 # Exposed ports
 EXPOSE 80
+
+# Switch to src directory
+WORKDIR "/app/src"
 
 # Command to run on start
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80", "--log-config", "logger/log_config.yaml"]
