@@ -2,6 +2,11 @@
 name: engine_workflow
 run-name: engine workflow
 
+# Allow one concurrent deployment
+concurrency:
+  group: "engine"
+  cancel-in-progress: true
+
 on:
   push:
     paths:

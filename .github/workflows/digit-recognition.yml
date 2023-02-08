@@ -2,6 +2,11 @@
 name: digit_recognition_workflow
 run-name: digit_recognition workflow
 
+# Allow one concurrent deployment
+concurrency:
+  group: "digit-recognition"
+  cancel-in-progress: true
+
 on:
   push:
     paths:

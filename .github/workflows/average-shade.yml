@@ -2,6 +2,11 @@
 name: average_shade_workflow
 run-name: average_shade workflow
 
+# Allow one concurrent deployment
+concurrency:
+  group: "average-shade"
+  cancel-in-progress: true
+
 on:
   push:
     paths:

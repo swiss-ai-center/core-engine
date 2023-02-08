@@ -2,6 +2,11 @@
 name: face_detection_workflow
 run-name: face_detection workflow
 
+# Allow one concurrent deployment
+concurrency:
+  group: "face-detection"
+  cancel-in-progress: true
+
 on:
   push:
     paths:

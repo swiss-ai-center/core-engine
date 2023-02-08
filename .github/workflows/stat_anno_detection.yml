@@ -2,6 +2,11 @@
 name: stat_anno_detection_workflow
 run-name: stat_anno_detection workflow
 
+# Allow one concurrent deployment
+concurrency:
+  group: "stat-anno-detection"
+  cancel-in-progress: true
+
 on:
   push:
     paths:
