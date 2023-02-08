@@ -21,6 +21,8 @@ import numpy as np
 from PIL import Image
 from retinaface import RetinaFace
 
+settings = get_settings()
+
 
 class MyService(Service):
     """
@@ -34,7 +36,7 @@ class MyService(Service):
         super().__init__(
             name="Face Detection",
             slug="face-detection",
-            url="http://localhost:8004",
+            url=settings.service_url,
             summary=api_description,
             description=api_description,
             status=ServiceStatus.AVAILABLE,
@@ -118,7 +120,6 @@ async def startup_event():
     # Global variable
     global service_service
 
-    settings = get_settings()
     logger = get_logger(settings)
     http_client = HttpClient()
     storage_service = StorageService(logger)

@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: image-processing-config
-  labels:
-    app: image-processing
-data:
-  APP_ENGINE: http://engine-service:8080
-  APP_SERVICE: http://image-processing-service:8282

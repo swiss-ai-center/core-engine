@@ -21,6 +21,8 @@ from PIL import Image
 from deepface import DeepFace
 import numpy as np
 
+settings = get_settings()
+
 
 class MyService(Service):
     """
@@ -34,7 +36,7 @@ class MyService(Service):
         super().__init__(
             name="Face Analyzer",
             slug="face-analyzer",
-            url="http://localhost:8003",
+            url=settings.service_url,
             summary=api_description,
             description=api_description,
             status=ServiceStatus.AVAILABLE,
@@ -128,7 +130,6 @@ async def startup_event():
     # Global variable
     global service_service
 
-    settings = get_settings()
     logger = get_logger(settings)
     http_client = HttpClient()
     storage_service = StorageService(logger)
