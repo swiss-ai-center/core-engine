@@ -53,7 +53,7 @@ jobs:
           # Set average_shade version
           docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
-          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" digit-recognition.stateful.yml > new-digit-recognition.stateful.yml && mv new-digit-recognition.stateful.yml digit-recognition.stateful.yml
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" average-shade.stateful.yml > new-average-shade.stateful.yml && mv new-average-shade.stateful.yml average-shade.stateful.yml
 
           # Set average_shade configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' average-shade.config-map.yml | envsubst > new-average-shade.config-map.yml && mv new-average-shade.config-map.yml average-shade.config-map.yml

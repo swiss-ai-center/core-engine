@@ -52,7 +52,7 @@ jobs:
           # Set stat_anno_detection version
           docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
-          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" digit-recognition.stateful.yml > new-digit-recognition.stateful.yml && mv new-digit-recognition.stateful.yml digit-recognition.stateful.yml
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" stat-anno-detection.stateful.yml > new-stat-anno-detection.stateful.yml && mv new-stat-anno-detection.stateful.yml stat-anno-detection.stateful.yml
 
           # Set stat_anno_detection configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' stat-anno-detection.config-map.yml | envsubst > new-stat-anno-detection.config-map.yml && mv new-stat-anno-detection.config-map.yml stat-anno-detection.config-map.yml

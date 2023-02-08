@@ -36,6 +36,7 @@ jobs:
         run: npm run build
 
       - name: Build and push Docker image to GitHub
+        id: build-and-push-docker-image-to-github
         # Only run on main
         if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/build-and-push-docker-image-to-github
@@ -44,6 +45,17 @@ jobs:
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           docker-image-name: ${{ github.repository }}-webapp
           docker-image-context: ./webapp
+
+      - name: Prepare configuration files
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        working-directory: webapp/kubernetes
+        run: |
+          # Set webapp version
+          docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" webapp.stateful.yml > new-webapp.stateful.yml && mv new-webapp.stateful.yml webapp.stateful.yml
 
       - name: Deploy Webapp on the Kubernetes cluster
         # Only run on main
