@@ -29,6 +29,7 @@ jobs:
           python-app-path: ./services/face_analyzer
 
       - name: Build and push Docker image to GitHub
+        id: build-and-push-docker-image-to-github
         # Only run on main
         if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/build-and-push-docker-image-to-github
@@ -38,19 +39,26 @@ jobs:
           docker-image-name: ${{ github.repository }}-face-analyzer
           docker-image-context: ./services/face_analyzer
 
-      - name: Prepare configuration files with secrets from GitHub Secrets
+      - name: Prepare configuration files
         # Only run on main
         if: github.ref == 'refs/heads/main'
         shell: bash
         working-directory: services/face_analyzer/kubernetes
         env:
-          APP_ENGINE: https://engine-csia-pme.kube.isc.heia-fr.ch
-          APP_SERVICE: https://face-analyzer-csia-pme.kube.isc.heia-fr.ch
+          ENVIRONMENT: production
+          LOG_LEVEL: info
+          ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
+          SERVICE_URL: https://face-analyzer-csia-pme.kube.isc.heia-fr.ch
         run: |
+          # Set face_analyzer version
+          docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" digit-recognition.stateful.yml > new-digit-recognition.stateful.yml && mv new-digit-recognition.stateful.yml digit-recognition.stateful.yml
+
           # Set face_analyzer configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' face-analyzer.config-map.yml | envsubst > new-face-analyzer.config-map.yml && mv new-face-analyzer.config-map.yml face-analyzer.config-map.yml
 
-      - name: Deploy face_analyzer on Kubernetes cluster
+      - name: Deploy face_analyzer on the Kubernetes cluster
         # Only run on main
         if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/execute-command-on-kubernetes-cluster

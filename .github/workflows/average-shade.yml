@@ -29,6 +29,7 @@ jobs:
           python-app-path: ./services/average_shade
 
       - name: Build and push Docker image to GitHub
+        id: build-and-push-docker-image-to-github
         # Only run on main
         if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/build-and-push-docker-image-to-github
@@ -44,13 +45,20 @@ jobs:
         shell: bash
         working-directory: services/average_shade/kubernetes
         env:
-          APP_ENGINE: https://engine-csia-pme.kube.isc.heia-fr.ch
-          APP_SERVICE: https://average-shade-csia-pme.kube.isc.heia-fr.ch
+          ENVIRONMENT: production
+          LOG_LEVEL: info
+          ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
+          SERVICE_URL: https://average-shade-csia-pme.kube.isc.heia-fr.ch
         run: |
+          # Set average_shade version
+          docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" digit-recognition.stateful.yml > new-digit-recognition.stateful.yml && mv new-digit-recognition.stateful.yml digit-recognition.stateful.yml
+
           # Set average_shade configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' average-shade.config-map.yml | envsubst > new-average-shade.config-map.yml && mv new-average-shade.config-map.yml average-shade.config-map.yml
 
-      - name: Deploy average_shade on Kubernetes cluster
+      - name: Deploy average_shade on the Kubernetes cluster
         # Only run on main
         if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/execute-command-on-kubernetes-cluster

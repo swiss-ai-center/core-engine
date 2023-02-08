@@ -5,5 +5,7 @@ metadata:
   labels:
     app: stat-anno-detection
 data:
-  APP_ENGINE: http://engine-service:8080
-  APP_SERVICE: http://stat-anno-detection-service:8383
+  ENVIRONMENT: development
+  LOG_LEVEL: debug
+  ENGINE_URL: http://engine-service:8000
+  SERVICE_URL: http://stat-anno-detection-service:8787

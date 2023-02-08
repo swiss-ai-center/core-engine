@@ -71,7 +71,7 @@ jobs:
           # Set digit_recognition configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' digit-recognition.config-map.yml | envsubst > new-digit-recognition.config-map.yml && mv new-digit-recognition.config-map.yml digit-recognition.config-map.yml
 
-      - name: Deploy digit_recognition on Kubernetes cluster
+      - name: Deploy digit_recognition on the Kubernetes cluster
         # Only run on main
         if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/execute-command-on-kubernetes-cluster

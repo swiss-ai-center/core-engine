@@ -45,7 +45,7 @@ jobs:
           docker-image-name: ${{ github.repository }}-webapp
           docker-image-context: ./webapp
 
-      - name: Deploy Webapp on Kubernetes cluster
+      - name: Deploy Webapp on the Kubernetes cluster
         # Only run on main
         if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/execute-command-on-kubernetes-cluster

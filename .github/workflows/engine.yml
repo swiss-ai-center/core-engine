@@ -98,7 +98,7 @@ jobs:
           # Set Engine configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' engine.config-map.yml | envsubst > new-engine.config-map.yml && mv new-engine.config-map.yml engine.config-map.yml
 
-      - name: Deploy Engine on Kubernetes cluster
+      - name: Deploy Engine on the Kubernetes cluster
         # Only run on main
         if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/execute-command-on-kubernetes-cluster

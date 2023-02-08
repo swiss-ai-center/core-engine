@@ -25,12 +25,12 @@ spec:
         - name: http
           containerPort: 80
         env:
-        - name: APP_HOST
-          value: 0.0.0.0
-        - name: APP_PORT
-          value: "80"
-        - name: APP_LOG
-          value: info
+        - name: MAX_TASKS
+          value: "50"
+        - name: ENGINE_ANNOUNCE_RETRIES
+          value: "5"
+        - name: ENGINE_ANNOUNCE_RETRY_DELAY
+          value: "3"
         envFrom:
           - configMapRef:
               name: average-shade-config
