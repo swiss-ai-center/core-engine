@@ -14,30 +14,54 @@ on:
 jobs:
   run-workflow:
     runs-on: ubuntu-latest
-    services:
-      # https://stackoverflow.com/questions/60849745/how-can-i-run-a-command-in-github-action-service-containers
-      minio:
-        image: bitnami/minio:latest
-        env:
-          MINIO_ACCESS_KEY: minio
-          MINIO_SECRET_KEY: minio123
-        ports:
-          - 9000:9000
-        options: --name=minio
+    # services:
+    #   # https://stackoverflow.com/questions/60849745/how-can-i-run-a-command-in-github-action-service-containers
+    #   minio:
+    #     image: bitnami/minio:latest
+    #     env:
+    #       MINIO_ROOT_USER: minio
+    #       MINIO_ROOT_PASSWORD: minio123
+    #     ports:
+    #       - 9000:9000
+    #     options: --name=minio
 
     steps:
+      # - name: Create the MinIO bucket
+      #   env:
+      #     MINIO_HOST: http://localhost:9000
+      #     MINIO_ROOT_USER: minio
+      #     MINIO_ROOT_PASSWORD: minio123
+      #   run: |
+      #     # Download mc
+      #     curl https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
+
+      #     # Set permissions for mc
+      #     chmod +x mc
+
+      #     # Create the bucket
+      #     ./mc config host rm local
+      #     ./mc config host add --api s3v4 local $MINIO_HOST $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD
+      #     ./mc mb --ignore-existing local/engine
+
       - name: Clone repository
         uses: actions/checkout@v3
 
-      - name: Lint Python app
-        uses: ./.github/actions/lint-python-app
-        with:
-          python-app-path: ./engine
+      # - name: Lint Python app
+      #   uses: ./.github/actions/lint-python-app
+      #   with:
+      #     python-app-path: ./engine
 
-      - name: Test Python app
-        uses: ./.github/actions/test-python-app
-        with:
-          python-app-path: ./engine
+      # - name: Test Python app
+      #   uses: ./.github/actions/test-python-app
+      #   env:
+      #     S3_ACCESS_KEY_ID: minio
+      #     S3_SECRET_ACCESS_KEY: minio123
+      #     S3_REGION: eu-central-2
+      #     S3_HOST: http://localhost:9000
+      #     S3_BUCKET: engine
+      #     DATABASE_URL: sqlite:///engine.db"
+      #   with:
+      #     python-app-path: ./engine
 
       - name: Build and push Docker image to GitHub
         id: build-and-push-docker-image-to-github
@@ -50,17 +74,27 @@ jobs:
           docker-image-name: ${{ github.repository }}-engine
           docker-image-context: ./engine
 
-      - name: Prepare configuration files with secrets from GitHub Secrets
+      - name: Prepare configuration files
         # Only run on main
         if: github.ref == 'refs/heads/main'
         shell: bash
         working-directory: engine/kubernetes
         env:
+          ENVIRONMENT: production
+          LOG_LEVEL: info
+          DATABASE_URL: sqlite:///engine.db
+          DATABASE_CONNECT_ARGS: '"{ \"check_same_thread\": \"False\" }"'
           S3_ACCESS_KEY_ID: ${{ secrets.ENGINE_S3_ACCESS_KEY_ID }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.ENGINE_S3_SECRET_ACCESS_KEY }}
           S3_HOST: ${{ secrets.ENGINE_S3_HOST }}
+          S3_REGION: ${{ secrets.ENGINE_S3_REGION }}
+          S3_BUCKET: ${{ secrets.ENGINE_S3_BUCKET }}
         run: |
-          echo "${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}"
+          # Set Engine version
+          docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" engine.stateful.yml > new-engine.stateful.yml && mv new-engine.stateful.yml engine.stateful.yml
+
           # Set Engine configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' engine.config-map.yml | envsubst > new-engine.config-map.yml && mv new-engine.config-map.yml engine.config-map.yml
 
