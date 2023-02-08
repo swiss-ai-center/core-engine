@@ -1,0 +1,9 @@
+dvc
+pandas
+adtk
+matplotlib
+numpy
+scikit-learn
+uvicorn
+httpx
+fastapi

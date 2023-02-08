@@ -1,0 +1,15 @@
+stages:
+  prepare:
+    cmd: python src/prepare.py
+    deps:
+    - datasets/145_UCR_Anomaly_Lab2Cmac011215EPG1_5000_17210_17260.txt
+    - src/prepare.py
+    outs:
+    - datasets/prepare
+  model:
+    cmd: python src/model.py
+    deps:
+    - datasets/prepare/145_UCR_Anomaly_Lab2Cmac011215EPG1_5000_17210_17260.zip
+    - src/model.py
+    outs:
+    - results
