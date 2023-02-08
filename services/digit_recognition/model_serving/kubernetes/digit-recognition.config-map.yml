@@ -5,5 +5,6 @@ metadata:
   labels:
     app: digit-recognition
 data:
-  APP_ENGINE: http://engine-service:8080
-  APP_SERVICE: http://digit-recognition-service:8383
+  ENVIRONMENT: development
+  LOG_LEVEL: debug
+  ENGINE_URL: http://localhost:8000
