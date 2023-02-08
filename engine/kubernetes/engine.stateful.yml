@@ -17,13 +17,16 @@ spec:
         app: engine
     spec:
       containers:
-      - name: engine
-        image: ghcr.io/csia-pme/csia-pme-engine:latest
-        # If you build the image locally, change the next line to `imagePullPolicy: Never` - there is no need to pull the image
-        imagePullPolicy: Always
-        ports:
-        - name: http
-          containerPort: 8000
-        envFrom:
-          - configMapRef:
-              name: engine-config
+        - name: engine
+          image: ghcr.io/csia-pme/csia-pme-engine:latest
+          # If you build the image locally, change the next line to `imagePullPolicy: Never` - there is no need to pull the image
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: CHECK_SERVICES_AVAILABILITY_INTERVAL
+              value: "30"
+          envFrom:
+            - configMapRef:
+                name: engine-config

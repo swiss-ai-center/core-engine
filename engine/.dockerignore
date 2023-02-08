@@ -11,4 +11,8 @@ __pycache__
 .pytest_cache
 
 # Pytest Coverage
+.coveragerc
 .coverage
+
+# Pytest tests
+tests/
