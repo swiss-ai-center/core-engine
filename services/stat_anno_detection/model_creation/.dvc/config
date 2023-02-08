@@ -1,6 +1,0 @@
-[core]
-    autostage = true
-    remote = minio
-['remote "minio"']
-    url = s3://stat-anno-detect
-    endpointurl = https://minio1.isc.heia-fr.ch:9015
