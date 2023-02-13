@@ -95,11 +95,10 @@ app = FastAPI(
         "tagsSorter": "alpha",
         "operationsSorter": "method",
     },
-    # TODO: Add license information
-    # license_info={
-    #     "name": "",
-    #     "url": "",
-    # },
+    license_info={
+        "name": "GNU Affero General Public License v3.0 (GNU AGPLv3)",
+        "url": "https://choosealicense.com/licenses/agpl-3.0/",
+    },
 )
 
 # Include routers from other files

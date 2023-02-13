@@ -1,4 +1,5 @@
 import asyncio
+import json
 import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -53,7 +54,7 @@ class MyService(Service):
         average_color_row = np.average(img, axis=0)
         average_color = np.average(average_color_row, axis=0)
         return {
-            "result": str({
+            "result": json.dumps({
                 "Red": int(average_color[2]),
                 "Green": int(average_color[1]),
                 "Blue": int(average_color[0])
@@ -82,11 +83,10 @@ app = FastAPI(
         "tagsSorter": "alpha",
         "operationsSorter": "method",
     },
-    # TODO: Add license information
-    # license_info={
-    #     "name": "",
-    #     "url": "",
-    # },
+    license_info={
+        "name": "GNU Affero General Public License v3.0 (GNU AGPLv3)",
+        "url": "https://choosealicense.com/licenses/agpl-3.0/",
+    },
 )
 
 # Include routers from other files
