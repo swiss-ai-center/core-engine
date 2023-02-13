@@ -1,4 +1,5 @@
 import asyncio
+import json
 import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -59,11 +60,10 @@ class MyService(Service):
             actions=['age', 'gender', 'race', 'emotion'],
             enforce_detection=True,
             detector_backend="retinaface",
-            prog_bar=False
         )
 
         return {
-            "result": str(diagnos)
+            "result": json.dumps(diagnos)
         }
 
 
