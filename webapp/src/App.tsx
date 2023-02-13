@@ -167,7 +167,7 @@ function App() {
                 <EngineStats trigger={open} onClose={handleCloseStats}/>
                 <Router>
                     <Routes>
-                        <Route path={"/showcase"} element={<Showcase/>}/>
+                        <Route path={"/showcase/:type/:id"} element={<Showcase/>}/>
                         <Route path={"*"} element={<Home/>}/>
                     </Routes>
                 </Router>
