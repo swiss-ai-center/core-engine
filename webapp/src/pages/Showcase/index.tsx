@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, Container, Tab, Tabs, Typography, CircularProgress } from '@mui/material';
-import { Link, Navigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import Board from '../../components/Board/Board';
 import { getPipelineDescription, getServiceDescription } from '../../utils/api';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';

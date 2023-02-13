@@ -16,10 +16,21 @@ import { useSearchParams } from 'react-router-dom';
 
 
 const Home: React.FC = () => {
+    // this is the list of order by options, the first one is the default
+    const orderByList = [
+        {value: 'name-asc', label: 'Name (A-Z)'},
+        {value: 'name-desc', label: 'Name (Z-A)'},
+    ];
     const [search, setSearch] = React.useState('');
-    const [orderBy, setOrderBy] = React.useState('name-asc');
+    const [orderBy, setOrderBy] = React.useState(orderByList[0].value);
     const [searchParams] = useSearchParams();
     const history = window.history;
+
+    const handleNoFilter = () => {
+        if (searchParams.toString() === '') {
+            history.pushState({}, '', window.location.pathname);
+        }
+    }
 
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(event.target.value);
@@ -29,28 +40,32 @@ const Home: React.FC = () => {
             searchParams.set('filter', event.target.value);
         }
         history.pushState({}, '', `?${searchParams.toString()}`);
+        handleNoFilter();
     };
 
     const handleOrder = (event: SelectChangeEvent) => {
         setOrderBy(event.target.value as string);
-        if (event.target.value === 'name-asc') {
+        if (event.target.value === orderByList[0].value) {
             searchParams.delete('orderBy');
         } else {
             searchParams.set('orderBy', event.target.value as string);
         }
         history.pushState({}, '', `?${searchParams.toString()}`);
+        handleNoFilter();
     }
 
     React.useEffect(() => {
         setSearch(searchParams.get('filter') || '');
         const order = searchParams.get('orderBy');
-        if (order === 'name-asc' || order === 'name-desc') {
-            setOrderBy(searchParams.get('orderBy') || 'name-asc');
+        if (orderByList.map((item) => item.value).includes(order || '')) {
+            setOrderBy(searchParams.get('orderBy') || orderByList[0].value);
         } else {
             searchParams.delete('orderBy');
             setOrderBy('name-asc');
             history.pushState({}, '', `?${searchParams.toString()}`);
         }
+        handleNoFilter();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -77,12 +92,11 @@ const Home: React.FC = () => {
                 <Container sx={{py: 8}} maxWidth="lg">
                     <Grid container spacing={2}>
                         <Grid item xs={12} sm={8} md={10}>
-                        <TextField sx={{mb: 2}} name={'search'} label={'Search'}
-                               value={search} onChange={handleSearch} fullWidth
-                        />
+                            <TextField sx={{mb: 2}} name={'search'} label={'Search'}
+                                       value={search} onChange={handleSearch} fullWidth
+                            />
                         </Grid>
                         <Grid item xs={12} sm={4} md={2}>
-                            {/* add order by name with asc and desc options */}
                             <FormControl fullWidth sx={{mb: 2}}>
                                 <InputLabel id="demo-simple-select-label">Order by</InputLabel>
                                 <Select
@@ -92,8 +106,9 @@ const Home: React.FC = () => {
                                     label="Order by"
                                     onChange={handleOrder}
                                 >
-                                    <MenuItem value={'name-asc'}>Name (asc)</MenuItem>
-                                    <MenuItem value={'name-desc'}>Name (desc)</MenuItem>
+                                    {orderByList.map((item) => (
+                                        <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>
+                                    ))}
                                 </Select>
                             </FormControl>
                         </Grid>
