@@ -1,4 +1,5 @@
 import asyncio
+import json
 import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -59,11 +60,10 @@ class MyService(Service):
             actions=['age', 'gender', 'race', 'emotion'],
             enforce_detection=True,
             detector_backend="retinaface",
-            prog_bar=False
         )
 
         return {
-            "result": str(diagnos)
+            "result": json.dumps(diagnos)
         }
 
 
@@ -95,11 +95,10 @@ app = FastAPI(
         "tagsSorter": "alpha",
         "operationsSorter": "method",
     },
-    # TODO: Add license information
-    # license_info={
-    #     "name": "",
-    #     "url": "",
-    # },
+    license_info={
+        "name": "GNU Affero General Public License v3.0 (GNU AGPLv3)",
+        "url": "https://choosealicense.com/licenses/agpl-3.0/",
+    },
 )
 
 # Include routers from other files

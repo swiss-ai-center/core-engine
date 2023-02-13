@@ -63,11 +63,11 @@ class TasksService:
     current_task_data_out = dict()
 
     def __init__(
-            self,
-            logger: Logger = Depends(),
-            settings: Settings = Depends(get_settings),
-            http_client: HttpClient = Depends(),
-            storage: StorageService = Depends(),
+        self,
+        logger: Logger = Depends(),
+        settings: Settings = Depends(get_settings),
+        http_client: HttpClient = Depends(),
+        storage: StorageService = Depends(),
     ):
         self.logger = logger
         self.settings = settings
@@ -198,7 +198,7 @@ class TasksService:
                 file_extension = get_extension(field_type)
 
                 key = await self.storage.upload(
-                    data.encode(),
+                    data,
                     file_extension,
                     TasksService.current_task.s3_region,
                     TasksService.current_task.s3_secret_access_key,

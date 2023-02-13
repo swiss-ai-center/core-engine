@@ -118,7 +118,7 @@ class TasksService:
         """
         if TasksService.current_task and TasksService.current_task.task.id == task_id:
             return TasksService.current_task.task.status
-        
+
         task = await TasksService.tasks.find(task_id)
 
         if task is None:
@@ -198,7 +198,7 @@ class TasksService:
                 file_extension = get_extension(field_type)
 
                 key = await self.storage.upload(
-                    data.encode(),
+                    data,
                     file_extension,
                     TasksService.current_task.s3_region,
                     TasksService.current_task.s3_secret_access_key,
