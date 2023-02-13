@@ -37,7 +37,7 @@ class MyService(Service):
             name="Face Analyzer",
             slug="face-analyzer",
             url=settings.service_url,
-            summary=api_description,
+            summary=api_summary,
             description=api_description,
             status=ServiceStatus.AVAILABLE,
             data_in_fields=[
@@ -69,13 +69,16 @@ class MyService(Service):
 
 api_description = """
 Analyze faces in images. Returns a JSON object with the following fields:
-- age: Age of the person in the image
-- region: Region of the person in the image
-- gender: Gender of the person in the image
-- race: probability of race of the person in the image
-- dominant_race: the dominant race of the person in the image
-- emotion: probability of emotion of the person in the image
-- dominant_emotion: the dominant emotion of the person in the image
+age (Age of the person in the image),
+region (Region of the person in the image),
+gender (Gender of the person in the image),
+race (Race of the person in the image),
+dominant_race (Dominant race of the person in the image),
+emotion (Emotion of the person in the image),
+dominant_emotion (The dominant emotion of the person in the image),
+"""
+api_summary = """
+Analyze faces in images
 """
 
 # Define the FastAPI application with information

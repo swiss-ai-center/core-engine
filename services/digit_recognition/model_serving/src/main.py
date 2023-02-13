@@ -36,7 +36,7 @@ class MyService(Service):
             name="Digit Recognition",
             slug="digit-recognition",
             url=settings.service_url,
-            summary=api_description,
+            summary=api_summary,
             description=api_description,
             status=ServiceStatus.AVAILABLE,
             data_in_fields=[
@@ -76,6 +76,9 @@ class MyService(Service):
 
 
 api_description = """
+Recognizes a digit in an image using mnist trained model
+"""
+api_summary = """
 Recognizes a digit in an image using mnist trained model
 """
 

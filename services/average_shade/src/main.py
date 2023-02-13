@@ -35,7 +35,7 @@ class MyService(Service):
             name="Average Shade",
             slug="average-shade",
             url=settings.service_url,
-            summary=api_description,
+            summary=api_summary,
             description=api_description,
             status=ServiceStatus.AVAILABLE,
             data_in_fields=[
@@ -62,6 +62,9 @@ class MyService(Service):
 
 
 api_description = """
+Returns the average shade of an image.
+"""
+api_summary = """
 Returns the average shade of an image.
 """
 

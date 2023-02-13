@@ -38,7 +38,7 @@ class MyService(Service):
             name="Autoencoder anomaly detection",
             slug="ae-anomaly-detection",
             url=settings.service_url,
-            summary=api_description,
+            summary=api_summary,
             description=api_description,
             status=ServiceStatus.AVAILABLE,
             data_in_fields=[
@@ -124,7 +124,9 @@ class MyService(Service):
 api_description = """
 Anomaly detection of a time series with an autoencoder
 """
-
+api_summary = """
+Anomaly detection of a time series with an autoencoder
+"""
 
 # Define the FastAPI application with information
 app = FastAPI(

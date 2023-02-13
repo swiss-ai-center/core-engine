@@ -37,7 +37,7 @@ class MyService(Service):
             name="Face Detection",
             slug="face-detection",
             url=settings.service_url,
-            summary=api_description,
+            summary=api_summary,
             description=api_description,
             status=ServiceStatus.AVAILABLE,
             data_in_fields=[
@@ -66,6 +66,9 @@ class MyService(Service):
 
 
 api_description = """
+This service detects faces in images and returns the coordinates of the bounding boxes.
+"""
+api_summary = """
 This service detects faces in images and returns the coordinates of the bounding boxes.
 """
 
