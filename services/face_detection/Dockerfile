@@ -1,10 +1,6 @@
 # Base image
 FROM ghcr.io/csia-pme/csia-pme-base-image:latest
 
-RUN mkdir -p /root/.deepface/weights
-WORKDIR /root/.deepface/weights
-RUN wget https://github.com/serengil/deepface_models/releases/download/v1.0/retinaface.h5
-
 # Work directory
 WORKDIR /app
 

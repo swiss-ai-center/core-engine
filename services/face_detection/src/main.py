@@ -1,4 +1,5 @@
 import asyncio
+import json
 import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -56,12 +57,21 @@ class MyService(Service):
         img = np.array(img_pil)
 
         faces = RetinaFace.detect_faces(img)
-        # cast int64 to int to fixe json error (can't convert int64)
-        if type(faces) is dict:
-            res = [[int(i) for i in v['facial_area']] for k, v in faces.items()]
-        else:
-            res = []
-        return {"answer": str(res)}
+
+        # https://stackoverflow.com/a/57915246
+        class NpEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, np.integer):
+                    return int(obj)
+                if isinstance(obj, np.floating):
+                    return float(obj)
+                if isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                return super(NpEncoder, self).default(obj)
+
+        return {
+            "result": json.dumps(faces, cls=NpEncoder)
+        }
 
 
 
