@@ -39,7 +39,6 @@ const Board: React.FC<{ description: any }> = ({description}) => {
         if (description) {
             const service = Object.assign(new Service(), description);
             const {nodes: layoutedNodes, edges: layoutedEdges} = DrawGraph(service);
-            console.log(layoutedNodes);
             setNodes([...layoutedNodes]);
             setEdges([...layoutedEdges]);
         }

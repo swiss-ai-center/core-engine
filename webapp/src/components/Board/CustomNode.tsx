@@ -42,9 +42,7 @@ const CustomNode = ({data, styles}: any) => {
 
     const checkTaskStatus = async (id: string) => {
         const task = await getTask(id);
-        console.log(task);
         if (task.status === 'finished') {
-            console.log(task.data_out)
             dispatch(setResultIdList(task.data_out));
             dispatch(setRunState(RunState.ENDED));
         } else if (task.status === 'error') {
@@ -72,15 +70,12 @@ const CustomNode = ({data, styles}: any) => {
 
     const runPipeline = async () => {
         const response = await postToService(data.label.replace("-entry", ""), array);
-        console.log(response);
         if (response.id) {
-            console.log(1);
             dispatch(setRunState(RunState.RUNNING));
             dispatch(setTaskId(response.id));
             displayNotification({message: "Pipeline started", type: "success", open: true, timeout: 2000});
             checkTaskStatus(response.id);
         } else {
-            console.log(2);
             displayNotification({
                 message: `Error while running pipeline: ${response.detail}`,
                 type: "error",
@@ -92,7 +87,6 @@ const CustomNode = ({data, styles}: any) => {
 
     const downloadResult = async () => {
         for (const id of resultIdList) {
-            console.log(id);
             const file = await getResult(id);
             if (file) {
                 const link = document.createElement('a');

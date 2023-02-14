@@ -9,7 +9,6 @@ const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
 
 export default function DrawGraph(entity: Service | Pipeline | null) {
-    console.log(entity)
     let nodes: any[] = [];
     let edges: any[] = [];
 
