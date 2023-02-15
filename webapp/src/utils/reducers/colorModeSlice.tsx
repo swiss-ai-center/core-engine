@@ -14,7 +14,7 @@ const saveToLocalStorage = (state: any) => {
         const serializedState = JSON.stringify(state);
         localStorage.setItem('colorModeState', serializedState);
     } catch (e) {
-        console.log(e);
+        console.error(e);
     }
 }
 

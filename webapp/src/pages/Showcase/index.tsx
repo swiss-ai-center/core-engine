@@ -116,7 +116,10 @@ const Showcase: React.FC = () => {
                                 >
                                     {description ? description.name : ''}
                                 </Typography>
-                                <Typography variant="h5" align="center" color="text.secondary" paragraph>
+                                <Typography variant={"h5"} align={"center"}
+                                            color={"text.secondary"} whiteSpace={"pre-line"}
+                                            paragraph
+                                >
                                     {description ? description.description : ''}
                                 </Typography>
                             </Container>
