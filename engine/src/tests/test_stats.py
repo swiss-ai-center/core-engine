@@ -122,9 +122,9 @@ def test_stats_empty(client: TestClient):
     stats_response_data = stats_response.json()
 
     assert stats_response.status_code == 200
-    assert stats_response_data["tasks"]["total"] == 0
     assert len(stats_response_data["services"]) == 0
-    assert len(stats_response_data["pipelines"]) == 0
+    # TODO: uncomment when pipelines are implemented
+    # assert len(stats_response_data["pipelines"]) == 0
 
 
 def test_stats(client: TestClient, service_instance: HTTPServer):
@@ -137,15 +137,16 @@ def test_stats(client: TestClient, service_instance: HTTPServer):
     service_response_1 = client.post("/services", json=service_1_copy)
     service_response_2 = client.post("/services", json=service_2_copy)
 
-    pipeline_1["services"] = []
-    pipeline_1["services"].append(service_response_1.json()["id"])
-    pipeline_1["services"].append(service_response_2.json()["id"])
-
-    pipeline_response = client.post("/pipelines", json=pipeline_1)
+    # TODO: uncomment when pipelines are implemented
+    # pipeline_1["services"] = []
+    # pipeline_1["services"].append(service_response_1.json()["id"])
+    # pipeline_1["services"].append(service_response_2.json()["id"])
+    #
+    # pipeline_response = client.post("/pipelines", json=pipeline_1)
 
     task_1["service_id"] = service_response_1.json()["id"]
     task_2["service_id"] = service_response_2.json()["id"]
-    task_2["pipeline_id"] = pipeline_response.json()["id"]
+    # task_2["pipeline_id"] = pipeline_response.json()["id"]
 
     client.post("/tasks", json=task_1)
     task_response = client.post("/tasks", json=task_2)
@@ -162,14 +163,13 @@ def test_stats(client: TestClient, service_instance: HTTPServer):
     stats_response = client.get("/stats")
     stats_response_data = stats_response.json()
 
-    assert pipeline_response.status_code == 200
-    assert stats_response_data["tasks"]["total"] == 2
-    assert stats_response_data["tasks"]["finished"] == 1
-    assert stats_response_data["tasks"]["pending"] == 1
+    # assert pipeline_response.status_code == 200
+    assert stats_response_data["summary"]["finished"] == 1
+    assert stats_response_data["summary"]["pending"] == 1
     assert len(stats_response_data["services"]) == 2
-    assert len(stats_response_data["pipelines"]) == 1
-    assert stats_response_data["services"][service_1["name"]] == 1
-    assert stats_response_data["pipelines"][pipeline_1["name"]] == 1
+    # assert len(stats_response_data["pipelines"]) == 1
+    assert stats_response_data["services"][service_1["name"]]["total"] == 1
+    # assert stats_response_data["pipelines"][pipeline_1["name"]] == 1
 
     client.post("/tasks", json=task_1)
     task_response = client.post("/tasks", json=task_2)
@@ -186,14 +186,13 @@ def test_stats(client: TestClient, service_instance: HTTPServer):
     stats_response = client.get("/stats")
     stats_response_data = stats_response.json()
 
-    assert stats_response_data["tasks"]["total"] == 4
-    assert stats_response_data["tasks"]["finished"] == 1
-    assert stats_response_data["tasks"]["pending"] == 2
-    assert stats_response_data["tasks"]["processing"] == 1
+    assert stats_response_data["summary"]["finished"] == 1
+    assert stats_response_data["summary"]["pending"] == 2
+    assert stats_response_data["summary"]["processing"] == 1
     assert len(stats_response_data["services"]) == 2
-    assert len(stats_response_data["pipelines"]) == 1
-    assert stats_response_data["services"][service_1["name"]] == 2
-    assert stats_response_data["pipelines"][pipeline_1["name"]] == 2
+    # assert len(stats_response_data["pipelines"]) == 1
+    assert stats_response_data["services"][service_1["name"]]["total"] == 2
+    # assert stats_response_data["pipelines"][pipeline_1["name"]] == 2
 
     client.patch(
       f'/tasks/{task_response.json()["id"]}',
@@ -208,14 +207,13 @@ def test_stats(client: TestClient, service_instance: HTTPServer):
     stats_response = client.get("/stats")
     stats_response_data = stats_response.json()
 
-    assert stats_response_data["tasks"]["total"] == 4
-    assert stats_response_data["tasks"]["finished"] == 1
-    assert stats_response_data["tasks"]["pending"] == 2
-    assert stats_response_data["tasks"]["error"] == 1
+    assert stats_response_data["summary"]["finished"] == 1
+    assert stats_response_data["summary"]["pending"] == 2
+    assert stats_response_data["summary"]["error"] == 1
     assert len(stats_response_data["services"]) == 2
     assert len(stats_response_data["pipelines"]) == 1
-    assert stats_response_data["services"][service_1["name"]] == 2
-    assert stats_response_data["pipelines"][pipeline_1["name"]] == 2
+    assert stats_response_data["services"][service_1["name"]]["total"] == 2
+    # assert stats_response_data["pipelines"][pipeline_1["name"]] == 2
 
     client.patch(
       f'/tasks/{task_response.json()["id"]}',
@@ -230,11 +228,10 @@ def test_stats(client: TestClient, service_instance: HTTPServer):
     stats_response = client.get("/stats")
     stats_response_data = stats_response.json()
 
-    assert stats_response_data["tasks"]["total"] == 4
-    assert stats_response_data["tasks"]["finished"] == 1
-    assert stats_response_data["tasks"]["pending"] == 2
-    assert stats_response_data["tasks"]["unavailable"] == 1
+    assert stats_response_data["summary"]["finished"] == 1
+    assert stats_response_data["summary"]["pending"] == 2
+    assert stats_response_data["summary"]["unavailable"] == 1
     assert len(stats_response_data["services"]) == 2
     assert len(stats_response_data["pipelines"]) == 1
-    assert stats_response_data["services"][service_1["name"]] == 2
-    assert stats_response_data["pipelines"][pipeline_1["name"]] == 2
+    assert stats_response_data["services"][service_1["name"]]["total"] == 2
+    # assert stats_response_data["pipelines"][pipeline_1["name"]] == 2

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Modal, Typography } from '@mui/material';
+import { alpha, Box, Grid, IconButton, Modal, styled, Typography } from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
+import { DataGrid, gridClasses } from '@mui/x-data-grid';
 import { getStats } from '../../utils/api';
 import { useNotification } from '../../utils/useNotification';
 
@@ -8,26 +10,96 @@ const style = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 300,
     bgcolor: 'background.paper',
     border: '2px solid',
     borderColor: 'primary.main',
     boxShadow: 24,
     borderRadius: '5px',
     p: 4,
+    width: '80%',
+    height: '80%',
+    overflow: 'auto' as 'auto',
 };
+
+const ODD_OPACITY = 0.2;
+
+const StripedDataGrid = styled(DataGrid)(({theme}) => ({
+    [`& .${gridClasses.row}.even`]: {
+        backgroundColor: theme.palette.mode === 'light' ? theme.palette.grey[200] : theme.palette.grey[800],
+        '&:hover, &.Mui-hovered': {
+            backgroundColor: alpha(theme.palette.primary.main, ODD_OPACITY),
+            '@media (hover: none)': {
+                backgroundColor: 'transparent',
+            },
+        },
+        '&.Mui-selected': {
+            backgroundColor: alpha(
+                theme.palette.primary.main,
+                ODD_OPACITY + theme.palette.action.selectedOpacity,
+            ),
+            '&:hover, &.Mui-hovered': {
+                backgroundColor: alpha(
+                    theme.palette.primary.main,
+                    ODD_OPACITY +
+                    theme.palette.action.selectedOpacity +
+                    theme.palette.action.hoverOpacity,
+                ),
+                // Reset on touch devices, it doesn't add specificity
+                '@media (hover: none)': {
+                    backgroundColor: alpha(
+                        theme.palette.primary.main,
+                        ODD_OPACITY + theme.palette.action.selectedOpacity,
+                    ),
+                },
+            },
+        },
+    },
+    [`& .${gridClasses.row}.odd`]: {
+        backgroundColor: theme.palette.background.paper,
+        '&:hover, &.Mui-hovered': {
+            backgroundColor: alpha(theme.palette.primary.main, ODD_OPACITY),
+            '@media (hover: none)': {
+                backgroundColor: 'transparent',
+            }
+        },
+        '&.Mui-selected': {
+            backgroundColor: alpha(
+                theme.palette.primary.main,
+                ODD_OPACITY + theme.palette.action.selectedOpacity,
+            ),
+            '&:hover, &.Mui-hovered': {
+                backgroundColor: alpha(
+                    theme.palette.primary.main,
+                    ODD_OPACITY +
+                    theme.palette.action.selectedOpacity +
+                    theme.palette.action.hoverOpacity,
+                ),
+                // Reset on touch devices, it doesn't add specificity
+                '@media (hover: none)': {
+                    backgroundColor: alpha(
+                        theme.palette.primary.main,
+                        ODD_OPACITY + theme.palette.action.selectedOpacity,
+                    ),
+                }
+            }
+        }
+    }
+}));
 
 export const EngineStats: React.FC<{
     trigger: boolean, onClose: any
 }> = ({trigger, onClose}) => {
-
-    const [engineStatus, setEngineStatus] = useState<any>({})
+    const columns = [
+        {field: 'status', headerName: 'Status', width: 150},
+        {field: 'count', headerName: 'Count', width: 120},
+    ]
+    const [stats, setStats] = useState<any>({})
     const {displayNotification} = useNotification();
 
     const loadStats = async () => {
         getStats()
             .then((resp) => {
-                setEngineStatus(resp);
+                setStats(resp);
             })
             .catch((err) => {
                 displayNotification({message: `Error loading engine stats: ${err}`, type: "error"});
@@ -42,44 +114,108 @@ export const EngineStats: React.FC<{
     return (
         <Modal open={trigger} onClose={onClose}>
             <Box sx={style}>
-                <Typography id="modal-modal-title" variant="h6" component="h2">
+                <Typography id="modal-modal-title" variant="h4" component="h2">
                     Engine stats
                 </Typography>
-                <Box id="modal-modal-description" sx={{mt: 2}}>
-                    <dl>
-                        <dt>Statistics of the engine</dt>
-                        {Object.keys(engineStatus).length > 0 ?
-                            Object.keys(engineStatus["tasks"]).map((k) => {
-                                return (
-                                    <dd key={k}>
-                                        {k.charAt(0).toUpperCase()}{k.slice(1)} : {engineStatus.tasks[k]}
-                                    </dd>
-                                )
-                            })
-                            : "No statistics on tasks found"}
-
-                        <dt>Statistics per services</dt>
-                        {Object.keys(engineStatus).length > 0 ?
-                            Object.keys(engineStatus.services).map((k) => {
-                                return (
-                                    <dd key={k}>
-                                        {k.charAt(0).toUpperCase()}{k.slice(1)} : {engineStatus.services[k]}
-                                    </dd>
-                                )
-                            })
-                            : "No statistics on services found"}
-
-                        <dt>Statistics per pipelines</dt>
-                        {Object.keys(engineStatus).length > 0 ?
-                            Object.keys(engineStatus.pipelines).map((k) => {
-                                return (
-                                    <dd key={k}>
-                                        {k.charAt(0).toUpperCase()}{k.slice(1)} : {engineStatus.pipelines[k]}
-                                    </dd>
-                                )
-                            })
-                            : "No statistics on pipelines found"}
-                    </dl>
+                <IconButton
+                    aria-label="close"
+                    onClick={onClose}
+                    sx={{
+                        position: 'absolute',
+                        right: 8,
+                        top: 8,
+                        color: (theme) => theme.palette.grey[500],
+                    }}
+                >
+                    <CloseIcon/>
+                </IconButton>
+                <Box sx={{mt: 2}}>
+                    {stats.summary && stats.summary.length > 0 &&
+                        <Box sx={{height: 250, width: '100%'}}>
+                            <Typography id={"modal-modal-title"} variant={"h5"} color={"primary"}
+                                        component={"h2"} marginY={2}>
+                                Summary
+                            </Typography>
+                            <StripedDataGrid
+                                sx={{textTransform: 'uppercase', borderColor: 'primary.main'}} hideFooter={true}
+                                rows={stats.summary.map((row: any, index: number) => {
+                                    return {...row, id: index}
+                                })}
+                                columns={columns}
+                                getRowClassName={(params) =>
+                                    params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
+                                }
+                            />
+                        </Box>
+                    }
+                    {stats.services && stats.services.length > 0 &&
+                        <Box marginTop={8} marginBottom={4}>
+                            <Typography id={"modal-modal-title"} variant={"h5"} color={"primary"}
+                                        component={"h2"} marginTop={2}>
+                                Services
+                            </Typography>
+                            <Grid container spacing={2} rowSpacing={6}>
+                                {stats.services.map((service: any, index: number) => {
+                                    return (
+                                        <Grid item xs={12} md={6} lg={4} key={index}>
+                                            <Box sx={{height: 250, width: 'auto'}}>
+                                                <Typography id="modal-modal-title" variant="h6" component="h4">
+                                                    {service.service_name}
+                                                </Typography>
+                                                <StripedDataGrid
+                                                    sx={{
+                                                        textTransform: 'uppercase',
+                                                        borderColor: 'primary.main'
+                                                    }} hideFooter={true}
+                                                    rows={service.status.map((row: any, index: number) => {
+                                                        return {...row, id: index};
+                                                    })}
+                                                    columns={columns}
+                                                    getRowClassName={(params) =>
+                                                        params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
+                                                    }
+                                                />
+                                            </Box>
+                                        </Grid>
+                                    )
+                                })}
+                            </Grid>
+                        </Box>
+                    }
+                    {stats.pipelines && stats.pipelines.length > 0 &&
+                        <Box marginTop={8} marginBottom={4}>
+                            <Typography id={"modal-modal-title"} variant={"h5"} color={"primary"}
+                                        component={"h2"} marginTop={2}>
+                                Pipelines
+                            </Typography>
+                            <Grid container spacing={2} rowSpacing={6}>
+                                {stats.pipelines.map((pipeline: any, index: number) => {
+                                    return (
+                                        <Grid item xs={12} md={6} lg={4} key={index}>
+                                            <Box sx={{height: 250, width: 'auto'}}>
+                                                <Typography id="modal-modal-title" variant="h6" component="h4">
+                                                    {pipeline.pipeline_name}
+                                                </Typography>
+                                                <StripedDataGrid
+                                                    sx={{
+                                                        textTransform: 'uppercase',
+                                                        borderColor: 'primary.main'
+                                                    }} hideFooter={true}
+                                                    rows={pipeline.status.map((row: any, index: number) => {
+                                                        return {...row, id: index};
+                                                    })}
+                                                    columns={columns}
+                                                    getRowClassName={(params) =>
+                                                        params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
+                                                    }
+                                                />
+                                            </Box>
+                                        </Grid>
+                                    )
+                                })}
+                            </Grid>
+                        </Box>
+                    }
                 </Box>
             </Box>
         </Modal>
