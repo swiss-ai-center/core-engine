@@ -57,7 +57,6 @@ class MyService(Service):
         img = cv2.imdecode(np.frombuffer(raw, np.uint8), 1)
 
         areas = json.loads(data["areas"])["areas"]
-        print(areas)
         rows = img.shape[0]
         cols = img.shape[1]
 
@@ -74,7 +73,6 @@ class MyService(Service):
             img[y1:y2 + 1, x1:x2 + 1] = cv2.blur(img[y1:y2 + 1, x1:x2 + 1], (kernelSize, kernelSize))
 
         is_ok, out_buff = cv2.imencode(".jpg", img)
-        print(out_buff)
         return {
             "result": out_buff.tobytes()
         }
