@@ -23,13 +23,18 @@ class StatsService:
 
         stats = StatsBase(summary=[], services=[])
 
+        # Get Tasks count per service
+        task_service_count = self.session.query(Task.service_id, func.count(Task.id)).group_by(Task.service_id).all()
+
         # Get all services with their tasks and count the number of tasks per status
         task_status_count = self.session.query(
             Service.id, Service.name, Task.status, func.count(Task.status)
         ).join(
             Service
+        ).where(
+            Service.id == Task.service_id
         ).group_by(
-            Service.name, Task.status
+            Task.status, Task.service_id
         ).all()
 
         # Get the total number of tasks per status keep empty status with 0
@@ -38,7 +43,8 @@ class StatsService:
         # Add the stats fot the services to the StatsBase object
         stats.services = [ServiceStats(service_id=service_stats[0],
                                        service_name=service_stats[1],
-                                       total=len(task_status_count),
+                                       total=next((service_count[1] for service_count in task_service_count if
+                                                   service_count[0] == service_stats[0]), 0),
                                        status=[StatusCount(status=service_stats[2], count=service_stats[3])]
                                        ) for service_stats in task_status_count]
         # Append empty status with 0
