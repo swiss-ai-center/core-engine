@@ -1,5 +1,10 @@
-## Custom
+## Material for MkDocs
 
+# Cache
+.cache
+
+# Output directory
+public
 
 ## Python
 
@@ -17,14 +22,11 @@ __pycache__/
 .coverage
 
 ## IntelliJ's IDEs
-
 .idea
 
 ## Visual Studio Code
-
 .vscode
 
 ## macOS
-
 .DS_Store
 

@@ -1,0 +1,127 @@
+repo_url: https://github.com/csia-pme/csia-pme
+repo_name: csia-pme/csia-pme
+site_name: CSIA-PME
+site_author: CSIA-PME contributors
+site_description: >-
+  Documentation website for the CSIA-PME project.
+copyright: Copyright &copy; 2022 - 2023 CSIA-PME
+nav:
+  - Home:
+      - Overview: index.md
+      - Tutorials: tutorials/index.md
+      - How-to guides: how-to-guides/index.md
+      - Reference: reference/index.md
+      - Explanations: explanations/index.md
+  - Tutorials:
+      - Overview: tutorials/index.md
+  - How-to guides:
+      - Overview: how-to-guides/index.md
+      - How to use Material for MkDocs: how-to-guides/how-to-use-material-for-mkdocs/index.md
+  - Reference:
+      - reference/index.md
+  - Explanations:
+      - Overview: explanations/index.md
+      - About this documentation: explanations/about-this-documentation/index.md
+      - About Material for MkDocs: explanations/about-material-for-mkdocs/index.md
+edit_uri: blob/main/docs/
+theme:
+  language: en
+  icon:
+    logo: material/cog-sync
+    repo: fontawesome/brands/git-alt
+    edit: material/pencil
+    view: material/eye
+  name: material
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - content.code.annotate
+    - content.code.copy
+    - content.action.edit
+    - navigation.instant
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - toc.follow
+plugins:
+  - minify:
+      minify_html: true
+  - search
+  - social
+  - tags
+  - git-revision-date-localized:
+      type: datetime
+      fallback_to_build_date: true
+  - glightbox
+extra:
+  social:
+    - icon: material/earth
+      link: https://swiss-ai-center.ch
+      name: Swiss AI Center
+    - icon: material/github
+      link: https://github.com/csia-pme/csia-pme
+      name: CSIA-PME on GitHub
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      check_paths: true
+      base_path: ["docs"]
+      auto_append:
+        - glossary.md
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - tables
+  - toc:
+      permalink: true
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
