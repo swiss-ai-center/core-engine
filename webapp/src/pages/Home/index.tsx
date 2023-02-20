@@ -83,9 +83,9 @@ const Home: React.FC = () => {
                             CSIA-PME
                         </Typography>
                         <Typography variant="h5" align="justify" color="text.secondary" paragraph>
-                            CSIA-PME is a project of the Swiss AI Center of the University of Applied Sciences Western
-                            Switzerland HES-SO. The objective is to provide a platform for the development of AI
-                            applications for SMEs in different domains.
+                            CSIA-PME is a project of the Swiss AI Center created by the University of Applied Sciences
+                            Western Switzerland (HES-SO). The objective is to provide a platform for the development of
+                            AI applications for SMEs in to accelerate the adoption of AI in Switzerland.
                         </Typography>
                     </Container>
                 </Box>

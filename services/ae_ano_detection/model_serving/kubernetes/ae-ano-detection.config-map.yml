@@ -8,4 +8,4 @@ data:
   ENVIRONMENT: development
   LOG_LEVEL: debug
   ENGINE_URL: http://engine-service:8000
-  SERVICE_URL: http://ae-ano-detection-service:8181
+  SERVICE_URL: http://ae-ano-detection-service:8282

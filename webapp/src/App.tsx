@@ -140,7 +140,7 @@ function App() {
                             <Link color={"inherit"} href={"/"} underline={"none"}>
                                 <img src={colorMode === "light" ? "/logo_full.png" : "/logo_full_white.png"}
                                      alt={"Swiss AI Center"} height={"40px"}
-                                     style={{marginRight: "10px", marginTop: "5px"}}/>
+                                     style={{marginRight: "10px", marginTop: "2px"}}/>
                             </Link>
                         </Grid>
                         <Grid item>
