@@ -8,4 +8,4 @@ data:
   ENVIRONMENT: development
   LOG_LEVEL: debug
   ENGINE_URL: http://engine-service:8000
-  SERVICE_URL: http://average-shade-service:8282
+  SERVICE_URL: http://average-shade-service:8383
