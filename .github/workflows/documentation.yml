@@ -1,4 +1,5 @@
-name: Documentation
+name: documentation_workflow
+run-name: documentation workflow
 
 on:
   # Runs on pushes targeting the default branch
