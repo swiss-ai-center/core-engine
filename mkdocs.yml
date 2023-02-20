@@ -8,20 +8,20 @@ site_description: >-
 copyright: Copyright &copy; 2022 - 2023 CSIA-PME
 nav:
   - Home:
-      - Overview: index.md
+      - index.md
       - Tutorials: tutorials/index.md
       - How-to guides: how-to-guides/index.md
       - Reference: reference/index.md
       - Explanations: explanations/index.md
   - Tutorials:
-      - Overview: tutorials/index.md
+      - tutorials/index.md
   - How-to guides:
-      - Overview: how-to-guides/index.md
+      - how-to-guides/index.md
       - How to use Material for MkDocs: how-to-guides/how-to-use-material-for-mkdocs/index.md
   - Reference:
       - reference/index.md
   - Explanations:
-      - Overview: explanations/index.md
+      - explanations/index.md
       - About this documentation: explanations/about-this-documentation/index.md
       - About Material for MkDocs: explanations/about-material-for-mkdocs/index.md
 edit_uri: blob/main/docs/
@@ -54,6 +54,7 @@ theme:
     - content.code.annotate
     - content.code.copy
     - content.action.edit
+    - navigation.indexes
     - navigation.instant
     - navigation.tabs
     - navigation.tabs.sticky
