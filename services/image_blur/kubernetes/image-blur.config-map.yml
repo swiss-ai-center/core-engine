@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: image-blur-config
+  labels:
+    app: image-blur
+data:
+  ENVIRONMENT: development
+  LOG_LEVEL: debug
+  ENGINE_URL: http://engine-service:8000
+  SERVICE_URL: http://image-blur-service:8787

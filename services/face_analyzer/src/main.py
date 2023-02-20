@@ -69,13 +69,13 @@ class MyService(Service):
 
 api_description = """
 Analyze faces in images. Returns a JSON object with the following fields:
-age (Age of the person in the image),
-region (Region of the person in the image),
-gender (Gender of the person in the image),
-race (Race of the person in the image),
-dominant_race (Dominant race of the person in the image),
-emotion (Emotion of the person in the image),
-dominant_emotion (The dominant emotion of the person in the image),
+- age (Age of the person in the image),
+- region (Region of the person in the image),
+- gender (Gender of the person in the image),
+- race (Race of the person in the image),
+- dominant_race (Dominant race of the person in the image),
+- emotion (Emotion of the person in the image),
+- dominant_emotion (The dominant emotion of the person in the image)
 """
 api_summary = """
 Analyze faces in images

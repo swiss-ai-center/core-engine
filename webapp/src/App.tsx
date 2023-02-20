@@ -30,22 +30,27 @@ declare module '@mui/material/AppBar' {
     }
 }
 
-function Copyright(colorMode: any) {
+function Copyright() {
     return (
         <Grid container justifyContent={"space-between"}>
             <Grid item alignItems={"center"} justifyContent={"left"} display={"flex"}>
                 <Typography variant={"body2"} color={"text.secondary"} align={"left"}>
                     {'Copyright © '}
-                    <Link color={"primary"} href={"https://hes-so.ch/"} target={"_blank"}
-                          sx={{textDecoration: "none"}}>HES-SO</Link>
+                    <Link color={"primary"}
+                          href={"https://www.hes-so.ch/domaines-et-hautes-ecoles/ingenierie-et-architecture"}
+                          target={"_blank"}
+                          sx={{textDecoration: "none"}}
+                    >
+                        HES-SO
+                    </Link>
                     {' 2022-' + new Date().getFullYear() + '.'}
                 </Typography>
             </Grid>
             <Grid item alignItems={"center"} justifyContent={"center"} display={"flex"}>
-                <Link color={"primary"} href={"https://swiss-ai-center.ch/"} target={"_blank"}
-                      sx={{textDecoration: "none"}}>
-                    <img src={colorMode.colorMode === "light" ? "/logo_full.png" : "/logo_full_white.png"}
-                         alt={"Swiss AI Center"} height={"50px"}/>
+                <Link color={"inherit"}
+                      href={"https://www.hes-so.ch/domaines-et-hautes-ecoles/ingenierie-et-architecture"}
+                      underline={"none"} target={"_blank"} marginTop={1}>
+                    <img src={"/hes-so_logo.png"} alt={"HES-SO"} height={"50px"}/>
                 </Link>
             </Grid>
             <Grid item alignItems={"center"} justifyContent={"right"} display={"flex"}>
@@ -67,7 +72,6 @@ function Copyright(colorMode: any) {
 }
 
 function App() {
-    const title = "CSIA-PME";
     const dispatch = useDispatch();
     const colorMode = useSelector((state: any) => state.colorMode.value);
     const lightgrey = grey[300];
@@ -131,17 +135,13 @@ function App() {
             {/* Header navbar */}
             <AppBar position="relative" color={"background_color"}>
                 <Toolbar>
-                    <Grid container justifyContent={"space-between"} alignItems={"center"}>
+                    <Grid container justifyContent={"space-between"} alignItems={"center"} sx={{height: "100%"}}>
                         <Grid item>
-                            <Link color="inherit" href="/" underline="none">
-                                <img src={"/logo512.png"} alt={"Swiss AI Center"} height={"40px"}
+                            <Link color={"inherit"} href={"/"} underline={"none"}>
+                                <img src={colorMode === "light" ? "/logo_full.png" : "/logo_full_white.png"}
+                                     alt={"Swiss AI Center"} height={"40px"}
                                      style={{marginRight: "10px", marginTop: "5px"}}/>
                             </Link>
-                        </Grid>
-                        <Grid item>
-                            <Typography variant="h6" color="inherit" noWrap>
-                                {title}
-                            </Typography>
                         </Grid>
                         <Grid item>
                             <Tooltip title={"Toggle dark / light mode"}>
@@ -167,7 +167,7 @@ function App() {
                 <EngineStats trigger={open} onClose={handleCloseStats}/>
                 <Router>
                     <Routes>
-                        <Route path={"/showcase"} element={<Showcase/>}/>
+                        <Route path={"/showcase/:type/:id"} element={<Showcase/>}/>
                         <Route path={"*"} element={<Home/>}/>
                     </Routes>
                 </Router>
@@ -176,7 +176,7 @@ function App() {
 
             {/* Footer */}
             <Box sx={{bgcolor: 'background_color.main', p: 4, mt: 'auto'}} component="footer">
-                <Copyright colorMode={colorMode}/>
+                <Copyright />
             </Box>
             {/* End footer */}
 

@@ -1,5 +1,5 @@
-from pipelines.models import Pipeline
 from services.models import Service
+from stats.models import StatsBase, ServiceStats, StatusCount
 from tasks.models import TaskStatus
 from logger.logger import Logger, get_logger
 from fastapi import Depends
@@ -16,59 +16,48 @@ class StatsService:
         self.session = session
 
     def stats(self):
-        # TODO: We could define a model in `models.py` file to describe what a
-        # statistic payload should look like.
-        processing = 0
-        finished = 0
-        error = 0
-        pending = 0
-        unavailable = 0
+        """
+        Get stats about the current state of the engine
+        :return: StatsBase object containing stats about the current state of the engine
+        """
 
-        task_service = self.session.query(Task).all()
+        stats = StatsBase(summary=[], services=[])
 
-        services_tasks_count = dict()
-        pipeline_tasks_count = dict()
+        # Get Tasks count per service
+        task_service_count = self.session.query(Task.service_id, func.count(Task.id)).group_by(Task.service_id).all()
 
-        # TODO: We should clean up these stats using the adapted SQL requests (count, group by).
-        # This will be more performant and easier to maintain
-        services_list = self.session.query(Service).all()
-        for service in services_list:
-            services_tasks_count[service.name] = 0
+        # Get all services with their tasks and count the number of tasks per status
+        task_status_count = self.session.query(
+            Service.id, Service.name, Task.status, func.count(Task.status)
+        ).join(
+            Service
+        ).where(
+            Service.id == Task.service_id
+        ).group_by(
+            Task.status, Task.service_id
+        ).all()
 
-        pipeline_list = self.session.query(Pipeline).all()
-        for pipeline in pipeline_list:
-            pipeline_tasks_count[pipeline.name] = 0
+        # Get the total number of tasks per status keep empty status with 0
+        total_status_count = self.session.query(Task.status, func.count(Task.status)).group_by(Task.status).all()
 
-        for task in task_service:
-            if task.pipeline is not None:
-                pipeline_tasks_count[task.pipeline.name] += 1
-            else:
-                services_tasks_count[task.service.name] += 1
+        # Add the stats fot the services to the StatsBase object
+        stats.services = [ServiceStats(service_id=service_stats[0],
+                                       service_name=service_stats[1],
+                                       total=next((service_count[1] for service_count in task_service_count if
+                                                   service_count[0] == service_stats[0]), 0),
+                                       status=[StatusCount(status=service_stats[2], count=service_stats[3])]
+                                       ) for service_stats in task_status_count]
+        # Append empty status with 0
+        for service_stats in stats.services:
+            for status in TaskStatus:
+                if status not in [status_count.status for status_count in service_stats.status]:
+                    service_stats.status.append(StatusCount(status=status, count=0))
 
-        task_total = self.session.query(Task).count()
-
-        task_status_count = self.session.query(Task.status, func.count(Task.status)).group_by(Task.status).all()
-
-        for task in task_status_count:
-            if task[0] == TaskStatus.PROCESSING:
-                processing = task[1]
-            elif task[0] == TaskStatus.FINISHED:
-                finished = task[1]
-            elif task[0] == TaskStatus.ERROR:
-                error = task[1]
-            elif task[0] == TaskStatus.PENDING:
-                pending = task[1]
-            elif task[0] == TaskStatus.UNAVAILABLE:
-                unavailable = task[1]
-
-        # TODO: Use the model to return the payload, not JSON
-        stats = {"tasks": {"total": task_total,
-                           "processing": processing,
-                           "finished": finished,
-                           "pending": pending,
-                           "error": error,
-                           "unavailable": unavailable},
-                 "services": services_tasks_count,
-                 "pipelines": pipeline_tasks_count}
+        # Add the stats for the total number of tasks to the StatsBase object
+        stats.summary = [StatusCount(status=status[0], count=status[1]) for status in total_status_count]
+        # Append empty status with 0
+        for status in TaskStatus:
+            if status not in [status_count.status for status_count in stats.summary]:
+                stats.summary.append(StatusCount(status=status, count=0))
 
         return stats

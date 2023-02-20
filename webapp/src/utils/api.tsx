@@ -1,19 +1,55 @@
 import { FieldDescriptionWithSetAndValue } from '../models/Service';
 
-export const getServices = async () => {
+const createSortBy = (order: string) => {
+    const infos = order.split('-');
+    const prop = infos[0];
+    const asc = infos[1] === 'asc';
+    if (asc) {
+        return function (a: any, b: any) {
+            if (a[prop] > b[prop]) {
+                return 1;
+            } else if (a[prop] < b[prop]) {
+                return -1;
+            }
+            return 0;
+        }
+    } else {
+        return function (a: any, b: any) {
+            if (a[prop] > b[prop]) {
+                return -1;
+            } else if (a[prop] < b[prop]) {
+                return 1;
+            }
+            return 0;
+        }
+    }
+}
+
+const filterItems = (items: any, filter: string) => {
+    return items.filter((item: any) => item.slug.toLowerCase().includes(filter.toLowerCase()) ||
+        item.name.toLowerCase().includes(filter.toLowerCase()) ||
+        item.summary.toLowerCase().includes(filter.toLowerCase()) ||
+        item.description.toLowerCase().includes(filter.toLowerCase()));
+}
+
+export const getServices = async (filter: string, orderBy: string) => {
     const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services`);
     if (response.status === 200) {
         const json = await response.json();
-        return json.filter((item: any) => item.status === 'available');
+        const available = json.filter((item: any) => item.status === 'available');
+        const ordered = available.sort(createSortBy(orderBy));
+        return filterItems(ordered, filter);
     }
     return [];
 }
 
-export const getPipelines = async () => {
+export const getPipelines = async (filter: string, orderBy: string) => {
     const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines`);
     if (response.status === 200) {
         const json = await response.json();
-        return json.filter((item: any) => item.status === 'available');
+        const available = json.filter((item: any) => item.status === 'available');
+        const ordered = available.sort(createSortBy(orderBy));
+        return filterItems(ordered, filter);
     }
     return [];
 }
