@@ -1,0 +1,83 @@
+# Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
+name: image_analyzer_workflow
+run-name: image_analyzer workflow
+
+# Allow one concurrent deployment
+concurrency:
+  group: "image-analyzer"
+  cancel-in-progress: true
+
+on:
+  push:
+    paths:
+      - .github/actions/build-and-push-docker-image-to-github/action.yml
+      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
+      - .github/actions/test-python-app/action.yml
+      - .github/workflows/image-analyzer.yml
+      - services/image_analyzer/**/*
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  run-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Lint Python app
+        uses: ./.github/actions/lint-python-app
+        with:
+          python-app-path: ./services/image_analyzer
+
+      - name: Test Python app
+        uses: ./.github/actions/test-python-app
+        with:
+          python-app-path: ./services/image_analyzer
+
+      - name: Build and push Docker image to GitHub
+        id: build-and-push-docker-image-to-github
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
+        uses: ./.github/actions/build-and-push-docker-image-to-github
+        with:
+          docker-registry-username: ${{ github.actor }}
+          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          docker-image-name: ${{ github.repository }}-image-analyzer
+          docker-image-context: ./services/image_analyzer
+
+      - name: Prepare configuration files with secrets from GitHub Secrets
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        working-directory: services/image_analyzer/kubernetes
+        env:
+          ENVIRONMENT: production
+          LOG_LEVEL: info
+          ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
+          SERVICE_URL: https://image-analyzer-csia-pme.kube.isc.heia-fr.ch
+        run: |
+          # TODO: 11. CHANGE THE NAME OF THE CONFIGURATION FILES
+          # Set image_analyzer version
+          docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" image-analyzer.stateful.yml > new-image-analyzer.stateful.yml && mv new-image-analyzer.stateful.yml image-analyzer.stateful.yml
+
+          # Set image_analyzer configuration
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' image-analyzer.config-map.yml | envsubst > new-image-analyzer.config-map.yml && mv new-image-analyzer.config-map.yml image-analyzer.config-map.yml
+
+      - name: Deploy image_analyzer on the Kubernetes cluster
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
+        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        with:
+          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-namespace: csia-pme-prod
+          kubectl-context: ./services/image_analyzer/kubernetes
+          kubectl-args: |
+            apply \
+              -f image-analyzer.config-map.yml \
+              -f image-analyzer.stateful.yml \
+              -f image-analyzer.service.yml \
+              -f image-analyzer.ingress.yml

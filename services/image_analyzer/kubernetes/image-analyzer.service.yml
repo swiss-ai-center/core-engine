@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-analyzer-service
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 8787
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: image-analyzer

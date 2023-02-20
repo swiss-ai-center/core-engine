@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: image-analyzer-config
+  labels:
+    app: image-analyzer
+data:
+  ENVIRONMENT: development
+  LOG_LEVEL: debug
+  ENGINE_URL: http://engine-service:8000
+  SERVICE_URL: http://image-analyzer-service:8787

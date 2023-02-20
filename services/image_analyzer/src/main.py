@@ -18,16 +18,15 @@ from service.enums import ServiceStatus, FieldDescriptionType
 
 # Imports required by the service's model
 import io
-import numpy as np
 from PIL import Image
-from retinaface import RetinaFace
+from PIL.ExifTags import TAGS
 
 settings = get_settings()
 
 
 class MyService(Service):
     """
-    Face detection service model
+    Image analyzer model
     """
 
     # Any additional fields must be excluded for Pydantic to work
@@ -35,8 +34,8 @@ class MyService(Service):
 
     def __init__(self):
         super().__init__(
-            name="Face Detection",
-            slug="face-detection",
+            name="Image Analyzer",
+            slug="image-analyzer",
             url=settings.service_url,
             summary=api_summary,
             description=api_description,
@@ -50,41 +49,44 @@ class MyService(Service):
         )
 
     async def process(self, data):
-        # Get raw image data
         raw = data["image"]
-        buff = io.BytesIO(raw)
-        img_pil = Image.open(buff)
-        img = np.array(img_pil)
+        stream = io.BytesIO(raw)
+        img = Image.open(stream)
+        metadata = {"Format": img.get_format_mimetype()}
 
-        faces = RetinaFace.detect_faces(img)
-
-        # https://stackoverflow.com/a/57915246
-        class NpEncoder(json.JSONEncoder):
-            def default(self, obj):
-                if isinstance(obj, np.integer):
-                    return int(obj)
-                if isinstance(obj, np.floating):
-                    return float(obj)
-                if isinstance(obj, np.ndarray):
-                    return obj.tolist()
-                return super(NpEncoder, self).default(obj)
+        exif = img.getexif()
+        for tagId, val in exif.items():
+            name = TAGS[tagId] if tagId in TAGS else "0x{tagId:x}".format(tagId=tagId)
+            metadata[name] = val if type(val) in [str, int, float, bool] else str(val)
 
         return {
-            "result": json.dumps(faces, cls=NpEncoder)
+            "result": json.dumps(metadata)
         }
 
 
-
 api_description = """
-This service detects faces in images and returns the coordinates of the bounding boxes.
+This service analyzes images. It returns the following information:
+- Format (e.g. image/jpeg)
+- Image width (e.g. 1920)
+- Image length (e.g. 1080)
+- Bits per sample (e.g. (8, 8, 8))
+- Photometric interpretation (e.g. 2)
+- Resolution unit (e.g. 3)
+- Exif offset (e.g. 236)
+- Software (e.g. Adobe Photoshop CC 2017 (Macintosh))
+- Orientation (e.g. 1)
+- Date time (e.g. 2017:05:02 16:00:48)
+- Samples per pixel (e.g. 3)
+- X resolution (e.g. 118.1102)
+- Y resolution (e.g. 118.1102)
 """
 api_summary = """
-Detects faces in images and returns the coordinates of the bounding boxes.
+Analyze images. Return information about the image
 """
 
 # Define the FastAPI application with information
 app = FastAPI(
-    title="Face Detection API.",
+    title="Image Analyzer API.",
     description=api_description,
     version="0.0.1",
     contact={
@@ -119,6 +121,7 @@ app.add_middleware(
 @app.get("/", include_in_schema=False)
 async def root():
     return RedirectResponse("/docs", status_code=301)
+
 
 service_service: ServiceService | None = None
 
