@@ -15,15 +15,28 @@ nav:
       - Explanations: explanations/index.md
   - Tutorials:
       - tutorials/index.md
+      - Getting started: tutorials/getting-started.md
   - How-to guides:
       - how-to-guides/index.md
-      - How to use Material for MkDocs: how-to-guides/how-to-use-material-for-mkdocs/index.md
+      - How to add DVC to a service: how-to-guides/how-to-add-dvc-to-a-service.md
+      - How to create a GitHub Secret: how-to-guides/how-to-create-a-github-secret.md
+      - How to use Material for MkDocs: how-to-guides/how-to-use-material-for-mkdocs.md
   - Reference:
       - reference/index.md
   - Explanations:
       - explanations/index.md
-      - About this documentation: explanations/about-this-documentation/index.md
-      - About Material for MkDocs: explanations/about-material-for-mkdocs/index.md
+      - About this documentation: explanations/about-this-documentation.md
+      - About DVC: explanations/about-dvc.md
+      - About envsubst: explanations/about-envsubst.md
+      - About GitHub: explanations/about-github.md
+      - About GitHub Actions: explanations/about-github-actions.md
+      - About GitHub Secrets: explanations/about-github-secrets.md
+      - About HEIA-FR: explanations/about-heia-fr.md
+      - About Kubernetes: explanations/about-kubernetes.md
+      - About Material for MkDocs: explanations/about-material-for-mkdocs.md
+      - About minikube: explanations/about-minikube.md
+      - About MinIO: explanations/about-minio.md
+      - About yq: explanations/about-yq.md
 edit_uri: blob/main/docs/
 theme:
   language: en
