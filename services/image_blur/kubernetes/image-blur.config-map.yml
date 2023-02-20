@@ -7,4 +7,5 @@ metadata:
 data:
   ENVIRONMENT: development
   LOG_LEVEL: debug
-  ENGINE_URL: http://localhost:8000
+  ENGINE_URL: http://engine-service:8000
+  SERVICE_URL: http://image-blur-service:8787
