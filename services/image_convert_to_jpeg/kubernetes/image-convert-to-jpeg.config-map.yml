@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: image-convert-to-jpeg-config
+  labels:
+    app: image-convert-to-jpeg
+data:
+  ENVIRONMENT: development
+  LOG_LEVEL: debug
+  ENGINE_URL: http://engine-service:8080
+  SERVICE_URL: http://image-convert-to-jpeg-service:8989

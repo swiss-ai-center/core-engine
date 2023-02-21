@@ -1,0 +1,82 @@
+# Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
+name: image_greyscale_workflow
+run-name: image_greyscale workflow
+
+# Allow one concurrent deployment
+concurrency:
+  group: "image-greyscale"
+  cancel-in-progress: true
+
+on:
+  push:
+    paths:
+      - .github/actions/build-and-push-docker-image-to-github/action.yml
+      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
+      - .github/actions/test-python-app/action.yml
+      - .github/workflows/image-greyscale.yml
+      - services/image_greyscale/**/*
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  run-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Lint Python app
+        uses: ./.github/actions/lint-python-app
+        with:
+          python-app-path: ./services/image_greyscale
+
+      - name: Test Python app
+        uses: ./.github/actions/test-python-app
+        with:
+          python-app-path: ./services/image_greyscale
+
+      - name: Build and push Docker image to GitHub
+        id: build-and-push-docker-image-to-github
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
+        uses: ./.github/actions/build-and-push-docker-image-to-github
+        with:
+          docker-registry-username: ${{ github.actor }}
+          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          docker-image-name: ${{ github.repository }}-image-greyscale
+          docker-image-context: ./services/image_greyscale
+
+      - name: Prepare configuration files with secrets from GitHub Secrets
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        working-directory: services/image_greyscale/kubernetes
+        env:
+          ENVIRONMENT: production
+          LOG_LEVEL: info
+          ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
+          SERVICE_URL: https://image-greyscale-csia-pme.kube.isc.heia-fr.ch
+        run: |
+          # Set image_greyscale version
+          docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" image-greyscale.stateful.yml > new-image-greyscale.stateful.yml && mv new-image-greyscale.stateful.yml image-greyscale.stateful.yml
+
+          # Set image_greyscale configuration
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' image-greyscale.config-map.yml | envsubst > new-image-greyscale.config-map.yml && mv new-image-greyscale.config-map.yml image-greyscale.config-map.yml
+
+      - name: Deploy image_greyscale on the Kubernetes cluster
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
+        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        with:
+          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-namespace: csia-pme-prod
+          kubectl-context: ./services/image_greyscale/kubernetes
+          kubectl-args: |
+            apply \
+              -f image-greyscale.config-map.yml \
+              -f image-greyscale.stateful.yml \
+              -f image-greyscale.service.yml \
+              -f image-greyscale.ingress.yml

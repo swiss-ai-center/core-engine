@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: image-convert-to-jpeg-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "16m"
+    nginx.org/client-max-body-size: "16m"
+spec:
+  rules:
+  - host: image-convert-to-jpeg-csia-pme.kube.isc.heia-fr.ch
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: image-convert-to-jpeg-service
+            port:
+              number: 80
+  tls:
+    - hosts:
+        - image-convert-to-jpeg-csia-pme.kube.isc.heia-fr.ch

@@ -7,5 +7,5 @@ metadata:
 data:
   ENVIRONMENT: development
   LOG_LEVEL: debug
-  ENGINE_URL: http://engine-service:8000
+  ENGINE_URL: http://engine-service:8080
   SERVICE_URL: http://face-detection-service:8686

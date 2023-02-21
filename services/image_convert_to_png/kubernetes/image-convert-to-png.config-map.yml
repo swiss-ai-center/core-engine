@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: image-convert-to-png-config
+  labels:
+    app: image-convert-to-png
+data:
+  ENVIRONMENT: development
+  LOG_LEVEL: debug
+  ENGINE_URL: http://engine-service:8080
+  SERVICE_URL: http://image-convert-to-png-service:8989
