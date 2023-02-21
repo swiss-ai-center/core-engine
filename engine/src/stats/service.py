@@ -21,10 +21,7 @@ class StatsService:
         :return: StatsBase object containing stats about the current state of the engine
         """
 
-        stats = StatsBase(summary=[], services=[])
-
-        # Get Tasks count per service
-        task_service_count = self.session.query(Task.service_id, func.count(Task.id)).group_by(Task.service_id).all()
+        stats = StatsBase(total=0, summary=[], services=[])
 
         # Get all services with their tasks and count the number of tasks per status
         task_status_count = self.session.query(
@@ -34,19 +31,27 @@ class StatsService:
         ).where(
             Service.id == Task.service_id
         ).group_by(
-            Task.status, Task.service_id
+            Service.id, Task.status
         ).all()
 
         # Get the total number of tasks per status keep empty status with 0
         total_status_count = self.session.query(Task.status, func.count(Task.status)).group_by(Task.status).all()
 
-        # Add the stats fot the services to the StatsBase object
-        stats.services = [ServiceStats(service_id=service_stats[0],
-                                       service_name=service_stats[1],
-                                       total=next((service_count[1] for service_count in task_service_count if
-                                                   service_count[0] == service_stats[0]), 0),
-                                       status=[StatusCount(status=service_stats[2], count=service_stats[3])]
-                                       ) for service_stats in task_status_count]
+        # For each service, add the status count to the ServiceStats object for each status
+        for service_id, service_name, status, count in task_status_count:
+            service_stats = [
+                service_stats for service_stats in stats.services if service_stats.service_id == service_id
+            ]
+            if len(service_stats) == 0:
+                service_stats = ServiceStats(service_id=service_id, service_name=service_name, total=count,
+                                             status=[StatusCount(status=status, count=count)])
+                stats.services.append(service_stats)
+            else:
+                service_stats = service_stats[0]
+
+                service_stats.status.append(StatusCount(status=status, count=count))
+                service_stats.total += count
+
         # Append empty status with 0
         for service_stats in stats.services:
             for status in TaskStatus:
@@ -59,5 +64,8 @@ class StatsService:
         for status in TaskStatus:
             if status not in [status_count.status for status_count in stats.summary]:
                 stats.summary.append(StatusCount(status=status, count=0))
+
+        # Add the total number of tasks to the StatsBase object
+        stats.total = sum([status_count.count for status_count in stats.summary])
 
         return stats

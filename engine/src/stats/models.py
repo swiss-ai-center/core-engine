@@ -29,6 +29,6 @@ class StatsBase(BaseModel):
     Base class for Stats
     This model contain counts of status of tasks grouped by service and a total count of status
     """
-
+    total: int
     summary: List[StatusCount]
     services: List[ServiceStats]

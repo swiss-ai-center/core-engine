@@ -100,6 +100,7 @@ export const EngineStats: React.FC<{
         getStats()
             .then((resp) => {
                 setStats(resp);
+                console.log(resp)
             })
             .catch((err) => {
                 displayNotification({message: `Error loading engine stats: ${err}`, type: "error"});
@@ -134,7 +135,7 @@ export const EngineStats: React.FC<{
                         <Box sx={{height: 250, width: '100%'}}>
                             <Typography id={"modal-modal-title"} variant={"h5"} color={"primary"}
                                         component={"h2"} marginY={2}>
-                                Summary
+                                Summary (Total tasks: {stats.total})
                             </Typography>
                             <StripedDataGrid
                                 sx={{textTransform: 'uppercase', borderColor: 'primary.main'}} hideFooter={true}
@@ -160,7 +161,7 @@ export const EngineStats: React.FC<{
                                         <Grid item xs={12} md={6} lg={4} key={index}>
                                             <Box sx={{height: 250, width: 'auto'}}>
                                                 <Typography id="modal-modal-title" variant="h6" component="h4">
-                                                    {service.service_name}
+                                                    {service.service_name} (Total tasks: {service.total})
                                                 </Typography>
                                                 <StripedDataGrid
                                                     sx={{
