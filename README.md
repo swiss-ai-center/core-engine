@@ -1,7 +1,7 @@
 # CSIA-PME
 
-This repository contains all code for the CSIA-PME project.
-
-All documentation is available in the [docs](./docs/readme.md) directory.
+The main repository for the CSIA-PME project.
 
 **This is a WIP project.**
+
+The documentation is hosted on GitHub Pages and is accessed at <https://csia-pme.github.io/csia-pme>.
