@@ -1,8 +1,26 @@
 networks:
+  db:
+    name: db
   minio:
     name: minio
 
 services:
+  db:
+    container_name: db
+    image: postgres:15.2-alpine
+    command: postgres -c 'max_connections=1000'
+    environment:
+      - POSTGRES_DB=csia-pme
+      - POSTGRES_USER=csia-pme
+      - POSTGRES_PASSWORD=csia-pme
+    restart: unless-stopped
+    networks:
+      - db
+    ports:
+      - 5432:5432
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+
   minio:
     container_name: minio
     image: quay.io/minio/minio:${MINIO_IMAGE_VERSION:-latest}

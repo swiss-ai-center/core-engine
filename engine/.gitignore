@@ -3,5 +3,6 @@
 ## Database
 *.db
 
-## MinIO data
+## Docker volumes
+db-data
 minio-data
