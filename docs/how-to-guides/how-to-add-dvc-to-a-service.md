@@ -27,7 +27,7 @@ The `--subdir` is important because we are in a monorepos
 
 ### Create a bucket on Minio
 
-Go to https://minio1.isc.heia-fr.ch:9115, connect with the provided credentials and use the GUI to create your bucket.
+Go to your MinIO server, connect with the provided credentials and use the GUI to create your bucket.
 
 ### Configure DVC for Minio
 
@@ -36,10 +36,8 @@ https://dvc.org/doc/command-reference/remote/add
 ```sh
 dvc remote add -d myremote s3://name-of-your-bucket
 
-dvc remote modify myremote endpointurl https://minio1.isc.heia-fr.ch:9015
+dvc remote modify myremote endpointurl https://<SERVER_ADDRESS>:<PORT>
 ```
-
-WARNING : Use https://minio1.isc.heia-fr.ch:9015 endpoint and not the GUI access of Minio https://minio1.isc.heia-fr.ch:9115.
 
 To configure your credentials for DVC do not use the `dvc remote modify` instead install AWS CLI.
 
