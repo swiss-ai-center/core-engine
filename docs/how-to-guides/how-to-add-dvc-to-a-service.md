@@ -1,6 +1,6 @@
 # How to add DVC to a service
 
-This guide will help you using DVC with your service.
+This guide will help you add DVC to your service.
 
 ## Guide
 
@@ -18,7 +18,8 @@ pip install dvc[s3]
 
 https://dvc.org/doc/command-reference/init
 
-Now that DVC is installed we have to init it, so go to your service folder and use this command
+Now that DVC is installed we have to init it, so go to your service folder and use this command.
+
 ```sh
 dvc init --subdir
 ```
@@ -26,7 +27,7 @@ The `--subdir` is important because we are in a monorepos
 
 ### Create a bucket on Minio
 
-Go to https://console-minio-csia-pme.kube.isc.heia-fr.ch/, connect with the provided credentials and use the GUI to create your bucket
+Go to https://minio1.isc.heia-fr.ch:9115, connect with the provided credentials and use the GUI to create your bucket.
 
 ### Configure DVC for Minio
 
@@ -35,17 +36,19 @@ https://dvc.org/doc/command-reference/remote/add
 ```sh
 dvc remote add -d myremote s3://name-of-your-bucket
 
-dvc remote modify myremote endpointurl https://minio-csia-pme.kube.isc.heia-fr.ch/
+dvc remote modify myremote endpointurl https://minio1.isc.heia-fr.ch:9015
 ```
 
-WARNING : Use https://minio-csia-pme.kube.isc.heia-fr.ch/ endpoint and not the GUI access of Minio https://console-minio-csia-pme.kube.isc.heia-fr.ch/
+WARNING : Use https://minio1.isc.heia-fr.ch:9015 endpoint and not the GUI access of Minio https://minio1.isc.heia-fr.ch:9115.
 
-To configure your credentials for DVC do not use the `dvc remote modify` instead install aws cli
+To configure your credentials for DVC do not use the `dvc remote modify` instead install AWS CLI.
+
 ```sh
 pip install awscli
 ```
 
-Use aws configure to add your Access Key ID and your Secret Access Key
+Use aws configure to add your Access Key ID and your Secret Access Key.
+
 ```sh
 aws configure
 ```
