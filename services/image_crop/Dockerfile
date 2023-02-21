@@ -1,5 +1,5 @@
 # Base image
-FROM ghcr.io/csia-pme/csia-pme-base-image:latest
+FROM python:3.10
 
 # Work directory
 WORKDIR /app

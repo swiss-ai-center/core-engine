@@ -62,7 +62,7 @@ class MyService(Service):
 
 
 api_description = """
-This service crops images. It takes an image and a list of int coordinates (x1, y1, x2, y2) 
+This service crops images. It takes an image and a list of int coordinates (x1, y1, x2, y2)
 and returns the cropped image.
 """
 api_summary = """
