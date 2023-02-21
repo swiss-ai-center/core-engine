@@ -1,3 +1,3 @@
 # face_analyzer
 
-_Check the [related documentation](../../docs/services/face-analyzer.md) for more information._
+_Check the [related documentation](https://csia-pme.github.io/csia-pme/reference/face-analyzer) for more information._

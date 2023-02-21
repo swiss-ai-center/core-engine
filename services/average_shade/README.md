@@ -1,3 +1,3 @@
 # average_shade
 
-_Check the [related documentation](../../docs/services/average-shade.md) for more information._
+_Check the [related documentation](https://csia-pme.github.io/csia-pme/reference/average-shade) for more information._

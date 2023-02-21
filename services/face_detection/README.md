@@ -1,3 +1,3 @@
 # face_detection
 
-_Check the [related documentation](../../docs/services/face-detection.md) for more information._
+_Check the [related documentation](https://csia-pme.github.io/csia-pme/reference/face-detection) for more information._
