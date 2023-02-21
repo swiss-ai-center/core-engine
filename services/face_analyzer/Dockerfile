@@ -1,5 +1,8 @@
 # Base image
-FROM ghcr.io/csia-pme/csia-pme-base-image:latest
+FROM python:3.10
+
+# Install all required packages to run the model
+RUN apt update && apt install --yes ffmpeg libsm6 libxext6
 
 RUN mkdir -p /root/.deepface/weights
 WORKDIR /root/.deepface/weights
