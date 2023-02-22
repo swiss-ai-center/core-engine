@@ -53,7 +53,7 @@ const ItemGrid: React.FC<{ filter: string, orderBy: string }> = ({filter, orderB
                 ) : (
                     services.map((item: any, index: number) => {
                             return (
-                                <Grid item xs={12} sm={6} md={4} key={index}>
+                                <Grid item xs={12} sm={6} md={4} key={index} sx={{height: '200px'}}>
                                     <Card
                                         sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
                                     >
@@ -62,7 +62,11 @@ const ItemGrid: React.FC<{ filter: string, orderBy: string }> = ({filter, orderB
                                                 {item.name}
                                             </Typography>
                                             <Typography>
-                                                {item.summary}
+                                                {
+                                                    item.summary.length > 80 ?
+                                                    item.summary.substring(0, 75)+"..." :
+                                                    item.summary
+                                                }
                                             </Typography>
                                         </CardContent>
                                         <CardActions>
