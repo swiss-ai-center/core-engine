@@ -1,0 +1,5 @@
+## Python
+build/
+dist/
+*.egg-info/
+*.egg

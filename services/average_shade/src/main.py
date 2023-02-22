@@ -64,7 +64,6 @@ class MyService(Service):
 
 api_description = """
 Returns the average shade of an image.
-The average shade is computed by averaging the RGB values of each pixel in the image.
 """
 api_summary = """
 Returns the average shade of an image.
