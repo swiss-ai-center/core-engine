@@ -34,4 +34,4 @@ EXPOSE 80
 WORKDIR "/app/src"
 
 # Command to run on start
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80", "--log-config", "logger/log_config.yaml"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
