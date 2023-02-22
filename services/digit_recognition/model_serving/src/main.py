@@ -12,6 +12,7 @@ from common_code.service.service import ServiceService
 from common_code.storage.service import StorageService
 from common_code.tasks.controller import router as tasks_router
 from common_code.tasks.service import TasksService
+from common_code.tasks.models import TaskData
 from common_code.service.models import Service, FieldDescription
 from common_code.service.enums import ServiceStatus, FieldDescriptionType
 
@@ -51,7 +52,7 @@ class MyService(Service):
 
     async def process(self, data):
         # Get raw image data
-        raw = data["image"]
+        raw = data["image"].data
         # Convert to image object
         image = cv2.imdecode(np.frombuffer(raw, np.uint8), cv2.IMREAD_GRAYSCALE)
         # Get the shape of the model
@@ -71,7 +72,10 @@ class MyService(Service):
 
         # Save the results in a type that can be encoded later (str, json, ...)
         return {
-            "digit": str(guessed)
+            "digit": TaskData(
+                data=str(guessed),
+                type=FieldDescriptionType.TEXT_PLAIN
+            )
         }
 
 

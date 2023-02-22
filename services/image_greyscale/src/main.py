@@ -12,6 +12,7 @@ from common_code.service.service import ServiceService
 from common_code.storage.service import StorageService
 from common_code.tasks.controller import router as tasks_router
 from common_code.tasks.service import TasksService
+from common_code.tasks.models import TaskData
 from common_code.service.models import Service, FieldDescription
 from common_code.service.enums import ServiceStatus, FieldDescriptionType
 
@@ -42,21 +43,25 @@ class MyService(Service):
                 FieldDescription(name="image", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
             ],
             data_out_fields=[
-                FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_JPEG]),
+                FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
             ]
         )
 
     async def process(self, data):
-        raw = data["image"]
+        raw = data["image"].data
+        input_type = data["image"].type
         stream = io.BytesIO(raw)
         img = Image.open(stream)
 
         img = img.convert("L")
         out_buff = io.BytesIO()
-        img.save(out_buff, format="jpeg", quality=95)
+        img.save(out_buff, format=input_type.split("/")[1], quality=95)
         out_buff.seek(0)
         return {
-            "result": out_buff.getvalue()
+            "result": TaskData(
+                data=out_buff.read(),
+                type=input_type
+            )
         }
 
 

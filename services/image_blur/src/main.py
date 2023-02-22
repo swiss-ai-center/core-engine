@@ -12,6 +12,7 @@ from common_code.service.service import ServiceService
 from common_code.storage.service import StorageService
 from common_code.tasks.controller import router as tasks_router
 from common_code.tasks.service import TasksService
+from common_code.tasks.models import TaskData
 from common_code.service.models import Service, FieldDescription
 from common_code.service.enums import ServiceStatus, FieldDescriptionType
 
@@ -19,6 +20,7 @@ from common_code.service.enums import ServiceStatus, FieldDescriptionType
 import json
 import cv2
 import numpy as np
+from common_code.tasks.service import get_extension
 
 settings = get_settings()
 
@@ -48,12 +50,13 @@ class MyService(Service):
                 FieldDescription(name="areas", type=[FieldDescriptionType.APPLICATION_JSON]),
             ],
             data_out_fields=[
-                FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_JPEG]),
+                FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
             ]
         )
 
     async def process(self, data):
-        raw = data["image"]
+        raw = data["image"].data
+        input_type = data["image"].type
         img = cv2.imdecode(np.frombuffer(raw, np.uint8), 1)
 
         areas = json.loads(data["areas"])["areas"]
@@ -71,10 +74,13 @@ class MyService(Service):
             areaSize = max(x2 - x1, y2 - y1)
             kernelSize = int(areaSize * 0.08)
             img[y1:y2 + 1, x1:x2 + 1] = cv2.blur(img[y1:y2 + 1, x1:x2 + 1], (kernelSize, kernelSize))
-
-        is_ok, out_buff = cv2.imencode(".jpg", img)
+        guessed_extension = get_extension(input_type)
+        is_ok, out_buff = cv2.imencode(guessed_extension, img)
         return {
-            "result": out_buff.tobytes()
+            "result": TaskData(
+                data=out_buff.tobytes(),
+                type=input_type
+            )
         }
 
 

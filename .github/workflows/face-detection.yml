@@ -14,6 +14,7 @@ on:
       - .github/actions/execute-command-on-kubernetes-cluster/action.yml
       - .github/actions/test-python-app/action.yml
       - .github/workflows/face-detection.yml
+      - common-code/**/*
       - services/face_detection/**/*
 
   # Allows you to run this workflow manually from the Actions tab

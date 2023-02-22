@@ -12,6 +12,7 @@ from common_code.service.service import ServiceService
 from common_code.storage.service import StorageService
 from common_code.tasks.controller import router as tasks_router
 from common_code.tasks.service import TasksService
+from common_code.tasks.models import TaskData
 from common_code.service.models import Service, FieldDescription
 from common_code.service.enums import ServiceStatus, FieldDescriptionType
 
@@ -53,7 +54,7 @@ class MyService(Service):
         # NOTE that the data is a dictionary with the keys being the field names set in the data_in_fields
         # raw = data["image"]
         # ... do something with the raw data
-        raw = str(data["text"])[2:-1]
+        raw = str(data["text"].data)[2:-1]
         raw = raw.replace('\\t', ',').replace('\\n', '\n').replace('\\r', '\n')
         df = pd.read_csv(io.StringIO(raw), names=["value"], dtype={"value": np.float64})
         # df.index = pd.to_datetime(df.index)
@@ -89,7 +90,7 @@ class MyService(Service):
 
         # NOTE that the result must be a dictionary with the keys being the field names set in the data_out_fields
         return {
-            "result": buf.read()
+            "result": TaskData(data=buf.read(), type=FieldDescriptionType.IMAGE_PNG)
         }
 
     def train_model(self, X_train):

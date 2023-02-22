@@ -12,6 +12,7 @@ from common_code.service.service import ServiceService
 from common_code.storage.service import StorageService
 from common_code.tasks.controller import router as tasks_router
 from common_code.tasks.service import TasksService
+from common_code.tasks.models import TaskData
 from common_code.service.models import Service, FieldDescription
 from common_code.service.enums import ServiceStatus, FieldDescriptionType
 
@@ -51,7 +52,7 @@ class MyService(Service):
 
     async def process(self, data):
         # Get raw image data
-        raw = data["image"]
+        raw = data["image"].data
         buff = io.BytesIO(raw)
         img_pil = Image.open(buff)
         img = np.array(img_pil)
@@ -63,7 +64,10 @@ class MyService(Service):
         )
 
         return {
-            "result": json.dumps(diagnos)
+            "result": TaskData(
+                data=json.dumps(diagnos),
+                type=FieldDescriptionType.APPLICATION_JSON
+            )
         }
 
 

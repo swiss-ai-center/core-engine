@@ -10,7 +10,7 @@ from fastapi.encoders import jsonable_encoder
 from ..service.models import Service
 from ..storage.service import StorageService
 from .enums import TaskStatus
-from .models import ServiceTask, TaskUpdate
+from .models import ServiceTask, TaskUpdate, TaskData
 
 
 def get_extension(field_description_type: str):
@@ -68,6 +68,7 @@ class TasksService:
         http_client: HttpClient = Depends(),
         storage: StorageService = Depends(),
     ):
+        self.my_service = None
         self.logger = logger
         self.settings = settings
         self.http_client = http_client
@@ -163,7 +164,7 @@ class TasksService:
 
             # Each data downloaded is stored in a dictionary using api description as key, so the file list must be in
             # the same order as the api description
-            self.current_task_data_in[data_in_field["name"]] = file
+            self.current_task_data_in[data_in_field["name"]] = TaskData(data=file, type=file_type)
             self.logger.info(f"Got {data_in_field['name']} from the storage")
 
     async def process_task(self):
@@ -191,10 +192,18 @@ class TasksService:
         try:
             for data_out_field in data_out_fields:
                 field_name = data_out_field["name"]
-                field_type = data_out_field["type"][0]
+                output_type = TasksService.current_task_data_out[field_name].type
+                allowed_output_types = data_out_field["type"]
 
-                data = TasksService.current_task_data_out[field_name]
-                file_extension = get_extension(field_type)
+                if output_type not in allowed_output_types:
+                    self.logger.error(
+                        f"Wrong output type for {field_name} ({allowed_output_types}): got {output_type}"
+                    )
+                    TasksService.current_task.task.status = TaskStatus.ERROR
+                    return
+
+                data = TasksService.current_task_data_out[field_name].data
+                file_extension = get_extension(output_type)
 
                 key = await self.storage.upload(
                     data,

@@ -15,6 +15,7 @@ on:
       - .github/actions/run-ml-experiment-with-dvc/action.yml
       - .github/actions/test-python-app/action.yml
       - .github/workflows/ae-ano-detection.yml
+      - common-code/**/*
       - services/ae_ano_detection/model_creation/**/*
       - services/ae_ano_detection/model_serving/**/*
 

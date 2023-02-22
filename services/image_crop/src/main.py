@@ -12,6 +12,7 @@ from common_code.service.service import ServiceService
 from common_code.storage.service import StorageService
 from common_code.tasks.controller import router as tasks_router
 from common_code.tasks.service import TasksService
+from common_code.tasks.models import TaskData
 from common_code.service.models import Service, FieldDescription
 from common_code.service.enums import ServiceStatus, FieldDescriptionType
 
@@ -19,6 +20,7 @@ from common_code.service.enums import ServiceStatus, FieldDescriptionType
 import cv2
 import numpy as np
 import json
+from common_code.tasks.service import get_extension
 
 settings = get_settings()
 
@@ -44,20 +46,25 @@ class MyService(Service):
                 FieldDescription(name="area", type=[FieldDescriptionType.APPLICATION_JSON]),
             ],
             data_out_fields=[
-                FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_JPEG]),
+                FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
             ]
         )
 
     async def process(self, data):
-        raw = data["image"]
+        raw = data["image"].data
+        input_type = data["image"].type
         img = cv2.imdecode(np.frombuffer(raw, np.uint8), 1)
         raw_areas = data["area"]
         area = json.loads(raw_areas)['area']
 
-        is_success, cropped_image = cv2.imencode(".jpg", img[area[1]:area[3], area[0]:area[2]])
+        guessed_extension = get_extension(input_type)
+        is_success, cropped_image = cv2.imencode(guessed_extension, img[area[1]:area[3], area[0]:area[2]])
 
         return {
-            "result": cropped_image.tobytes()
+            "result": TaskData(
+                data=cropped_image.tobytes(),
+                type=input_type,
+            )
         }
 
 

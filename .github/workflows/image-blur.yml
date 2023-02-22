@@ -14,6 +14,7 @@ on:
       - .github/actions/execute-command-on-kubernetes-cluster/action.yml
       - .github/actions/test-python-app/action.yml
       - .github/workflows/image-blur.yml
+      - common-code/**/*
       - services/image_blur/**/*
 
   # Allows you to run this workflow manually from the Actions tab

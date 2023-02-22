@@ -12,6 +12,7 @@ from common_code.service.service import ServiceService
 from common_code.storage.service import StorageService
 from common_code.tasks.controller import router as tasks_router
 from common_code.tasks.service import TasksService
+from common_code.tasks.models import TaskData
 from common_code.service.models import Service, FieldDescription
 from common_code.service.enums import ServiceStatus, FieldDescriptionType
 
@@ -49,16 +50,19 @@ class MyService(Service):
 
     async def process(self, data):
         # Get raw image data
-        raw = data["image"]
+        raw = data["image"].data
         img = cv2.imdecode(np.frombuffer(raw, np.uint8), cv2.IMREAD_COLOR)
         average_color_row = np.average(img, axis=0)
         average_color = np.average(average_color_row, axis=0)
         return {
-            "result": json.dumps({
-                "Red": int(average_color[2]),
-                "Green": int(average_color[1]),
-                "Blue": int(average_color[0])
-            })
+            "result": TaskData(
+                data=json.dumps({
+                    "Red": int(average_color[2]),
+                    "Green": int(average_color[1]),
+                    "Blue": int(average_color[0])
+                }),
+                type=FieldDescriptionType.APPLICATION_JSON
+            )
         }
 
 

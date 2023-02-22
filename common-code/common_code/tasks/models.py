@@ -1,6 +1,7 @@
 from typing import List
 from pydantic.main import BaseModel
 from .enums import TaskStatus
+from ..service.enums import FieldDescriptionType
 from uuid import UUID
 
 
@@ -52,3 +53,11 @@ class ServiceTask(ServiceTaskBase):
     This model is sent from the engine with the information
     """
     pass
+
+
+class TaskData(BaseModel):
+    """
+    Task data model used to send data to the service and retrieve data from the service
+    """
+    data: bytes
+    type: FieldDescriptionType

@@ -15,6 +15,7 @@ on:
       - .github/actions/run-ml-experiment-with-dvc/action.yml
       - .github/actions/test-python-app/action.yml
       - .github/workflows/digit-recognition.yml
+      - common-code/**/*
       - services/digit_recognition/model_creation/**/*
       - services/digit_recognition/model_serving/**/*
 

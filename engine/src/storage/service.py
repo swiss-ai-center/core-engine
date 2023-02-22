@@ -2,7 +2,7 @@ import os
 from fastapi import Depends, UploadFile
 from config import Settings, get_settings
 from common.exceptions import NotFoundException
-from logger.logger import Logger, get_logger
+from common_code.logger.logger import Logger, get_logger
 from aiobotocore.session import get_session
 from botocore.exceptions import EndpointConnectionError, ClientError
 from uuid import uuid4

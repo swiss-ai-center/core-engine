@@ -12,6 +12,7 @@ from common_code.service.service import ServiceService
 from common_code.storage.service import StorageService
 from common_code.tasks.controller import router as tasks_router
 from common_code.tasks.service import TasksService
+from common_code.tasks.models import TaskData
 from common_code.service.models import Service, FieldDescription
 from common_code.service.enums import ServiceStatus, FieldDescriptionType
 
@@ -40,24 +41,42 @@ class MyService(Service):
             status=ServiceStatus.AVAILABLE,
             data_in_fields=[
                 FieldDescription(name="image", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
+                FieldDescription(name="format", type=[FieldDescriptionType.TEXT_PLAIN]),
             ],
             data_out_fields=[
-                FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_JPEG]),
+                FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
             ]
         )
 
     async def process(self, data):
         # TODO: modify to accept any image format and convert to any image format
-        raw = data["image"]
+        raw = data["image"].data
+        input_type = data["image"].type
+        output_type = data["format"].data
+
+        if input_type == output_type:
+            return {
+                "result": TaskData(
+                    data=raw,
+                    type=output_type,
+                )
+            }
+
+        if output_type not in MyService.get_output_types():
+            raise Exception("Output type not supported.")
+
         stream = io.BytesIO(raw)
         img = Image.open(stream)
         img = img.convert("RGB")
 
         out_buff = io.BytesIO()
-        img.save(out_buff, format=FieldDescriptionType.IMAGE_JPEG.split('/')[1])
+        img.save(out_buff, format=output_type.split('/')[1])
         out_buff.seek(0)
         return {
-            "result": out_buff.getvalue()
+            "result": TaskData(
+                data=out_buff.read(),
+                type=output_type,
+            )
         }
 
 

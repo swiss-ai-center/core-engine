@@ -1,5 +1,5 @@
 import pytest
-from logger.logger import get_logger
+from common_code.logger.logger import get_logger
 from config import get_settings
 from storage.service import StorageService
 from fastapi import UploadFile

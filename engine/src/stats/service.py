@@ -1,7 +1,7 @@
 from services.models import Service
 from stats.models import StatsBase, ServiceStats, StatusCount
 from tasks.models import TaskStatus
-from logger.logger import Logger, get_logger
+from common_code.logger.logger import Logger, get_logger
 from fastapi import Depends
 from sqlmodel import Session, func
 from database import get_session

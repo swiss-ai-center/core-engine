@@ -1,7 +1,7 @@
 from fastapi import Depends
 from sqlmodel import Session, select, desc
 from database import get_session
-from logger.logger import Logger, get_logger
+from common_code.logger.logger import Logger, get_logger
 from uuid import UUID
 from .models import Task, TaskUpdate
 from common.exceptions import NotFoundException

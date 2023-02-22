@@ -8,7 +8,7 @@ from tasks.service import TasksService
 from tasks.models import Task, TaskReadWithServiceAndPipeline
 from sqlmodel import Session, select, desc
 from database import get_session
-from logger.logger import Logger, get_logger
+from common_code.logger.logger import Logger, get_logger
 from config import Settings, get_settings
 from .enums import ServiceStatus
 from .models import Service, ServiceUpdate, ServiceTask

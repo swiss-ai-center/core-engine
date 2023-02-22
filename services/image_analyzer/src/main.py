@@ -12,6 +12,7 @@ from common_code.service.service import ServiceService
 from common_code.storage.service import StorageService
 from common_code.tasks.controller import router as tasks_router
 from common_code.tasks.service import TasksService
+from common_code.tasks.models import TaskData
 from common_code.service.models import Service, FieldDescription
 from common_code.service.enums import ServiceStatus, FieldDescriptionType
 
@@ -49,7 +50,7 @@ class MyService(Service):
         )
 
     async def process(self, data):
-        raw = data["image"]
+        raw = data["image"].data
         stream = io.BytesIO(raw)
         img = Image.open(stream)
         metadata = {"Format": img.get_format_mimetype()}
@@ -60,7 +61,10 @@ class MyService(Service):
             metadata[name] = val if type(val) in [str, int, float, bool] else str(val)
 
         return {
-            "result": json.dumps(metadata)
+            "result": TaskData(
+                data=json.dumps(metadata),
+                type=FieldDescriptionType.APPLICATION_JSON
+            )
         }
 
 
