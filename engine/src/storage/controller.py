@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from common.exceptions import NotFoundException
-from logger.logger import get_logger, Logger
+from common_code.logger.logger import get_logger, Logger
 from .service import StorageService
 from .models import FileRead
 
