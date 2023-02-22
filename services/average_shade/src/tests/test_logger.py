@@ -1,5 +1,5 @@
 import pytest
-from config import get_settings
+from common_code.config import get_settings
 
 
 def test_logger(caplog: pytest.LogCaptureFixture):
