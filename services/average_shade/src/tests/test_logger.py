@@ -3,7 +3,7 @@ from common_code.config import get_settings
 
 
 def test_logger(caplog: pytest.LogCaptureFixture):
-    from logger.logger import get_logger
+    from common_code.logger.logger import get_logger
     logger = get_logger(get_settings())
     caplog.set_level("INFO")
     logger.set_level("INFO")
