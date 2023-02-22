@@ -53,7 +53,7 @@ const ItemGrid: React.FC<{ filter: string, orderBy: string }> = ({filter, orderB
                 ) : (
                     services.map((item: any, index: number) => {
                             return (
-                                <Grid item xs={12} sm={6} md={4} key={index} sx={{height: '200px'}}>
+                                <Grid item xs={12} sm={6} md={4} key={index} sx={{height: '230px'}}>
                                     <Card
                                         sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
                                     >
