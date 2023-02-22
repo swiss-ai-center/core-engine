@@ -1,6 +1,6 @@
 [project]
 # https://packaging.python.org/specifications/core-metadata/#name
-name = "common-code"
+name = "common_code"
 
 # https://packaging.python.org/guides/single-sourcing-package-version/
 version = "0.0.1"
