@@ -1,17 +1,16 @@
 import asyncio
 import mimetypes
 from asyncio import Queue
-from common.exceptions import NotFoundException
-from config import Settings, get_settings
-from http_client import HttpClient
-from logger.logger import Logger
+from ..common.exceptions import NotFoundException, QueueFullException
+from ..config import Settings, get_settings
+from ..http_client import HttpClient
+from ..logger.logger import Logger
 from fastapi import Depends
 from fastapi.encoders import jsonable_encoder
-from service.models import Service
-from common.exceptions import QueueFullException
-from storage.service import StorageService
-from tasks.enums import TaskStatus
-from tasks.models import ServiceTask, TaskUpdate
+from ..service.models import Service
+from ..storage.service import StorageService
+from .enums import TaskStatus
+from .models import ServiceTask, TaskUpdate
 
 
 def get_extension(field_description_type: str):

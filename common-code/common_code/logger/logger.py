@@ -1,6 +1,8 @@
 from fastapi import Depends
-from config import Settings, get_settings
+from ..config import Settings, get_settings
 import logging
+import yaml
+import os
 
 
 class Logger:
@@ -9,6 +11,12 @@ class Logger:
     def __init__(self, settings: Settings = Depends(get_settings)):
         self.source = __name__
         self.logger = logging.getLogger('uvicorn')
+
+        log_config_path = os.path.join(os.path.dirname(__file__), 'log_config.yaml')
+
+        with open(log_config_path, 'r') as log_config_file:
+            logging.config.dictConfig(yaml.safe_load(log_config_file))
+
         self.set_level(settings.log_level.value.upper())
 
     def set_level(self, level):

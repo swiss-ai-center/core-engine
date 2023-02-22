@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
-from common.exceptions import NotFoundException
-from common.exceptions import QueueFullException
-from tasks.models import ServiceTask
-from tasks.service import TasksService
+from ..common.exceptions import NotFoundException
+from ..common.exceptions import QueueFullException
+from .models import ServiceTask
+from .service import TasksService
 from uuid import UUID
 
 router = APIRouter()

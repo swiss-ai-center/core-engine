@@ -1,5 +1,5 @@
 from fastapi import Depends
-from logger.logger import Logger, get_logger
+from ..logger.logger import Logger, get_logger
 from aiobotocore.session import get_session
 from botocore.exceptions import ClientError
 from uuid import uuid4

@@ -1,10 +1,10 @@
 from fastapi.encoders import jsonable_encoder
-from http_client import HttpClient
-from logger.logger import Logger
+from ..http_client import HttpClient
+from ..logger.logger import Logger
 from fastapi import Depends
-from config import Settings, get_settings
-from service.enums import ServiceStatus
-from tasks.service import TasksService
+from ..config import Settings, get_settings
+from .enums import ServiceStatus
+from ..tasks.service import TasksService
 from .models import Service
 
 
