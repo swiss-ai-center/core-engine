@@ -1,6 +1,6 @@
 from fastapi import Depends
 from ..config import Settings, get_settings
-import logging
+import logging.config
 import yaml
 import os
 
