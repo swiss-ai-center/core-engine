@@ -24,7 +24,7 @@ settings = get_settings()
 
 class MyService(Service):
     """
-    Image greyscale model
+    Image convert model
     """
 
     # Any additional fields must be excluded for Pydantic to work
@@ -32,8 +32,8 @@ class MyService(Service):
 
     def __init__(self):
         super().__init__(
-            name="Image Greyscale",
-            slug="image-greyscale",
+            name="Image Convert",
+            slug="image-convert",
             url=settings.service_url,
             summary=api_summary,
             description=api_description,
@@ -47,13 +47,14 @@ class MyService(Service):
         )
 
     async def process(self, data):
+        # TODO: modify to accept any image format and convert to any image format
         raw = data["image"]
         stream = io.BytesIO(raw)
         img = Image.open(stream)
+        img = img.convert("RGB")
 
-        img = img.convert("L")
         out_buff = io.BytesIO()
-        img.save(out_buff, format="jpeg", quality=95)
+        img.save(out_buff, format=FieldDescriptionType.IMAGE_JPEG.split('/')[1])
         out_buff.seek(0)
         return {
             "result": out_buff.getvalue()
@@ -61,15 +62,16 @@ class MyService(Service):
 
 
 api_description = """
-This service converts an image to greyscale.
+This service converts images from different formats to different formats.
+Acceptable formats are: image/png, image/jpeg.
 """
 api_summary = """
-Converts an image to greyscale.
+Converts image.
 """
 
 # Define the FastAPI application with information
 app = FastAPI(
-    title="Image Greyscale API.",
+    title="Image Convert API.",
     description=api_description,
     version="0.0.1",
     contact={

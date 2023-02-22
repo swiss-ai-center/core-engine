@@ -3,17 +3,17 @@ import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
-from config import get_settings
+from common_code.config import get_settings
 from pydantic import Field
-from http_client import HttpClient
-from logger.logger import get_logger
-from service.controller import router as service_router
-from service.service import ServiceService
-from storage.service import StorageService
-from tasks.controller import router as tasks_router
-from tasks.service import TasksService
-from service.models import Service, FieldDescription
-from service.enums import ServiceStatus, FieldDescriptionType
+from common_code.http_client import HttpClient
+from common_code.logger.logger import get_logger
+from common_code.service.controller import router as service_router
+from common_code.service.service import ServiceService
+from common_code.storage.service import StorageService
+from common_code.tasks.controller import router as tasks_router
+from common_code.tasks.service import TasksService
+from common_code.service.models import Service, FieldDescription
+from common_code.service.enums import ServiceStatus, FieldDescriptionType
 
 # Imports required by the service's model
 import json

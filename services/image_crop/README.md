@@ -1,3 +1,3 @@
 # image_crop
 
-_Check the [related documentation](../../docs/services/image-processing.md) for more information._
+_Check the [related documentation](https://csia-pme.github.io/csia-pme/reference/image-crop) for more information._

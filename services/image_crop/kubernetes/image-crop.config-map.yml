@@ -8,4 +8,4 @@ data:
   ENVIRONMENT: development
   LOG_LEVEL: debug
   ENGINE_URL: http://engine-service:8080
-  SERVICE_URL: http://image-crop-service:9191
+  SERVICE_URL: http://image-crop-service:9090

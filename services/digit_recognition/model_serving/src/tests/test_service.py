@@ -1,9 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
 from pytest_httpserver import HTTPServer
-from config import get_settings
-from logger.logger import get_logger
-from storage.service import StorageService
+from common_code.config import get_settings
+from common_code.logger.logger import get_logger
+from common_code.storage.service import StorageService
 from main import app
 import time
 

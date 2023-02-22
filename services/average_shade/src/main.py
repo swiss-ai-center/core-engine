@@ -1,5 +1,4 @@
 import asyncio
-import json
 import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,6 +16,7 @@ from common_code.service.models import Service, FieldDescription
 from common_code.service.enums import ServiceStatus, FieldDescriptionType
 
 # Imports required by the service's model
+import json
 import cv2
 import numpy as np
 

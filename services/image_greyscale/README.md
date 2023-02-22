@@ -1,3 +1,3 @@
-# sample_service_without_model
+# image_greyscale
 
-_Check the [related documentation](../../docs/services/sample_service_without_model.md) for more information._
+_Check the [related documentation](https://csia-pme.github.io/csia-pme/reference/image-greyscale) for more information._
