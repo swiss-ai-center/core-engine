@@ -6,7 +6,7 @@ This guide will help you setting an expiration time on a MinIO bucket. This will
 
 ### Create a bucket on Minio
 
-Go to <https://minio1.isc.heia-fr.ch:9115>, connect with the provided credentials and use the GUI to create your bucket.
+Go to your MinIO server, connect with the provided credentials and use the GUI to create your bucket.
 
 ### Configure the bucket to delete files after a certain time
 
