@@ -33,8 +33,9 @@ jobs:
         uses: ./.github/actions/run-ml-experiment-with-dvc
         with:
           ml-experiment-path: ./services/digit-recognition/model_creation
-          aws-access-key-id: ${{ secrets.digit-recognition_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.digit-recognition_AWS_SECRET_ACCESS_KEY }}
+          # TODO: change to digit-recognition_AWS_ACCESS_KEY_ID instead of digit_recognition_AWS_ACCESS_KEY_ID
+          aws-access-key-id: ${{ secrets.digit_recognition_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.digit_recognition_AWS_SECRET_ACCESS_KEY }}
 
       - name: Move the model to model_serving directory
         shell: bash
