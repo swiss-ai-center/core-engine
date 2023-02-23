@@ -1,6 +1,6 @@
 # Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
-name: image_crop_workflow
-run-name: image_crop workflow
+name: image-crop_workflow
+run-name: image-crop workflow
 
 # Allow one concurrent deployment
 concurrency:
@@ -15,7 +15,7 @@ on:
       - .github/actions/test-python-app/action.yml
       - .github/workflows/image-crop.yml
       - common-code/**/*
-      - services/image_crop/**/*
+      - services/image-crop/**/*
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -30,12 +30,12 @@ jobs:
       - name: Lint Python app
         uses: ./.github/actions/lint-python-app
         with:
-          python-app-path: ./services/image_crop
+          python-app-path: ./services/image-crop
 
       - name: Test Python app
         uses: ./.github/actions/test-python-app
         with:
-          python-app-path: ./services/image_crop
+          python-app-path: ./services/image-crop
 
       - name: Build and push Docker image to GitHub
         id: build-and-push-docker-image-to-github
@@ -46,35 +46,35 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           docker-image-name: ${{ github.repository }}-image-crop
-          docker-image-context: ./services/image_crop
+          docker-image-context: ./services/image-crop
 
       - name: Prepare configuration files with secrets from GitHub Secrets
         # Only run on main
         if: github.ref == 'refs/heads/main'
         shell: bash
-        working-directory: services/image_crop/kubernetes
+        working-directory: services/image-crop/kubernetes
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
           ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
           SERVICE_URL: https://image-crop-csia-pme.kube.isc.heia-fr.ch
         run: |
-          # Set image_crop version
+          # Set image-crop version
           docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" image-crop.stateful.yml > new-image-crop.stateful.yml && mv new-image-crop.stateful.yml image-crop.stateful.yml
 
-          # Set image_crop configuration
+          # Set image-crop configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' image-crop.config-map.yml | envsubst > new-image-crop.config-map.yml && mv new-image-crop.config-map.yml image-crop.config-map.yml
 
-      - name: Deploy image_crop on the Kubernetes cluster
+      - name: Deploy image-crop on the Kubernetes cluster
         # Only run on main
         if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
           kube-config: ${{ secrets.KUBE_CONFIG }}
           kube-namespace: csia-pme-prod
-          kubectl-context: ./services/image_crop/kubernetes
+          kubectl-context: ./services/image-crop/kubernetes
           kubectl-args: |
             apply \
               -f image-crop.config-map.yml \

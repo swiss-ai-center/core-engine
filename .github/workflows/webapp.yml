@@ -1,5 +1,5 @@
 # Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
-name: webapp_workflow
+name: webapp-workflow
 run-name: webapp workflow
 
 on:

@@ -1,6 +1,6 @@
 # Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
-name: average_shade_workflow
-run-name: average_shade workflow
+name: average-shade_workflow
+run-name: average-shade workflow
 
 # Allow one concurrent deployment
 concurrency:
@@ -15,7 +15,7 @@ on:
       - .github/actions/test-python-app/action.yml
       - .github/workflows/average-shade.yml
       - common-code/**/*
-      - services/average_shade/**/*
+      - services/average-shade/**/*
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -30,12 +30,12 @@ jobs:
       - name: Lint Python app
         uses: ./.github/actions/lint-python-app
         with:
-          python-app-path: ./services/average_shade
+          python-app-path: ./services/average-shade
 
       - name: Test Python app
         uses: ./.github/actions/test-python-app
         with:
-          python-app-path: ./services/average_shade
+          python-app-path: ./services/average-shade
 
       - name: Build and push Docker image to GitHub
         id: build-and-push-docker-image-to-github
@@ -46,35 +46,35 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           docker-image-name: ${{ github.repository }}-average-shade
-          docker-image-context: ./services/average_shade
+          docker-image-context: ./services/average-shade
 
       - name: Prepare configuration files with secrets from GitHub Secrets
         # Only run on main
         if: github.ref == 'refs/heads/main'
         shell: bash
-        working-directory: services/average_shade/kubernetes
+        working-directory: services/average-shade/kubernetes
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
           ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
           SERVICE_URL: https://average-shade-csia-pme.kube.isc.heia-fr.ch
         run: |
-          # Set average_shade version
+          # Set average-shade version
           docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" average-shade.stateful.yml > new-average-shade.stateful.yml && mv new-average-shade.stateful.yml average-shade.stateful.yml
 
-          # Set average_shade configuration
+          # Set average-shade configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' average-shade.config-map.yml | envsubst > new-average-shade.config-map.yml && mv new-average-shade.config-map.yml average-shade.config-map.yml
 
-      - name: Deploy average_shade on the Kubernetes cluster
+      - name: Deploy average-shade on the Kubernetes cluster
         # Only run on main
         if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
           kube-config: ${{ secrets.KUBE_CONFIG }}
           kube-namespace: csia-pme-prod
-          kubectl-context: ./services/average_shade/kubernetes
+          kubectl-context: ./services/average-shade/kubernetes
           kubectl-args: |
             apply \
               -f average-shade.config-map.yml \

@@ -27,11 +27,11 @@ nav:
       - Team: reference/team.md
       - Engine: reference/engine.md
       - Webapp: reference/webapp.md
-      - ae_ano_detection service: reference/ae-ano-detection.md
-      - average_shade service: reference/average-shade.md
-      - digit_recognition service: reference/digit-recognition.md
-      - face_analyzer service: reference/face-analyzer.md
-      - face_detection service: reference/face-detection.md
+      - ae-ano-detection service: reference/ae-ano-detection.md
+      - average-shade service: reference/average-shade.md
+      - digit-recognition service: reference/digit-recognition.md
+      - face-analyzer service: reference/face-analyzer.md
+      - face-detection service: reference/face-detection.md
   - Explanations:
       - explanations/index.md
       - About this documentation: explanations/about-this-documentation.md

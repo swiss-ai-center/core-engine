@@ -1,6 +1,6 @@
 # Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
-name: face_detection_workflow
-run-name: face_detection workflow
+name: face-detection_workflow
+run-name: face-detection workflow
 
 # Allow one concurrent deployment
 concurrency:
@@ -15,7 +15,7 @@ on:
       - .github/actions/test-python-app/action.yml
       - .github/workflows/face-detection.yml
       - common-code/**/*
-      - services/face_detection/**/*
+      - services/face-detection/**/*
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -30,12 +30,12 @@ jobs:
       - name: Lint Python app
         uses: ./.github/actions/test-python-app
         with:
-          python-app-path: ./services/face_detection
+          python-app-path: ./services/face-detection
 
       - name: Test Python app
         uses: ./.github/actions/test-python-app
         with:
-          python-app-path: ./services/face_detection
+          python-app-path: ./services/face-detection
 
       - name: Build and push Docker image to GitHub
         id: build-and-push-docker-image-to-github
@@ -46,35 +46,35 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           docker-image-name: ${{ github.repository }}-face-detection
-          docker-image-context: ./services/face_detection
+          docker-image-context: ./services/face-detection
 
       - name: Prepare configuration files with secrets from GitHub Secrets
         # Only run on main
         if: github.ref == 'refs/heads/main'
         shell: bash
-        working-directory: services/face_detection/kubernetes
+        working-directory: services/face-detection/kubernetes
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
           ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
           SERVICE_URL: https://face-detection-csia-pme.kube.isc.heia-fr.ch
         run: |
-          # Set face_detection version
+          # Set face-detection version
           docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" face-detection.stateful.yml > new-face-detection.stateful.yml && mv new-face-detection.stateful.yml face-detection.stateful.yml
 
-          # Set face_detection configuration
+          # Set face-detection configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' face-detection.config-map.yml | envsubst > new-face-detection.config-map.yml && mv new-face-detection.config-map.yml face-detection.config-map.yml
 
-      - name: Deploy face_detection on the Kubernetes cluster
+      - name: Deploy face-detection on the Kubernetes cluster
         # Only run on main
         if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
           kube-config: ${{ secrets.KUBE_CONFIG }}
           kube-namespace: csia-pme-prod
-          kubectl-context: ./services/face_detection/kubernetes
+          kubectl-context: ./services/face-detection/kubernetes
           kubectl-args: |
             apply \
               -f face-detection.config-map.yml \

@@ -1,4 +1,4 @@
-# average_shade
+# average-shade
 
 This service uses numpy and OpenCV to find the average shade color in an image.
 
@@ -8,13 +8,13 @@ This simple service only has one route `/compute` that takes an image as input, 
 
 ## Environment variables
 
-All environment variables are described in the [`.env`](https://github.com/csia-pme/csia-pme/blob/main/services/average_shade/.env) file.
+All environment variables are described in the [`.env`](https://github.com/csia-pme/csia-pme/blob/main/services/average-shade/.env) file.
 
 The environment variables can be overwritten during the CI/CD pipeline described in the [`average-shade.yml`](https://github.com/csia-pme/csia-pme/blob/main/.github/workflows/average-shade.yml) GitHub workflow file.
 
 ## Start the service locally with Python
 
-In the `services/average_shade` directory, start the service with the following commands.
+In the `services/average-shade` directory, start the service with the following commands.
 
 ```sh
 # Generate the virtual environment
@@ -51,10 +51,10 @@ pytest --cov-report term:skip-covered --cov-report term-missing --cov=. -s --cov
 
 Start the service with the following commands. This will start the service with the official Docker images that are hosted on GitHub.
 
-In the `average_shade` directory, start the service with the following commands.
+In the `average-shade` directory, start the service with the following commands.
 
 ```sh
-# Start the average_shade backend
+# Start the average-shade backend
 kubectl apply \
     -f kubernetes/average-shade.config-map.yml \
     -f kubernetes/average-shade.stateful.yml \
@@ -68,7 +68,7 @@ Create a tunnel to access the Kubernetes cluster from the local machine. The ter
 minikube tunnel --bind-address 127.0.0.1
 ```
 
-Access the `average_shade` documentation on <http://localhost:8383/docs>.
+Access the `average-shade` documentation on <http://localhost:8383/docs>.
 
 Access the Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Engine.
 
@@ -78,7 +78,7 @@ Access the Engine documentation on <http://localhost:8080/docs> to validate the 
 
 Start the service with the following commands. This will start the service with the a local Docker image for the service.
 
-In the `average_shade` directory, build the Docker image with the following commands.
+In the `average-shade` directory, build the Docker image with the following commands.
 
 ```sh
 # Access the Minikube's Docker environment
@@ -101,10 +101,10 @@ eval $(minikube docker-env -u)
 #        imagePullPolicy: Never
 ```
 
-In the `average_shade` directory, start the service with the following commands.
+In the `average-shade` directory, start the service with the following commands.
 
 ```sh
-# Start the average_shade backend
+# Start the average-shade backend
 kubectl apply \
     -f kubernetes/average-shade.config-map.yml \
     -f kubernetes/average-shade.stateful.yml \
@@ -118,6 +118,6 @@ Create a tunnel to access the Kubernetes cluster from the local machine. The ter
 minikube tunnel --bind-address 127.0.0.1
 ```
 
-Access the `average_shade` documentation on <http://localhost:8383/docs>.
+Access the `average-shade` documentation on <http://localhost:8383/docs>.
 
 Access the Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Engine.

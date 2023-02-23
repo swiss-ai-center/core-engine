@@ -1,5 +1,5 @@
 # Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
-name: engine_workflow
+name: engine-workflow
 run-name: engine workflow
 
 # Allow one concurrent deployment

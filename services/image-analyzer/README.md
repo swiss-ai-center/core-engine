@@ -1,3 +1,3 @@
-# image_analyzer
+# image-analyzer
 
 _Check the [related documentation](https://csia-pme.github.io/csia-pme/reference/image-analyzer) for more information._

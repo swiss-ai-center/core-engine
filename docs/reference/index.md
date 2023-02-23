@@ -11,11 +11,11 @@
 
 | Service                                                                   | Code                                                                          | URL when run locally with minikube    | URL when deployed on Fribourg's Kubernetes                    |
 | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------- |
-| [ae_ano_detection](./ae-ano-detection.md){ style="color: inherit;" }      | <https://github.com/csia-pme/csia-pme/tree/main/services/ae_ano_detection>    | <http://localhost:8282/docs>          | <https://ae-ano-detection-csia-pme.kube.isc.heia-fr.ch/docs>  |
-| [average_shade](./average-shade.md){ style="color: inherit;" }            | <https://github.com/csia-pme/csia-pme/tree/main/services/average_shade>       | <http://localhost:8383/docs>          | <https://average-shade-csia-pme.kube.isc.heia-fr.ch/docs>     |
-| [digit_recognition](./digit-recognition.md){ style="color: inherit;" }    | <https://github.com/csia-pme/csia-pme/tree/main/services/digit_recognition>   | <http://localhost:8484/docs>          | <https://digit-recognition-csia-pme.kube.isc.heia-fr.ch/docs> |
-| [face_analyzer](./face-analyzer.md){ style="color: inherit;" }            | <https://github.com/csia-pme/csia-pme/tree/main/services/face_analyzer>       | <http://localhost:8585/docs>          | <https://face-analyzer-csia-pme.kube.isc.heia-fr.ch/docs>     |
-| [face_detection](./face-detection.md){ style="color: inherit;" }          | <https://github.com/csia-pme/csia-pme/tree/main/services/face_detection>      | <http://localhost:8686/docs>          | <https://face-detection-csia-pme.kube.isc.heia-fr.ch/docs>    |
+| [ae-ano-detection](./ae-ano-detection.md){ style="color: inherit;" }      | <https://github.com/csia-pme/csia-pme/tree/main/services/ae-ano-detection>    | <http://localhost:8282/docs>          | <https://ae-ano-detection-csia-pme.kube.isc.heia-fr.ch/docs>  |
+| [average-shade](./average-shade.md){ style="color: inherit;" }            | <https://github.com/csia-pme/csia-pme/tree/main/services/average-shade>       | <http://localhost:8383/docs>          | <https://average-shade-csia-pme.kube.isc.heia-fr.ch/docs>     |
+| [digit-recognition](./digit-recognition.md){ style="color: inherit;" }    | <https://github.com/csia-pme/csia-pme/tree/main/services/digit-recognition>   | <http://localhost:8484/docs>          | <https://digit-recognition-csia-pme.kube.isc.heia-fr.ch/docs> |
+| [face-analyzer](./face-analyzer.md){ style="color: inherit;" }            | <https://github.com/csia-pme/csia-pme/tree/main/services/face-analyzer>       | <http://localhost:8585/docs>          | <https://face-analyzer-csia-pme.kube.isc.heia-fr.ch/docs>     |
+| [face-detection](./face-detection.md){ style="color: inherit;" }          | <https://github.com/csia-pme/csia-pme/tree/main/services/face-detection>      | <http://localhost:8686/docs>          | <https://face-detection-csia-pme.kube.isc.heia-fr.ch/docs>    |
 
 This sequence diagram illustrates the interaction between an user and the service, without using the Engine.
 

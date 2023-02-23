@@ -1,3 +1,3 @@
-# ae_ano_detection
+# ae-ano-detection
 
 _TODO_
