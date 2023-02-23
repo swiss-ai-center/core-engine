@@ -88,12 +88,13 @@ class MyService(Service):
 
 
 api_description = """
-This service resizes an image. It can be used to resize an image to a specific width and height, or to resize an image by a percentage.
+This service resizes an image. It can be used to resize an image to a specific width and height,
+or to resize an image by a percentage.
 the settings parameter is a JSON object with the following fields:
 - width: the width of the resized image (eg. 500)
 - height: the height of the resized image (eg. 500)
 - scale_percent: the percentage of the original image size (eg. 50)
-- with_ratio: if true, the width and height fields are ignored and the image is resized by the scale_percent field 
+- with_ratio: if true, the width and height fields are ignored and the image is resized by the scale_percent field
 """
 api_summary = """
 Resizes an image.
