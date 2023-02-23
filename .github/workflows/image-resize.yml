@@ -1,6 +1,6 @@
 # Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
-name: image_resize_workflow
-run-name: image_resize workflow
+name: image-resize_workflow
+run-name: image-resize workflow
 
 # Allow one concurrent deployment
 concurrency:
@@ -15,7 +15,7 @@ on:
       - .github/actions/test-python-app/action.yml
       - .github/workflows/image-resize.yml
       - common-code/**/*
-      - services/image_resize/**/*
+      - services/image-resize/**/*
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -30,12 +30,12 @@ jobs:
       - name: Lint Python app
         uses: ./.github/actions/lint-python-app
         with:
-          python-app-path: ./services/image_resize
+          python-app-path: ./services/image-resize
 
       - name: Test Python app
         uses: ./.github/actions/test-python-app
         with:
-          python-app-path: ./services/image_resize
+          python-app-path: ./services/image-resize
 
       - name: Build and push Docker image to GitHub
         id: build-and-push-docker-image-to-github
@@ -46,35 +46,35 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           docker-image-name: ${{ github.repository }}-image-resize
-          docker-image-context: ./services/image_resize
+          docker-image-context: ./services/image-resize
 
       - name: Prepare configuration files with secrets from GitHub Secrets
         # Only run on main
         if: github.ref == 'refs/heads/main'
         shell: bash
-        working-directory: services/image_resize/kubernetes
+        working-directory: services/image-resize/kubernetes
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
           ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
           SERVICE_URL: https://image-resize-csia-pme.kube.isc.heia-fr.ch
         run: |
-          # Set image_resize version
+          # Set image-resize version
           docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" image-resize.stateful.yml > new-image-resize.stateful.yml && mv new-image-resize.stateful.yml image-resize.stateful.yml
 
-          # Set image_resize configuration
+          # Set image-resize configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' image-resize.config-map.yml | envsubst > new-image-resize.config-map.yml && mv new-image-resize.config-map.yml image-resize.config-map.yml
 
-      - name: Deploy image_resize on the Kubernetes cluster
+      - name: Deploy image-resize on the Kubernetes cluster
         # Only run on main
         if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
           kube-config: ${{ secrets.KUBE_CONFIG }}
           kube-namespace: csia-pme-prod
-          kubectl-context: ./services/image_resize/kubernetes
+          kubectl-context: ./services/image-resize/kubernetes
           kubectl-args: |
             apply \
               -f image-resize.config-map.yml \
