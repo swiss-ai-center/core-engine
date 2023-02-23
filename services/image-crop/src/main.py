@@ -54,7 +54,7 @@ class MyService(Service):
         raw = data["image"].data
         input_type = data["image"].type
         img = cv2.imdecode(np.frombuffer(raw, np.uint8), 1)
-        raw_areas = data["area"]
+        raw_areas = data["area"].data
         area = json.loads(raw_areas)['area']
 
         guessed_extension = get_extension(input_type)
