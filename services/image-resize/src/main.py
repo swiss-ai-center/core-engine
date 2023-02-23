@@ -46,7 +46,7 @@ class MyService(Service):
                 FieldDescription(name="settings", type=[FieldDescriptionType.APPLICATION_JSON])
             ],
             data_out_fields=[
-                FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_JPEG]),
+                FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
             ]
         )
 

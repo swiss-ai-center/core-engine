@@ -1,6 +1,9 @@
 # Base image
 FROM python:3.10
 
+# Install all required packages to run the model
+RUN apt update && apt install --yes ffmpeg libsm6 libxext6
+
 # Work directory
 WORKDIR /app
 
@@ -28,4 +31,4 @@ EXPOSE 80
 WORKDIR "/app/src"
 
 # Command to run on start
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80", "--log-config", "logger/log_config.yaml"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
