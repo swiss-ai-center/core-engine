@@ -76,7 +76,6 @@ jobs:
           kube-namespace: csia-pme-prod
           kubectl-context: ./services/image-rotate/kubernetes
           kubectl-args: |
-            # TODO: 14. CHANGE THE PATH TO THE KUBERNETES CONFIGURATION FILES
             apply \
               -f image-rotate.config-map.yml \
               -f image-rotate.stateful.yml \
