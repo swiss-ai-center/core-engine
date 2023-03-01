@@ -164,3 +164,98 @@ A JSON representation would look like this:
   "status": "finished"
 }
 ```
+
+### Register to the Engine
+
+To register the service to the Engine, the service must send a POST request to the Engine `/services` endpoint with the following model:
+
+```python
+class ServiceStatus(Enum):
+    AVAILABLE = "available"
+    UNAVAILABLE = "unavailable"
+
+
+class ServiceBase(CoreModel):
+    """
+    Base class for Service
+    This model is used in subclasses
+    """
+    name: str = Field(nullable=False)
+    slug: str = Field(nullable=False, unique=True)
+    url: str = Field(nullable=False)
+    summary: str = Field(nullable=False)
+    description: str | None = Field(default=None, nullable=True)
+    status: ServiceStatus = Field(default=ServiceStatus.AVAILABLE, nullable=False)
+    data_in_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
+    data_out_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
+
+    @validator("slug")
+    def slug_format(cls, v):
+        if not re.match(r"[a-z\-]+", v):
+            raise ValueError("Slug must be in kebab-case format. Example: my-service")
+        return v
+
+    # Needed for Column(JSON) to work
+    class Config:
+        arbitrary_types_allowed = True
+```
+
+The `data_in_fields` and `data_out_fields` fields are lists of `FieldDescription` models. A `FieldDescription` model is defined as follows:
+
+```python
+class FieldDescriptionType(str, Enum):
+    IMAGE_JPEG = "image/jpeg"
+    IMAGE_PNG = "image/png"
+    TEXT_PLAIN = "text/plain"
+    TEXT_CSV = "text/csv"
+    APPLICATION_JSON = "application/json"
+
+
+class FieldDescription(TypedDict):
+    """
+    Field description
+    """
+    name: str
+    type: List[FieldDescriptionType]
+```
+
+The `url` field is the url of the service.
+
+A JSON representation would look like this:
+
+```json
+{
+  "name": "service-name",
+  "slug": "service-slug",
+  "url": "http://service-url",
+  "summary": "service-summary",
+  "description": "service-description",
+  "status": "available",
+  "data_in_fields": [
+    {
+      "name": "image",
+      "type": [
+        "image/jpeg",
+        "image/png"
+      ]
+    },
+    {
+      "name": "text",
+      "type": [
+        "text/plain"
+      ]
+    }
+  ],
+  "data_out_fields": [
+    {
+      "name": "image",
+      "type": [
+        "image/jpeg",
+        "image/png"
+      ]
+    }
+  ]
+}
+```
+
+After the service is registered, it will be available to the Engine's `/service-slug` endpoint.

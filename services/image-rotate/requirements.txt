@@ -1,2 +1,3 @@
 common-code[test] @ git+https://github.com/csia-pme/csia-pme.git@main#subdirectory=common-code
+numpy==1.24.1
 opencv-python==4.7.0.72
