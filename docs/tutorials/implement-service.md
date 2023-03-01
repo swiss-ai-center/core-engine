@@ -4,7 +4,7 @@ This tutorial shows how to implement a service in the CSIA-PME project step by s
 It will guide you through the process of creating a service with or without a model.
 
 !!! Info
-    Note that a service can be implemented in any programming language as long as it follows the [specifications]() of the CSIA-PME project. This tutorial is using Python 3.10.
+    Note that a service can be implemented in any programming language as long as it follows the [specifications](/csia-pme/reference/service/#specifications) of the CSIA-PME project. This tutorial is using Python 3.10.
 
 ## Tutorial
 
@@ -151,6 +151,9 @@ spec:
 2. Change the host to `image-rotate-csia-pme.kube.isc.heia-fr.ch`
 3. Change the name of the service to `image-rotate-service`
 4. Change the host to `image-rotate-csia-pme.kube.isc.heia-fr.ch`
+
+!!! info "Note"
+    The host can be changed to your own domain name if the service is deployed on another Kubernetes cluster.
 
 Open the `image-rotate.service.yaml` file and update `sample-service` with `image-rotate`.
 
@@ -534,6 +537,10 @@ jobs:
 12. Change the name of the action.
 13. Change the Kubernetes context.
 14. Change the path to the Kubernetes configuration files.
+
+
+!!! info "Note"
+    The host can be changed to your own domain name if the service is deployed on another Kubernetes cluster.
 
 #### 1.6 Test the service
 

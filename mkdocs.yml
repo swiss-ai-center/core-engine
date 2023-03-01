@@ -27,6 +27,7 @@ nav:
       - reference/index.md
       - Team: reference/team.md
       - Engine: reference/engine.md
+      - Service: reference/service.md
       - Webapp: reference/webapp.md
       - ae-ano-detection service: reference/ae-ano-detection.md
       - average-shade service: reference/average-shade.md
