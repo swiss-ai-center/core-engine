@@ -37,7 +37,7 @@ Instead of installing the dependencies globally, it is recommended to create a v
 To create a virtual environment, run the following command inside the project folder:
 
 ```sh
-python3 -m venv .venv
+python3.10 -m venv .venv
 ```
 
 Then, activate the virtual environment:
@@ -48,12 +48,13 @@ source .venv/bin/activate
 
 #### 1.3 Install the dependencies
 
-For the service to work we will need to install opencv-python in addition to the dependencies of the template.
+For the service to work we will need to install numpy and opencv-python in addition to the dependencies of the template.
 So edit the `requirements.txt` file and add the following lines:
 
-```diff
+```txt hl_lines="2 3"
 common-code[test] @ git+https://github.com/csia-pme/csia-pme.git@main#subdirectory=common-code
-+opencv-python==4.7.0.72
+numpy==1.24.1
+opencv-python==4.7.0.72
 ```
 
 Then, install the dependencies:
@@ -72,7 +73,7 @@ Open the `README.md` file and update the title and the description of the servic
 ```md
 # Image Rotate
 
-This service rotates an image 90 by 90 degrees clockwise.
+This service rotates an image by 90, 180 or 270 degrees clockwise.
 ```
 
 ##### 1.4.2 Update the service kubernetes configuration
@@ -234,6 +235,9 @@ spec:
 7. Change the image name to `ghcr.io/csia-pme/csia-pme-image-rotate-service:latest`
 8. Change the name of the config map to `image-rotate-config`
 
+!!! warning "TODOs"
+    When you are done, you need to remove all the TODOs from the files.
+
 ##### 1.4.3 Update the service code
 
 First open the `.env` file and update the `SERVICE_URL` variable to `http://localhost:8001`. The port must be the same as in the `image-rotate.config-map.yaml` file.
@@ -252,7 +256,7 @@ ENGINE_URL="http://localhost:8080"
 # TODO: 1. REPLACE THE PORT WITH THE SAME AS IN THE CONFIG-MAP FILE (1)!
 SERVICE_URL="http://localhost:8001"
 
-# The maximum of tasks the serivce can process
+# The maximum of tasks the service can process
 MAX_TASKS=50
 
 # The number of times the service tries to announce itself to the Engine
@@ -265,11 +269,11 @@ ENGINE_ANNOUNCE_RETRY_DELAY=3
 1. Replace the port with the same as in the `image-rotate.config-map.yaml` file.
 
 All the code of the service is in the `main.py` file.
-The service is a simple image rotation service that rotates the image by 90 degrees clockwise depending on the value of the `rotation` parameter.
+The service is a simple image rotation service that rotates the image by 90, 180, 270 degrees clockwise depending on the value of the `rotation` parameter.
 
 Open the `main.py` with your favorite editor and follow the instructions below.
 
-```py hl_lines="20-21 28-30 38-39 45-51 55-79 83-88 93-108"
+```py hl_lines="20-22 29-31 39-40 46-52 56-83 87-92 97-112"
 import asyncio
 import time
 from fastapi import FastAPI
@@ -290,6 +294,7 @@ from common_code.service.enums import ServiceStatus, FieldDescriptionType
 # Imports required by the service's model
 # TODO: 1. ADD REQUIRED IMPORTS (ALSO IN THE REQUIREMENTS.TXT) (1)!
 import cv2
+import numpy as np
 from common_code.tasks.service import get_extension
 
 settings = get_settings()
@@ -486,8 +491,8 @@ jobs:
           ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
           # TODO: 10. CHANGE THE URL OF THE SAMPLE SERVICE (10)!
           SERVICE_URL: https://image-rotate-csia-pme.kube.isc.heia-fr.ch
+        # TODO: 11. CHANGE THE NAME OF THE CONFIGURATION FILES (11)!
         run: |
-          # TODO: 11. CHANGE THE NAME OF THE CONFIGURATION FILES (11)!
           # Set image-rotate version
           docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
@@ -506,8 +511,8 @@ jobs:
           kube-namespace: csia-pme-prod
           # TODO: 13. CHANGE THE KUBERNETES CONTEXT (13)!
           kubectl-context: ./services/image-rotate/kubernetes
+          # TODO: 14. CHANGE THE PATH TO THE KUBERNETES CONFIGURATION FILES (14)!
           kubectl-args: |
-            # TODO: 14. CHANGE THE PATH TO THE KUBERNETES CONFIGURATION FILES (14)!
             apply \
               -f image-rotate.config-map.yml \
               -f image-rotate.stateful.yml \
