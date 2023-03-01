@@ -647,7 +647,8 @@ Now, you can unfold the `/image-rotate` endpoint and click on the Try it out but
 }
 ```
 
-Now, copy the id of the task and unfold the GET `/tasks/{task_id}` endpoint under the Tasks name 
+Now, copy the id of the task and unfold the GET `/tasks/{task_id}` endpoint under the Tasks name.
+
 1. Click on Try it out and paste the id in the task_id field. 
 2. Click on Execute.
 3. In the body response, find the `data_out` field and copy the id of the image (e.g. `a38ef233-ac01-431d-adc8-cb6269cdeb71.png`).
@@ -658,4 +659,5 @@ Now, copy the id of the task and unfold the GET `/tasks/{task_id}` endpoint unde
 
 The image should be rotated by 90 degrees.
 
-Congratulations! You have successfully created a service and tested it locally. Now, you can push the service to GitHub and deploy it on the engine using the workflow created in the previous section.
+!!! success "Congratulations!"
+    You have successfully created a service and tested it locally. Now, you can push the service to GitHub and deploy it on the engine using the workflow created in the previous section.
