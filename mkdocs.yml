@@ -16,6 +16,7 @@ nav:
   - Tutorials:
       - tutorials/index.md
       - Getting started: tutorials/getting-started.md
+      - Implement a service: tutorials/implement-service.md
   - How-to guides:
       - how-to-guides/index.md
       - How to add DVC to a service: how-to-guides/how-to-add-dvc-to-a-service.md
@@ -49,9 +50,7 @@ nav:
 edit_uri: blob/main/docs/
 theme:
   language: en
-  icon:
-    logo: material/cog-sync
-    repo: fontawesome/brands/git-alt
+  logo: assets/logo.png
   name: material
   palette:
     # Palette toggle for light mode
