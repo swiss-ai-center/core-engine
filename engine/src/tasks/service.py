@@ -39,9 +39,9 @@ class TasksService:
 
         return self.session.get(Task, task_id)
 
-    def get_status_from_service(self, task: Task):
+    async def get_status_from_service(self, task: Task):
         self.logger.debug("Get task status from service")
-        status = self.http_client.get(f"{task.service.url}/tasks/{task.id}/status")
+        status = await self.http_client.get(f"{task.service.url}/tasks/{task.id}/status")
         self.logger.debug(f"Got status {status} from service {task.service.url}")
         task.status = status
 

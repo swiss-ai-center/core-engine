@@ -41,7 +41,7 @@ def get_one(
     },
     response_model=TaskReadWithServiceAndPipeline,
 )
-def get_one_status(
+async def get_one_status(
         task_id: UUID,
         tasks_service: TasksService = Depends()
 ):
@@ -50,8 +50,8 @@ def get_one_status(
     if not task:
         raise HTTPException(status_code=404, detail="Task Not Found")
     else:
-        if task.status == "PENDING":
-            task = tasks_service.get_status_from_service(task_id)
+        if task.status == "pending":
+            task = await tasks_service.get_status_from_service(task)
 
     return task.status
 
