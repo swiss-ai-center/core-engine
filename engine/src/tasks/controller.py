@@ -41,7 +41,7 @@ def get_one(
     },
     response_model=TaskReadWithServiceAndPipeline,
 )
-def get_one(
+def get_one_status(
         task_id: UUID,
         tasks_service: TasksService = Depends()
 ):

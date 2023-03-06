@@ -5,6 +5,7 @@ metadata:
   labels:
     app: engine
 data:
+  HOST: http://localhost:8080
   ENVIRONMENT: development
   LOG_LEVEL: debug
   DATABASE_URL: sqlite:///engine.db
