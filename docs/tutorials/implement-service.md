@@ -25,8 +25,7 @@ In this tutorial, we will implement a service that does not require a model, so 
 Open your terminal and copy the content of the template to a new folder called `image-rotate`. Then go inside it.
 
 ```bash
-mkdir image-rotate
-cp -r sample-service-without-model/* image-rotate
+cp -r sample-service-without-model image-rotate
 cd image-rotate
 ```
 
