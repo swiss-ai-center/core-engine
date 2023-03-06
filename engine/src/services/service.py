@@ -245,6 +245,7 @@ class ServicesService:
                     s3_host=self.settings.s3_host,
                     s3_bucket=self.settings.s3_bucket,
                     task=task,
+                    callback_url=f"{self.settings.host}/tasks/{task.id}"
                 )
 
                 async def clean_up():

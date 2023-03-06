@@ -63,6 +63,7 @@ jobs:
       - name: Test Python app
         uses: ./.github/actions/test-python-app
         env:
+          HOST: https://engine-csia-pme.kube.isc.heia-fr.ch
           S3_ACCESS_KEY_ID: minio
           S3_SECRET_ACCESS_KEY: minio123
           S3_REGION: eu-central-2
@@ -89,6 +90,7 @@ jobs:
         shell: bash
         working-directory: engine/kubernetes
         env:
+          HOST: https://engine-csia-pme.kube.isc.heia-fr.ch
           ENVIRONMENT: production
           LOG_LEVEL: info
           # TODO: Enable database URL

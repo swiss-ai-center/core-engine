@@ -62,11 +62,11 @@ class TasksService:
     current_task_data_out = dict()
 
     def __init__(
-        self,
-        logger: Logger = Depends(),
-        settings: Settings = Depends(get_settings),
-        http_client: HttpClient = Depends(),
-        storage: StorageService = Depends(),
+            self,
+            logger: Logger = Depends(),
+            settings: Settings = Depends(get_settings),
+            http_client: HttpClient = Depends(),
+            storage: StorageService = Depends(),
     ):
         self.my_service = None
         self.logger = logger
@@ -230,7 +230,6 @@ class TasksService:
         """
         Notify the engine that the task is finished
         """
-        url = f"{self.settings.engine_url}/tasks/{TasksService.current_task.task.id}"
 
         try:
             # Encode the task to json
@@ -241,13 +240,14 @@ class TasksService:
                 ),
             )
 
-            self.logger.info(f"Updating task {TasksService.current_task.task.id} on engine {url}: {data}")
+            self.logger.info(
+                f"Updating task {TasksService.current_task.task.id} on callback {self.current_task.callback_url}: {data}")
 
             # Send the update to the engine
-            await self.http_client.patch(url, json=data)
-            self.logger.info(f"Task {TasksService.current_task.task.id} updated on engine")
+            await self.http_client.patch(self.current_task.callback_url, json=data)
+            self.logger.info(f"Task {TasksService.current_task.task.id} updated")
         except Exception as e:
-            self.logger.warning(f"Failed to send back result ({url}): {str(e)}")
+            self.logger.warning(f"Failed to send back result to ({self.current_task.callback_url}): {str(e)}")
         finally:
             TasksService.current_task = None
             TasksService.current_task_data_in = dict()

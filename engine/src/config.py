@@ -18,6 +18,7 @@ class LogLevel(str, Enum):
 
 
 class Settings(BaseSettings):
+    host: str = "http://localhost:8080"
     environment: Environment = Environment.PRODUCTION
     log_level: LogLevel = LogLevel.INFO
     database_url: str = "sqlite:///../engine.db"

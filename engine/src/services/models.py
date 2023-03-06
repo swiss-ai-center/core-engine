@@ -106,6 +106,7 @@ class ServiceTaskBase(BaseModel):
     s3_host: str
     s3_bucket: str
     task: TaskRead
+    callback_url: str
 
 
 class ServiceTask(ServiceTaskBase):
