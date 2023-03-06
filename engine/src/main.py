@@ -76,7 +76,7 @@ async def startup_event():
     http_client = HttpClient()
 
     storage_service = StorageService(get_logger(settings), settings)
-    tasks_service = TasksService(get_logger(settings), session)
+    tasks_service = TasksService(get_logger(settings), session, http_client)
     services_service = ServicesService(get_logger(settings), storage_service, tasks_service, settings, session,
                                        http_client)
 

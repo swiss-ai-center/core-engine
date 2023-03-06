@@ -3,6 +3,7 @@ from sqlmodel import Session, select, desc
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from uuid import UUID
+from http_client import HttpClient
 from .models import Task, TaskUpdate
 from common.exceptions import NotFoundException
 
@@ -12,10 +13,12 @@ class TasksService:
             self,
             logger: Logger = Depends(get_logger),
             session: Session = Depends(get_session),
+            http_client: HttpClient = Depends(),
     ):
         self.logger = logger
         self.logger.set_source(__name__)
         self.session = session
+        self.http_client = http_client
 
     def find_many(self, skip: int = 0, limit: int = 100):
         self.logger.debug("Find many tasks")
@@ -35,6 +38,18 @@ class TasksService:
         self.logger.debug("Find task")
 
         return self.session.get(Task, task_id)
+
+    def get_status_from_service(self, task: Task):
+        self.logger.debug("Get task status from service")
+        status = self.http_client.get(f"{task.service.url}/tasks/{task.id}/status")
+        self.logger.debug(f"Got status {status} from service {task.service.url}")
+        task.status = status
+
+        self.session.add(task)
+        self.session.commit()
+        self.session.refresh(task)
+
+        return task
 
     def update(self, task_id: UUID, task: TaskUpdate):
         self.logger.debug("Update task")

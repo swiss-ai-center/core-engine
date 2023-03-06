@@ -32,6 +32,31 @@ def get_one(
 
 
 @router.get(
+    "/tasks/{task_id}/status",
+    summary="Get one task status",
+    responses={
+        404: {"detail": "Task Not Found"},
+        400: {"detail": "Bad Request"},
+        500: {"detail": "Internal Server Error"},
+    },
+    response_model=TaskReadWithServiceAndPipeline,
+)
+def get_one(
+        task_id: UUID,
+        tasks_service: TasksService = Depends()
+):
+    task = tasks_service.find_one(task_id)
+
+    if not task:
+        raise HTTPException(status_code=404, detail="Task Not Found")
+    else:
+        if task.status == "PENDING":
+            task = tasks_service.get_status_from_service(task_id)
+
+    return task.status
+
+
+@router.get(
     "/tasks",
     summary="Get many tasks",
     response_model=List[TaskRead],

@@ -9,10 +9,7 @@ from uuid import UUID
 router = APIRouter()
 
 
-# TODO: I don't think it's a good idea to have an endpoint `/status` to get the service's status
-# and another endpoint `/status/{task_id}`, I think it's confusing. I would rename it to
-# `/tasks/{task_id}/status` for more clarity
-@router.get("/status/{task_id}", summary="Get task status")
+@router.get("/tasks/{task_id}/status", summary="Get task status")
 async def get_task_status(task_id: UUID, tasks_service: TasksService = Depends()):
     try:
         status = await tasks_service.get_task_status(task_id)
