@@ -50,6 +50,8 @@ class Service(ServiceBase, table=True):
     Service model
     This model is the one that is stored in the database
     """
+    __tablename__ = "services"
+
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     tasks: List["Task"] = Relationship(back_populates="service")  # noqa F821
 

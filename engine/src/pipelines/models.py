@@ -20,17 +20,7 @@ class PipelineElementBase(CoreModel):
     """
     type: PipelineElementType = Field(default=PipelineElementType.SERVICE, nullable=False)
     slug: str = Field(nullable=False)
-    pipeline_id: UUID | None = Field(default=None, nullable=True, foreign_key="pipeline.id")
-
-    # Needed for a PipelineElementService
-    service_id: UUID | None = Field(default=None, nullable=True, foreign_key="service.id")
-
-    # Needed for a PipelineElementBranch
-    condition: str | None = Field(default=None, nullable=True)
-    then: str | None = Field(default=None, nullable=True)
-
-    # Needed for a PipelineElementWait
-    wait_on: List[str] | None = Field(default=None, nullable=True)
+    pipeline_id: UUID | None = Field(default=None, nullable=True, foreign_key="pipelines.id")
 
     @validator("slug")
     def slug_format(cls, v):
@@ -39,9 +29,53 @@ class PipelineElementBase(CoreModel):
         return v
 
 
-class PipelineElement(PipelineElementBase, table=True):
+class PipelineElementService(PipelineElementBase):
+    """
+    A service in a pipeline
+    """
+    service_id: UUID | None = Field(default=None, nullable=True, foreign_key="services.id")
+
+
+class PipelineElementBranch(PipelineElementBase):
+    """
+    A branch in a pipeline
+    """
+    condition: str | None = Field(default=None, nullable=True)
+    then: str | None = Field(default=None, nullable=True)
+
+
+class PipelineElementWait(PipelineElementBase):
+    """
+    A wait in a pipeline
+    """
+    wait_on: List[str] | None = Field(default=None, nullable=True)
+
+
+class PipelineElement(
+    PipelineElementService,
+    PipelineElementBranch,
+    PipelineElementWait,
+    table=True,
+):
+    __tablename__ = "pipeline_elements"
+
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    next: UUID | None = Field(default=None, foreign_key="pipelineelement.id")
+    next: UUID | None = Field(default=None, foreign_key="pipeline_elements.id")
+
+
+class PipelineElementServiceRead(PipelineElementService):
+    id: UUID
+    next: UUID | None
+
+
+class PipelineElementBranchRead(PipelineElementBranch):
+    id: UUID
+    next: UUID | None
+
+
+class PipelineElementWaitRead(PipelineElementWait):
+    id: UUID
+    next: UUID | None
 
 
 class PipelineBase(CoreModel):
@@ -59,6 +93,8 @@ class Pipeline(PipelineBase, table=True):
     Pipeline model
     This model is the one that is stored in the database
     """
+    __tablename__ = "pipelines"
+
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     tasks: List["Task"] = Relationship(back_populates="pipeline")  # noqa F821
 
@@ -76,6 +112,7 @@ class PipelineReadWithPipelineElementAndTask(PipelineRead):
     Pipeline read model with service
     This model is used to return a pipeline to the user with the service
     """
+    pass
     pipeline_elements: List[PipelineElement]
     tasks: List["TaskRead"]
 
@@ -86,7 +123,6 @@ class PipelineCreate(PipelineBase):
     This model is used to create a pipeline
     """
     pipeline_elements: List[UUID]
-    pass
 
 
 class PipelineUpdate(SQLModel):

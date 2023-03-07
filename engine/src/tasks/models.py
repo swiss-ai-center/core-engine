@@ -16,8 +16,8 @@ class TaskBase(CoreModel):
     data_in: List[str] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
     data_out: List[str] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
     status: TaskStatus = Field(default=TaskStatus.PENDING, nullable=False)
-    service_id: UUID = Field(nullable=False, foreign_key="service.id")
-    pipeline_id: UUID | None = Field(default=None, nullable=True, foreign_key="pipeline.id")
+    service_id: UUID = Field(nullable=False, foreign_key="services.id")
+    pipeline_id: UUID | None = Field(default=None, nullable=True, foreign_key="pipelines.id")
 
     # Needed for Column(JSON) to work
     class Config:
@@ -29,6 +29,8 @@ class Task(TaskBase, table=True):
     Task model
     This model is the one that is stored in the database
     """
+    __tablename__ = "tasks"
+
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     service: Service = Relationship(back_populates="tasks")
     pipeline: Pipeline | None = Relationship(back_populates="tasks")
