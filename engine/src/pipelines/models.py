@@ -22,6 +22,16 @@ class PipelineElementBase(CoreModel):
     slug: str = Field(nullable=False)
     pipeline_id: UUID | None = Field(default=None, nullable=True, foreign_key="pipeline.id")
 
+    # Needed for a PipelineElementService
+    service_id: UUID | None = Field(default=None, nullable=True, foreign_key="service.id")
+
+    # Needed for a PipelineElementBranch
+    condition: str | None = Field(default=None, nullable=True)
+    then: str | None = Field(default=None, nullable=True)
+
+    # Needed for a PipelineElementWait
+    wait_on: List[str] | None = Field(default=None, nullable=True)
+
     @validator("slug")
     def slug_format(cls, v):
         if not re.match(r"[a-z\-]+", v):
@@ -32,65 +42,6 @@ class PipelineElementBase(CoreModel):
 class PipelineElement(PipelineElementBase, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     next: UUID | None = Field(default=None, foreign_key="pipelineelement.id")
-
-
-class PipelineElementService(PipelineElement, table=True):
-    """
-    This pipeline element is a service
-
-    node_type: the type of the pipeline element
-    service: the service
-    """
-    service_id: UUID = Field(nullable=False, foreign_key="service.id")
-
-    @validator("type")
-    def slug_format(cls, v):
-        if v != PipelineElementType.SERVICE:
-            raise ValueError("Type must be a service")
-        return v
-
-
-class PipelineElementBranch(PipelineElement, table=True):
-    """
-    This pipeline element is a branch
-
-    node_type: the type of the pipeline element
-    condition: the condition to check
-    then: the next pipeline element if the condition is true
-    """
-    condition: str
-    then: str
-
-    @validator("type")
-    def slug_format(cls, v):
-        if v != PipelineElementType.BRANCH:
-            raise ValueError("Type must be a branch")
-        return v
-
-
-class PipelineElementWait(PipelineElement, table=True):
-    """
-    This pipeline element is a wait
-
-    node_type: the type of the pipeline element
-    wait_on: the list of pipeline elements to wait on
-    """
-    wait_on: List[str]
-
-    @validator("type")
-    def slug_format(cls, v):
-        if v != PipelineElementType.WAIT:
-            raise ValueError("Type must be a wait")
-        return v
-
-
-class PipelineElementWaitRead(PipelineElementWait):
-    """
-    This pipeline element is a wait to keep trace of the execution of the pipeline
-
-    finished: the list of pipeline elements that are finished
-    """
-    finished: List[str]
 
 
 class PipelineBase(CoreModel):
