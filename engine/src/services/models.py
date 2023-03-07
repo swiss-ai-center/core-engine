@@ -1,13 +1,15 @@
 import re
-from typing import List
+from typing import List, TYPE_CHECKING
 from uuid import UUID, uuid4
 from pydantic import BaseModel
 from pydantic.class_validators import validator
 from sqlmodel import Field, SQLModel, Column, JSON, Relationship
 from typing import TypedDict
 from common.models import CoreModel
-from pipelines.models import PipelineServiceLink
 from .enums import FieldDescriptionType, ServiceStatus
+
+if TYPE_CHECKING:
+    from tasks.models import Task, TaskRead
 
 
 class FieldDescription(TypedDict):
@@ -50,7 +52,6 @@ class Service(ServiceBase, table=True):
     """
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     tasks: List["Task"] = Relationship(back_populates="service")  # noqa F821
-    pipelines: List["Pipeline"] = Relationship(back_populates="services", link_model=PipelineServiceLink)  # noqa F821
 
 
 class ServiceRead(ServiceBase):
@@ -66,8 +67,7 @@ class ServiceReadWithTasks(ServiceRead):
     Service read model with tasks
     This model is used to return a service to the user with the tasks
     """
-    from tasks.models import TaskRead
-    tasks: List[TaskRead]
+    tasks: List["TaskRead"]
 
 
 class ServiceCreate(ServiceBase):
@@ -98,14 +98,12 @@ class ServiceTaskBase(BaseModel):
     Base class for Service task
     This model is used in subclasses
     """
-    from tasks.models import TaskRead
-
     s3_access_key_id: str
     s3_secret_access_key: str
     s3_region: str
     s3_host: str
     s3_bucket: str
-    task: TaskRead
+    task: "TaskRead"
     callback_url: str
 
 

@@ -1,16 +1,96 @@
-from typing import List
+import re
+from typing import List, TYPE_CHECKING
 from sqlmodel import Field, SQLModel, Relationship
 from common.models import CoreModel
 from uuid import UUID, uuid4
+from pydantic.class_validators import validator
+from .enums import PipelineElementType
+
+if TYPE_CHECKING:
+    from tasks.models import Task, TaskRead
 
 
-class PipelineServiceLink(SQLModel, table=True):
+class PipelineElementBase(CoreModel):
     """
-    PipelineServiceLink model
-    This model is used to link a pipeline to a service
+    Base class for an element in a Pipeline
+    This model is used in subclasses
+
+    id: the pipeline element
+    next: the next pipeline element
     """
-    pipeline_id: UUID = Field(foreign_key="pipeline.id", primary_key=True)
-    service_id: UUID = Field(foreign_key="service.id", primary_key=True)
+    type: PipelineElementType = Field(default=PipelineElementType.SERVICE, nullable=False)
+    slug: str = Field(nullable=False)
+    pipeline_id: UUID | None = Field(default=None, nullable=True, foreign_key="pipeline.id")
+
+    @validator("slug")
+    def slug_format(cls, v):
+        if not re.match(r"[a-z\-]+", v):
+            raise ValueError("Slug must be in kebab-case format. Example: my-service")
+        return v
+
+
+class PipelineElement(PipelineElementBase, table=True):
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    next: UUID | None = Field(default=None, foreign_key="pipelineelement.id")
+
+
+class PipelineElementService(PipelineElement, table=True):
+    """
+    This pipeline element is a service
+
+    node_type: the type of the pipeline element
+    service: the service
+    """
+    service_id: UUID = Field(nullable=False, foreign_key="service.id")
+
+    @validator("type")
+    def slug_format(cls, v):
+        if v != PipelineElementType.SERVICE:
+            raise ValueError("Type must be a service")
+        return v
+
+
+class PipelineElementBranch(PipelineElement, table=True):
+    """
+    This pipeline element is a branch
+
+    node_type: the type of the pipeline element
+    condition: the condition to check
+    then: the next pipeline element if the condition is true
+    """
+    condition: str
+    then: str
+
+    @validator("type")
+    def slug_format(cls, v):
+        if v != PipelineElementType.BRANCH:
+            raise ValueError("Type must be a branch")
+        return v
+
+
+class PipelineElementWait(PipelineElement, table=True):
+    """
+    This pipeline element is a wait
+
+    node_type: the type of the pipeline element
+    wait_on: the list of pipeline elements to wait on
+    """
+    wait_on: List[str]
+
+    @validator("type")
+    def slug_format(cls, v):
+        if v != PipelineElementType.WAIT:
+            raise ValueError("Type must be a wait")
+        return v
+
+
+class PipelineElementWaitRead(PipelineElementWait):
+    """
+    This pipeline element is a wait to keep trace of the execution of the pipeline
+
+    finished: the list of pipeline elements that are finished
+    """
+    finished: List[str]
 
 
 class PipelineBase(CoreModel):
@@ -29,7 +109,6 @@ class Pipeline(PipelineBase, table=True):
     This model is the one that is stored in the database
     """
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    services: List["Service"] = Relationship(back_populates="pipelines", link_model=PipelineServiceLink)  # noqa F821
     tasks: List["Task"] = Relationship(back_populates="pipeline")  # noqa F821
 
 
@@ -41,15 +120,13 @@ class PipelineRead(PipelineBase):
     id: UUID
 
 
-class PipelineReadWithServiceAndTask(PipelineRead):
+class PipelineReadWithPipelineElementAndTask(PipelineRead):
     """
     Pipeline read model with service
     This model is used to return a pipeline to the user with the service
     """
-    from services.models import ServiceRead
-    from tasks.models import TaskRead
-    services: List[ServiceRead]
-    tasks: List[TaskRead]
+    pipeline_elements: List[PipelineElement]
+    tasks: List["TaskRead"]
 
 
 class PipelineCreate(PipelineBase):
@@ -57,8 +134,7 @@ class PipelineCreate(PipelineBase):
     Pipeline create model
     This model is used to create a pipeline
     """
-    from services.models import ServiceRead
-    services: List[UUID]
+    pipeline_elements: List[UUID]
     pass
 
 

@@ -34,6 +34,17 @@ class TaskUpdate(BaseModel):
     status: TaskStatus | None
 
 
+class ServiceTaskTask(BaseModel):
+    """
+    Task update model
+    This model is used to update a task
+    """
+    id: UUID
+    data_in: List[str]
+    service_id: UUID
+    pipeline_id: UUID | None
+
+
 class ServiceTaskBase(BaseModel):
     """
     Base class for Service task
@@ -44,7 +55,7 @@ class ServiceTaskBase(BaseModel):
     s3_region: str
     s3_host: str
     s3_bucket: str
-    task: TaskRead
+    task: ServiceTaskTask
     callback_url: str
 
 

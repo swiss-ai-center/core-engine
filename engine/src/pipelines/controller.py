@@ -4,7 +4,7 @@ from common.exceptions import NotFoundException
 from .service import PipelinesService
 from services.service import ServicesService
 from common.query_parameters import SkipAndLimit
-from .models import PipelineRead, PipelineUpdate, PipelineCreate, Pipeline, PipelineReadWithServiceAndTask
+from .models import PipelineRead, PipelineUpdate, PipelineCreate, Pipeline, PipelineReadWithPipelineElementAndTask
 from uuid import UUID
 
 router = APIRouter()
@@ -18,7 +18,7 @@ router = APIRouter()
         400: {"detail": "Bad Request"},
         500: {"detail": "Internal Server Error"},
     },
-    response_model=PipelineReadWithServiceAndTask,
+    response_model=PipelineReadWithPipelineElementAndTask,
 )
 def get_one(
         pipeline_id: UUID,
