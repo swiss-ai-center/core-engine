@@ -42,7 +42,7 @@ Inside the project, the services are implemented using Python. But the service i
 To match the specifications, the service must implement the following endpoints:
 
 -   GET `/status` : returns the service availability. (Returns a string)
--   GET `/status/{task_id}` : returns the status of a task. (Returns a string)
+-   GET `/tasks/{task_id}/status` : returns the status of a task. (Returns a string)
 -   POST `/compute` : computes the given task and returns the result. (Returns a string)
 
 ![service-endpoints](service-endpoints.png)
@@ -54,22 +54,15 @@ To match the specifications, the service must implement the following endpoints:
 The `POST /compute` endpoint must be able to receive a JSON body that matches the following model:
 
 ```python
-class TaskBase(BaseModel):
+class ServiceTaskTask(BaseModel):
     """
-    Task model
-    """
-    data_in: List[str] | None
-    data_out: List[str] | None
-    status: TaskStatus | None
-    service_id: UUID
-    pipeline_id: UUID | None
-
-
-class TaskRead(TaskBase):
-    """
-    Task read model
+    Task update model
+    This model is used to update a task
     """
     id: UUID
+    data_in: List[str]
+    service_id: UUID
+    pipeline_id: UUID | None
 
 
 class ServiceTaskBase(BaseModel):
@@ -82,7 +75,8 @@ class ServiceTaskBase(BaseModel):
     s3_region: str
     s3_host: str
     s3_bucket: str
-    task: TaskRead
+    task: ServiceTaskTask
+    callback_url: str
 ```
 
 The `data_in` and `data_out` fields are lists of S3 object keys. The `status` field is a string that can be one of the following values:
@@ -98,7 +92,7 @@ class TaskStatus(str, Enum):
     UNAVAILABLE = "unavailable"
 ```
 
-The S3 settings are used to connect to the S3 storage where the data is stored and where the result will be stored.
+The S3 settings are used to connect to the S3 storage where the data is stored and where the result will be stored. The `callback_url` is the url where the service should send the response.
 
 A JSON representation would look like this:
 ```json
@@ -113,14 +107,11 @@ A JSON representation would look like this:
       "key1-in.png",
       "key2-in.json"
     ],
-    "data_out": [
-      "key1-out.png",
-    ],
-    "status": "pending",
     "service_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     "pipeline_id": "45a85f64-5717-4562-b3fc-34a6f66afa6",
     "id": "76ba4e6a-3b8a-4bda-8407-6eaf5a8e1100"
-  }
+  },
+  "callback_url": "http://my-url.com/callback"
 }
 ```
 
