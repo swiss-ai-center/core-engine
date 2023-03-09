@@ -7,7 +7,13 @@ Install [Material for MkDocs](../explanations/about-material-for-mkdocs.md) with
 === ":simple-linux: Linux"
 
 	```sh title="In a terminal, execute the following command(s)."
-	TODO
+	# Install Material for MkDocs and all its extensions
+	pip install --user \
+		cairosvg \
+		mkdocs-git-revision-date-localized-plugin \
+		mkdocs-glightbox \
+		mkdocs-material \
+		mkdocs-minify-plugin
 	```
 
 === ":simple-apple: macOS"
