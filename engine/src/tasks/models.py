@@ -1,5 +1,6 @@
 from typing import List, Union
 from sqlmodel import Field, JSON, Column, SQLModel, Relationship
+from pydantic import AnyHttpUrl
 from tasks.enums import TaskStatus
 from common.models import CoreModel
 from uuid import UUID, uuid4
@@ -64,7 +65,7 @@ class TaskUpdate(SQLModel):
     This model is used to update a task
     """
     service: str | None
-    url: str | None
+    url: AnyHttpUrl | None
     data_out: List[str] | None
     status: TaskStatus | None
 

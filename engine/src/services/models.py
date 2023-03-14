@@ -1,7 +1,7 @@
 import re
 from typing import List
 from uuid import UUID, uuid4
-from pydantic import BaseModel
+from pydantic import BaseModel, AnyHttpUrl
 from pydantic.class_validators import validator
 from sqlmodel import Field, SQLModel, Column, JSON, Relationship
 from typing import TypedDict
@@ -24,7 +24,7 @@ class ServiceBase(CoreModel):
     """
     name: str = Field(nullable=False)
     slug: str = Field(nullable=False, unique=True)
-    url: str = Field(nullable=False)
+    url: AnyHttpUrl = Field(nullable=False)
     summary: str = Field(nullable=False)
     description: str | None = Field(default=None, nullable=True)
     status: ServiceStatus = Field(default=ServiceStatus.AVAILABLE, nullable=False)
@@ -84,7 +84,7 @@ class ServiceUpdate(SQLModel):
     """
     name: str | None
     slug: str | None
-    url: str | None
+    url: AnyHttpUrl | None
     summary: str | None
     description: str | None
     status: ServiceStatus | None
@@ -103,7 +103,7 @@ class ServiceTaskBase(BaseModel):
     s3_host: str
     s3_bucket: str
     task: "TaskRead"
-    callback_url: str
+    callback_url: AnyHttpUrl
 
 
 class ServiceTask(ServiceTaskBase):

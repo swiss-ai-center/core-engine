@@ -93,16 +93,11 @@ class ServicesService:
             self.enable_service(app, service)
             return service
         else:
-            self.logger.debug(
-                f"The service {service.name} did not respond with an OK status,"
+            error_message = f"The service {service.name} with ID {service.id} did not respond with an OK status, " \
                 "it will be saved in the database as unavailable"
-            )
+            self.logger.debug(error_message)
             self.disable_service(app, service)
-            raise HTTPException(
-                status_code=500,
-                detail=f"The service {service.name} did not respond with an OK status,"
-                       "it will be saved in the database as unavailable"
-            )
+            raise HTTPException(status_code=500, detail=error_message)
 
     def update(self, service_id: UUID, service: ServiceUpdate):
         """
