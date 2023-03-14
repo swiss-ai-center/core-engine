@@ -9,8 +9,12 @@ from common.exceptions import NotFoundException
 
 
 class PipelinesService:
-    def __init__(self, logger: Logger = Depends(get_logger), storage: StorageService = Depends(),
-                 session: Session = Depends(get_session)):
+    def __init__(
+            self,
+            logger: Logger = Depends(get_logger),
+            storage: StorageService = Depends(),
+            session: Session = Depends(get_session),
+    ):
         self.logger = logger
         self.logger.set_source(__name__)
         self.storage = storage

@@ -17,6 +17,8 @@ from http_client import HttpClient
 from fastapi.encoders import jsonable_encoder
 from httpx import HTTPError
 
+REGISTERED_SERVICES_TAG = "Registered Services"
+
 
 class ServicesService:
     def __init__(
@@ -291,7 +293,7 @@ class ServicesService:
                 methods=["POST"],
                 summary=service.summary,
                 description=service.description,
-                tags=[service.name],
+                tags=[REGISTERED_SERVICES_TAG],
                 responses={
                     400: {"detail": "Invalid Content Type"},
                     500: {"detail": "Internal Server Error"},

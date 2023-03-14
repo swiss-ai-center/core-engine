@@ -2,7 +2,6 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from common.exceptions import NotFoundException, UnprocessableEntityException
 from pipeline_elements.service import PipelineElementsService
-from services.service import ServicesService
 from common.query_parameters import SkipAndLimit
 from pipeline_elements.models import PipelineElement, PipelineElementRead, PipelineElementUpdate, PipelineElementCreate
 from uuid import UUID

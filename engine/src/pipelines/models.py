@@ -2,7 +2,6 @@ from typing import List
 from sqlmodel import Field, SQLModel, Relationship
 from common.models import CoreModel
 from uuid import UUID, uuid4
-from pipeline_elements.models import PipelineElement
 
 
 class PipelineBase(CoreModel):
@@ -11,6 +10,7 @@ class PipelineBase(CoreModel):
     This model is used in subclasses
     """
     name: str = Field(nullable=False)
+    slug: str = Field(nullable=False, unique=True)
     summary: str = Field(nullable=False)
     description: str | None = Field(default=None, nullable=True)
 
@@ -24,6 +24,7 @@ class Pipeline(PipelineBase, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     tasks: List["Task"] = Relationship(back_populates="pipeline") # noqa F821
+    pipeline_elements: List["PipelineElement"] = Relationship(back_populates="pipeline") # noqa F821
 
 
 class PipelineRead(PipelineBase):
@@ -34,13 +35,12 @@ class PipelineRead(PipelineBase):
     id: UUID
 
 
-class PipelineReadWithPipelineElementAndTask(PipelineRead):
+class PipelineReadWithPipelineElementsAndTasks(PipelineRead):
     """
     Pipeline read model with service
     This model is used to return a pipeline to the user with the service
     """
-    pass
-    pipeline_elements: List[PipelineElement]
+    pipeline_elements: "List[PipelineElement]"
     tasks: "List[TaskRead]"
 
 
@@ -58,11 +58,16 @@ class PipelineUpdate(SQLModel):
     This model is used to update a pipeline
     """
     name: str | None
-    url: str | None
     summary: str | None
     description: str | None
+    pipeline_elements: List[UUID] | None
 
 
+from pipeline_elements.models import PipelineElement # noqa E402
 from tasks.models import Task, TaskRead # noqa E402
 Pipeline.update_forward_refs()
-PipelineReadWithPipelineElementAndTask.update_forward_refs(tasks=List[TaskRead])
+PipelineBase.update_forward_refs()
+PipelineReadWithPipelineElementsAndTasks.update_forward_refs(
+    tasks=List[TaskRead],
+    pipeline_elements=List[PipelineElement],
+)

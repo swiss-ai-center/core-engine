@@ -1,10 +1,11 @@
 import re
 from typing import List
-from sqlmodel import Field
+from sqlmodel import Field, Relationship
 from common.models import CoreModel
 from uuid import UUID, uuid4
 from pydantic.class_validators import validator
 from pipeline_elements.enums import PipelineElementType
+from pipelines.models import Pipeline
 
 
 class PipelineElementService(CoreModel):
@@ -56,8 +57,9 @@ class PipelineElement(
     __tablename__ = "pipeline_elements"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    next: UUID | None = Field(default=None, foreign_key="pipeline_elements.id")
     pipeline_id: UUID | None = Field(default=None, nullable=True, foreign_key="pipelines.id")
+    pipeline: Pipeline = Relationship(back_populates="pipeline_elements")
+    next: UUID | None = Field(default=None, foreign_key="pipeline_elements.id")
 
 
 class PipelineElementRead(PipelineElementBase):

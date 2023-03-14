@@ -20,14 +20,22 @@ class PipelineElementsService:
 
     def find_many(self, skip: int = 0, limit: int = 100):
         self.logger.debug("Find many pipeline elements")
-        return self.session.exec(select(PipelineElement).order_by(desc(PipelineElement.created_at)).offset(skip).limit(limit)).all()
+        return self.session.exec(
+            select(PipelineElement)
+            .order_by(desc(PipelineElement.created_at))
+            .offset(skip)
+            .limit(limit)
+        ).all()
 
     def create(self, pipeline_element: PipelineElement):
         self.logger.debug("Creating pipeline element")
 
         if pipeline_element.type == PipelineElementType.SERVICE:
             if pipeline_element.service_id is None:
-                raise UnprocessableEntityException("service_id is required when creating a PipelineElement of type 'service'")
+                raise UnprocessableEntityException(
+                    "'service_id' is required when creating a "
+                    "PipelineElement of type 'service'",
+                )
 
             pipeline_element = PipelineElement(
                 type=pipeline_element.type,
@@ -36,9 +44,15 @@ class PipelineElementsService:
             )
         elif pipeline_element.type == PipelineElementType.BRANCH:
             if pipeline_element.condition is None:
-                raise UnprocessableEntityException("condition is required when creating a PipelineElement of type 'branch'")
+                raise UnprocessableEntityException(
+                    "'condition' is required when creating a "
+                    "PipelineElement of type 'branch'",
+                )
             elif pipeline_element.then is None:
-                raise UnprocessableEntityException("then is required when creating a PipelineElement of type 'branch'")
+                raise UnprocessableEntityException(
+                    "'then' is required when creating a "
+                    "PipelineElement of type 'branch'",
+                )
 
             pipeline_element = PipelineElement(
                 type=pipeline_element.type,
@@ -48,15 +62,16 @@ class PipelineElementsService:
             )
         elif pipeline_element.type == PipelineElementType.WAIT:
             if pipeline_element.wait_on is None or len(pipeline_element.wait_on) == 0:
-                raise UnprocessableEntityException("wait_on is required when creating a PipelineElement of type 'service'")
+                raise UnprocessableEntityException(
+                    "'wait_on' is required when creating a "
+                    "PipelineElement of type 'service'",
+                )
 
             pipeline_element = PipelineElement(
                 type=pipeline_element.type,
                 slug=pipeline_element.slug,
                 wait_on=pipeline_element.wait_on,
             )
-        else:
-            raise UnprocessableEntityException(f"PipelineElement type invalid. It must be one of : {[e.value for e in PipelineElementType]}")
 
         self.session.add(pipeline_element)
         self.session.commit()
@@ -92,24 +107,34 @@ class PipelineElementsService:
 
         if pipeline_element.type == PipelineElementType.SERVICE:
             if pipeline_element.service_id is None:
-                raise UnprocessableEntityException("service_id is required when creating a PipelineElement of type 'service'")
+                raise UnprocessableEntityException(
+                    "'service_id' is required when creating a "
+                    "PipelineElement of type 'service'",
+                )
 
             current_pipeline_element.service_id = pipeline_element.service_id
         elif pipeline_element.type == PipelineElementType.BRANCH:
             if pipeline_element.condition is None:
-                raise UnprocessableEntityException("condition is required when creating a PipelineElement of type 'branch'")
+                raise UnprocessableEntityException(
+                    "'condition' is required when creating a "
+                    "PipelineElement of type 'branch'",
+                )
             elif pipeline_element.then is None:
-                raise UnprocessableEntityException("then is required when creating a PipelineElement of type 'branch'")
+                raise UnprocessableEntityException(
+                    "'then' is required when creating a "
+                    "PipelineElement of type 'branch'",
+                )
 
             current_pipeline_element.condition = pipeline_element.condition
             current_pipeline_element.then = pipeline_element.then
         elif pipeline_element.type == PipelineElementType.WAIT:
             if pipeline_element.wait_on is None or len(current_pipeline_element.wait_on) == 0:
-                raise UnprocessableEntityException("wait_on is required when creating a PipelineElement of type 'service'")
+                raise UnprocessableEntityException(
+                    "'wait_on' is required when creating a "
+                    "PipelineElement of type 'service'",
+                )
 
             current_pipeline_element.wait_on = pipeline_element.wait_on
-        else:
-            raise UnprocessableEntityException(f"PipelineElement type invalid. It must be one of : {[e.value for e in PipelineElementType]}")
 
         self.session.add(current_pipeline_element)
         self.session.commit()

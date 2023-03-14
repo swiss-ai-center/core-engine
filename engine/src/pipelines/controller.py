@@ -2,10 +2,11 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from common.exceptions import NotFoundException
 from pipelines.service import PipelinesService
-from services.service import ServicesService
 from common.query_parameters import SkipAndLimit
-from pipelines.models import PipelineRead, PipelineUpdate, PipelineCreate, Pipeline, PipelineReadWithPipelineElementAndTask
+from pipelines.models import PipelineRead, PipelineUpdate, PipelineCreate, Pipeline, \
+    PipelineReadWithPipelineElementsAndTasks
 from uuid import UUID
+from pipeline_elements.service import PipelineElementsService
 
 router = APIRouter()
 
@@ -18,7 +19,7 @@ router = APIRouter()
         400: {"detail": "Bad Request"},
         500: {"detail": "Internal Server Error"},
     },
-    response_model=PipelineReadWithPipelineElementAndTask,
+    response_model=PipelineReadWithPipelineElementsAndTasks,
 )
 def get_one(
         pipeline_id: UUID,
@@ -48,15 +49,18 @@ def get_many_pipelines(
 @router.post(
     "/pipelines",
     summary="Create a pipeline",
-    response_model=PipelineRead,
+    response_model=PipelineReadWithPipelineElementsAndTasks,
 )
-def create(pipeline: PipelineCreate, pipelines_service: PipelinesService = Depends(),
-           services_service: ServicesService = Depends()):
-    links = []
-    for service_id in pipeline.services:
-        links.append(services_service.find_one(service_id))
+def create(
+    pipeline: PipelineCreate,
+    pipelines_service: PipelinesService = Depends(),
+    pipeline_elements_service: PipelineElementsService = Depends(),
+):
+    pipeline_elements = []
+    for pipeline_element_id in pipeline.pipeline_elements:
+        pipeline_elements.append(pipeline_elements_service.find_one(pipeline_element_id))
     pipeline_create = Pipeline.from_orm(pipeline)
-    pipeline_create.services = links
+    pipeline_create.pipeline_elements = pipeline_elements
     pipeline = pipelines_service.create(pipeline_create)
 
     return pipeline
@@ -69,7 +73,7 @@ def create(pipeline: PipelineCreate, pipelines_service: PipelinesService = Depen
         404: {"detail": "Pipeline Not Found"},
         500: {"detail": "Internal Server Error"},
     },
-    response_model=PipelineRead,
+    response_model=PipelineReadWithPipelineElementsAndTasks,
 )
 def update(
         pipeline_id: UUID,
