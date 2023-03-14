@@ -23,8 +23,8 @@ class Pipeline(PipelineBase, table=True):
     __tablename__ = "pipelines"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    tasks: List["Task"] = Relationship(back_populates="pipeline") # noqa F821
     pipeline_elements: List["PipelineElement"] = Relationship(back_populates="pipeline") # noqa F821
+    pipeline_executions: List["PipelineExecution"] = Relationship(back_populates="pipeline") # noqa F821
 
 
 class PipelineRead(PipelineBase):
@@ -41,7 +41,6 @@ class PipelineReadWithPipelineElementsAndTasks(PipelineRead):
     This model is used to return a pipeline to the user with the service
     """
     pipeline_elements: "List[PipelineElement]"
-    tasks: "List[TaskRead]"
 
 
 class PipelineCreate(PipelineBase):
@@ -64,10 +63,6 @@ class PipelineUpdate(SQLModel):
 
 
 from pipeline_elements.models import PipelineElement # noqa E402
-from tasks.models import Task, TaskRead # noqa E402
 Pipeline.update_forward_refs()
 PipelineBase.update_forward_refs()
-PipelineReadWithPipelineElementsAndTasks.update_forward_refs(
-    tasks=List[TaskRead],
-    pipeline_elements=List[PipelineElement],
-)
+PipelineReadWithPipelineElementsAndTasks.update_forward_refs(pipeline_elements=List[PipelineElement])

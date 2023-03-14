@@ -12,3 +12,6 @@ class FieldDescriptionType(str, Enum):
     TEXT_PLAIN = "text/plain"
     TEXT_CSV = "text/csv"
     APPLICATION_JSON = "application/json"
+    APPLICATION_PDF = "application/pdf"
+    AUDIO_MP3 = "audio/mp3"
+    AUDIO_OGG = "audio/ogg"

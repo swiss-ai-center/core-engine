@@ -20,7 +20,7 @@ class PipelineElementBranch(CoreModel):
     A branch in a pipeline
     """
     condition: str | None = Field(default=None, nullable=True)
-    then: str | None = Field(default=None, nullable=True)
+    then: UUID | None = Field(default=None, nullable=True)
 
 
 class PipelineElementWait(CoreModel):
@@ -59,12 +59,11 @@ class PipelineElement(
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     pipeline_id: UUID | None = Field(default=None, nullable=True, foreign_key="pipelines.id")
     pipeline: Pipeline = Relationship(back_populates="pipeline_elements")
-    next: UUID | None = Field(default=None, foreign_key="pipeline_elements.id")
+    pipeline_executions: List["PipelineExecution"] = Relationship(back_populates="current_pipeline_element") # noqa F821
 
 
 class PipelineElementRead(PipelineElementBase):
     id: UUID
-    next: UUID | None
 
 
 class PipelineElementCreate(PipelineElementBase):
@@ -72,4 +71,4 @@ class PipelineElementCreate(PipelineElementBase):
 
 
 class PipelineElementUpdate(PipelineElementBase):
-    next: UUID | None
+    pass

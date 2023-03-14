@@ -80,10 +80,10 @@ class PipelineElementsService:
 
         return pipeline_element
 
-    def find_one(self, pipeline_id: UUID):
+    def find_one(self, pipeline_element_id: UUID):
         self.logger.debug("Find pipeline element")
 
-        return self.session.get(PipelineElement, pipeline_id)
+        return self.session.get(PipelineElement, pipeline_element_id)
 
     def update(
         self,

@@ -77,11 +77,11 @@ def update(
         pipeline_elements_service: PipelineElementsService = Depends(),
 ):
     try:
-        pipeline = pipeline_elements_service.update(pipeline_id, pipeline_element_update)
+        pipeline_element = pipeline_elements_service.update(pipeline_id, pipeline_element_update)
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-    return pipeline
+    return pipeline_element
 
 
 @router.delete(

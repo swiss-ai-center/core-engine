@@ -5,6 +5,7 @@ from database import get_session
 from common_code.logger.logger import get_logger
 from pipelines.controller import router as pipelines_router
 from pipeline_elements.controller import router as pipeline_elements_router
+from pipeline_executions.controller import router as pipeline_executions_router
 from services.controller import router as services_router
 from services.service import ServicesService
 from stats.controller import router as stats_router
@@ -53,6 +54,7 @@ app.add_middleware(
 
 # Include routers from other files
 app.include_router(pipeline_elements_router, tags=['Pipeline Elements'])
+app.include_router(pipeline_executions_router, tags=['Pipeline Executions'])
 app.include_router(pipelines_router, tags=['Pipelines'])
 app.include_router(services_router, tags=['Services'])
 app.include_router(stats_router, tags=['Stats'])
