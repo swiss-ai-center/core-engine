@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from common.exceptions import NotFoundException
 from common_code.logger.logger import get_logger, Logger
-from .service import StorageService
-from .models import FileRead
+from storage.service import StorageService
+from storage.models import FileRead
 
 router = APIRouter()
 

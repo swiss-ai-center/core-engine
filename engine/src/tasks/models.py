@@ -1,10 +1,7 @@
-from typing import List
+from typing import List, Union
 from sqlmodel import Field, JSON, Column, SQLModel, Relationship
-
-from .enums import TaskStatus
+from tasks.enums import TaskStatus
 from common.models import CoreModel
-from pipelines.models import Pipeline
-from services.models import Service
 from uuid import UUID, uuid4
 
 
@@ -32,8 +29,8 @@ class Task(TaskBase, table=True):
     __tablename__ = "tasks"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    service: Service = Relationship(back_populates="tasks")
-    pipeline: Pipeline | None = Relationship(back_populates="tasks")
+    service: "Service" = Relationship(back_populates="tasks")
+    pipeline: Union["Pipeline", None] = Relationship(back_populates="tasks")
 
 
 class TaskRead(TaskBase):
@@ -49,8 +46,8 @@ class TaskReadWithServiceAndPipeline(TaskRead):
     Task read model with service
     This model is used to return a task to the user with the service
     """
-    service: Service
-    pipeline: Pipeline | None
+    service: "Service"
+    pipeline: Union["Pipeline", None]
 
 
 class TaskCreate(TaskBase):
@@ -70,3 +67,9 @@ class TaskUpdate(SQLModel):
     url: str | None
     data_out: List[str] | None
     status: TaskStatus | None
+
+
+from services.models import Service # noqa E402
+from pipelines.models import Pipeline # noqa E402
+Task.update_forward_refs(service=Service, pipeline=Union[Pipeline, None])
+TaskReadWithServiceAndPipeline.update_forward_refs(service=Service, pipeline=Union[Pipeline, None])

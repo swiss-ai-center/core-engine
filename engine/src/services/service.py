@@ -10,8 +10,8 @@ from sqlmodel import Session, select, desc
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from config import Settings, get_settings
-from .enums import ServiceStatus
-from .models import Service, ServiceUpdate, ServiceTask
+from services.enums import ServiceStatus
+from services.models import Service, ServiceUpdate, ServiceTask
 from common.exceptions import NotFoundException, ConflictException, UnreachableException
 from http_client import HttpClient
 from fastapi.encoders import jsonable_encoder

@@ -1,9 +1,9 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request
 from common.exceptions import NotFoundException, ConflictException
-from .service import ServicesService
+from services.service import ServicesService
 from common.query_parameters import SkipAndLimit
-from .models import ServiceRead, ServiceUpdate, ServiceCreate, Service, ServiceReadWithTasks, ServiceStatus
+from services.models import ServiceRead, ServiceUpdate, ServiceCreate, Service, ServiceReadWithTasks, ServiceStatus
 from uuid import UUID
 
 router = APIRouter()

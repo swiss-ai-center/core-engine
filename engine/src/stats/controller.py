@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder as json_encode
 
-from .service import StatsService
+from stats.service import StatsService
 
 router = APIRouter()
 

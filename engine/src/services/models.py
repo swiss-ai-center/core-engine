@@ -1,15 +1,12 @@
 import re
-from typing import List, TYPE_CHECKING
+from typing import List
 from uuid import UUID, uuid4
 from pydantic import BaseModel
 from pydantic.class_validators import validator
 from sqlmodel import Field, SQLModel, Column, JSON, Relationship
 from typing import TypedDict
 from common.models import CoreModel
-from .enums import FieldDescriptionType, ServiceStatus
-
-if TYPE_CHECKING:
-    from tasks.models import Task, TaskRead
+from services.enums import FieldDescriptionType, ServiceStatus
 
 
 class FieldDescription(TypedDict):
@@ -53,7 +50,7 @@ class Service(ServiceBase, table=True):
     __tablename__ = "services"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    tasks: List["Task"] = Relationship(back_populates="service")  # noqa F821
+    tasks: List["Task"] = Relationship(back_populates="service") # noqa F821
 
 
 class ServiceRead(ServiceBase):
@@ -69,7 +66,7 @@ class ServiceReadWithTasks(ServiceRead):
     Service read model with tasks
     This model is used to return a service to the user with the tasks
     """
-    tasks: List["TaskRead"]
+    tasks: "List[TaskRead]"
 
 
 class ServiceCreate(ServiceBase):
@@ -116,3 +113,9 @@ class ServiceTask(ServiceTaskBase):
     related to S3 as well as the task to execute
     """
     pass
+
+
+from tasks.models import Task, TaskRead # noqa E402
+Service.update_forward_refs()
+ServiceTaskBase.update_forward_refs(task=TaskRead)
+ServiceReadWithTasks.update_forward_refs(tasks=List[TaskRead])

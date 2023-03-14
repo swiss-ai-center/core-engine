@@ -1,6 +1,5 @@
-from sqlmodel import Field, SQLModel, Column, DateTime, func
+from sqlmodel import Field, SQLModel
 from datetime import datetime
-from typing import List
 
 
 class CoreModel(SQLModel):

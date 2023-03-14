@@ -4,7 +4,7 @@ from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from uuid import UUID
 from http_client import HttpClient
-from .models import Task, TaskUpdate
+from tasks.models import Task, TaskUpdate
 from common.exceptions import NotFoundException
 
 

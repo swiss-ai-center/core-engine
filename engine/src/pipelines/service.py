@@ -4,7 +4,7 @@ from sqlmodel import Session, select, desc
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from uuid import UUID
-from .models import Pipeline, PipelineUpdate
+from pipelines.models import Pipeline, PipelineUpdate
 from common.exceptions import NotFoundException
 
 

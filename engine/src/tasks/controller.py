@@ -1,9 +1,9 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from common.exceptions import NotFoundException
-from .service import TasksService
+from tasks.service import TasksService
 from common.query_parameters import SkipAndLimit
-from .models import TaskRead, TaskUpdate, TaskCreate, Task, TaskReadWithServiceAndPipeline
+from tasks.models import TaskRead, TaskUpdate, TaskCreate, Task, TaskReadWithServiceAndPipeline
 from uuid import UUID
 
 router = APIRouter()
