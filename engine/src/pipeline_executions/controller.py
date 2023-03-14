@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from common.exceptions import NotFoundException, UnprocessableEntityException
 from pipeline_executions.service import PipelineExecutionsService
 from common.query_parameters import SkipAndLimit
-from pipeline_executions.models import PipelineExecution, PipelineExecutionRead, PipelineExecutionUpdate, PipelineExecutionCreate
+from pipeline_executions.models import PipelineExecution, PipelineExecutionRead, PipelineExecutionUpdate, \
+    PipelineExecutionCreate
 from uuid import UUID
 
 router = APIRouter()
