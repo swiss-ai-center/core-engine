@@ -1,9 +1,32 @@
-from typing import List
-from sqlmodel import Field, Relationship
+import re
+from typing import List, TypedDict
+from pydantic.class_validators import validator
+from sqlmodel import Field, Relationship, Column, JSON
 from common.models import CoreModel
 from uuid import UUID, uuid4
-from pipeline_elements.enums import PipelineElementType
+from pipeline_elements.enums import PipelineElementType, InOutType
 from pipelines.models import Pipeline
+
+
+class DataInIdentifier(TypedDict):
+    """
+    Data in identifier
+    """
+    identifier: str
+    in_or_out: InOutType
+    field: str
+
+
+class PipelineElementEntry(CoreModel):
+    """
+    Entry element in a pipeline
+    """
+    data_in_identifier: List[DataInIdentifier] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
+    data_out_identifier: List[DataInIdentifier] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
+
+    # Needed for Column(JSON) to work
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class PipelineElementService(CoreModel):
@@ -11,6 +34,12 @@ class PipelineElementService(CoreModel):
     A service in a pipeline
     """
     service_id: UUID | None = Field(default=None, nullable=True, foreign_key="services.id")
+    data_in_identifier: List[DataInIdentifier] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
+    data_out_identifier: List[DataInIdentifier] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
+
+    # Needed for Column(JSON) to work
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class PipelineElementBranch(CoreModel):
@@ -32,6 +61,12 @@ class PipelineElementBase(
     """
     type: PipelineElementType = Field(nullable=False)
     identifier: str = Field(nullable=False)
+
+    @validator("identifier")
+    def identifier_format(cls, v):
+        if not re.match(r"[a-z\-]+", v):
+            raise ValueError("Identifier must be in kebab-case format. Example: my-pipeline-element-identifier")
+        return v
 
 
 class PipelineElement(

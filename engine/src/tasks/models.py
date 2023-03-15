@@ -1,6 +1,5 @@
 from typing import List, Union
 from sqlmodel import Field, JSON, Column, SQLModel, Relationship
-from pydantic import AnyHttpUrl
 from tasks.enums import TaskStatus
 from common.models import CoreModel
 from uuid import UUID, uuid4

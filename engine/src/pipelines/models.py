@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List
 from sqlmodel import Field, SQLModel, Relationship
 from common.models import CoreModel
 from uuid import UUID, uuid4
