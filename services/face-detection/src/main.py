@@ -72,7 +72,10 @@ class MyService(Service):
 
         return {
             "result": TaskData(
-                data=json.dumps(faces, cls=NpEncoder),
+                data=json.dumps(
+                    [[facial_area for facial_area in f['facial_area']] for f in faces.items()],
+                    cls=NpEncoder,
+                ),
                 type=FieldDescriptionType.APPLICATION_JSON
             )
         }

@@ -39,7 +39,7 @@ class PipelineElementsService:
 
             pipeline_element = PipelineElement(
                 type=pipeline_element.type,
-                slug=pipeline_element.slug,
+                identifier=pipeline_element.identifier,
                 service_id=pipeline_element.service_id,
             )
         elif pipeline_element.type == PipelineElementType.BRANCH:
@@ -48,29 +48,18 @@ class PipelineElementsService:
                     "'condition' is required when creating a "
                     "PipelineElement of type 'branch'",
                 )
-            elif pipeline_element.then is None:
+            elif pipeline_element.then is None and pipeline_element.otherwise is None:
                 raise UnprocessableEntityException(
-                    "'then' is required when creating a "
+                    "either 'then' or 'otherwise' is required when creating a "
                     "PipelineElement of type 'branch'",
                 )
 
             pipeline_element = PipelineElement(
                 type=pipeline_element.type,
-                slug=pipeline_element.slug,
+                identifier=pipeline_element.identifier,
                 condition=pipeline_element.condition,
                 then=pipeline_element.then,
-            )
-        elif pipeline_element.type == PipelineElementType.WAIT:
-            if pipeline_element.wait_on is None or len(pipeline_element.wait_on) == 0:
-                raise UnprocessableEntityException(
-                    "'wait_on' is required when creating a "
-                    "PipelineElement of type 'service'",
-                )
-
-            pipeline_element = PipelineElement(
-                type=pipeline_element.type,
-                slug=pipeline_element.slug,
-                wait_on=pipeline_element.wait_on,
+                otherwise=pipeline_element.otherwise,
             )
 
         self.session.add(pipeline_element)
@@ -96,9 +85,10 @@ class PipelineElementsService:
         if not current_pipeline_element:
             raise NotFoundException("Pipeline Element Not Found")
 
-        current_pipeline_element.slug = pipeline_element.slug
+        current_pipeline_element.identifier = pipeline_element.identifier
         current_pipeline_element.type = pipeline_element.type
-        current_pipeline_element.next = pipeline_element.next
+        current_pipeline_element.next = pipeline_element.then
+        current_pipeline_element.otherwise = pipeline_element.otherwise
         # current_pipeline_element.pipeline_id = pipeline_element.pipeline_id
         current_pipeline_element.service_id = None
         current_pipeline_element.condition = None
@@ -108,7 +98,7 @@ class PipelineElementsService:
         if pipeline_element.type == PipelineElementType.SERVICE:
             if pipeline_element.service_id is None:
                 raise UnprocessableEntityException(
-                    "'service_id' is required when creating a "
+                    "'service_id' is required when updating a "
                     "PipelineElement of type 'service'",
                 )
 
@@ -116,25 +106,20 @@ class PipelineElementsService:
         elif pipeline_element.type == PipelineElementType.BRANCH:
             if pipeline_element.condition is None:
                 raise UnprocessableEntityException(
-                    "'condition' is required when creating a "
+                    "'condition' is required when updating a "
                     "PipelineElement of type 'branch'",
                 )
-            elif pipeline_element.then is None:
+            elif pipeline_element.then is None and pipeline_element.otherwise is None:
                 raise UnprocessableEntityException(
-                    "'then' is required when creating a "
+                    "either 'then' or 'otherwise' is required when updating a "
                     "PipelineElement of type 'branch'",
                 )
-
+            then_element = self.session.get(PipelineElement, pipeline_element.then)
+            if not then_element:
+                raise NotFoundException("'Then' Pipeline Element Not Found")
             current_pipeline_element.condition = pipeline_element.condition
-            current_pipeline_element.then = pipeline_element.then
-        elif pipeline_element.type == PipelineElementType.WAIT:
-            if pipeline_element.wait_on is None or len(current_pipeline_element.wait_on) == 0:
-                raise UnprocessableEntityException(
-                    "'wait_on' is required when creating a "
-                    "PipelineElement of type 'service'",
-                )
-
-            current_pipeline_element.wait_on = pipeline_element.wait_on
+            current_pipeline_element.then = then_element
+            current_pipeline_element.otherwise = pipeline_element.otherwise
 
         self.session.add(current_pipeline_element)
         self.session.commit()

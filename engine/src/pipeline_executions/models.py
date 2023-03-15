@@ -29,6 +29,7 @@ class PipelineExecution(PipelineExecutionBase, table=True):
 class PipelineExecutionRead(PipelineExecutionBase):
     """
     Pipeline Execution read model
+    This model is used to return a pipeline execution to the user
     """
     id: UUID
 
@@ -36,6 +37,7 @@ class PipelineExecutionRead(PipelineExecutionBase):
 class PipelineExecutionReadWithPipelineAndTasks(PipelineExecutionRead):
     """
     Pipeline Execution read model with pipeline and tasks
+    This model is used to return a pipeline execution to the user
     """
     pipeline: Pipeline
     tasks: List["TaskRead"]
@@ -44,6 +46,7 @@ class PipelineExecutionReadWithPipelineAndTasks(PipelineExecutionRead):
 class PipelineExecutionCreate(PipelineExecutionBase):
     """
     Pipeline Execution create model
+    This model is used to create a pipeline execution
     """
     pass
 
@@ -51,6 +54,7 @@ class PipelineExecutionCreate(PipelineExecutionBase):
 class PipelineExecutionUpdate(SQLModel):
     """
     Pipeline Execution update model
+    This model is used to update a pipeline execution
     """
     status: PipelineExecutionStatus | None
     current_pipeline_element_id: UUID | None

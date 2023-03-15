@@ -1,7 +1,9 @@
-from typing import List
+from typing import List, Union
 from sqlmodel import Field, SQLModel, Relationship
 from common.models import CoreModel
 from uuid import UUID, uuid4
+
+from pipelines.enums import PipelineStatus
 
 
 class PipelineBase(CoreModel):
@@ -13,6 +15,7 @@ class PipelineBase(CoreModel):
     slug: str = Field(nullable=False, unique=True)
     summary: str = Field(nullable=False)
     description: str | None = Field(default=None, nullable=True)
+    status: PipelineStatus = Field(default=PipelineStatus.AVAILABLE, nullable=False)
 
 
 class Pipeline(PipelineBase, table=True):
@@ -48,7 +51,7 @@ class PipelineCreate(PipelineBase):
     Pipeline create model
     This model is used to create a pipeline
     """
-    pipeline_elements: List[UUID]
+    pipeline_elements: "List[PipelineElementCreate]"
 
 
 class PipelineUpdate(SQLModel):
@@ -59,10 +62,11 @@ class PipelineUpdate(SQLModel):
     name: str | None
     summary: str | None
     description: str | None
-    pipeline_elements: List[UUID] | None
+    status: PipelineStatus | None
 
 
-from pipeline_elements.models import PipelineElement # noqa E402
+from pipeline_elements.models import PipelineElement, PipelineElementCreate # noqa E402
 Pipeline.update_forward_refs()
 PipelineBase.update_forward_refs()
+PipelineCreate.update_forward_refs(pipeline_elements=List[PipelineElementCreate])
 PipelineReadWithPipelineElementsAndTasks.update_forward_refs(pipeline_elements=List[PipelineElement])

@@ -64,8 +64,6 @@ class TaskUpdate(SQLModel):
     Task update model
     This model is used to update a task
     """
-    service: str | None
-    url: AnyHttpUrl | None
     data_out: List[str] | None
     status: TaskStatus | None
 
