@@ -9,5 +9,5 @@ class PipelineStatus(Enum):
 class PipelineElementType(Enum):
     SERVICE = "service"
     BRANCH = "branch"
-    WAIT = "wait"
-    LOOP = "loop"
+    START = "start"
+    END = "end"

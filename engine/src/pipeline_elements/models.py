@@ -4,29 +4,30 @@ from pydantic.class_validators import validator
 from sqlmodel import Field, Relationship, Column, JSON
 from common.models import CoreModel
 from uuid import UUID, uuid4
-from pipeline_elements.enums import PipelineElementType, InOutType
+from pipeline_elements.enums import PipelineElementType, FieldDescriptionType
 from pipelines.models import Pipeline
 
 
-class DataInIdentifier(TypedDict):
+class FieldDescription(TypedDict):
     """
-    Data in identifier
+    Field description
     """
-    identifier: str
-    in_or_out: InOutType
-    field: str
+    name: str
+    type: List[FieldDescriptionType]
 
 
-class PipelineElementEntry(CoreModel):
+class PipelineElementStart(CoreModel):
     """
-    Entry element in a pipeline
+    A start in a pipeline
     """
-    data_in_identifier: List[DataInIdentifier] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
-    data_out_identifier: List[DataInIdentifier] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
+    pass
 
-    # Needed for Column(JSON) to work
-    class Config:
-        arbitrary_types_allowed = True
+
+class PipelineElementEnd(CoreModel):
+    """
+    An end in a pipeline
+    """
+    pass
 
 
 class PipelineElementService(CoreModel):
@@ -34,12 +35,6 @@ class PipelineElementService(CoreModel):
     A service in a pipeline
     """
     service_id: UUID | None = Field(default=None, nullable=True, foreign_key="services.id")
-    data_in_identifier: List[DataInIdentifier] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
-    data_out_identifier: List[DataInIdentifier] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
-
-    # Needed for Column(JSON) to work
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class PipelineElementBranch(CoreModel):
@@ -52,6 +47,8 @@ class PipelineElementBranch(CoreModel):
 
 
 class PipelineElementBase(
+    PipelineElementStart,
+    PipelineElementEnd,
     PipelineElementService,
     PipelineElementBranch,
 ):
@@ -59,14 +56,22 @@ class PipelineElementBase(
     Base class for an element in a Pipeline
     This model is used in subclasses
     """
-    type: PipelineElementType = Field(nullable=False)
     identifier: str = Field(nullable=False)
+    type: PipelineElementType = Field(nullable=False)
+    data_in_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
+    data_out_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
+    data_in: List[str] | None = Field(default=None, nullable=True)
+    data_out: List[str] | None = Field(default=None, nullable=True)
 
     @validator("identifier")
     def identifier_format(cls, v):
         if not re.match(r"[a-z\-]+", v):
             raise ValueError("Identifier must be in kebab-case format. Example: my-pipeline-element-identifier")
         return v
+
+    # Needed for Column(JSON) to work
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class PipelineElement(
@@ -82,8 +87,15 @@ class PipelineElement(
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     pipeline_id: UUID | None = Field(default=None, nullable=True, foreign_key="pipelines.id")
     pipeline: Pipeline = Relationship(back_populates="pipeline_elements")
+    previous_id: UUID | None = Field(default=None, nullable=True, foreign_key="pipeline_elements.id")
+    previous: "PipelineElement" = Relationship(
+        back_populates="next",
+        sa_relationship_kwargs=dict(remote_side="PipelineElement.id"),
+    )  # noqa F821
+    next: "PipelineElement" = Relationship(back_populates="previous")  # noqa F821
     pipeline_executions: List["PipelineExecution"] = Relationship(
-        back_populates="current_pipeline_element")  # noqa F821
+        back_populates="current_pipeline_element"
+    )  # noqa F821
 
 
 class PipelineElementRead(PipelineElementBase):
