@@ -1,0 +1,8 @@
+common-code[test] @ git+https://github.com/csia-pme/csia-pme.git@main#subdirectory=common-code
+matplotlib==3.6.3
+numpy==1.24.2
+pandas==1.5.3
+scikit-learn==1.2.1
+tensorflow==2.9.0
+dvc[s3]==2.10.2
+awscli==1.27.86

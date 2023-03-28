@@ -1,0 +1,5 @@
+[core]
+    remote = ae
+['remote "ae"']
+    url = s3://ae-ano-detect
+    endpointurl = https://minio1.isc.heia-fr.ch:9015
