@@ -1,7 +1,7 @@
 from typing import List
 from pydantic.main import BaseModel
 from .enums import TaskStatus
-from ..service.enums import FieldDescriptionType
+from ..common.enums import FieldDescriptionType
 from uuid import UUID
 
 

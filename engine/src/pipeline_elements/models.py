@@ -5,7 +5,8 @@ from sqlmodel import Field, Relationship, Column, JSON
 from common.models import CoreModel
 from uuid import UUID, uuid4
 from pipeline_elements.enums import PipelineElementType
-from pipelines.models import Pipeline, FieldDescription
+from pipelines.models import Pipeline
+from common_code.common.models import FieldDescription
 
 
 class PipelineElementStart(CoreModel):

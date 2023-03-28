@@ -1,15 +1,8 @@
 from abc import ABCMeta, abstractmethod
-from typing import List, TypedDict
+from typing import List
 from pydantic import BaseModel
-from .enums import FieldDescriptionType, ServiceStatus
-
-
-class FieldDescription(TypedDict):
-    """
-    Field description model
-    """
-    name: str
-    type: List[FieldDescriptionType]
+from ..common.models import FieldDescription
+from .enums import ServiceStatus
 
 
 class Service(BaseModel, metaclass=ABCMeta):

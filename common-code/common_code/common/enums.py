@@ -1,12 +1,6 @@
 from enum import Enum
 
 
-# TODO: move to common-code
-class ServiceStatus(Enum):
-    AVAILABLE = "available"
-    UNAVAILABLE = "unavailable"
-
-
 class FieldDescriptionType(str, Enum):
     IMAGE_JPEG = "image/jpeg"
     IMAGE_PNG = "image/png"

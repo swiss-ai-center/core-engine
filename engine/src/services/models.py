@@ -4,17 +4,9 @@ from uuid import UUID, uuid4
 from pydantic import BaseModel, AnyHttpUrl
 from pydantic.class_validators import validator
 from sqlmodel import Field, SQLModel, Column, JSON, Relationship
-from typing import TypedDict
 from common.models import CoreModel
-from services.enums import FieldDescriptionType, ServiceStatus
-
-
-class FieldDescription(TypedDict):
-    """
-    Field description
-    """
-    name: str
-    type: List[FieldDescriptionType]
+from common_code.common.models import FieldDescription
+from common_code.service.enums import ServiceStatus
 
 
 class ServiceBase(CoreModel):

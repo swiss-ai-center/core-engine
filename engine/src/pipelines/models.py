@@ -1,18 +1,9 @@
-from typing import List, TypedDict
+from typing import List
 from sqlmodel import Field, SQLModel, Relationship, Column, JSON
 from common.models import CoreModel
 from uuid import UUID, uuid4
-
-from pipelines.enums import PipelineStatus, FieldDescriptionType
-
-
-class FieldDescription(TypedDict):
-    """
-    Field description
-    """
-    name: str
-    type: List[FieldDescriptionType]
-    reference: str | None
+from common_code.common.models import FieldDescription
+from pipelines.enums import PipelineStatus
 
 
 class PipelineBase(CoreModel):
