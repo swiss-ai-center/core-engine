@@ -6,4 +6,3 @@ class PipelineElementType(Enum):
     BRANCH = "branch"
     START = "start"
     END = "end"
-
