@@ -19,6 +19,12 @@ class PipelineElementsService:
         self.session = session
 
     def find_many(self, skip: int = 0, limit: int = 100):
+        """
+        Find many pipeline elements
+        :param skip: number of pipeline elements to skip
+        :param limit: number of pipeline elements to return
+        :return: list of pipeline elements
+        """
         self.logger.debug("Find many pipeline elements")
         return self.session.exec(
             select(PipelineElement)
@@ -27,7 +33,22 @@ class PipelineElementsService:
             .limit(limit)
         ).all()
 
+    def find_one(self, pipeline_element_id: UUID):
+        """
+        Find one pipeline element
+        :param pipeline_element_id: id of pipeline element to find
+        :return: pipeline element
+        """
+        self.logger.debug("Find pipeline element")
+
+        return self.session.get(PipelineElement, pipeline_element_id)
+
     def create(self, pipeline_element: PipelineElement):
+        """
+        Create a pipeline element
+        :param pipeline_element: pipeline element to create
+        :return: created pipeline element
+        """
         self.logger.debug("Creating pipeline element")
 
         if pipeline_element.type == PipelineElementType.SERVICE:
@@ -69,16 +90,17 @@ class PipelineElementsService:
 
         return pipeline_element
 
-    def find_one(self, pipeline_element_id: UUID):
-        self.logger.debug("Find pipeline element")
-
-        return self.session.get(PipelineElement, pipeline_element_id)
-
     def update(
         self,
         pipeline_element_id: UUID,
         pipeline_element: PipelineElementUpdate,
     ):
+        """
+        Update a pipeline element
+        :param pipeline_element_id: id of pipeline element to update
+        :param pipeline_element: pipeline element to update
+        :return: updated pipeline element
+        """
         self.logger.debug("Update pipeline element")
         current_pipeline_element = self.session.get(PipelineElement, pipeline_element_id)
 
@@ -128,6 +150,10 @@ class PipelineElementsService:
         return current_pipeline_element
 
     def delete(self, pipeline_element_id: UUID):
+        """
+        Delete a pipeline element
+        :param pipeline_element_id: id of pipeline element to delete
+        """
         self.logger.debug("Delete pipeline element")
         pipeline_element = self.session.get(PipelineElement, pipeline_element_id)
         if not pipeline_element:

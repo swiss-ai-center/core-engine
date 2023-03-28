@@ -28,3 +28,11 @@ class UnreachableException(Exception):
     def __init__(self, message):
         self.message = message
         super().__init__(self.message)
+
+
+class InconsistentPipelineException(Exception):
+    """Exception raised when a pipeline has an inconsistent definition."""
+
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)

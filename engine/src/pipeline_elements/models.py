@@ -1,19 +1,11 @@
 import re
-from typing import List, TypedDict
+from typing import List
 from pydantic.class_validators import validator
 from sqlmodel import Field, Relationship, Column, JSON
 from common.models import CoreModel
 from uuid import UUID, uuid4
-from pipeline_elements.enums import PipelineElementType, FieldDescriptionType
-from pipelines.models import Pipeline
-
-
-class FieldDescription(TypedDict):
-    """
-    Field description
-    """
-    name: str
-    type: List[FieldDescriptionType]
+from pipeline_elements.enums import PipelineElementType
+from pipelines.models import Pipeline, FieldDescription
 
 
 class PipelineElementStart(CoreModel):
@@ -111,7 +103,7 @@ class PipelineElementCreate(PipelineElementBase):
     Pipeline Element create model
     This model is used to create a pipeline element
     """
-    pass
+    next: str | None = Field(default=None, nullable=True)
 
 
 class PipelineElementUpdate(PipelineElementBase):

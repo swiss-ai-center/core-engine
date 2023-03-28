@@ -20,6 +20,12 @@ class PipelineExecutionsService:
         self.session = session
 
     def find_many(self, skip: int = 0, limit: int = 100):
+        """
+        Find many pipeline executions
+        :param skip: number of pipeline executions to skip
+        :param limit: number of pipeline executions to return
+        :return: list of pipeline executions
+        """
         self.logger.debug("Find many pipeline executions")
         return self.session.exec(
             select(PipelineExecution)
@@ -28,7 +34,22 @@ class PipelineExecutionsService:
             .limit(limit)
         ).all()
 
+    def find_one(self, pipeline_execution_id: UUID):
+        """
+        Find one pipeline execution
+        :param pipeline_execution_id: id of pipeline execution to find
+        :return: pipeline execution
+        """
+        self.logger.debug("Find pipeline execution")
+
+        return self.session.get(PipelineExecution, pipeline_execution_id)
+
     def create(self, pipeline_execution: PipelineExecution):
+        """
+        Create a pipeline execution
+        :param pipeline_execution: pipeline execution to create
+        :return: created pipeline execution
+        """
         self.logger.debug("Creating pipeline execution")
 
         self.session.add(pipeline_execution)
@@ -38,16 +59,17 @@ class PipelineExecutionsService:
 
         return pipeline_execution
 
-    def find_one(self, pipeline_execution_id: UUID):
-        self.logger.debug("Find pipeline execution")
-
-        return self.session.get(PipelineExecution, pipeline_execution_id)
-
     def update(
         self,
         pipeline_execution_id: UUID,
         pipeline_execution: PipelineExecutionUpdate,
     ):
+        """
+        Update a pipeline execution
+        :param pipeline_execution_id: id of pipeline execution to update
+        :param pipeline_execution: pipeline execution to update
+        :return: updated pipeline execution
+        """
         self.logger.debug("Update pipeline execution")
         current_pipeline_execution = self.session.get(PipelineExecution, pipeline_execution_id)
 
@@ -74,6 +96,10 @@ class PipelineExecutionsService:
         return current_pipeline_execution
 
     def delete(self, pipeline_execution_id: UUID):
+        """
+        Delete a pipeline execution
+        :param pipeline_execution_id: id of pipeline execution to delete
+        """
         self.logger.debug("Delete pipeline execution")
         pipeline_execution = self.session.get(PipelineExecution, pipeline_execution_id)
         if not pipeline_execution:

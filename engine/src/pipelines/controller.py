@@ -106,3 +106,22 @@ def delete(
         pipelines_service.delete(pipeline_id)
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post(
+    "/pipeline/check",
+    summary="Check if a pipeline is valid",
+    responses={
+        400: {"detail": "Bad Request"},
+        500: {"detail": "Internal Server Error"},
+    }
+)
+def check(
+        pipeline: PipelineCreate,
+        pipelines_service: PipelinesService = Depends(),
+):
+    try:
+        if pipelines_service.check_pipeline_consistency(pipeline):
+            return {"valid": True}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

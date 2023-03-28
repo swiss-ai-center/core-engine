@@ -1,9 +1,18 @@
-from typing import List
-from sqlmodel import Field, SQLModel, Relationship
+from typing import List, TypedDict
+from sqlmodel import Field, SQLModel, Relationship, Column, JSON
 from common.models import CoreModel
 from uuid import UUID, uuid4
 
-from pipelines.enums import PipelineStatus
+from pipelines.enums import PipelineStatus, FieldDescriptionType
+
+
+class FieldDescription(TypedDict):
+    """
+    Field description
+    """
+    name: str
+    type: List[FieldDescriptionType]
+    reference: str | None
 
 
 class PipelineBase(CoreModel):
@@ -16,6 +25,12 @@ class PipelineBase(CoreModel):
     summary: str = Field(nullable=False)
     description: str | None = Field(default=None, nullable=True)
     status: PipelineStatus = Field(default=PipelineStatus.AVAILABLE, nullable=False)
+    data_in_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
+    data_out_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
+
+    # Needed for Column(JSON) to work
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class Pipeline(PipelineBase, table=True):
