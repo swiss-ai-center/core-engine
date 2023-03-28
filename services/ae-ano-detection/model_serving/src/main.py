@@ -52,20 +52,10 @@ class MyService(Service):
         self.model = tf.keras.models.load_model("../model/ae_model.h5")
 
     async def process(self, data):
-        # NOTE that the data is a dictionary with the keys being the field names set in the data_in_fields
-        # raw = data["image"]
-        # ... do something with the raw data
         raw = str(data["text"].data)[2:-1]
         raw = raw.replace('\\t', ',').replace('\\n', '\n').replace('\\r', '\n')
         X_test = pd.read_csv(io.StringIO(raw), dtype={"value": np.float64})
-        # df.index = pd.to_datetime(df.index)
-        # esd_ad = GeneralizedESDTestAD(alpha=0.3)
-        # anomalies = esd_ad.fit_detect(df["value"])
-        # condition = anomalies == True
 
-        # indexes = anomalies.index[condition]
-        # result = indexes.strftime("%Y-%m-%d %H:%M:%S.%f").tolist()
-        autoencoder = tf.keras.models.load_model("../model/ae_model.h5")
         # Use the model to reconstruct the original time series data
         reconstructed_X = self.model.predict(X_test)
 
@@ -76,15 +66,14 @@ class MyService(Service):
         fig, ax = plt.subplots(figsize=(20, 6))
 
         a = err.loc[reconstruction_error >= np.max(reconstruction_error)]  # anomaly
-        # b = np.arange(35774-12000, 35874-12000)
+
         ax.plot(err, color='blue', label='Normal')
-        # ax.scatter(b, err[35774-12000:35874-12000], color='green', label = 'Real anomaly')
+
         ax.scatter(a.index, a, color='red', label='Anomaly')
         plt.legend()
         buf = io.BytesIO()
         plt.savefig(buf, format='png')
         buf.seek(0)
-        # print(a)
 
         # task["result"] = {"image": buf.read()}
 
