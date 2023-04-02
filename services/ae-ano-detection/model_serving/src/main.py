@@ -49,7 +49,6 @@ class MyService(Service):
                 FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_PNG]),
             ]
         )
-        print("Loading model...")
         self.model = tf.keras.models.load_model("../model/ae_model.h5")
 
     async def process(self, data):
