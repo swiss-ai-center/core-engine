@@ -3,6 +3,7 @@ import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
+
 def build_model(shape):
     # Preprocess the data (e.g., scale the data, create train/test splits)
 
@@ -27,6 +28,8 @@ def build_model(shape):
     autoencoder.compile(optimizer='adam', loss='mean_squared_error')
 
     return autoencoder
+
+
 def train_model(X_train):
     # Fit the model to the time series data
     model = build_model(X_train.shape[1])
@@ -34,12 +37,14 @@ def train_model(X_train):
     model.save("model/ae_model.h5", save_format='h5')
     return history
 
+
 def plot_loss(history):
     plt.plot(history.history['loss'])
     plt.title('Model loss')
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
     plt.savefig('graph/training_loss.png')
+
 
 def main():
     # Parse command-line arguments
@@ -55,6 +60,7 @@ def main():
 
     # Plot and save the training loss
     plot_loss(history)
+
 
 if __name__ == "__main__":
     main()

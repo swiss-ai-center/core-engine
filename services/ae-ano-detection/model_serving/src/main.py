@@ -25,6 +25,7 @@ import io
 
 settings = get_settings()
 
+
 class MyService(Service):
     """
     Autoencoder Anomaly detection
@@ -155,6 +156,7 @@ app.add_middleware(
 @app.get("/", include_in_schema=False)
 async def root():
     return RedirectResponse("/docs", status_code=301)
+
 
 service_service: ServiceService | None = None
 

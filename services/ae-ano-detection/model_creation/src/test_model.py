@@ -18,7 +18,7 @@ def evaluate_model(model, X_test):
     err = X_test
     fig, ax = plt.subplots(figsize=(20, 6))
 
-    a = err.loc[reconstruction_error >= np.max(reconstruction_error)] # anomaly
+    a = err.loc[reconstruction_error >= np.max(reconstruction_error)]  # anomaly
     # b = np.arange(35774-12000, 35874-12000)
     ax.plot(err, color='blue', label='Normal')
     # ax.scatter(b, err[35774-12000:35874-12000], color='green', label = 'Real anomaly')
