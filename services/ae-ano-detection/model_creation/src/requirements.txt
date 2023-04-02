@@ -6,3 +6,4 @@ scikit-learn==1.2.1
 tensorflow==2.9.0
 dvc[s3]==2.10.2
 awscli==1.27.86
+boto3==1.24.59
