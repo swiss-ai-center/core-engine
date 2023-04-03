@@ -1,2 +1,2 @@
 # Check parent `.gitignore` file for complete ignored files
-model/ae_model.h5
+ae_model.h5

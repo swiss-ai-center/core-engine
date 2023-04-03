@@ -14,8 +14,7 @@ RUN pip install --requirement requirements.txt
 COPY src src
 
 # Copy model
-RUN mkdir -p ./model
-COPY model/ae_model.h5 ./model/ae_model.h5
+COPY ae_model.h5 .
 
 # Environment variables
 ENV ENVIRONMENT=${ENVIRONMENT}
