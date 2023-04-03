@@ -1,0 +1,17 @@
+stages:
+  train:
+    cmd: python src/create_model.py --dataset data/train.txt
+    deps:
+    - data/train.txt
+    - src/create_model.py
+    outs:
+    - graph/training_loss.png
+    - model/ae_model.h5
+  test:
+    cmd: python src/test_model.py --model model/ae_model.h5 --test_dataset data/test.txt
+    deps:
+    - data/test.txt
+    - model/ae_model.h5
+    - src/test_model.py
+    outs:
+    - graph/result.png
