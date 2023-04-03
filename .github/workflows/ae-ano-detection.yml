@@ -53,7 +53,7 @@ jobs:
       - name: Build and push Docker image to GitHub
         id: build-and-push-docker-image-to-github
         # Only run on main
-#        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/build-and-push-docker-image-to-github
         with:
           docker-registry-username: ${{ github.actor }}
@@ -63,7 +63,7 @@ jobs:
 
       - name: Prepare configuration files
         # Only run on main
-#        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         shell: bash
         working-directory: services/ae-ano-detection/model_serving/kubernetes
         env:
@@ -82,7 +82,7 @@ jobs:
 
       - name: Deploy ae-ano-detection on the Kubernetes cluster
         # Only run on main
-#        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
           kube-config: ${{ secrets.KUBE_CONFIG }}
