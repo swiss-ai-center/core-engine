@@ -29,16 +29,16 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v3
 
-#      - name: Run ML experiment with DVC
-#        uses: ./.github/actions/run-ml-experiment-with-dvc
-#        with:
-#          ml-experiment-path: ./services/ae-ano-detection/model_creation
-#          aws-access-key-id: ${{ secrets.ae-ano-detection_AWS_ACCESS_KEY_ID }}
-#          aws-secret-access-key: ${{ secrets.ae-ano-detection_AWS_SECRET_ACCESS_KEY }}
-#
-#      - name: Move the model to model_serving directory
-#        shell: bash
-#        run: mv ./services/ae-ano-detection/{model_creation,model_serving}/mnist_model.h5
+      - name: Run ML experiment with DVC
+        uses: ./.github/actions/run-ml-experiment-with-dvc
+        with:
+          ml-experiment-path: ./services/ae-ano-detection/model_creation
+          aws-access-key-id: ${{ secrets.DIGIT_RECOGNITION_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DIGIT_RECOGNITION_AWS_SECRET_ACCESS_KEY }}
+
+      - name: Move the model to model_serving directory
+        shell: bash
+        run: mv ./services/ae-ano-detection/{model_creation,model_serving}/model/ae_model.h5
 
       - name: Lint Python app
         uses: ./.github/actions/lint-python-app

@@ -49,42 +49,31 @@ class MyService(Service):
                 FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_PNG]),
             ]
         )
+        self.model = tf.keras.models.load_model("../model/ae_model.h5")
 
     async def process(self, data):
-        # NOTE that the data is a dictionary with the keys being the field names set in the data_in_fields
-        # raw = data["image"]
-        # ... do something with the raw data
         raw = str(data["text"].data)[2:-1]
         raw = raw.replace('\\t', ',').replace('\\n', '\n').replace('\\r', '\n')
-        df = pd.read_csv(io.StringIO(raw), names=["value"], dtype={"value": np.float64})
-        # df.index = pd.to_datetime(df.index)
-        # esd_ad = GeneralizedESDTestAD(alpha=0.3)
-        # anomalies = esd_ad.fit_detect(df["value"])
-        # condition = anomalies == True
-        X_train = df[0:12000].to_numpy()
-        X_test = df[12000:].to_numpy()
-        # indexes = anomalies.index[condition]
-        # result = indexes.strftime("%Y-%m-%d %H:%M:%S.%f").tolist()
-        autoencoder = self.train_model(X_train)
+        X_test = pd.read_csv(io.StringIO(raw), dtype={"value": np.float64})
+
         # Use the model to reconstruct the original time series data
-        reconstructed_X = autoencoder.predict(X_test)
+        reconstructed_X = self.model.predict(X_test)
 
         # Calculate the reconstruction error for each point in the time series
         reconstruction_error = np.square(X_test - reconstructed_X).mean(axis=1)
 
-        err = pd.DataFrame(X_test)
+        err = X_test
         fig, ax = plt.subplots(figsize=(20, 6))
 
-        a = err.loc[reconstruction_error >= np.max(reconstruction_error)][0]  # anomaly
-        # b = np.arange(35774-12000, 35874-12000)
+        a = err.loc[reconstruction_error >= np.max(reconstruction_error)]  # anomaly
+
         ax.plot(err, color='blue', label='Normal')
-        # ax.scatter(b, err[35774-12000:35874-12000], color='green', label = 'Real anomaly')
+
         ax.scatter(a.index, a, color='red', label='Anomaly')
         plt.legend()
         buf = io.BytesIO()
         plt.savefig(buf, format='png')
         buf.seek(0)
-        # print(a)
 
         # task["result"] = {"image": buf.read()}
 
@@ -93,33 +82,33 @@ class MyService(Service):
             "result": TaskData(data=buf.read(), type=FieldDescriptionType.IMAGE_PNG)
         }
 
-    def train_model(self, X_train):
-        # Preprocess the data (e.g., scale the data, create train/test splits)
-
-        # Define the input layer
-        input_layer = tf.keras.layers.Input(shape=(X_train.shape[1],))
-
-        # Define the encoding layers
-        encoded = tf.keras.layers.Dense(32, activation='relu')(input_layer)
-        encoded = tf.keras.layers.Dense(16, activation='relu')(encoded)
-
-        # Define the decoding layers
-        decoded = tf.keras.layers.Dense(16, activation='relu')(encoded)
-        decoded = tf.keras.layers.Dense(32, activation='relu')(decoded)
-
-        # Define the output layer
-        output_layer = tf.keras.layers.Dense(X_train.shape[1])(decoded)
-
-        # Create the autoencoder model
-        autoencoder = tf.keras.models.Model(input_layer, output_layer)
-
-        # Compile the model
-        autoencoder.compile(optimizer='adam', loss='mean_squared_error')
-
-        # Fit the model to the time series data
-        autoencoder.fit(X_train, X_train, epochs=10, batch_size=32)
-
-        return autoencoder
+    # def train_model(self, X_train):
+    #     # Preprocess the data (e.g., scale the data, create train/test splits)
+    #
+    #     # Define the input layer
+    #     input_layer = tf.keras.layers.Input(shape=(X_train.shape[1],))
+    #
+    #     # Define the encoding layers
+    #     encoded = tf.keras.layers.Dense(32, activation='relu')(input_layer)
+    #     encoded = tf.keras.layers.Dense(16, activation='relu')(encoded)
+    #
+    #     # Define the decoding layers
+    #     decoded = tf.keras.layers.Dense(16, activation='relu')(encoded)
+    #     decoded = tf.keras.layers.Dense(32, activation='relu')(decoded)
+    #
+    #     # Define the output layer
+    #     output_layer = tf.keras.layers.Dense(X_train.shape[1])(decoded)
+    #
+    #     # Create the autoencoder model
+    #     autoencoder = tf.keras.models.Model(input_layer, output_layer)
+    #
+    #     # Compile the model
+    #     autoencoder.compile(optimizer='adam', loss='mean_squared_error')
+    #
+    #     # Fit the model to the time series data
+    #     autoencoder.fit(X_train, X_train, epochs=10, batch_size=32)
+    #
+    #     return autoencoder
 
 
 api_description = """
@@ -166,6 +155,7 @@ app.add_middleware(
 @app.get("/", include_in_schema=False)
 async def root():
     return RedirectResponse("/docs", status_code=301)
+
 
 service_service: ServiceService | None = None
 
