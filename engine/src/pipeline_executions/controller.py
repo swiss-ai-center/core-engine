@@ -4,7 +4,7 @@ from common.exceptions import NotFoundException, UnprocessableEntityException
 from pipeline_executions.service import PipelineExecutionsService
 from common.query_parameters import SkipAndLimit
 from pipeline_executions.models import PipelineExecution, PipelineExecutionRead, PipelineExecutionUpdate, \
-    PipelineExecutionCreate
+    PipelineExecutionCreate, PipelineExecutionReadWithPipelineAndTasks
 from uuid import UUID
 
 router = APIRouter()
@@ -18,7 +18,7 @@ router = APIRouter()
         400: {"detail": "Bad Request"},
         500: {"detail": "Internal Server Error"},
     },
-    response_model=PipelineExecutionRead,
+    response_model=PipelineExecutionReadWithPipelineAndTasks,
 )
 def get_one(
         pipeline_execution_id: UUID,
@@ -34,7 +34,7 @@ def get_one(
 @router.get(
     "/pipeline-executions",
     summary="Get many pipeline executions",
-    response_model=List[PipelineExecutionRead],
+    response_model=List[PipelineExecutionReadWithPipelineAndTasks],
 )
 def get_many_pipelines(
         skip_and_limit: SkipAndLimit = Depends(),

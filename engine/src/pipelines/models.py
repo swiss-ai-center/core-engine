@@ -1,63 +1,49 @@
 from typing import List
-from sqlmodel import Field, SQLModel, Relationship, Column, JSON
-from common.models import CoreModel
+from sqlmodel import Field, SQLModel, Relationship
 from uuid import UUID, uuid4
-from common_code.common.models import FieldDescription
-from pipelines.enums import PipelineStatus
+from execution_units.models import ExecutionUnit
+from execution_units.enums import ExecutionUnitStatus
+from pipeline_steps.models import PipelineStep, PipelineStepCreate
 
 
-class PipelineBase(CoreModel):
-    """
-    Base class for Pipeline
-    This model is used in subclasses
-    """
-    name: str = Field(nullable=False)
-    slug: str = Field(nullable=False, unique=True)
-    summary: str = Field(nullable=False)
-    description: str | None = Field(default=None, nullable=True)
-    status: PipelineStatus = Field(default=PipelineStatus.AVAILABLE, nullable=False)
-    data_in_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
-    data_out_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
-
-    # Needed for Column(JSON) to work
-    class Config:
-        arbitrary_types_allowed = True
-
-
-class Pipeline(PipelineBase, table=True):
+class Pipeline(ExecutionUnit, table=True):
     """
     Pipeline model
     This model is the one that is stored in the database
     """
     __tablename__ = "pipelines"
+    __table_args__ = {"extend_existing": True}
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-    pipeline_elements: List["PipelineElement"] = Relationship(back_populates="pipeline") # noqa F821
+    steps: List[PipelineStep] = Relationship(back_populates="pipeline") # noqa F821
     pipeline_executions: List["PipelineExecution"] = Relationship(back_populates="pipeline") # noqa F821
 
+    __mapper_args__ = {
+        "polymorphic_identity": "pipeline",
+    }
 
-class PipelineRead(PipelineBase):
+
+class PipelineRead(ExecutionUnit):
     """
     Pipeline read model
     This model is used to return a pipeline to the user
     """
-    id: UUID
+    pass
 
 
-class PipelineReadWithPipelineElementsAndTasks(PipelineRead):
+class PipelineReadWithPipelineStepsAndTasks(PipelineRead):
     """
     Pipeline read model with service
     This model is used to return a pipeline to the user with the service
     """
-    pipeline_elements: "List[PipelineElement]"
+    steps: List[PipelineStep]
 
 
-class PipelineCreate(PipelineBase):
+class PipelineCreate(ExecutionUnit):
     """
     Pipeline create model
     This model is used to create a pipeline
     """
-    pipeline_elements: "List[PipelineElementCreate]"
+    steps: List[PipelineStepCreate]
 
 
 class PipelineUpdate(SQLModel):
@@ -68,11 +54,9 @@ class PipelineUpdate(SQLModel):
     name: str | None
     summary: str | None
     description: str | None
-    status: PipelineStatus | None
+    status: ExecutionUnitStatus | None
+    steps: List[PipelineStepCreate] | None
 
 
-from pipeline_elements.models import PipelineElement, PipelineElementCreate # noqa E402
+from pipeline_executions.models import PipelineExecution # noqa E402
 Pipeline.update_forward_refs()
-PipelineBase.update_forward_refs()
-PipelineCreate.update_forward_refs(pipeline_elements=List[PipelineElementCreate])
-PipelineReadWithPipelineElementsAndTasks.update_forward_refs(pipeline_elements=List[PipelineElement])

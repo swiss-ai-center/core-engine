@@ -1,12 +1,12 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
-from common.exceptions import NotFoundException
+from common.exceptions import NotFoundException, InconsistentPipelineException
 from pipelines.service import PipelinesService
 from common.query_parameters import SkipAndLimit
 from pipelines.models import PipelineRead, PipelineUpdate, PipelineCreate, Pipeline, \
-    PipelineReadWithPipelineElementsAndTasks
-from uuid import UUID
-from pipeline_elements.service import PipelineElementsService
+    PipelineReadWithPipelineStepsAndTasks
+from pipeline_steps.models import PipelineStep
+from uuid import UUID, uuid4
 
 router = APIRouter()
 
@@ -19,7 +19,7 @@ router = APIRouter()
         400: {"detail": "Bad Request"},
         500: {"detail": "Internal Server Error"},
     },
-    response_model=PipelineReadWithPipelineElementsAndTasks,
+    response_model=PipelineReadWithPipelineStepsAndTasks,
 )
 def get_one(
         pipeline_id: UUID,
@@ -49,19 +49,28 @@ def get_many_pipelines(
 @router.post(
     "/pipelines",
     summary="Create a pipeline",
-    response_model=PipelineReadWithPipelineElementsAndTasks,
+    responses={
+        400: {"detail": "Bad Request"},
+        500: {"detail": "Internal Server Error"},
+    },
+    response_model=PipelineReadWithPipelineStepsAndTasks,
 )
 def create(
-    pipeline: PipelineCreate,
-    pipelines_service: PipelinesService = Depends(),
-    pipeline_elements_service: PipelineElementsService = Depends(),
+        pipeline: PipelineCreate,
+        pipelines_service: PipelinesService = Depends(),
 ):
-    pipeline_elements = []
-    for pipeline_element_id in pipeline.pipeline_elements:
-        pipeline_elements.append(pipeline_elements_service.find_one(pipeline_element_id))
-    pipeline_create = Pipeline.from_orm(pipeline)
-    pipeline_create.pipeline_elements = pipeline_elements
-    pipeline = pipelines_service.create(pipeline_create)
+
+    try:
+        # pipeline_steps = pipeline.steps
+        # pipeline_create = Pipeline.from_orm(pipeline)
+        # # We need to add the steps to the pipeline before creating it because the orm removed them since they are not
+        # # The same type as in the model
+        # print(pipeline_steps)
+        # pipeline_create.steps = pipeline_steps
+        # print(pipeline_create)
+        pipeline = pipelines_service.create(pipeline)
+    except InconsistentPipelineException as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     return pipeline
 
@@ -73,7 +82,7 @@ def create(
         404: {"detail": "Pipeline Not Found"},
         500: {"detail": "Internal Server Error"},
     },
-    response_model=PipelineReadWithPipelineElementsAndTasks,
+    response_model=PipelineReadWithPipelineStepsAndTasks,
 )
 def update(
         pipeline_id: UUID,
@@ -112,6 +121,7 @@ def delete(
     "/pipeline/check",
     summary="Check if a pipeline is valid",
     responses={
+        200: {"valid": True},
         400: {"detail": "Bad Request"},
         500: {"detail": "Internal Server Error"},
     }
@@ -121,7 +131,30 @@ def check(
         pipelines_service: PipelinesService = Depends(),
 ):
     try:
-        if pipelines_service.check_pipeline_consistency(pipeline):
+        new_pipeline_id = uuid4()
+        new_steps = []
+        for step in pipeline.steps:
+            new_step = PipelineStep(
+                identifier=step.identifier,
+                needs=step.needs,
+                condition=step.condition,
+                inputs=step.inputs,
+                execution_unit_id=step.execution_unit_id,
+                pipeline_id=new_pipeline_id,
+            )
+            new_steps.append(new_step)
+
+        new_pipeline = Pipeline(
+            id=new_pipeline_id,
+            name=pipeline.name,
+            description=pipeline.description,
+            summary=pipeline.summary,
+            steps=new_steps,
+            data_in_fields=pipeline.data_in_fields,
+            data_out_fields=pipeline.data_out_fields,
+        )
+
+        if pipelines_service.check_pipeline_consistency(new_pipeline):
             return {"valid": True}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -2,55 +2,34 @@ import re
 from typing import List
 from uuid import UUID, uuid4
 from pydantic import BaseModel, AnyHttpUrl
-from pydantic.class_validators import validator
-from sqlmodel import Field, SQLModel, Column, JSON, Relationship
-from common.models import CoreModel
+from sqlmodel import Field, SQLModel, Relationship
 from common_code.common.models import FieldDescription
 from common_code.service.enums import ServiceStatus
+from execution_units.models import ExecutionUnit
 
 
-class ServiceBase(CoreModel):
-    """
-    Base class for Service
-    This model is used in subclasses
-    """
-    name: str = Field(nullable=False)
-    slug: str = Field(nullable=False, unique=True)
-    url: AnyHttpUrl = Field(nullable=False)
-    summary: str = Field(nullable=False)
-    description: str | None = Field(default=None, nullable=True)
-    status: ServiceStatus = Field(default=ServiceStatus.AVAILABLE, nullable=False)
-    data_in_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
-    data_out_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
-
-    @validator("slug")
-    def slug_format(cls, v):
-        if not re.match(r"[a-z\-]+", v):
-            raise ValueError("Slug must be in kebab-case format. Example: my-service")
-        return v
-
-    # Needed for Column(JSON) to work
-    class Config:
-        arbitrary_types_allowed = True
-
-
-class Service(ServiceBase, table=True):
+class Service(ExecutionUnit, table=True):
     """
     Service model
     This model is the one that is stored in the database
     """
     __tablename__ = "services"
+    __table_args__ = {"extend_existing": True}
 
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    url: AnyHttpUrl = Field(nullable=False)
     tasks: List["Task"] = Relationship(back_populates="service") # noqa F821
 
+    __mapper_args__ = {
+        "polymorphic_identity": "service",
+    }
 
-class ServiceRead(ServiceBase):
+
+class ServiceRead(ExecutionUnit):
     """
     Service read model
     This model is used to return a service to the user
     """
-    id: UUID
+    pass
 
 
 class ServiceReadWithTasks(ServiceRead):
@@ -61,7 +40,7 @@ class ServiceReadWithTasks(ServiceRead):
     tasks: "List[TaskRead]"
 
 
-class ServiceCreate(ServiceBase):
+class ServiceCreate(ExecutionUnit):
     """
     Service create model
     This model is used to create a service

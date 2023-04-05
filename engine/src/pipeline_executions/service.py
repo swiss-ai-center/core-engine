@@ -3,7 +3,7 @@ from sqlmodel import Session, select, desc
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from uuid import UUID
-from pipeline_elements.models import PipelineElement
+from pipeline_steps.models import PipelineStep
 from pipeline_executions.models import PipelineExecution, PipelineExecutionUpdate
 from common.exceptions import NotFoundException, UnprocessableEntityException
 from pipelines.models import Pipeline
@@ -74,16 +74,16 @@ class PipelineExecutionsService:
         current_pipeline_execution = self.session.get(PipelineExecution, pipeline_execution_id)
 
         if not current_pipeline_execution:
-            raise NotFoundException("Pipeline Element Not Found")
+            raise NotFoundException("Pipeline Step Not Found")
 
-        # Check if the pipeline element is in the pipeline object
-        current_pipeline_element = self.session.get(PipelineElement, pipeline_execution.pipeline_element)
-        if current_pipeline_element is not None:
-            pipeline = self.session.get(Pipeline, current_pipeline_element.pipeline_id)
+        # Check if the pipeline step is in the pipeline object
+        current_pipeline_step = self.session.get(PipelineStep, pipeline_execution.current_pipeline_step_id)
+        if current_pipeline_step is not None:
+            pipeline = self.session.get(Pipeline, current_pipeline_step.pipeline_id)
             if not pipeline:
                 raise NotFoundException("Associated Pipeline Not Found")
-            if current_pipeline_element not in pipeline.pipeline_elements:
-                raise UnprocessableEntityException("Pipeline element not part of the pipeline")
+            if current_pipeline_step not in pipeline.steps:
+                raise UnprocessableEntityException("Pipeline step not part of the pipeline")
 
         pipeline_execution_data = pipeline_execution.dict(exclude_unset=True)
         self.logger.debug(f"Updating pipeline execution {pipeline_execution_id} with data: {pipeline_execution_data}")
@@ -103,7 +103,7 @@ class PipelineExecutionsService:
         self.logger.debug("Delete pipeline execution")
         pipeline_execution = self.session.get(PipelineExecution, pipeline_execution_id)
         if not pipeline_execution:
-            raise NotFoundException("Pipeline Element Not Found")
+            raise NotFoundException("Pipeline Step Not Found")
         self.session.delete(pipeline_execution)
         self.session.commit()
         self.logger.debug(f"Deleted pipeline execution with id {pipeline_execution.id}")
