@@ -30,10 +30,15 @@ class ExecutionUnit(ExecutionUnitBase, table=True):
     """
     __tablename__ = "execution_units"
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    type: ExecutionUnitType = Field(nullable=False)
-    pipeline_steps: List["PipelineStep"] = Relationship(back_populates="execution_units")  # noqa F821
+    pipeline_steps: List["PipelineStep"] = Relationship(back_populates="execution_unit")  # noqa F821
+    unit_type: ExecutionUnitType = Field(nullable=False)
 
     __mapper_args__ = {
-        "polymorphic_identity": "execution_unit",
-        "polymorphic_on": "type"
+        "polymorphic_identity": ExecutionUnitType.EXECUTION_UNIT,
+        "polymorphic_on": "unit_type",
     }
+
+
+from pipeline_steps.models import PipelineStep  # noqa E402
+
+ExecutionUnit.update_forward_refs()

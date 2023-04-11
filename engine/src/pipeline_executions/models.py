@@ -61,8 +61,9 @@ class PipelineExecutionUpdate(SQLModel):
     tasks: List["Task"] | None
 
 
-from tasks.models import Task, TaskRead # noqa F401
-from pipelines.models import Pipeline # noqa F401
+from tasks.models import Task, TaskRead  # noqa F401
+from pipelines.models import Pipeline  # noqa F401
+
 PipelineExecution.update_forward_refs()
 PipelineExecutionReadWithPipelineAndTasks.update_forward_refs(tasks=List[TaskRead], pipeline=Pipeline)
 PipelineExecutionUpdate.update_forward_refs(tasks=List[Task])

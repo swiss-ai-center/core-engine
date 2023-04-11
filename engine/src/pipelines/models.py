@@ -1,28 +1,35 @@
 from typing import List
-from sqlmodel import Field, SQLModel, Relationship
-from uuid import UUID, uuid4
-from execution_units.models import ExecutionUnit
-from execution_units.enums import ExecutionUnitStatus
+from uuid import UUID
+from sqlmodel import SQLModel, Relationship, Field
+from execution_units.models import ExecutionUnitBase
+from execution_units.enums import ExecutionUnitStatus, ExecutionUnitType
 from pipeline_steps.models import PipelineStep, PipelineStepCreate
 
 
-class Pipeline(ExecutionUnit, table=True):
+class PipelineBase(ExecutionUnitBase):
+    """
+    Base class for Pipeline
+    This model is used in subclasses
+    """
+    pass
+
+
+class Pipeline(PipelineBase, table=True):
     """
     Pipeline model
     This model is the one that is stored in the database
     """
     __tablename__ = "pipelines"
-    __table_args__ = {"extend_existing": True}
-
-    steps: List[PipelineStep] = Relationship(back_populates="pipeline") # noqa F821
-    pipeline_executions: List["PipelineExecution"] = Relationship(back_populates="pipeline") # noqa F821
+    id: UUID = Field(primary_key=True, foreign_key="execution_units.id")
+    pipeline_executions: List["PipelineExecution"] = Relationship(back_populates="pipeline")  # noqa F821
+    steps: List[PipelineStep] = Relationship(back_populates="pipeline")  # noqa F821
 
     __mapper_args__ = {
-        "polymorphic_identity": "pipeline",
+        "polymorphic_identity": ExecutionUnitType.PIPELINE
     }
 
 
-class PipelineRead(ExecutionUnit):
+class PipelineRead(PipelineBase):
     """
     Pipeline read model
     This model is used to return a pipeline to the user
@@ -38,7 +45,7 @@ class PipelineReadWithPipelineStepsAndTasks(PipelineRead):
     steps: List[PipelineStep]
 
 
-class PipelineCreate(ExecutionUnit):
+class PipelineCreate(PipelineBase):
     """
     Pipeline create model
     This model is used to create a pipeline
@@ -58,5 +65,6 @@ class PipelineUpdate(SQLModel):
     steps: List[PipelineStepCreate] | None
 
 
-from pipeline_executions.models import PipelineExecution # noqa E402
+from pipeline_executions.models import PipelineExecution  # noqa E402
+
 Pipeline.update_forward_refs()

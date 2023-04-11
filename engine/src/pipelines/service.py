@@ -195,12 +195,12 @@ class PipelinesService:
 
         # Create the graph structure with the nodes and predecessors
         graph = {}
-        referenced_steps = []
+        # referenced_steps = []
         self.logger.debug(f"STEPS: {steps}")
         for step in steps:
             identifier = step.identifier
             needs = step.needs
-            inputs = step.inputs
+            # inputs = step.inputs
 
             # dot.node(identifier)
             #

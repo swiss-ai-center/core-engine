@@ -10,3 +10,4 @@ class ExecutionUnitStatus(Enum):
 class ExecutionUnitType(Enum):
     PIPELINE = "pipeline"
     SERVICE = "service"
+    EXECUTION_UNIT = "execution_unit"
