@@ -1,26 +1,19 @@
 from typing import List
-from uuid import UUID, uuid4
+from uuid import UUID
 from sqlmodel import SQLModel, Relationship, Field
-from execution_units.models import ExecutionUnitBase
+from execution_units.models import ExecutionUnit
 from execution_units.enums import ExecutionUnitStatus, ExecutionUnitType
 from pipeline_steps.models import PipelineStep, PipelineStepCreate
 
 
-class PipelineBase(ExecutionUnitBase):
-    """
-    Base class for Pipeline
-    This model is used in subclasses
-    """
-    pass
-
-
-class Pipeline(PipelineBase, table=True):
+class Pipeline(ExecutionUnit):
     """
     Pipeline model
     This model is the one that is stored in the database
     """
     __tablename__ = "pipelines"
-    id: UUID = Field(default_factory=uuid4, primary_key=True, foreign_key="execution_units.id")
+
+    id: UUID = Field(foreign_key="execution_units.id", primary_key=True)
     pipeline_executions: List["PipelineExecution"] = Relationship(back_populates="pipeline")  # noqa F821
     steps: List[PipelineStep] = Relationship(back_populates="pipeline")  # noqa F821
 
@@ -29,7 +22,7 @@ class Pipeline(PipelineBase, table=True):
     }
 
 
-class PipelineRead(PipelineBase):
+class PipelineRead(Pipeline):
     """
     Pipeline read model
     This model is used to return a pipeline to the user
@@ -45,7 +38,7 @@ class PipelineReadWithPipelineStepsAndTasks(PipelineRead):
     steps: List[PipelineStep]
 
 
-class PipelineCreate(PipelineBase):
+class PipelineCreate(Pipeline):
     """
     Pipeline create model
     This model is used to create a pipeline

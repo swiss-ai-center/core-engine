@@ -5,8 +5,6 @@ from sqlmodel import Field, Relationship, Column, JSON
 from common.models import CoreModel
 from uuid import UUID, uuid4
 
-from execution_units.models import ExecutionUnit
-
 
 class PipelineStepBase(CoreModel):
     """
@@ -17,7 +15,9 @@ class PipelineStepBase(CoreModel):
     needs: List[str] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
     condition: str | None = Field(default=None, nullable=True)
     inputs: List[str] = Field(sa_column=Column(JSON), nullable=False)
-    execution_unit_id: UUID = Field(nullable=False, foreign_key="execution_units.id")
+    pipeline_id: UUID = Field(nullable=False, foreign_key="pipelines.id")
+
+    # execution_unit_id: UUID = Field(nullable=False, foreign_key="execution_units.id")
 
     @validator("identifier")
     def identifier_format(cls, v):
@@ -40,12 +40,11 @@ class PipelineStep(
     __tablename__ = "pipeline_steps"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    pipeline_id: UUID = Field(nullable=False, foreign_key="pipelines.id")
     pipeline: "Pipeline" = Relationship(back_populates="steps")
     pipeline_executions: List["PipelineExecution"] = Relationship(
         back_populates="current_pipeline_step"
     )  # noqa F821
-    execution_unit: "ExecutionUnit" = Relationship(back_populates="pipeline_steps")  # noqa F821
+    # execution_unit: "ExecutionUnit" = Relationship(back_populates="pipeline_steps")  # noqa F821
 
 
 class PipelineStepRead(PipelineStepBase):
@@ -73,6 +72,7 @@ class PipelineStepUpdate(PipelineStepBase):
     pass
 
 
-from pipelines.models import Pipeline # noqa F401
-from pipeline_executions.models import PipelineExecution # noqa F401
+from pipelines.models import Pipeline  # noqa F401
+from pipeline_executions.models import PipelineExecution  # noqa F401
+
 PipelineStep.update_forward_refs(pipeline=Pipeline, pipeline_executions=PipelineExecution)
