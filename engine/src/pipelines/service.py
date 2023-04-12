@@ -71,6 +71,7 @@ class PipelinesService:
                 needs=pipeline_step.needs,
                 condition=pipeline_step.condition,
                 inputs=pipeline_step.inputs,
+                execution_unit_id=pipeline_step.execution_unit_id,
             )
             pipeline_step_create = PipelineStep.from_orm(new_pipeline_step)
             pipeline_steps.append(pipeline_step_create)

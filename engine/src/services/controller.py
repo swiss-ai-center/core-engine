@@ -1,9 +1,10 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request
 from common.exceptions import NotFoundException, ConflictException
+from execution_units.enums import ExecutionUnitStatus
 from services.service import ServicesService
 from common.query_parameters import SkipAndLimit
-from services.models import ServiceRead, ServiceUpdate, ServiceCreate, Service, ServiceReadWithTasks, ServiceStatus
+from services.models import ServiceRead, ServiceUpdate, ServiceCreate, Service, ServiceReadWithTasks
 from uuid import UUID
 
 router = APIRouter()
@@ -84,7 +85,7 @@ def update(
 ):
     try:
         service = services_service.update(service_id, service_update)
-        if service.status == ServiceStatus.AVAILABLE:
+        if service.status == ExecutionUnitStatus.AVAILABLE:
             services_service.enable_service(request.app, service)
         else:
             services_service.disable_service(request.app, service)

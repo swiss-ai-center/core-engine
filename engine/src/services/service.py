@@ -3,6 +3,8 @@ from fastapi import FastAPI, UploadFile, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from makefun import with_signature
 from uuid import UUID
+
+from execution_units.enums import ExecutionUnitStatus
 from storage.service import StorageService
 from tasks.service import TasksService
 from tasks.models import Task, TaskReadWithServiceAndPipeline
@@ -10,7 +12,6 @@ from sqlmodel import Session, select, desc
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from config import Settings, get_settings
-from common_code.service.enums import ServiceStatus
 from services.models import Service, ServiceUpdate, ServiceTask
 from common.exceptions import NotFoundException, ConflictException, UnreachableException
 from http_client import HttpClient
@@ -144,7 +145,7 @@ class ServicesService:
         self.logger.info(f"Enabling service {service.name}")
 
         # Set the service as available
-        updated_service = self.update(service.id, ServiceUpdate(status=ServiceStatus.AVAILABLE))
+        updated_service = self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.AVAILABLE))
 
         self.logger.debug(f"Service {service.name} status set to {updated_service.status.value}")
 
@@ -311,7 +312,7 @@ class ServicesService:
         self.logger.info(f"Disabling service {service.name}")
 
         # Set the service as unavailable
-        updated_service = self.update(service.id, ServiceUpdate(status=ServiceStatus.UNAVAILABLE))
+        updated_service = self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.UNAVAILABLE))
 
         self.logger.debug(f"Service {service.name} status set to {updated_service.status.value}")
 

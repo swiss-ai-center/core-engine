@@ -1,10 +1,9 @@
 from typing import List
-from uuid import UUID
+from uuid import UUID, uuid4
 from pydantic import BaseModel, AnyHttpUrl
 from sqlmodel import Field, SQLModel, Relationship
 from common_code.common.models import FieldDescription
-from common_code.service.enums import ServiceStatus
-from execution_units.enums import ExecutionUnitType
+from execution_units.enums import ExecutionUnitType, ExecutionUnitStatus
 from execution_units.models import ExecutionUnitBase
 
 
@@ -22,7 +21,7 @@ class Service(ServiceBase, table=True):
     This model is the one that is stored in the database
     """
     __tablename__ = "services"
-    id: UUID = Field(primary_key=True, foreign_key="execution_units.id")
+    id: UUID = Field(default_factory=uuid4, primary_key=True, foreign_key="execution_units.id")
     tasks: List["Task"] = Relationship(back_populates="service")  # noqa F821
 
     __mapper_args__ = {
@@ -35,7 +34,7 @@ class ServiceRead(ServiceBase):
     Service read model
     This model is used to return a service to the user
     """
-    pass
+    id: UUID
 
 
 class ServiceReadWithTasks(ServiceRead):
@@ -64,7 +63,7 @@ class ServiceUpdate(SQLModel):
     url: AnyHttpUrl | None
     summary: str | None
     description: str | None
-    status: ServiceStatus | None
+    status: ExecutionUnitStatus | None
     data_in_fields: List[FieldDescription] | None
     data_out_fields: List[FieldDescription] | None
 

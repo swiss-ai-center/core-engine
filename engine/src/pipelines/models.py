@@ -1,5 +1,5 @@
 from typing import List
-from uuid import UUID
+from uuid import UUID, uuid4
 from sqlmodel import SQLModel, Relationship, Field
 from execution_units.models import ExecutionUnitBase
 from execution_units.enums import ExecutionUnitStatus, ExecutionUnitType
@@ -20,7 +20,7 @@ class Pipeline(PipelineBase, table=True):
     This model is the one that is stored in the database
     """
     __tablename__ = "pipelines"
-    id: UUID = Field(primary_key=True, foreign_key="execution_units.id")
+    id: UUID = Field(default_factory=uuid4, primary_key=True, foreign_key="execution_units.id")
     pipeline_executions: List["PipelineExecution"] = Relationship(back_populates="pipeline")  # noqa F821
     steps: List[PipelineStep] = Relationship(back_populates="pipeline")  # noqa F821
 
@@ -34,7 +34,7 @@ class PipelineRead(PipelineBase):
     Pipeline read model
     This model is used to return a pipeline to the user
     """
-    pass
+    id: UUID
 
 
 class PipelineReadWithPipelineStepsAndTasks(PipelineRead):
