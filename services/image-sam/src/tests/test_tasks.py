@@ -24,20 +24,24 @@ def get_generated_masks(w: int, h: int):
 
 
 @pytest.fixture(name="data", autouse=True)
-def process_input_data(monkeypatch):
+def process_input_data(monkeypatch: pytest.MonkeyPatch):
     data = {"image": None}
     img = cv2.imread("tests/test.jpg")
 
     monkeypatch.setitem(
-        segment_anything.sam_model_registry, "vit_b", lambda checkpoint: None
+        segment_anything.sam_model_registry,
+        "vit_b",
+        lambda checkpoint: None,  # noqa: F841
     )
     monkeypatch.setattr(
         "segment_anything.SamAutomaticMaskGenerator.__init__",
-        lambda self, sam: None,
+        lambda self, sam: None,  # noqa: F841
     )
     monkeypatch.setattr(
         "segment_anything.SamAutomaticMaskGenerator.generate",
-        lambda self, image: get_generated_masks(w=img.shape[1], h=img.shape[0]),
+        lambda self, image: get_generated_masks(  # noqa: F841
+            w=img.shape[1], h=img.shape[0]
+        ),
     )
 
     data["image"] = TaskData(

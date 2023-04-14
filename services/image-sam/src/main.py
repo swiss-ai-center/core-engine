@@ -18,7 +18,6 @@ from common_code.service.enums import ServiceStatus, FieldDescriptionType
 from common_code.tasks.service import get_extension
 
 # Imports required by the service's model
-import io
 import cv2
 import numpy as np
 from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
