@@ -47,7 +47,7 @@ def process_input_data(monkeypatch):
     return data
 
 
-def test_process(data: tuple):
+def test_process(data: dict[str, TaskData]):
     service = MyService()
 
     out = service.process(data)
