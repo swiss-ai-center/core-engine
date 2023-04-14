@@ -331,7 +331,7 @@ class MyService(Service):
         )
 
     # TODO: 5. CHANGE THE PROCESS METHOD (CORE OF THE SERVICE) (5)!
-    async def process(self, data):
+    def process(self, data):
         # NOTE that the data is a dictionary with the keys being the field names set in the data_in_fields
         raw = data["image"].data
         input_type = data["image"].type
