@@ -9,6 +9,20 @@ import segment_anything
 from main import MyService
 
 
+def get_generated_masks(w: int, h: int):
+    return [
+        {
+            "segmentation": np.zeros(shape=(h, w), dtype=bool),
+            "area": 100,
+            "bbox": [0, 0, 10, 10],
+            "predicted_iou": 1.0,
+            "point_coords": [[]],
+            "stability_score": 1.0,
+            "crop_box": [0, 0, w, h],
+        }
+    ]
+
+
 @pytest.fixture(name="data", autouse=True)
 def process_input_data(monkeypatch):
     data = {"image": None}
@@ -23,7 +37,7 @@ def process_input_data(monkeypatch):
     )
     monkeypatch.setattr(
         "segment_anything.SamAutomaticMaskGenerator.generate",
-        lambda self, image: get_masks(w=img.shape[1], h=img.shape[0]),
+        lambda self, image: get_generated_masks(w=img.shape[1], h=img.shape[0]),
     )
 
     data["image"] = TaskData(
@@ -33,22 +47,7 @@ def process_input_data(monkeypatch):
     return data
 
 
-def get_masks(w: int, h: int):
-    return [
-        {
-            "segmentation": np.zeros(shape=(h, w), dtype=bool),
-            "area": 100,
-            "bbox": [0, 0, 10, 10],
-            "predicted_iou": 1.0,
-            "point_coords": [[]],
-            "stability_score": 1.0,
-            "crop_box": [0, 0, w, h],
-        }
-    ]
-
-
-@pytest.mark.asyncio
-async def test_process(data: tuple):
+def test_process(data: tuple):
     service = MyService()
 
     out = service.process(data)
