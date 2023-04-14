@@ -39,5 +39,5 @@ class Service(BaseModel, metaclass=ABCMeta):
         return self.data_out_fields
 
     @abstractmethod
-    async def process(self, data):
+    def process(self, data):
         pass

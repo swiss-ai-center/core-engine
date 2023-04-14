@@ -175,7 +175,12 @@ class TasksService:
         TasksService.current_task.task.status = TaskStatus.PROCESSING
         self.logger.info(f"Processing task {TasksService.current_task.task.id}")
         try:
-            TasksService.current_task_data_out = await self.my_service.process(TasksService.current_task_data_in)
+            loop = asyncio.get_running_loop()
+            # Non-blocking process
+            task_future = loop.run_in_executor(
+                None, self.my_service.process, TasksService.current_task_data_in
+            )
+            TasksService.current_task_data_out = await task_future
         except Exception as e:
             self.logger.error(f"Failed to process image: {str(e)}")
             TasksService.current_task.task.status = TaskStatus.ERROR
