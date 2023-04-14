@@ -51,7 +51,7 @@ class MyService(Service):
         )
         self.model = tf.keras.models.load_model("../model/ae_model.h5")
 
-    async def process(self, data):
+    def process(self, data):
         raw = str(data["text"].data)[2:-1]
         raw = raw.replace('\\t', ',').replace('\\n', '\n').replace('\\r', '\n')
         X_test = pd.read_csv(io.StringIO(raw), dtype={"value": np.float64})

@@ -48,7 +48,7 @@ class MyService(Service):
             ]
         )
 
-    async def process(self, data):
+    def process(self, data):
         # Get raw image data
         raw = data["image"].data
         img = cv2.imdecode(np.frombuffer(raw, np.uint8), cv2.IMREAD_COLOR)
