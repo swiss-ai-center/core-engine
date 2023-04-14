@@ -1,3 +1,4 @@
+from typing import Dict
 import cv2
 import numpy as np
 import pytest
@@ -51,7 +52,7 @@ def process_input_data(monkeypatch: pytest.MonkeyPatch):
     return data
 
 
-def test_process(data: dict[str, TaskData]):
+def test_process(data: Dict[str, TaskData]):
     service = MyService()
 
     out = service.process(data)
