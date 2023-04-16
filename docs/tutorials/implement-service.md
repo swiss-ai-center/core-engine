@@ -672,3 +672,6 @@ The image should be rotated by 90 degrees.
 
 !!! success "Congratulations!"
     You have successfully created a service and tested it locally. Now, you can push the service to GitHub and deploy it on the engine using the workflow created in the previous section.
+
+
+

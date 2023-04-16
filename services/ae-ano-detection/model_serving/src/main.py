@@ -75,8 +75,6 @@ class MyService(Service):
         plt.savefig(buf, format='png')
         buf.seek(0)
 
-        # task["result"] = {"image": buf.read()}
-
         # NOTE that the result must be a dictionary with the keys being the field names set in the data_out_fields
         return {
             "result": TaskData(data=buf.read(), type=FieldDescriptionType.IMAGE_PNG)
