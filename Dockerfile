@@ -30,8 +30,11 @@ RUN python3 -m venv $POETRY_VENV \
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
 
 # Install Python dependencies
-WORKDIR /workspaces/a-guide-to-mlops
+WORKDIR /workspaces/csia-pme
 COPY poetry.lock .
 COPY pyproject.toml .
 
 RUN poetry install
+
+# Copy project
+COPY . .
