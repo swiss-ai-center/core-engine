@@ -38,7 +38,7 @@ jobs:
 
       - name: Move the model to model_serving directory
         shell: bash
-        run: mv ./services/ae-ano-detection/{model_creation,model_serving}/model/ae_model.h5
+        run: mv ./services/ae-ano-detection/model_creation/model/ae_model.h5 ./services/ae-ano-detection/model_serving/ae_model.h5
 
       - name: Lint Python app
         uses: ./.github/actions/lint-python-app

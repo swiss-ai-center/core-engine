@@ -13,6 +13,9 @@ RUN pip install --requirement requirements.txt
 # Copy sources
 COPY src src
 
+# Copy model
+COPY ae_model.h5 .
+
 # Environment variables
 ENV ENVIRONMENT=${ENVIRONMENT}
 ENV LOG_LEVEL=${LOG_LEVEL}

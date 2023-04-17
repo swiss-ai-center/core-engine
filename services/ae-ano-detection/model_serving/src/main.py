@@ -49,7 +49,7 @@ class MyService(Service):
                 FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_PNG]),
             ]
         )
-        self.model = tf.keras.models.load_model("../model/ae_model.h5")
+        self.model = tf.keras.models.load_model("../ae_model.h5")
 
     async def process(self, data):
         raw = str(data["text"].data)[2:-1]
@@ -81,34 +81,6 @@ class MyService(Service):
         return {
             "result": TaskData(data=buf.read(), type=FieldDescriptionType.IMAGE_PNG)
         }
-
-    # def train_model(self, X_train):
-    #     # Preprocess the data (e.g., scale the data, create train/test splits)
-    #
-    #     # Define the input layer
-    #     input_layer = tf.keras.layers.Input(shape=(X_train.shape[1],))
-    #
-    #     # Define the encoding layers
-    #     encoded = tf.keras.layers.Dense(32, activation='relu')(input_layer)
-    #     encoded = tf.keras.layers.Dense(16, activation='relu')(encoded)
-    #
-    #     # Define the decoding layers
-    #     decoded = tf.keras.layers.Dense(16, activation='relu')(encoded)
-    #     decoded = tf.keras.layers.Dense(32, activation='relu')(decoded)
-    #
-    #     # Define the output layer
-    #     output_layer = tf.keras.layers.Dense(X_train.shape[1])(decoded)
-    #
-    #     # Create the autoencoder model
-    #     autoencoder = tf.keras.models.Model(input_layer, output_layer)
-    #
-    #     # Compile the model
-    #     autoencoder.compile(optimizer='adam', loss='mean_squared_error')
-    #
-    #     # Fit the model to the time series data
-    #     autoencoder.fit(X_train, X_train, epochs=10, batch_size=32)
-    #
-    #     return autoencoder
 
 
 api_description = """
