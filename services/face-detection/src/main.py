@@ -50,7 +50,7 @@ class MyService(Service):
             ]
         )
 
-    async def process(self, data):
+    def process(self, data):
         # Get raw image data
         raw = data["image"].data
         buff = io.BytesIO(raw)

@@ -50,7 +50,7 @@ class MyService(Service):
 
         self.model = models.load_model("../mnist_model.h5")
 
-    async def process(self, data):
+    def process(self, data):
         # Get raw image data
         raw = data["image"].data
         # Convert to image object

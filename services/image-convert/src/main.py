@@ -48,7 +48,7 @@ class MyService(Service):
             ]
         )
 
-    async def process(self, data):
+    def process(self, data):
         # TODO: modify to accept any image format and convert to any image format
         raw = data["image"].data
         input_type = data["image"].type

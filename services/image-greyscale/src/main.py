@@ -47,7 +47,7 @@ class MyService(Service):
             ]
         )
 
-    async def process(self, data):
+    def process(self, data):
         raw = data["image"].data
         input_type = data["image"].type
         stream = io.BytesIO(raw)
