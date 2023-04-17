@@ -92,5 +92,6 @@ class ServiceTask(ServiceTaskBase):
 from tasks.models import Task, TaskRead  # noqa E402
 
 Service.update_forward_refs()
+ServiceTask.update_forward_refs()
 ServiceTaskBase.update_forward_refs(task=TaskRead)
 ServiceReadWithTasks.update_forward_refs(tasks=List[TaskRead])
