@@ -246,7 +246,8 @@ class TasksService:
             )
 
             self.logger.info(
-                f"Updating task {TasksService.current_task.task.id} on callback {self.current_task.callback_url}: {data}")
+                f"Updating task {TasksService.current_task.task.id} "
+                f"on callback {self.current_task.callback_url}: {data}")
 
             # Send the update to the engine
             await self.http_client.patch(self.current_task.callback_url, json=data)

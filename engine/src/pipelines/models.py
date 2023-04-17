@@ -1,28 +1,35 @@
 from typing import List
-from uuid import UUID
+from uuid import UUID, uuid4
 from sqlmodel import SQLModel, Relationship, Field
-from execution_units.models import ExecutionUnit
-from execution_units.enums import ExecutionUnitStatus, ExecutionUnitType
+from execution_units.models import ExecutionUnitBase
+from execution_units.enums import ExecutionUnitStatus
 from pipeline_steps.models import PipelineStep, PipelineStepCreate
 
 
-class Pipeline(ExecutionUnit):
+class PipelineBase(ExecutionUnitBase):
+    """
+    Base class for a Pipeline
+    This model is used in subclasses
+    """
+    pass
+
+
+class Pipeline(PipelineBase, table=True):
     """
     Pipeline model
     This model is the one that is stored in the database
     """
     __tablename__ = "pipelines"
 
-    id: UUID = Field(foreign_key="execution_units.id", primary_key=True)
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
     pipeline_executions: List["PipelineExecution"] = Relationship(back_populates="pipeline")  # noqa F821
-    steps: List[PipelineStep] = Relationship(back_populates="pipeline")  # noqa F821
+    steps: List[PipelineStep] = Relationship(
+        sa_relationship_kwargs={"cascade": "delete"},
+        back_populates="pipeline"
+    )  # noqa F821
 
-    __mapper_args__ = {
-        "polymorphic_identity": ExecutionUnitType.PIPELINE
-    }
 
-
-class PipelineRead(Pipeline):
+class PipelineRead(PipelineBase):
     """
     Pipeline read model
     This model is used to return a pipeline to the user
@@ -38,7 +45,7 @@ class PipelineReadWithPipelineStepsAndTasks(PipelineRead):
     steps: List[PipelineStep]
 
 
-class PipelineCreate(Pipeline):
+class PipelineCreate(PipelineBase):
     """
     Pipeline create model
     This model is used to create a pipeline

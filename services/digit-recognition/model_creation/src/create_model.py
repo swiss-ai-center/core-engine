@@ -6,19 +6,20 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation, Dropout
 
+
 def unstringify_arr(df):
-    unstringify = lambda li: [ float(i) for i in li[1:-1].split('; ') ]
-    return np.array([ unstringify(li) for li in df ])
+    unstringify = lambda li: [float(i) for i in li[1:-1].split('; ')]  # noqa: E731
+    return np.array([unstringify(li) for li in df])
+
 
 # Load le dataset mnist depuis le csv custom
 def load_mnist_from_csv(train_file, test_file):
-
     df_train = pd.read_csv(train_file)
     df_test = pd.read_csv(test_file)
 
     x_train_str, y_train_num = df_train['inputs'], df_train['labels']
-    x_test_str , y_test_num  = df_test['inputs'] , df_test['labels']
-    
+    x_test_str, y_test_num = df_test['inputs'], df_test['labels']
+
     x_train = unstringify_arr(x_train_str)
     x_test = unstringify_arr(x_test_str)
 
@@ -34,15 +35,12 @@ def load_mnist_from_csv(train_file, test_file):
     return x_train, x_test, y_train, y_test, input_size, num_labels
 
 
-
 #
 #  Building the model
 #
 
 def build_model(input_size, num_labels, hidden_units, dropout):
-
-
-    # MLP with ReLU and Dropout 
+    # MLP with ReLU and Dropout
     model = Sequential()
 
     model.add(Dense(hidden_units, input_dim=input_size))
@@ -57,15 +55,11 @@ def build_model(input_size, num_labels, hidden_units, dropout):
 
     # Activation for output layer
     model.add(Activation('softmax'))
-    
+
     # Optimization
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     return model
-
-
-
-
 
 
 #

@@ -97,7 +97,7 @@ class ServicesService:
             return service
         else:
             error_message = f"The service {service.name} with ID {service.id} did not respond with an OK status, " \
-                "it will be saved in the database as unavailable"
+                            "it will be saved in the database as unavailable"
             self.logger.debug(error_message)
             self.disable_service(app, service)
             raise HTTPException(status_code=500, detail=error_message)
@@ -123,16 +123,24 @@ class ServicesService:
         self.logger.debug(f"Updated service with id {current_service.id}")
         return current_service
 
-    def delete(self, service_id: UUID):
+    def delete(self, service_id: UUID, app: FastAPI):
         """
         Delete a service.
         :param service_id: The id of the service to delete.
+        :param app: The FastAPI app reference
         """
         self.logger.debug("Delete service")
         current_service = self.session.get(Service, service_id)
         if not current_service:
             raise NotFoundException("Service Not Found")
         self.session.delete(current_service)
+        # Delete the service route from the app
+        for route in app.routes:
+            if route.path == f"/{current_service.slug}":
+                app.routes.remove(route)
+                self.logger.debug(f"Route {route.path} removed from FastAPI app")
+                app.openapi_schema = None
+                break
         self.session.commit()
         self.logger.debug(f"Deleted service with id {current_service.id}")
 

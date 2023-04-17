@@ -106,10 +106,11 @@ def update(
     status_code=204
 )
 def delete(
+        request: Request,
         service_id: UUID,
         services_service: ServicesService = Depends(),
 ):
     try:
-        services_service.delete(service_id)
+        services_service.delete(service_id, request.app)
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))

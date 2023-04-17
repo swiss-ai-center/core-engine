@@ -1,19 +1,26 @@
-from fastapi import Depends
-from execution_units.models import ExecutionUnit
+from fastapi import Depends, FastAPI, UploadFile
+from inspect import Parameter, Signature
+from makefun import with_signature
+
+from execution_units.enums import ExecutionUnitStatus
+from services.models import Service
 from storage.service import StorageService
 from sqlmodel import Session, select, desc
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
+from common_code.common.enums import FieldDescriptionType
 from uuid import UUID
 from pipeline_steps.models import PipelineStep
-from pipelines.models import Pipeline, PipelineUpdate, PipelineCreate
+from pipelines.models import Pipeline, PipelineUpdate, PipelineCreate, PipelineRead
 from common.exceptions import NotFoundException, InconsistentPipelineException
 import graphlib
-from pipeline_executions.models import PipelineExecution
+from pipeline_executions.models import PipelineExecution, PipelineExecutionReadWithPipelineAndTasks
 from pipeline_executions.service import PipelineExecutionsService
 from tasks.enums import TaskStatus
 from tasks.models import TaskUpdate
 from tasks.service import TasksService
+
+REGISTERED_PIPELINES_TAG = "Registered Pipelines"
 
 
 class PipelinesService:
@@ -52,7 +59,7 @@ class PipelinesService:
 
         return self.session.get(Pipeline, pipeline_id)
 
-    def create(self, pipeline: PipelineCreate):
+    def create(self, pipeline: PipelineCreate, app: FastAPI):
         """
         Create a pipeline
         :param pipeline: Pipeline to create
@@ -71,12 +78,11 @@ class PipelinesService:
                 needs=pipeline_step.needs,
                 condition=pipeline_step.condition,
                 inputs=pipeline_step.inputs,
-                execution_unit_id=pipeline_step.execution_unit_id,
+                service_id=pipeline_step.service_id,
             )
             pipeline_step_create = PipelineStep.from_orm(new_pipeline_step)
             pipeline_steps.append(pipeline_step_create)
         pipeline.steps = pipeline_steps
-        self.logger.debug(f"DATA: {pipeline.steps}")
 
         # Check if pipeline is consistent
         if not self.check_pipeline_consistency(pipeline):
@@ -86,6 +92,11 @@ class PipelinesService:
             self.session.add(step)
 
         self.session.add(pipeline)
+
+        # Add slug to FastAPI
+        self.logger.debug("Adding route to FastAPI")
+        self.enable_pipeline(app, pipeline)
+
         self.session.commit()
         self.session.refresh(pipeline)
         self.logger.debug(f"Created pipeline with id {pipeline.id}")
@@ -168,18 +179,91 @@ class PipelinesService:
         self.logger.debug(f"Updated pipeline with id {current_pipeline.id}")
         return current_pipeline
 
-    def delete(self, pipeline_id: UUID):
+    def delete(self, pipeline_id: UUID, app: FastAPI):
         """
         Delete a pipeline
         :param pipeline_id: Pipeline id
+        :param app: FastAPI reference
         """
         self.logger.debug("Delete pipeline")
         current_pipeline = self.session.get(Pipeline, pipeline_id)
         if not current_pipeline:
             raise NotFoundException("Pipeline Not Found")
         self.session.delete(current_pipeline)
+        # Delete the route from FastAPI
+        for route in app.routes:
+            if route.path == f"/{current_pipeline.slug}":
+                app.routes.remove(route)
+                self.logger.debug(f"Route {route.path} removed from FastAPI app")
+                app.openapi_schema = None
+                break
         self.session.commit()
         self.logger.debug(f"Deleted pipeline with id {current_pipeline.id}")
+
+    def enable_pipeline(self, app: FastAPI, pipeline: Pipeline):
+        is_pipeline_route_present = False
+
+        for route in app.routes:
+            if route.path == f"/{pipeline.slug}":
+                is_pipeline_route_present = True
+                break
+
+        # Add the route to the app if not present
+        if not is_pipeline_route_present:
+            # Create the `handler` signature from pipeline's `data_in_fields`
+            handler_params = []
+            for data_in_field in pipeline.data_in_fields:
+                handler_params.append(
+                    Parameter(
+                        data_in_field["name"],
+                        kind=Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=UploadFile,
+                    )
+                )
+
+            pipeline_id = pipeline.id
+
+            @with_signature(Signature(handler_params))
+            async def handler(*args, **kwargs: UploadFile):
+                """
+                This function represents a pipeline function.
+                It handles the files described by the pipeline, upload them to the S3 bucket
+                and create the tasks for each step of the pipeline. It also creates a
+                pipeline_execution.
+                """
+                # TODO: Implement the handler
+                self.logger.debug(f"Received request for pipeline {pipeline_id}")
+                return PipelineExecutionReadWithPipelineAndTasks(
+                    id=UUID("00000000-0000-0000-0000-000000000000"),
+                    pipeline_id=UUID("00000000-0000-0000-0000-000000000000"),
+                    status=ExecutionUnitStatus.AVAILABLE,
+                    pipeline=PipelineRead(
+                        id=UUID("00000000-0000-0000-0000-000000000000"),
+                        name="Test",
+                        slug="test",
+                        description="Test",
+                        summary="Test",
+                        data_in_fields=[],
+                        data_out_fields=[],
+                        steps=[],
+                    ),
+                    tasks=[],
+                )
+
+            app.add_api_route(
+                f"/{pipeline.slug}",
+                handler,
+                methods=["POST"],
+                summary=pipeline.summary,
+                description=pipeline.description,
+                tags=[REGISTERED_PIPELINES_TAG],
+                responses={
+                    400: {"detail": "Invalid Content Type"},
+                    500: {"detail": "Internal Server Error"},
+                },
+                response_model=PipelineExecutionReadWithPipelineAndTasks
+            )
+            app.openapi_schema = None
 
     def check_pipeline_consistency(self, pipeline: Pipeline):
         """
@@ -191,37 +275,12 @@ class PipelinesService:
 
         steps = pipeline.steps
 
-        # dot = Digraph()
-        # dot.node("pipeline", color="blue")
-
-        # Create the graph structure with the nodes and predecessors
         graph = {}
-        # referenced_steps = []
-        self.logger.debug(f"STEPS: {steps}")
         for step in steps:
             identifier = step.identifier
             needs = step.needs
-            # inputs = step.inputs
-
-            # dot.node(identifier)
-            #
-            # if len(needs) == 0:
-            #     dot.edge("pipeline", identifier, label=", ".join(inputs), color="blue")
-            #
-            # for need in needs:
-            #     referenced_steps.append(need)
-            #     filtered_inputs = [i for i in inputs if i.split('.')[0] == need]
-            #     dot.edge(need, identifier, label=", ".join(filtered_inputs))
 
             graph[identifier] = needs
-
-        # dot.node("outputs", color="red")
-        # # get all the steps that are not needed by any other step
-        # last_steps = [s for s in steps if s.identifier not in referenced_steps]
-        # for last_step in last_steps:
-        #     dot.edge(last_step.identifier, "outputs", color="red")
-        #
-        # dot.render(directory='test', format='svg', view=False)
 
         # Create the graph from the structure
         ts = graphlib.TopologicalSorter(graph)
@@ -238,7 +297,6 @@ class PipelinesService:
             node_group = ts.get_ready()
 
             # Iterate over the nodes that are ready
-            self.logger.debug(f"NODE GROUP: {node_group}")
             for node in node_group:
                 # Store the node in the predecessors
                 predecessors.add(node)
@@ -257,7 +315,7 @@ class PipelinesService:
 
                 # Check if the inputs of the step are available
                 used_identifiers = []
-                for input_elem in inputs:
+                for index, input_elem in enumerate(inputs):
                     input_split = input_elem.split('.')
 
                     if len(input_split) != 2:
@@ -293,7 +351,7 @@ class PipelinesService:
                             raise InconsistentPipelineException(
                                 f"The identifier {identifier} is set multiple times in the steps.")
 
-                        execution_unit = self.session.get(ExecutionUnit, steps_found[0].execution_unit_id)
+                        execution_unit = self.session.get(Service, steps_found[0].service_id)
                         if not execution_unit:
                             raise NotFoundException("Execution Unit Not Found")
 
@@ -307,27 +365,21 @@ class PipelinesService:
                         raise InconsistentPipelineException(
                             f"The variable {variable} is set multiple times in the execution unit.")
 
-                    variable_types_to_check = [v["type"] for v in variables_found]
-
-                    # Get the outputs of the execution unit in the database and check if it's compatible
-                    # with the input type of the remote execution unit
-                    self.logger.debug(f"step_found {step_found}")
-                    self.logger.debug(f"variable {variable}")
+                    variable_types_to_check = [v["type"] for v in variables_found][0]
 
                     # Get the data_in_fields of the current step
-                    current_execution_unit = self.session.get(ExecutionUnit, step_found.execution_unit_id)
+                    current_execution_unit = self.session.get(Service, step_found.service_id)
                     if not current_execution_unit:
                         raise NotFoundException("Execution Unit Not Found")
 
-                    self.logger.debug(f"current_execution_unit {current_execution_unit}")
-                    self.logger.debug(f"variable_types_to_check {variable_types_to_check}")
-
                     # Check if the type of the variable is compatible with the input of the remote execution unit
-                    input_types = [v["type"] for v in current_execution_unit.data_in_fields if
-                                   v["name"] == variable]
+                    input_types = current_execution_unit.data_in_fields[index]["type"]
 
-                    # Compare variable_to_check with input_types without checking the order
-                    if not set(variable_types_to_check) == set(input_types):
+                    # For each input type, create a FieldDescriptionType
+                    input_types = [FieldDescriptionType(v) for v in input_types]
+
+                    # Compare variable_types_to_check with input_types without checking the order
+                    if not sorted(variable_types_to_check) == sorted(input_types):
                         raise InconsistentPipelineException(
                             f"The type of the variable {variable} is not compatible with the input type of the "
                             f"remote execution unit. "
@@ -336,13 +388,12 @@ class PipelinesService:
 
                 # Check if all the identifiers in the needs are used in the inputs
                 for need in step_found.needs:
-                    self.logger.debug(f"step_found.needs: {step_found.needs}")
-                    self.logger.debug(f"used_identifiers: {used_identifiers}")
                     if need not in used_identifiers:
                         self.logger.debug(
                             f"WARNING: The identifier {need} is not used in the inputs of the current step "
                             f"({node}). It should be removed from the needs.")
 
+            # Mark the nodes as done
             ts.done(*node_group)
 
         self.logger.debug("Pipeline is consistent")

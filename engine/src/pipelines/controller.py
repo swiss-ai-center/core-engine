@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from common.exceptions import NotFoundException, InconsistentPipelineException
 from pipelines.service import PipelinesService
 from common.query_parameters import SkipAndLimit
@@ -56,19 +56,13 @@ def get_many_pipelines(
     response_model=PipelineReadWithPipelineStepsAndTasks,
 )
 def create(
+        request: Request,
         pipeline: PipelineCreate,
         pipelines_service: PipelinesService = Depends(),
 ):
 
     try:
-        # pipeline_steps = pipeline.steps
-        # pipeline_create = Pipeline.from_orm(pipeline)
-        # # We need to add the steps to the pipeline before creating it because the orm removed them since they are not
-        # # The same type as in the model
-        # print(pipeline_steps)
-        # pipeline_create.steps = pipeline_steps
-        # print(pipeline_create)
-        pipeline = pipelines_service.create(pipeline)
+        pipeline = pipelines_service.create(pipeline, request.app)
     except InconsistentPipelineException as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -108,11 +102,12 @@ def update(
     status_code=204
 )
 def delete(
+        request: Request,
         pipeline_id: UUID,
         pipelines_service: PipelinesService = Depends(),
 ):
     try:
-        pipelines_service.delete(pipeline_id)
+        pipelines_service.delete(pipeline_id, request.app)
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -139,7 +134,7 @@ def check(
                 needs=step.needs,
                 condition=step.condition,
                 inputs=step.inputs,
-                execution_unit_id=step.execution_unit_id,
+                service_id=step.service_id,
                 pipeline_id=new_pipeline_id,
             )
             new_steps.append(new_step)

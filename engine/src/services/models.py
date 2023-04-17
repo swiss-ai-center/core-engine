@@ -1,29 +1,33 @@
 from typing import List
-from uuid import UUID
+from uuid import UUID, uuid4
 from pydantic import BaseModel, AnyHttpUrl
 from sqlmodel import Field, SQLModel, Relationship
 from common_code.common.models import FieldDescription
-from execution_units.enums import ExecutionUnitType, ExecutionUnitStatus
-from execution_units.models import ExecutionUnit
+from execution_units.enums import ExecutionUnitStatus
+from execution_units.models import ExecutionUnitBase
 
 
-class Service(ExecutionUnit):
+class ServiceBase(ExecutionUnitBase):
+    """
+    Base class for a Service
+    This model is used in subclasses
+    """
+    url: AnyHttpUrl = Field(nullable=False)
+
+
+class Service(ServiceBase, table=True):
     """
     Service model
     This model is the one that is stored in the database
     """
     __tablename__ = "services"
 
-    id: UUID = Field(foreign_key="execution_units.id", primary_key=True)
-    url: AnyHttpUrl = Field(nullable=False)
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
     tasks: List["Task"] = Relationship(back_populates="service")  # noqa F821
-
-    __mapper_args__ = {
-        "polymorphic_identity": ExecutionUnitType.SERVICE
-    }
+    pipeline_steps: List["PipelineStep"] = Relationship(back_populates="service")  # noqa F821
 
 
-class ServiceRead(Service):
+class ServiceRead(ServiceBase):
     """
     Service read model
     This model is used to return a service to the user
@@ -39,7 +43,7 @@ class ServiceReadWithTasks(ServiceRead):
     tasks: "List[TaskRead]"
 
 
-class ServiceCreate(Service):
+class ServiceCreate(ServiceBase):
     """
     Service create model
     This model is used to create a service
