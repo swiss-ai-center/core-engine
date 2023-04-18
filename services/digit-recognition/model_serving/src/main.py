@@ -14,7 +14,8 @@ from common_code.tasks.controller import router as tasks_router
 from common_code.tasks.service import TasksService
 from common_code.tasks.models import TaskData
 from common_code.service.models import Service, FieldDescription
-from common_code.service.enums import ServiceStatus, FieldDescriptionType
+from common_code.service.enums import ServiceStatus
+from common_code.common.enums import FieldDescriptionType
 
 # Imports required by the service's model
 from keras import models

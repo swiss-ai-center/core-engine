@@ -79,14 +79,17 @@ def create(
     response_model=PipelineReadWithPipelineStepsAndTasks,
 )
 def update(
+        request: Request,
         pipeline_id: UUID,
         pipeline_update: PipelineUpdate,
         pipelines_service: PipelinesService = Depends(),
 ):
     try:
-        pipeline = pipelines_service.update(pipeline_id, pipeline_update)
+        pipeline = pipelines_service.update(request.app, pipeline_id, pipeline_update)
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except InconsistentPipelineException as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     return pipeline
 

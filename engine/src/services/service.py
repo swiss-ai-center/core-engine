@@ -134,15 +134,18 @@ class ServicesService:
         if not current_service:
             raise NotFoundException("Service Not Found")
         self.session.delete(current_service)
+        self.remove_route(app, current_service.slug)
+        self.session.commit()
+        self.logger.debug(f"Deleted service with id {current_service.id}")
+
+    def remove_route(self, app: FastAPI, slug: str):
         # Delete the service route from the app
         for route in app.routes:
-            if route.path == f"/{current_service.slug}":
+            if route.path == f"/{slug}":
                 app.routes.remove(route)
                 self.logger.debug(f"Route {route.path} removed from FastAPI app")
                 app.openapi_schema = None
                 break
-        self.session.commit()
-        self.logger.debug(f"Deleted service with id {current_service.id}")
 
     def enable_service(self, app: FastAPI, service: Service):
         """
@@ -324,12 +327,7 @@ class ServicesService:
 
         self.logger.debug(f"Service {service.name} status set to {updated_service.status.value}")
 
-        for route in app.routes:
-            if route.path == f"/{service.slug}":
-                app.routes.remove(route)
-                self.logger.debug(f"Route {route.path} removed from FastAPI app")
-                app.openapi_schema = None
-                break
+        self.remove_route(app, service.slug)
 
         self.logger.info(f"Service {service.name} unregistered")
 

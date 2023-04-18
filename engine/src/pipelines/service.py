@@ -103,7 +103,7 @@ class PipelinesService:
 
         return pipeline
 
-    def update(self, pipeline_id: UUID, pipeline: PipelineUpdate):
+    def update(self, app: FastAPI, pipeline_id: UUID, pipeline: PipelineUpdate):
         """
         Update a pipeline
         :param pipeline_id: Pipeline id
@@ -111,72 +111,81 @@ class PipelinesService:
         :return: Updated pipeline
         """
         self.logger.debug("Update pipeline")
+
         current_pipeline = self.session.get(Pipeline, pipeline_id)
+        old_pipeline_slug = current_pipeline.slug
+        current_pipeline_steps = current_pipeline.steps
+        
         if not current_pipeline:
             raise NotFoundException("Pipeline Not Found")
-        pipeline_executions_list = self.session.exec(
-            select(PipelineExecution).where(PipelineExecution.pipeline_id == pipeline_id)
-        ).all()
-        current_pipeline_steps = current_pipeline.steps
+
+        if not self.check_pipeline_consistency(current_pipeline):
+            raise InconsistentPipelineException("Pipeline is not consistent")
+
         pipeline_data = pipeline.dict(exclude_unset=True)
-        self.logger.debug(f"Updating pipeline {pipeline_id} with data: {pipeline_data}")
-        steps_updated = False
-        if "steps" in pipeline_data:
-            steps_updated = True
-            pipeline_steps = []
-            self.logger.debug("Updating steps")
-            for step in pipeline_data["steps"]:
-                if "condition" not in step:
-                    condition = None
-                else:
-                    condition = step["condition"]
-                if "needs" not in step:
-                    needs = None
-                else:
-                    needs = step["needs"]
-                new_step = PipelineStep(
-                    pipeline_id=current_pipeline.id,
-                    identifier=step["identifier"],
-                    needs=needs,
-                    condition=condition,
-                    inputs=step["inputs"],
-                )
-                pipeline_steps.append(new_step)
-            del pipeline_data["steps"]
-            current_pipeline.steps = pipeline_steps
+
+        pipeline_data["steps"] = []
+
+        # Update each property of the pipeline
         for key, value in pipeline_data.items():
             setattr(current_pipeline, key, value)
+
+        # Create new pipeline steps for the updated pipeline
+        pipeline_steps = []
+        for pipeline_step in pipeline.steps:
+            new_pipeline_step = PipelineStep(
+                pipeline_id=pipeline_id,
+                identifier=pipeline_step.identifier,
+                needs=pipeline_step.needs,
+                condition=pipeline_step.condition,
+                inputs=pipeline_step.inputs,
+                service_id=pipeline_step.service_id,
+            )
+            pipeline_step_create = PipelineStep.from_orm(new_pipeline_step)
+            self.session.add(new_pipeline_step)
+            pipeline_steps.append(pipeline_step_create)
+
+        current_pipeline.steps = pipeline_steps
+
+        # Remove the existing pipeline steps from the pipeline
+        for current_pipeline_step in current_pipeline_steps:
+            self.session.delete(current_pipeline_step)
 
         # Check if pipeline is consistent
         if not self.check_pipeline_consistency(current_pipeline):
             raise InconsistentPipelineException("Pipeline is not consistent")
+        
+        # Update the pipeline execution tasks to archive them
+        pipeline_executions = self.session.exec(
+            select(PipelineExecution).where(PipelineExecution.pipeline_id == pipeline_id)
+        ).all()
 
-        if steps_updated:
-            # Check if there are pipeline_executions that are linked to the pipeline
-            self.logger.debug(f"Checking if there are pipeline_executions linked to pipeline {pipeline_id}")
-            for pipeline_execution in pipeline_executions_list:
-                for task in pipeline_execution.tasks:
-                    # Update the tasks to set pipeline_execution_id to None and status to ARCHIVED
-                    self.logger.debug(f"Updating task {task.id} with pipeline_execution_id to None "
-                                      f"and status to ARCHIVED")
-                    self.tasks_service.update(
-                        task.id,
-                        TaskUpdate(status=TaskStatus.ARCHIVED, pipeline_execution_id=None)
-                    )
-                # Delete the pipeline_execution
-                self.logger.debug(f"Deleting pipeline_execution {pipeline_execution.id}")
-                self.pipeline_executions_service.delete(pipeline_execution.id)
+        for pipeline_execution in pipeline_executions:
+            for task in pipeline_execution.tasks:
+                # Update the tasks to set pipeline_execution_id to None and status to ARCHIVED
+                self.logger.debug(
+                    f"Updating task {task.id} with pipeline_execution_id to None "
+                    f"and status to ARCHIVED"
+                )
+                self.tasks_service.update(
+                    task.id,
+                    TaskUpdate(status=TaskStatus.ARCHIVED, pipeline_execution_id=None)
+                )
 
-            # Delete the steps
-            self.logger.debug(f"Deleting current steps for pipeline {pipeline_id}")
-            for step in current_pipeline_steps:
-                self.logger.debug(f"Deleting step {step.id}")
-                self.session.delete(step)
+            # Delete the pipeline_execution
+            self.logger.debug(f"Deleting pipeline_execution {pipeline_execution.id}")
+            self.pipeline_executions_service.delete(pipeline_execution.id)
 
+        # Save the updated pipeline
         self.session.add(current_pipeline)
         self.session.commit()
         self.session.refresh(current_pipeline)
+        
+        # Update OpenAPI route
+        self.remove_route(app, old_pipeline_slug)
+        self.enable_pipeline(app, current_pipeline)
         self.logger.debug(f"Updated pipeline with id {current_pipeline.id}")
+
         return current_pipeline
 
     def delete(self, pipeline_id: UUID, app: FastAPI):
@@ -190,15 +199,18 @@ class PipelinesService:
         if not current_pipeline:
             raise NotFoundException("Pipeline Not Found")
         self.session.delete(current_pipeline)
-        # Delete the route from FastAPI
+        self.remove_route(app, current_pipeline.slug)
+        self.session.commit()
+        self.logger.debug(f"Deleted pipeline with id {current_pipeline.id}")
+
+    def remove_route(self, app: FastAPI, slug: str):
+        # Delete the service route from the app
         for route in app.routes:
-            if route.path == f"/{current_pipeline.slug}":
+            if route.path == f"/{slug}":
                 app.routes.remove(route)
                 self.logger.debug(f"Route {route.path} removed from FastAPI app")
                 app.openapi_schema = None
                 break
-        self.session.commit()
-        self.logger.debug(f"Deleted pipeline with id {current_pipeline.id}")
 
     def enable_pipeline(self, app: FastAPI, pipeline: Pipeline):
         is_pipeline_route_present = False
@@ -265,6 +277,18 @@ class PipelinesService:
             )
             app.openapi_schema = None
 
+    def disable_pipeline(self, app: FastAPI, pipeline: Pipeline):
+        """
+        Disable a pipeline from the API
+        :param app: The FastAPI app reference
+        :param pipeline: The pipeline to unregister
+        """
+        self.logger.info(f"Disabling pipeline {pipeline.name}")
+
+        self.remove_route(app, pipeline.slug)
+
+        self.logger.info(f"Pipeline {pipeline.name} unregistered")
+
     def check_pipeline_consistency(self, pipeline: Pipeline):
         """
         Check if a pipeline is consistent
@@ -289,7 +313,7 @@ class PipelinesService:
         try:
             ts.prepare()
         except Exception:
-            raise InconsistentPipelineException("The graph is not valid.")
+            raise InconsistentPipelineException("One or many pipeline step(s) is/are used before instantation.")
 
         # Iterate over the graph
         predecessors = set()
