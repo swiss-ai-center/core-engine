@@ -40,7 +40,7 @@ class ServicesService:
 
         self.logger.set_source(__name__)
 
-    def find_many(self, skip: int = 0, limit: int = 100):
+    def find_many(self, skip: int = 0, limit: int = 100, order_by: str = "name", order: str = "desc"):
         """
         Find many services.
         :param skip: The number of services to skip.
@@ -48,7 +48,11 @@ class ServicesService:
         :return: The list of services.
         """
         self.logger.debug("Find many services")
-        return self.session.exec(select(Service).order_by(desc(Service.created_at)).offset(skip).limit(limit)).all()
+
+        if order == "desc":
+            return self.session.exec(select(Service).order_by(desc(order_by)).offset(skip).limit(limit)).all()
+        else:
+            return self.session.exec(select(Service).order_by(order_by).offset(skip).limit(limit)).all()
 
     def find_one(self, service_id: UUID):
         """

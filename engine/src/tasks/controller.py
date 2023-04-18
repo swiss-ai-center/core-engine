@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from common.exceptions import NotFoundException
 from tasks.service import TasksService
-from common.query_parameters import SkipAndLimit
+from common.query_parameters import SkipLimitOrderByAndOrder
 from tasks.models import TaskRead, TaskUpdate, TaskCreate, Task, TaskReadWithServiceAndPipeline
 from uuid import UUID
 
@@ -62,7 +62,7 @@ async def get_one_status(
     response_model=List[TaskRead],
 )
 def get_many_tasks(
-        skip_and_limit: SkipAndLimit = Depends(),
+        skip_and_limit: SkipLimitOrderByAndOrder = Depends(),
         tasks_service: TasksService = Depends(),
 ):
     tasks = tasks_service.find_many(skip_and_limit.skip, skip_and_limit.limit)

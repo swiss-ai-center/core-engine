@@ -1,8 +1,17 @@
 from typing import List
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, JSON, Column, SQLModel, Relationship
 from common.models import CoreModel
 from uuid import UUID, uuid4
 from tasks.models import Task, TaskRead
+from typing import TypedDict, List, Union
+
+
+class FileKeyReference(TypedDict):
+    """
+    File key reference model
+    """
+    reference: str
+    file_key: str
 
 
 class PipelineExecutionBase(CoreModel):
@@ -12,6 +21,11 @@ class PipelineExecutionBase(CoreModel):
     """
     pipeline_id: UUID | None = Field(default=None, nullable=True, foreign_key="pipelines.id")
     current_pipeline_step_id: UUID | None = Field(default=None, nullable=True, foreign_key="pipeline_steps.id")
+    files: List[FileKeyReference] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
+
+    # Needed for Column(JSON) to work
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class PipelineExecution(PipelineExecutionBase, table=True):
@@ -23,7 +37,7 @@ class PipelineExecution(PipelineExecutionBase, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     pipeline: "Pipeline" = Relationship(back_populates="pipeline_executions")
-    current_pipeline_step: "PipelineStep" = Relationship(back_populates="pipeline_executions")
+    current_pipeline_step: Union["PipelineStep", None] = Relationship(back_populates="pipeline_executions")
     tasks: List[Task] = Relationship(back_populates="pipeline_execution")
 
 

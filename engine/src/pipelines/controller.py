@@ -2,11 +2,12 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request
 from common.exceptions import NotFoundException, InconsistentPipelineException
 from pipelines.service import PipelinesService
-from common.query_parameters import SkipAndLimit
+from common.query_parameters import SkipLimitOrderByAndOrder
 from pipelines.models import PipelineRead, PipelineUpdate, PipelineCreate, Pipeline, \
     PipelineReadWithPipelineStepsAndTasks
 from pipeline_steps.models import PipelineStep
 from uuid import UUID, uuid4
+from sqlalchemy.exc import CompileError 
 
 router = APIRouter()
 
@@ -38,12 +39,20 @@ def get_one(
     response_model=List[PipelineRead],
 )
 def get_many_pipelines(
-        skip_and_limit: SkipAndLimit = Depends(),
+        skip_limit_order_by_and_order: SkipLimitOrderByAndOrder = Depends(),
         pipelines_service: PipelinesService = Depends(),
 ):
-    pipelines = pipelines_service.find_many(skip_and_limit.skip, skip_and_limit.limit)
+    try:
+        pipelines = pipelines_service.find_many(
+            skip_limit_order_by_and_order.skip,
+            skip_limit_order_by_and_order.limit,
+            skip_limit_order_by_and_order.order_by,
+            skip_limit_order_by_and_order.order,
+        )
 
-    return pipelines
+        return pipelines
+    except CompileError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post(

@@ -6,11 +6,13 @@ from common_code.logger.logger import get_logger
 from pipelines.controller import router as pipelines_router
 from pipeline_executions.controller import router as pipeline_executions_router
 from services.controller import router as services_router
-from services.service import ServicesService
 from stats.controller import router as stats_router
 from tasks.controller import router as tasks_router
-from tasks.service import TasksService
 from storage.controller import router as storage_router
+from tasks.service import TasksService
+from services.service import ServicesService
+from pipelines.service import PipelinesService
+from pipeline_executions.service import PipelineExecutionsService
 from storage.service import StorageService
 from config import get_settings
 from database import initialize_db
@@ -79,14 +81,36 @@ async def startup_event():
 
     storage_service = StorageService(get_logger(settings), settings)
     tasks_service = TasksService(get_logger(settings), session, http_client)
-    services_service = ServicesService(get_logger(settings), storage_service, tasks_service, settings, session,
-                                       http_client)
+    services_service = ServicesService(
+        get_logger(settings),
+        storage_service,
+        tasks_service,
+        settings,
+        session,
+        http_client,
+    )
+    pipeline_executions_service = PipelineExecutionsService(
+        get_logger(settings),
+        session,
+    )
+    pipelines_service = PipelinesService(
+        get_logger(settings),
+        storage_service,
+        session,
+        pipeline_executions_service,
+        tasks_service,
+        settings,
+        services_service
+    )
 
     # Check storage
     await storage_service.check_storage_availability()
 
     # Instantiate services in database
     await services_service.check_services_availability(app)
+
+    # Enable pipelines
+    pipelines_service.enable_pipelines(app)
 
     # Check for services that are not running
     check_services_timer = Timer(

@@ -3,9 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from common.exceptions import NotFoundException, ConflictException
 from execution_units.enums import ExecutionUnitStatus
 from services.service import ServicesService
-from common.query_parameters import SkipAndLimit
+from common.query_parameters import SkipLimitOrderByAndOrder
 from services.models import ServiceRead, ServiceUpdate, ServiceCreate, Service, ServiceReadWithTasks
 from uuid import UUID
+from sqlalchemy.exc import CompileError 
 
 router = APIRouter()
 
@@ -37,12 +38,20 @@ def get_one(
     response_model=List[ServiceRead],
 )
 def get_many_services(
-        skip_and_limit: SkipAndLimit = Depends(),
+        skip_limit_order_by_and_order: SkipLimitOrderByAndOrder = Depends(),
         services_service: ServicesService = Depends(),
 ):
-    services = services_service.find_many(skip_and_limit.skip, skip_and_limit.limit)
+    try:
+        services = services_service.find_many(
+            skip_limit_order_by_and_order.skip,
+            skip_limit_order_by_and_order.limit,
+            skip_limit_order_by_and_order.order_by,
+            skip_limit_order_by_and_order.order,
+        )
 
-    return services
+        return services
+    except CompileError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post(

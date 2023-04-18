@@ -29,13 +29,13 @@ correct_pipeline_simple = {
             "identifier": "face-detection",
             "needs": [],
             "inputs": ["pipeline.image"],
-            "service_id": ""
+            "service_id": "996be6a4-dc74-40fe-affa-238b4617ec1d"
         },
         {
             "identifier": "image-blur",
             "needs": ["face-detection"],
             "inputs": ["pipeline.image", "face-detection.result"],
-            "service_id": ""
+            "service_id": "dc5c449b-c588-4c7f-97aa-831f3cd72585"
         }
     ]
 }
