@@ -44,10 +44,23 @@ Install [Material for MkDocs](../explanations/about-material-for-mkdocs.md) with
 	TODO
 	```
 
+=== ":simple-docker: Docker"
+
+	You can use the dev container to develop within. You can read more [here](https://code.visualstudio.com/docs/devcontainers/containers).
+
+	Once in the dev container you can run the following commands:
+
+	```sh title="In a terminal, execute the following command(s)."
+	# Activate the virtual environment
+	poetry shell
+	# Install the dependencies
+	poetry install
+	```
+
 ## Start the website for development
 
 ```sh title="In a terminal, execute the following command(s)."
-mkdocs serve
+mkdocs serve --dev-addr 0.0.0.0:8000
 ```
 
 ## Build the website for production
