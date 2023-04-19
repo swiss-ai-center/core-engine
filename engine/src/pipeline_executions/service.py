@@ -4,9 +4,11 @@ from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from uuid import UUID
 from pipeline_steps.models import PipelineStep
-from pipeline_executions.models import PipelineExecution, PipelineExecutionUpdate
+from pipeline_executions.models import PipelineExecution, PipelineExecutionUpdate, FileKeyReference
 from common.exceptions import NotFoundException, UnprocessableEntityException
 from pipelines.models import Pipeline
+from tasks.models import Task
+from services.models import Service
 
 
 class PipelineExecutionsService:
@@ -107,3 +109,59 @@ class PipelineExecutionsService:
         self.session.delete(pipeline_execution)
         self.session.commit()
         self.logger.debug(f"Deleted pipeline execution with id {pipeline_execution.id}")
+
+    def launch_next_step_in_pipeline(self, task: Task):
+        """
+        Launch the next step in the pipeline
+        :param task: last finished task from current pipeline step
+        """
+        self.logger.debug("Launch next step in pipeline")
+        
+        pipeline_execution = self.session.get(PipelineExecution, task.pipeline_execution_id)
+        
+        # Check if pipeline execution exists
+        if not pipeline_execution:
+            raise NotFoundException("Pipeline Execution Not Found")
+        
+        current_pipeline_step = self.session.get(PipelineStep, pipeline_execution.current_pipeline_step_id)
+        
+        # Check if pipeline step exists
+        if not current_pipeline_step:
+            raise NotFoundException("Current Pipeline Step Not Found")
+        
+        pipeline = self.session.get(Pipeline, current_pipeline_step.pipeline_id)
+        
+        # Check if pipeline exists
+        if not pipeline:
+            raise NotFoundException("Associated Pipeline Not Found")
+
+        # Get Service associated with task
+        service = self.session.get(Service, task.service_id)
+
+        # Check if service exists
+        if not service:
+            raise NotFoundException("Associated Service Not Found")
+
+        # Use task.data_out to append pipeline_execution.files
+        if task.data_out:
+            files = []
+            for file in task.data_out:
+                # TODO: handle file key reference
+                reference = f"{current_pipeline_step.identifier}."
+                files.append(FileKeyReference(reference=reference, key=file))
+            pipeline_execution.files.extend(files)
+        
+        # Check if current pipeline step is the last one
+        if current_pipeline_step == pipeline.steps[-1]:
+            # TODO: handle end of pipeline
+            pass
+        else:
+            pipeline_execution.current_pipeline_step_id = pipeline.steps[
+                pipeline.steps.index(current_pipeline_step) + 1
+            ].id
+            
+        self.session.add(pipeline_execution)
+        self.session.commit()
+        self.session.refresh(pipeline_execution)
+        self.logger.debug(f"Launched next step in pipeline with id {pipeline_execution.id}")
+        return pipeline_execution

@@ -6,6 +6,7 @@ from uuid import UUID
 from http_client import HttpClient
 from tasks.models import Task, TaskUpdate
 from common.exceptions import NotFoundException
+from pipeline_executions.service import PipelineExecutionsService
 
 
 class TasksService:
@@ -14,11 +15,13 @@ class TasksService:
             logger: Logger = Depends(get_logger),
             session: Session = Depends(get_session),
             http_client: HttpClient = Depends(),
+            pipeline_executions_service: PipelineExecutionsService = Depends(),
     ):
         self.logger = logger
         self.logger.set_source(__name__)
         self.session = session
         self.http_client = http_client
+        self.pipeline_executions_service = pipeline_executions_service
 
     def find_many(self, skip: int = 0, limit: int = 100):
         self.logger.debug("Find many tasks")
@@ -76,3 +79,10 @@ class TasksService:
         self.session.delete(current_task)
         self.session.commit()
         self.logger.debug(f"Deleted task with id {current_task.id}")
+
+    def launch_next_step_in_pipeline(self, task: Task):
+        """
+        Launch the next step in the pipeline
+        :param task: The task that has been completed
+        """
+        self.pipeline_executions_service.launch_next_step_in_pipeline(task)
