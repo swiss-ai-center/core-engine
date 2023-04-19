@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: image-sam-config
+  labels:
+    app: image-sam
+data:
+  ENVIRONMENT: development
+  LOG_LEVEL: debug
+  ENGINE_URL: http://engine-service:8080
+  SERVICE_URL: http://image-sam-service:8787
