@@ -1,11 +1,14 @@
+import time
+
 import pytest
-from fastapi.testclient import TestClient
-from pytest_httpserver import HTTPServer
 from common_code.config import get_settings
 from common_code.logger.logger import get_logger
 from common_code.storage.service import StorageService
+from fastapi.testclient import TestClient
+from pytest_httpserver import HTTPServer
+
 from main import app
-import time
+from tests.utils import default_setup
 
 
 @pytest.fixture(name="storage")
@@ -19,7 +22,11 @@ def storage_fixture():
 
 
 @pytest.fixture(name="client")
-def client_fixture(reachable_engine_instance: HTTPServer):
+def client_fixture(
+    reachable_engine_instance: HTTPServer, monkeypatch: pytest.MonkeyPatch
+):
+    default_setup(monkeypatch)
+
     def get_settings_override():
         settings = get_settings()
         settings.engine_url = reachable_engine_instance.url_for("")
@@ -61,7 +68,11 @@ def unreachable_engine_instance_fixture(httpserver: HTTPServer):
 
 
 @pytest.fixture(name="app_with_reachable_engine_instance")
-def app_with_reachable_engine_instance(reachable_engine_instance: HTTPServer):
+def app_with_reachable_engine_instance(
+    reachable_engine_instance: HTTPServer, monkeypatch: pytest.MonkeyPatch
+):
+    default_setup(monkeypatch)
+
     def get_settings_override():
         settings = get_settings()
         settings.engine_url = reachable_engine_instance.url_for("")
@@ -80,7 +91,11 @@ def app_with_reachable_engine_instance(reachable_engine_instance: HTTPServer):
 
 
 @pytest.fixture(name="app_with_unreachable_engine_instance")
-def app_with_unreachable_engine_instance(unreachable_engine_instance: HTTPServer):
+def app_with_unreachable_engine_instance(
+    unreachable_engine_instance: HTTPServer, monkeypatch: pytest.MonkeyPatch
+):
+    default_setup(monkeypatch)
+
     def get_settings_override():
         settings = get_settings()
         settings.engine_url = unreachable_engine_instance.url_for("")
@@ -98,7 +113,9 @@ def app_with_unreachable_engine_instance(unreachable_engine_instance: HTTPServer
     app.dependency_overrides.clear()
 
 
-def test_announce_to_reachable_engine(caplog: pytest.LogCaptureFixture, app_with_reachable_engine_instance):
+def test_announce_to_reachable_engine(
+    caplog: pytest.LogCaptureFixture, app_with_reachable_engine_instance
+):
     with TestClient(app_with_reachable_engine_instance):
         # We wait for the app to announce itself to the engine (ugly)
         time.sleep(5)
@@ -117,7 +134,9 @@ def test_announce_to_reachable_engine(caplog: pytest.LogCaptureFixture, app_with
         assert not warning_logs_found
 
 
-def test_announce_to_unreachable_engine(caplog: pytest.LogCaptureFixture, app_with_unreachable_engine_instance):
+def test_announce_to_unreachable_engine(
+    caplog: pytest.LogCaptureFixture, app_with_unreachable_engine_instance
+):
     with TestClient(app_with_unreachable_engine_instance):
         # We wait for the app to announce itself to the engine (ugly)
         time.sleep(5)
@@ -136,7 +155,9 @@ def test_announce_to_unreachable_engine(caplog: pytest.LogCaptureFixture, app_wi
         assert warning_logs_found
 
 
-def test_status(client: TestClient):
+def test_status(client: TestClient, monkeypatch: pytest.MonkeyPatch):
+    default_setup(monkeypatch)
+
     status_response = client.get("/status")
 
     # Check the output

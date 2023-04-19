@@ -1,13 +1,14 @@
 from typing import Dict
+
 import cv2
 import numpy as np
 import pytest
-
-from common_code.tasks.models import TaskData
+import segment_anything  # noqa: F401
 from common_code.service.enums import FieldDescriptionType
-import segment_anything
+from common_code.tasks.models import TaskData
 
 from main import MyService
+from tests.utils import default_setup
 
 
 def get_generated_masks(w: int, h: int):
@@ -26,18 +27,11 @@ def get_generated_masks(w: int, h: int):
 
 @pytest.fixture(name="data", autouse=True)
 def process_input_data(monkeypatch: pytest.MonkeyPatch):
+    default_setup(monkeypatch)
+
     data = {"image": None}
     img = cv2.imread("tests/test.jpg")
 
-    monkeypatch.setitem(
-        segment_anything.sam_model_registry,
-        "vit_b",
-        lambda checkpoint: None,  # noqa: F841
-    )
-    monkeypatch.setattr(
-        "segment_anything.SamAutomaticMaskGenerator.__init__",
-        lambda self, sam: None,  # noqa: F841
-    )
     monkeypatch.setattr(
         "segment_anything.SamAutomaticMaskGenerator.generate",
         lambda self, image: get_generated_masks(  # noqa: F841
