@@ -22,6 +22,8 @@ from tasks.service import TasksService
 from config import Settings, get_settings
 from services.service import ServicesService
 from httpx import HTTPError
+from http_client import HttpClient
+from fastapi.encoders import jsonable_encoder
 
 REGISTERED_PIPELINES_TAG = "Registered Pipelines"
 
@@ -36,6 +38,7 @@ class PipelinesService:
             tasks_service: TasksService = Depends(),
             settings: Settings = Depends(get_settings),
             services_service: ServicesService = Depends(get_settings),
+            http_client: HttpClient = Depends(),
     ):
         self.logger = logger
         self.logger.set_source(__name__)
@@ -45,6 +48,7 @@ class PipelinesService:
         self.settings = settings
         self.services_service = services_service
         self.storage_service = storage_service
+        self.http_client = http_client
 
     def find_many(self, skip: int = 0, limit: int = 100, order_by: str = "name", order: str = "desc"):
         """
@@ -250,6 +254,7 @@ class PipelinesService:
                 )
 
             pipeline_id = pipeline.id
+            pipeline_steps = pipeline.steps
 
             @with_signature(Signature(handler_params))
             async def handler(*args, **kwargs: UploadFile):
@@ -305,14 +310,12 @@ class PipelinesService:
 
                     pipeline_files.append(FileKeyReference(reference=f"pipeline.{file_part_name}", file_key=file_key))
 
-                pipeline_steps = pipeline.steps
-                
                 pipeline_tasks = []
                 for pipeline_step in pipeline_steps:
                     task = Task()
 
                     task.service_id = pipeline_step.service_id
-                    task.pipeline_execution_id = None # TODO: Validate that it works
+                    task.pipeline_execution_id = None
                     task.status = TaskStatus.SCHEDULED
 
                     task = self.tasks_service.create(task)
@@ -323,6 +326,7 @@ class PipelinesService:
                 # Create the pipeline execution
                 pipeline_execution = PipelineExecution(
                     pipeline_id=pipeline_id,
+                    current_pipeline_step_id=pipeline_steps[0].id,
                     files=pipeline_files,
                     tasks=pipeline_tasks,
                 )
@@ -333,11 +337,22 @@ class PipelinesService:
                 # Get the first task of the pipeline
                 task = pipeline_execution.tasks[0]
 
+                service = self.services_service.find_one(task.service_id)
+
+                if not service:
+                    raise NotFoundException("Service not found")
+                
+                data_in = []
+                
+                for index, file in enumerate(service.data_in_fields):
+                    pipeline_file = pipeline_execution.files[index]
+                    data_in.append(pipeline_file["file_key"])
+
                 task.status = TaskStatus.PENDING
+                task.data_in = data_in
+                task.data_out = None
 
                 task = self.tasks_service.update(task.id, task)
-
-                service = self.services_service.find_one(task.service_id)
 
                 # Create the service task
                 service_task = ServiceTask(
@@ -355,7 +370,7 @@ class PipelinesService:
 
                     # Remove files from storage
                     for pipeline_file in pipeline_files:
-                        await self.storage_service.delete(pipeline_file.file_key)
+                        await self.storage_service.delete(pipeline_file["file_key"])
 
                     self.logger.debug("Files from storage removed.")
 
@@ -388,8 +403,8 @@ class PipelinesService:
                         detail=f"Sending request to the service {service.name} failed: {str(e)}",
                     )
                 else:
-                    # Return the created task to the end-user
-                    return task
+                    # Return the created pipeline execution to the end-user
+                    return pipeline_execution
 
             app.add_api_route(
                 f"/{pipeline.slug}",

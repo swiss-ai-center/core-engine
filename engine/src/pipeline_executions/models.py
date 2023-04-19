@@ -21,7 +21,6 @@ class PipelineExecutionBase(CoreModel):
     """
     pipeline_id: UUID | None = Field(default=None, nullable=True, foreign_key="pipelines.id")
     current_pipeline_step_id: UUID | None = Field(default=None, nullable=True, foreign_key="pipeline_steps.id")
-    files: List[FileKeyReference] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
 
     # Needed for Column(JSON) to work
     class Config:
@@ -39,6 +38,7 @@ class PipelineExecution(PipelineExecutionBase, table=True):
     pipeline: "Pipeline" = Relationship(back_populates="pipeline_executions")
     current_pipeline_step: Union["PipelineStep", None] = Relationship(back_populates="pipeline_executions")
     tasks: List[Task] = Relationship(back_populates="pipeline_execution")
+    files: List[FileKeyReference] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
 
 
 class PipelineExecutionRead(PipelineExecutionBase):

@@ -41,8 +41,10 @@ class ServiceTaskTask(BaseModel):
     """
     id: UUID
     data_in: List[str]
+    data_out: List[str] | None
+    status: TaskStatus
     service_id: UUID
-    pipeline_id: UUID | None
+    pipeline_execution_id: UUID | None
 
 
 class ServiceTaskBase(BaseModel):

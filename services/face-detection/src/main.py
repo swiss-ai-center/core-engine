@@ -71,14 +71,18 @@ class MyService(Service):
                     return obj.tolist()
                 return super(NpEncoder, self).default(obj)
 
+        faces_areas = [[facial_area for facial_area in f[1]['facial_area']] for f in faces.items()]
+
+        task_data = TaskData(
+            data=json.dumps(
+                faces_areas,
+                cls=NpEncoder,
+            ),
+            type=FieldDescriptionType.APPLICATION_JSON
+        )
+
         return {
-            "result": TaskData(
-                data=json.dumps(
-                    [[facial_area for facial_area in f['facial_area']] for f in faces.items()],
-                    cls=NpEncoder,
-                ),
-                type=FieldDescriptionType.APPLICATION_JSON
-            )
+            "result": task_data
         }
 
 

@@ -100,7 +100,8 @@ async def startup_event():
         pipeline_executions_service,
         tasks_service,
         settings,
-        services_service
+        services_service,
+        http_client,
     )
 
     # Check storage

@@ -58,8 +58,10 @@ class TasksService:
             raise NotFoundException("Task Not Found")
         task_data = task.dict(exclude_unset=True)
         self.logger.debug(f"Updating task {task_id} with data: {task_data}")
-        setattr(current_task, "status", task_data["status"])
-        setattr(current_task, "data_out", task_data["data_out"])
+
+        for key, value in task_data.items():
+            setattr(current_task, key, value)
+
         self.session.add(current_task)
         self.session.commit()
         self.session.refresh(current_task)
