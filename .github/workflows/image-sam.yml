@@ -58,7 +58,6 @@ jobs:
           ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
           SERVICE_URL: https://image-sam-csia-pme.kube.isc.heia-fr.ch
         run: |
-          # TODO: 11. CHANGE THE NAME OF THE CONFIGURATION FILES
           # Set image-sam version
           docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
