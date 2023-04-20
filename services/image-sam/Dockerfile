@@ -16,8 +16,6 @@ RUN pip install --requirement requirements.txt
 # Copy sources
 COPY src src
 
-# Copy model
-COPY model model
 # Download the weigths
 RUN wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth -P model/
 
