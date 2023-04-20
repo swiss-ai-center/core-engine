@@ -105,7 +105,7 @@ api_description = """
 This service segments an image.
 """
 api_summary = """
-Segments anyting in an image.
+Segments anything in an image.
 """
 
 # Define the FastAPI application with information
