@@ -44,7 +44,6 @@ def get_many_pipelines(
 
     return pipeline_executions
 
-
 @router.post(
     "/pipeline-executions",
     summary="Create a pipeline execution",

@@ -80,7 +80,11 @@ async def startup_event():
     http_client = HttpClient()
 
     storage_service = StorageService(get_logger(settings), settings)
-    tasks_service = TasksService(get_logger(settings), session, http_client)
+    pipeline_executions_service = PipelineExecutionsService(
+        get_logger(settings),
+        session,
+    )
+    tasks_service = TasksService(get_logger(settings), session, http_client, pipeline_executions_service, settings)
     services_service = ServicesService(
         get_logger(settings),
         storage_service,
@@ -88,10 +92,6 @@ async def startup_event():
         settings,
         session,
         http_client,
-    )
-    pipeline_executions_service = PipelineExecutionsService(
-        get_logger(settings),
-        session,
     )
     pipelines_service = PipelinesService(
         get_logger(settings),

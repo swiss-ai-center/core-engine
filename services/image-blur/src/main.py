@@ -60,7 +60,8 @@ class MyService(Service):
         input_type = data["image"].type
         img = cv2.imdecode(np.frombuffer(raw, np.uint8), 1)
 
-        areas = json.loads(data["areas"].data)["areas"]
+        areas = json.loads(data["areas"].data)
+
         rows = img.shape[0]
         cols = img.shape[1]
 
@@ -77,11 +78,14 @@ class MyService(Service):
             img[y1:y2 + 1, x1:x2 + 1] = cv2.blur(img[y1:y2 + 1, x1:x2 + 1], (kernelSize, kernelSize))
         guessed_extension = get_extension(input_type)
         is_ok, out_buff = cv2.imencode(guessed_extension, img)
+
+        task_data = TaskData(
+            data=out_buff.tobytes(),
+            type=input_type
+        )
+
         return {
-            "result": TaskData(
-                data=out_buff.tobytes(),
-                type=input_type
-            )
+            "result": task_data
         }
 
 

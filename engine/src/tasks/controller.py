@@ -91,7 +91,7 @@ def create(task: TaskCreate, tasks_service: TasksService = Depends()):
     },
     response_model=TaskReadWithServiceAndPipeline,
 )
-def update(
+async def update(
         task_id: UUID,
         task_update: TaskUpdate,
         tasks_service: TasksService = Depends(),
@@ -103,7 +103,7 @@ def update(
         # Check if the task is linked to a pipeline_execution
         if task.pipeline_execution_id:
             # If the task is linked to a pipeline_execution, we need launch the next step in the pipeline
-            tasks_service.launch_next_step_in_pipeline(task)
+            await tasks_service.launch_next_step_in_pipeline(task)
             
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
