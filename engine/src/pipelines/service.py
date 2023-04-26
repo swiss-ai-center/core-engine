@@ -129,7 +129,7 @@ class PipelinesService:
         current_pipeline = self.session.get(Pipeline, pipeline_id)
         old_pipeline_slug = current_pipeline.slug
         current_pipeline_steps = current_pipeline.steps
-        
+
         if not current_pipeline:
             raise NotFoundException("Pipeline Not Found")
 
@@ -168,7 +168,7 @@ class PipelinesService:
         # Check if pipeline is consistent
         if not self.check_pipeline_consistency(current_pipeline):
             raise InconsistentPipelineException("Pipeline is not consistent")
-        
+
         # Update the pipeline execution tasks to archive them
         pipeline_executions = self.session.exec(
             select(PipelineExecution).where(PipelineExecution.pipeline_id == pipeline_id)
@@ -194,7 +194,7 @@ class PipelinesService:
         self.session.add(current_pipeline)
         self.session.commit()
         self.session.refresh(current_pipeline)
-        
+
         # Update OpenAPI route
         self.remove_route(app, old_pipeline_slug)
         self.enable_pipeline(app, current_pipeline)
@@ -322,7 +322,6 @@ class PipelinesService:
 
                     pipeline_tasks.append(task)
 
-
                 # Create the pipeline execution
                 pipeline_execution = PipelineExecution(
                     pipeline_id=pipeline_id,
@@ -341,9 +340,9 @@ class PipelinesService:
 
                 if not service:
                     raise NotFoundException("Service not found")
-                
+
                 data_in = []
-                
+
                 for index, file in enumerate(service.data_in_fields):
                     pipeline_file = pipeline_execution.files[index]
                     data_in.append(pipeline_file["file_key"])
@@ -379,7 +378,7 @@ class PipelinesService:
                     for pipeline_task in pipeline_tasks:
                         pipeline_task.status = TaskStatus.SKIPPED
                         self.tasks_service.update(task.id, pipeline_task)
-                    
+
                     raise HTTPException(
                         status_code=500,
                         detail=f"The submission of the task to the service '{service.name}' has failed."

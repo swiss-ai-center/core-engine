@@ -60,7 +60,7 @@ class MyService(Service):
         input_type = data["image"].type
         img = cv2.imdecode(np.frombuffer(raw, np.uint8), 1)
 
-        areas = json.loads(data["areas"].data)
+        areas = json.loads(data["areas"].data)["areas"]
 
         rows = img.shape[0]
         cols = img.shape[1]

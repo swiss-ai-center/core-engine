@@ -8,7 +8,7 @@ from http_client import HttpClient
 from tasks.models import Task, TaskUpdate
 from common.exceptions import NotFoundException
 from pipeline_executions.service import PipelineExecutionsService
-from pipeline_executions.models import PipelineExecution, FileKeyReference
+from pipeline_executions.models import PipelineExecution, FileKeyReference, PipelineExecutionUpdate
 from pipeline_steps.models import PipelineStep
 from pipelines.models import Pipeline
 from tasks.models import Task, TaskStatus
@@ -90,11 +90,29 @@ class TasksService:
         self.session.commit()
         self.logger.debug(f"Deleted task with id {current_task.id}")
 
+    def end_pipeline_execution(self, pipeline_execution: PipelineExecution):
+        pipeline_execution.current_pipeline_step_id = None
+        pipeline_execution.files = None
+
+    def set_error_state(self, pipeline_execution: PipelineExecution, task: Task):
+        # Update all remaining tasks to SKIPPED
+        for task_to_skip in pipeline_execution.tasks:
+            if task.id == task_to_skip.id:
+                continue
+            task_to_skip.status = TaskStatus.SKIPPED
+            task_skip = Task.from_orm(task_to_skip)
+            self.session.add(task_skip)
+        self.end_pipeline_execution(pipeline_execution)
+
     async def launch_next_step_in_pipeline(self, task: Task):
         """
         Launch the next step in the pipeline
         :param task: The task that has been completed
         """
+
+        # TODO: Manage conditions
+        # TODO: Manage errors
+
         self.logger.debug("Launch next step in pipeline")
 
         pipeline_execution = self.session.get(PipelineExecution, task.pipeline_execution_id)
@@ -102,6 +120,12 @@ class TasksService:
         # Check if pipeline execution exists
         if not pipeline_execution:
             raise NotFoundException("Pipeline Execution Not Found")
+
+        # Check if task status is completed
+        if task.status != TaskStatus.FINISHED:
+            self.logger.error(f"Task {task.id} status is {task.status}. Expected status is {TaskStatus.FINISHED}")
+            # self.set_error_state(pipeline_execution, task)
+            return
 
         current_pipeline_step = self.session.get(PipelineStep, pipeline_execution.current_pipeline_step_id)
 
@@ -138,15 +162,15 @@ class TasksService:
 
         # Check if current pipeline step is the last one
         if current_pipeline_step == pipeline.steps[-1]:
-            # TODO: Check if handling end of pipeline is OK as it is
+            #pipeline_execution = self.end_pipeline_execution(pipeline_execution)
             pipeline_execution.current_pipeline_step_id = None
+            pipeline_execution.files = None
         else:
-            next_pipeline_step_id = pipeline.steps[
-                pipeline.steps.index(current_pipeline_step) + 1
-                ].id
+            next_pipeline_step_id = pipeline.steps[pipeline.steps.index(current_pipeline_step) + 1].id
 
             # Get the next pipeline step
             next_pipeline_step = self.session.get(PipelineStep, next_pipeline_step_id)
+            pipeline_execution.current_pipeline_step_id = next_pipeline_step_id
 
             # Get the next pipeline service
             next_service = self.session.get(Service, next_pipeline_step.service_id)
@@ -171,7 +195,7 @@ class TasksService:
             task.data_in = task_files
             task.service_id = next_service.id
             task.status = TaskStatus.PENDING
-            task = self.update(task.id, task)
+            self.session.add(task)
 
             # Create the service task
             service_task = ServiceTask(
@@ -185,11 +209,12 @@ class TasksService:
             )
 
             async def task_failed():
-                self.logger.debug("Setting task to failed...")
+                self.logger.debug("Setting task to error...")
 
                 service_task.task.status = TaskStatus.ERROR
-                task_update = TaskUpdate.from_orm(service_task.task)
-                service_task.task = self.update(service_task.task.id, task_update)
+                task_in_error = Task.from_orm(service_task.task)
+                self.session.add(task_in_error)
+                # self.set_error_state(pipeline_execution, task_in_error)
 
                 raise HTTPException(
                     status_code=500,
@@ -199,6 +224,7 @@ class TasksService:
             # Submit the service task to the remote service
             try:
                 res = await self.http_client.post(f"{next_service.url}/compute", json=jsonable_encoder(service_task))
+                # raise HTTPException(status_code=res.status_code, detail=res.text)
 
                 if res.status_code != 200:
                     raise HTTPException(status_code=res.status_code, detail=res.text)

@@ -49,21 +49,27 @@ class MyService(Service):
             ]
         )
 
+    def get_output_types(self):
+        return self.data_out_fields[0]["type"]
+
     def process(self, data):
         # TODO: modify to accept any image format and convert to any image format
         raw = data["image"].data
         input_type = data["image"].type
-        output_type = data["format"].data
+        output_type = data["format"].data.decode("utf-8")
 
-        if input_type == output_type:
+        # output_type to FieldDescriptionType
+        output_type_fd = FieldDescriptionType(output_type)
+
+        if input_type == output_type_fd:
             return {
                 "result": TaskData(
                     data=raw,
                     type=output_type,
                 )
             }
-
-        if output_type not in MyService.get_output_types():
+        service = MyService()
+        if output_type_fd not in service.get_output_types():
             raise Exception("Output type not supported.")
 
         stream = io.BytesIO(raw)

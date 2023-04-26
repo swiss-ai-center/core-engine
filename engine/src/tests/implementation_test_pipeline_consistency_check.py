@@ -1,6 +1,58 @@
 import graphlib
 from graphviz import Digraph
 
+
+correct_pipeline_convert_image = {
+    "name": "Convert and blur",
+    "slug": "convert-blur",
+    "summary": "Convert and blur",
+    "description": "Convert and blur",
+    "data_in_fields": [
+        {
+            "name": "image",
+            "type": [
+                "image/jpeg",
+                "image/png"
+            ]
+        },
+        {
+            "name": "format",
+            "type": [
+                "text/plain"
+            ]
+        },
+        {
+            "name": "areas",
+            "type": [
+                "application/json"
+            ]
+        }
+    ],
+    "data_out_fields": [
+        {
+            "name": "result",
+            "type": [
+                "image/jpeg",
+                "image/png"
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "identifier": "image-conversion",
+            "needs": [],
+            "inputs": ["pipeline.image", "pipeline.format"],
+            "service_id": "421cdd35-0dd9-4bc9-9a11-ce1e98f110a1"
+        },
+        {
+            "identifier": "image-blur",
+            "needs": ["image-conversion"],
+            "inputs": ["image-conversion.result", "pipeline.areas"],
+            "service_id": "9ff951a4-57b0-4d91-8c07-3cded33526db"
+        }
+    ]
+}
+
 correct_pipeline_simple = {
     "name": "Face Blur",
     "slug": "face-blur",
@@ -29,13 +81,13 @@ correct_pipeline_simple = {
             "identifier": "face-detection",
             "needs": [],
             "inputs": ["pipeline.image"],
-            "service_id": "996be6a4-dc74-40fe-affa-238b4617ec1d"
+            "service_id": "b24d686a-1e52-44ad-9a67-a977206fc298"
         },
         {
             "identifier": "image-blur",
             "needs": ["face-detection"],
             "inputs": ["pipeline.image", "face-detection.result"],
-            "service_id": "dc5c449b-c588-4c7f-97aa-831f3cd72585"
+            "service_id": "f8265fce-2da6-4b4f-896a-d7217d80063c"
         }
     ]
 }
