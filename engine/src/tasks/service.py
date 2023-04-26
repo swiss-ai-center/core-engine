@@ -16,6 +16,7 @@ from services.models import Service, ServiceTask
 from config import Settings, get_settings
 from httpx import HTTPError
 
+
 class TasksService:
     def __init__(
             self,
@@ -101,15 +102,15 @@ class TasksService:
         # Check if pipeline execution exists
         if not pipeline_execution:
             raise NotFoundException("Pipeline Execution Not Found")
-        
+
         current_pipeline_step = self.session.get(PipelineStep, pipeline_execution.current_pipeline_step_id)
-        
+
         # Check if pipeline step exists
         if not current_pipeline_step:
             raise NotFoundException("Current Pipeline Step Not Found")
-        
+
         pipeline = self.session.get(Pipeline, current_pipeline_step.pipeline_id)
-        
+
         # Check if pipeline exists
         if not pipeline:
             raise NotFoundException("Associated Pipeline Not Found")
@@ -131,10 +132,10 @@ class TasksService:
                 service_data_out_field_name = service.data_out_fields[index]["name"]
                 reference = f"{current_pipeline_step.identifier}.{service_data_out_field_name}"
                 files.append(FileKeyReference(reference=reference, file_key=file))
-            
+
             # Set back the new files to pipeline_execution.files
             pipeline_execution.files = files
-            
+
         # Check if current pipeline step is the last one
         if current_pipeline_step == pipeline.steps[-1]:
             # TODO: Check if handling end of pipeline is OK as it is
@@ -142,7 +143,7 @@ class TasksService:
         else:
             next_pipeline_step_id = pipeline.steps[
                 pipeline.steps.index(current_pipeline_step) + 1
-            ].id
+                ].id
 
             # Get the next pipeline step
             next_pipeline_step = self.session.get(PipelineStep, next_pipeline_step_id)
@@ -152,10 +153,12 @@ class TasksService:
 
             # Get the task of the next pipeline step
             query = self.session.query(Task).join(PipelineExecution).join(Service).where(
-                (Task.pipeline_execution_id == pipeline_execution.id) & (PipelineExecution.id == pipeline_execution.id) & (Service.id == next_pipeline_step.service_id)
+                (Task.pipeline_execution_id == pipeline_execution.id) & (
+                        PipelineExecution.id == pipeline_execution.id) & (
+                        Service.id == next_pipeline_step.service_id)
             )
             task = query.first()
-            
+
             # Get the files for the next pipeline step
             task_files = []
             for input in next_pipeline_step.inputs:
@@ -184,8 +187,9 @@ class TasksService:
             async def task_failed():
                 self.logger.debug("Setting task to failed...")
 
-                task.status = TaskStatus.FAILED
-                task = self.update(task.id, task)
+                service_task.task.status = TaskStatus.ERROR
+                task_update = TaskUpdate.from_orm(service_task.task)
+                service_task.task = self.update(service_task.task.id, task_update)
 
                 raise HTTPException(
                     status_code=500,
