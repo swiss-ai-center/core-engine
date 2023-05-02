@@ -11,7 +11,7 @@ from common_code.logger.logger import Logger, get_logger
 from common_code.common.enums import FieldDescriptionType
 from uuid import UUID
 from pipeline_steps.models import PipelineStep
-from pipelines.models import Pipeline, PipelineUpdate, PipelineCreate, PipelineRead
+from pipelines.models import Pipeline, PipelineUpdate, PipelineCreate
 from common.exceptions import NotFoundException, InconsistentPipelineException
 import graphlib
 from pipeline_executions.models import FileKeyReference, PipelineExecution, PipelineExecutionReadWithPipelineAndTasks
@@ -55,6 +55,8 @@ class PipelinesService:
         Find many pipelines
         :param skip: Skip the first n pipelines
         :param limit: Limit the number of pipelines
+        :param order_by: Order by a field
+        :param order: Order ascending or descending
         :return: List of pipelines
         """
         self.logger.debug("Find many pipelines")
@@ -78,6 +80,7 @@ class PipelinesService:
         """
         Create a pipeline
         :param pipeline: Pipeline to create
+        :param app: FastAPI app
         :return: Created pipeline
         """
         self.logger.debug("Creating pipeline")
@@ -120,6 +123,7 @@ class PipelinesService:
     def update(self, app: FastAPI, pipeline_id: UUID, pipeline: PipelineUpdate):
         """
         Update a pipeline
+        :param app: FastAPI app
         :param pipeline_id: Pipeline id
         :param pipeline: Pipeline to update
         :return: Updated pipeline
@@ -218,7 +222,11 @@ class PipelinesService:
         self.logger.debug(f"Deleted pipeline with id {current_pipeline.id}")
 
     def remove_route(self, app: FastAPI, slug: str):
-        # Delete the service route from the app
+        """
+        Remove a route from FastAPI
+        :param app: FastAPI reference
+        :param slug: Slug of the route to remove
+        """
         for route in app.routes:
             if route.path == f"/{slug}":
                 app.routes.remove(route)
@@ -227,12 +235,21 @@ class PipelinesService:
                 break
 
     def enable_pipelines(self, app: FastAPI):
-        pipelines =  self.session.exec(select(Pipeline)).all()
+        """
+        Enable all pipelines
+        :param app: FastAPI reference
+        """
+        pipelines = self.session.exec(select(Pipeline)).all()
 
         for pipeline in pipelines:
             self.enable_pipeline(app, pipeline)
 
     def enable_pipeline(self, app: FastAPI, pipeline: Pipeline):
+        """
+        Enable a pipeline
+        :param app: FastAPI reference
+        :param pipeline: Pipeline to enable
+        """
         is_pipeline_route_present = False
 
         for route in app.routes:
@@ -368,8 +385,8 @@ class PipelinesService:
                     self.logger.debug("Removing files from storage...")
 
                     # Remove files from storage
-                    for pipeline_file in pipeline_files:
-                        await self.storage_service.delete(pipeline_file["file_key"])
+                    for pipeline_file_to_remove in pipeline_files:
+                        await self.storage_service.delete(pipeline_file_to_remove["file_key"])
 
                     self.logger.debug("Files from storage removed.")
 
@@ -456,7 +473,7 @@ class PipelinesService:
         try:
             ts.prepare()
         except Exception:
-            raise InconsistentPipelineException("One or many pipeline step(s) is/are used before instantation.")
+            raise InconsistentPipelineException("One or many pipeline step(s) is/are used before instantiation.")
 
         # Iterate over the graph
         predecessors = set()

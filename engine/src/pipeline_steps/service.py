@@ -16,20 +16,27 @@ class PipelineStepsService:
         self.logger.set_source(__name__)
         self.session = session
 
-    def find_many(self, skip: int = 0, limit: int = 100):
+    def find_many(self, skip: int = 0, limit: int = 100, order_by: str = "name", order: str = "desc"):
         """
         Find many pipeline steps
         :param skip: number of pipeline steps to skip
         :param limit: number of pipeline steps to return
+        :param order_by: field to order by
+        :param order: order to sort by
         :return: list of pipeline steps
         """
         self.logger.debug("Find many pipeline steps")
-        return self.session.exec(
-            select(PipelineStep)
-            .order_by(desc(PipelineStep.created_at))
-            .offset(skip)
-            .limit(limit)
-        ).all()
+        if order == "desc":
+            return self.session.exec(
+                select(PipelineStep)
+                .order_by(desc(order_by))
+                .offset(skip)
+                .limit(limit)
+            ).all()
+        else:
+            return self.session.exec(
+                select(PipelineStep).order_by(order_by).offset(skip).limit(limit)
+            ).all()
 
     def find_one(self, pipeline_step_id: UUID):
         """

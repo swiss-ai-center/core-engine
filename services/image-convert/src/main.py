@@ -53,7 +53,6 @@ class MyService(Service):
         return self.data_out_fields[0]["type"]
 
     def process(self, data):
-        # TODO: modify to accept any image format and convert to any image format
         raw = data["image"].data
         input_type = data["image"].type
         output_type = data["format"].data.decode("utf-8")

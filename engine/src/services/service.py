@@ -45,6 +45,8 @@ class ServicesService:
         Find many services.
         :param skip: The number of services to skip.
         :param limit: The maximum number of services to return.
+        :param order_by: The field to order by.
+        :param order: The order (asc or desc).
         :return: The list of services.
         """
         self.logger.debug("Find many services")

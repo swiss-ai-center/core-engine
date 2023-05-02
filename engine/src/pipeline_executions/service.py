@@ -19,7 +19,7 @@ class PipelineExecutionsService:
         self.logger.set_source(__name__)
         self.session = session
 
-    def find_many(self, skip: int = 0, limit: int = 100):
+    def find_many(self, skip: int = 0, limit: int = 100, order_by: str = "name", order: str = "desc"):
         """
         Find many pipeline executions
         :param skip: number of pipeline executions to skip
@@ -27,12 +27,17 @@ class PipelineExecutionsService:
         :return: list of pipeline executions
         """
         self.logger.debug("Find many pipeline executions")
-        return self.session.exec(
-            select(PipelineExecution)
-            .order_by(desc(PipelineExecution.created_at))
-            .offset(skip)
-            .limit(limit)
-        ).all()
+        if order == "desc":
+            return self.session.exec(
+                select(PipelineExecution)
+                .order_by(desc(order_by))
+                .offset(skip)
+                .limit(limit)
+            ).all()
+        else:
+            return self.session.exec(
+                select(PipelineExecution).order_by(order_by).offset(skip).limit(limit)
+            ).all()
 
     def find_one(self, pipeline_execution_id: UUID):
         """

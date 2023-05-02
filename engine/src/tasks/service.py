@@ -5,13 +5,12 @@ from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from uuid import UUID
 from http_client import HttpClient
-from tasks.models import Task, TaskUpdate
+from tasks.models import Task, TaskUpdate, TaskStatus
 from common.exceptions import NotFoundException
 from pipeline_executions.service import PipelineExecutionsService
-from pipeline_executions.models import PipelineExecution, FileKeyReference, PipelineExecutionUpdate
+from pipeline_executions.models import PipelineExecution, FileKeyReference
 from pipeline_steps.models import PipelineStep
 from pipelines.models import Pipeline
-from tasks.models import Task, TaskStatus
 from services.models import Service, ServiceTask
 from config import Settings, get_settings
 from httpx import HTTPError
@@ -33,11 +32,28 @@ class TasksService:
         self.pipeline_executions_service = pipeline_executions_service
         self.settings = settings
 
-    def find_many(self, skip: int = 0, limit: int = 100):
+    def find_many(self, skip: int = 0, limit: int = 100, order_by: str = "name", order: str = "desc"):
+        """
+        Find many tasks
+        :param skip: number of tasks to skip
+        :param limit: number of tasks to return
+        :param order_by: field to order by
+        :param order: order to sort by
+        :return: list of tasks
+        """
         self.logger.debug("Find many tasks")
-        return self.session.exec(select(Task).order_by(desc(Task.created_at)).offset(skip).limit(limit)).all()
+
+        if order == "desc":
+            return self.session.exec(select(Task).order_by(desc(order_by)).offset(skip).limit(limit)).all()
+        else:
+            return self.session.exec(select(Task).order_by(order_by).offset(skip).limit(limit)).all()
 
     def create(self, task: Task):
+        """
+        Create task
+        :param task: task to create
+        :return: created task
+        """
         self.logger.debug("Creating task")
 
         self.session.add(task)
@@ -48,11 +64,21 @@ class TasksService:
         return task
 
     def find_one(self, task_id: UUID):
+        """
+        Find one task
+        :param task_id: id of task to find
+        :return: task
+        """
         self.logger.debug("Find task")
 
         return self.session.get(Task, task_id)
 
     async def get_status_from_service(self, task: Task):
+        """
+        Get task status from service
+        :param task: task to get status for
+        :return: task with status
+        """
         self.logger.debug("Get task status from service")
         status = await self.http_client.get(f"{task.service.url}/tasks/{task.id}/status")
         self.logger.debug(f"Got status {status} from service {task.service.url}")
@@ -65,6 +91,12 @@ class TasksService:
         return task
 
     def update(self, task_id: UUID, task: TaskUpdate):
+        """
+        Update task
+        :param task_id: id of task to update
+        :param task: task data to update
+        :return: updated task
+        """
         self.logger.debug("Update task")
         current_task = self.session.get(Task, task_id)
         if not current_task:
@@ -82,6 +114,10 @@ class TasksService:
         return current_task
 
     def delete(self, task_id: UUID):
+        """
+        Delete task
+        :param task_id: id of task to delete
+        """
         self.logger.debug("Delete task")
         current_task = self.session.get(Task, task_id)
         if not current_task:
@@ -91,18 +127,34 @@ class TasksService:
         self.logger.debug(f"Deleted task with id {current_task.id}")
 
     def end_pipeline_execution(self, pipeline_execution: PipelineExecution):
+        """
+        End the pipeline execution
+        :param pipeline_execution: The pipeline execution to end
+        """
         pipeline_execution.current_pipeline_step_id = None
         pipeline_execution.files = None
 
-    def set_error_state(self, pipeline_execution: PipelineExecution, task: Task):
-        # Update all remaining tasks to SKIPPED
-        for task_to_skip in pipeline_execution.tasks:
-            if task.id == task_to_skip.id:
-                continue
-            task_to_skip.status = TaskStatus.SKIPPED
-            task_skip = Task.from_orm(task_to_skip)
-            self.session.add(task_skip)
-        self.end_pipeline_execution(pipeline_execution)
+    def set_error_state(self, pipeline_execution: PipelineExecution, task_id: UUID):
+        """
+        Set the pipeline execution task to error state
+        :param pipeline_execution: The pipeline execution to set error state for
+        :param task_id: The task id to set error state for
+        """
+        # Set the pipeline execution task to error state and skip remaining tasks
+
+        for task in pipeline_execution.tasks:
+            if task.id == task_id:
+                task.status = TaskStatus.ERROR
+                break
+
+    def skip_remaining_tasks(self, pipeline_execution: PipelineExecution):
+        """
+        Skip remaining tasks in the pipeline execution
+        :param pipeline_execution: The pipeline execution to skip remaining tasks for
+        """
+        for task in pipeline_execution.tasks:
+            if task.status != TaskStatus.ERROR:
+                task.status = TaskStatus.SKIPPED
 
     async def launch_next_step_in_pipeline(self, task: Task):
         """
@@ -110,8 +162,8 @@ class TasksService:
         :param task: The task that has been completed
         """
 
-        # TODO: Manage conditions
-        # TODO: Manage errors
+        # TODO: Manage conditions and skipping if condition is not met
+        # TODO: How to handle parallel steps?
 
         self.logger.debug("Launch next step in pipeline")
 
@@ -124,8 +176,6 @@ class TasksService:
         # Check if task status is completed
         if task.status != TaskStatus.FINISHED:
             self.logger.error(f"Task {task.id} status is {task.status}. Expected status is {TaskStatus.FINISHED}")
-            # self.set_error_state(pipeline_execution, task)
-            return
 
         current_pipeline_step = self.session.get(PipelineStep, pipeline_execution.current_pipeline_step_id)
 
@@ -162,9 +212,7 @@ class TasksService:
 
         # Check if current pipeline step is the last one
         if current_pipeline_step == pipeline.steps[-1]:
-            #pipeline_execution = self.end_pipeline_execution(pipeline_execution)
-            pipeline_execution.current_pipeline_step_id = None
-            pipeline_execution.files = None
+            self.end_pipeline_execution(pipeline_execution)
         else:
             next_pipeline_step_id = pipeline.steps[pipeline.steps.index(current_pipeline_step) + 1].id
 
@@ -185,9 +233,9 @@ class TasksService:
 
             # Get the files for the next pipeline step
             task_files = []
-            for input in next_pipeline_step.inputs:
+            for file_input in next_pipeline_step.inputs:
                 for file in pipeline_execution.files:
-                    if file["reference"] == input:
+                    if file["reference"] == file_input:
                         task_files.append(file["file_key"])
                         break
 
@@ -208,41 +256,41 @@ class TasksService:
                 callback_url=f"{self.settings.host}/tasks/{task.id}"
             )
 
-            async def task_failed():
-                self.logger.debug("Setting task to error...")
-
-                service_task.task.status = TaskStatus.ERROR
-                task_in_error = Task.from_orm(service_task.task)
-                self.session.add(task_in_error)
-                # self.set_error_state(pipeline_execution, task_in_error)
-
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"The submission of the task to the service '{next_service.name}' has failed."
-                )
-
             # Submit the service task to the remote service
             try:
                 res = await self.http_client.post(f"{next_service.url}/compute", json=jsonable_encoder(service_task))
-                # raise HTTPException(status_code=res.status_code, detail=res.text)
 
                 if res.status_code != 200:
                     raise HTTPException(status_code=res.status_code, detail=res.text)
+
+                self.logger.debug(f"Launched next step in pipeline with id {pipeline_execution.id}")
+
             except HTTPException as e:
                 self.logger.warning(f"Service {next_service.name} returned an error: {str(e)}")
-                await task_failed()
-                raise e
+
+                # Set task to error
+                self.set_error_state(pipeline_execution, service_task.task.id)
+
+                # Skip all remaining tasks
+                self.skip_remaining_tasks(pipeline_execution)
+
+                # End the pipeline execution
+                self.end_pipeline_execution(pipeline_execution)
+
             except HTTPError as e:
                 self.logger.error(f"Sending request to the service {next_service.name} failed: {str(e)}")
-                await task_failed()
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Sending request to the service {next_service.name} failed: {str(e)}",
-                )
+
+                # Set task to error
+                self.set_error_state(pipeline_execution, service_task.task.id)
+
+                # Skip all remaining tasks
+                self.skip_remaining_tasks(pipeline_execution)
+
+                # End the pipeline execution
+                self.end_pipeline_execution(pipeline_execution)
 
         self.session.add(pipeline_execution)
         self.session.commit()
         self.session.refresh(pipeline_execution)
-
-        self.logger.debug(f"Launched next step in pipeline with id {pipeline_execution.id}")
+        self.logger.debug(f"Pipeline execution updated with data: {pipeline_execution}")
         return pipeline_execution

@@ -37,10 +37,15 @@ def get_one(
     response_model=List[PipelineExecutionReadWithPipelineAndTasks],
 )
 def get_many_pipelines(
-        skip_and_limit: SkipLimitOrderByAndOrder = Depends(),
+        skip_limit_order_by_and_order: SkipLimitOrderByAndOrder = Depends(),
         pipeline_executions_service: PipelineExecutionsService = Depends(),
 ):
-    pipeline_executions = pipeline_executions_service.find_many(skip_and_limit.skip, skip_and_limit.limit)
+    pipeline_executions = pipeline_executions_service.find_many(
+        skip_limit_order_by_and_order.skip,
+        skip_limit_order_by_and_order.limit,
+        skip_limit_order_by_and_order.order_by,
+        skip_limit_order_by_and_order.order,
+    )
 
     return pipeline_executions
 
