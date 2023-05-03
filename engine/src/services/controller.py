@@ -6,7 +6,7 @@ from services.service import ServicesService
 from common.query_parameters import SkipLimitOrderByAndOrder
 from services.models import ServiceRead, ServiceUpdate, ServiceCreate, Service, ServiceReadWithTasks
 from uuid import UUID
-from sqlalchemy.exc import CompileError 
+from sqlalchemy.exc import CompileError
 
 router = APIRouter()
 

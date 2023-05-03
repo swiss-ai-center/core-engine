@@ -49,14 +49,15 @@ def get_many_pipelines(
 
     return pipeline_executions
 
+
 @router.post(
     "/pipeline-executions",
     summary="Create a pipeline execution",
     response_model=PipelineExecutionRead,
 )
 def create(
-    pipeline: PipelineExecutionCreate,
-    pipeline_executions_service: PipelineExecutionsService = Depends(),
+        pipeline: PipelineExecutionCreate,
+        pipeline_executions_service: PipelineExecutionsService = Depends(),
 ):
     try:
         pipeline_execution_create = PipelineExecution.from_orm(pipeline)

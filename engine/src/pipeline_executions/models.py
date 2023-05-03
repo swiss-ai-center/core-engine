@@ -1,4 +1,3 @@
-from typing import List
 from sqlmodel import Field, JSON, Column, SQLModel, Relationship
 from common.models import CoreModel
 from uuid import UUID, uuid4

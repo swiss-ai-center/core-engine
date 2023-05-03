@@ -7,7 +7,7 @@ from pipelines.models import PipelineRead, PipelineUpdate, PipelineCreate, Pipel
     PipelineReadWithPipelineStepsAndTasks
 from pipeline_steps.models import PipelineStep
 from uuid import UUID, uuid4
-from sqlalchemy.exc import CompileError 
+from sqlalchemy.exc import CompileError
 
 router = APIRouter()
 
