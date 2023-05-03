@@ -1,3 +1,5 @@
+import ast
+
 from fastapi import Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select, desc
@@ -238,6 +240,16 @@ class TasksService:
                     if file["reference"] == file_input:
                         task_files.append(file["file_key"])
                         break
+
+            # Check if a condition is set for the pipeline step
+            if next_pipeline_step.condition:
+                # Download the required files to do the evaluation (is this true?)
+
+                # Evaluate the condition
+                if not ast.literal_eval(next_pipeline_step.condition):
+                    # Set the current task as SKIPPED
+                    pass
+
 
             # Update the task
             task.data_in = task_files

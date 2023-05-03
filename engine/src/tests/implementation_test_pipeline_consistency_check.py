@@ -1,6 +1,45 @@
 import graphlib
 from graphviz import Digraph
 
+correct_pipeline_blur_women = {
+    "name": "Blur Women",
+    "slug": "blur-women",
+    "summary": "Blur Women",
+    "description": "Blur Women",
+    "data_in_fields": [
+        {
+            "name": "image",
+            "type": [
+                "image/jpeg",
+                "image/png"
+            ]
+        }
+    ],
+    "data_out_fields": [
+        {
+            "name": "result",
+            "type": [
+                "image/jpeg",
+                "image/png"
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "identifier": "face-analyzer",
+            "needs": [],
+            "inputs": ["pipeline.image"],
+            "service_id": "b24d686a-1e52-44ad-9a67-a977206fc298"
+        },
+        {
+            "identifier": "image-blur",
+            "needs": ["face-detection"],
+            "condition": "len(face-detection.result['areas']) > 0",
+            "inputs": ["pipeline.image", "face-detection.result"],
+            "service_id": "f8265fce-2da6-4b4f-896a-d7217d80063c"
+        }
+    ]
+}
 
 correct_pipeline_convert_image = {
     "name": "Convert and blur",
@@ -86,6 +125,7 @@ correct_pipeline_simple = {
         {
             "identifier": "image-blur",
             "needs": ["face-detection"],
+            "condition": "len(face-detection.result['areas']) > 0",
             "inputs": ["pipeline.image", "face-detection.result"],
             "service_id": "f8265fce-2da6-4b4f-896a-d7217d80063c"
         }
