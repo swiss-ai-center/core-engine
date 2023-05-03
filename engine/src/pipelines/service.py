@@ -392,6 +392,7 @@ class PipelinesService:
 
                     self.logger.debug("Updating tasks...")
 
+                    # TODO: Shouldn't the current task be marked as FAILED?
                     for pipeline_task in pipeline_tasks:
                         pipeline_task.status = TaskStatus.SKIPPED
                         self.tasks_service.update(task.id, pipeline_task)

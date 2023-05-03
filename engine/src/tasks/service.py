@@ -243,12 +243,20 @@ class TasksService:
 
             # Check if a condition is set for the pipeline step
             if next_pipeline_step.condition:
-                # Download the required files to do the evaluation (is this true?)
+                files_mapping = {}
+                # Extract the files needed from the condition
+
+                # If files found, download the required files (text and JSON only) from S3 and update the condition
+                # to match a variable to a file
+                # TODO
 
                 # Evaluate the condition
-                if not ast.literal_eval(next_pipeline_step.condition):
+                # TODO: Sanitize the inputs one way or another?
+                if not eval(next_pipeline_step.condition, {}, files_mapping):
                     # Set the current task as SKIPPED
                     pass
+
+
 
 
             # Update the task
