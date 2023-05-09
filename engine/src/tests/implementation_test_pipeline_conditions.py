@@ -2,13 +2,13 @@ import json
 import re
 
 # Test raw text
-raw_data = b'image/jpeg'
+raw_data = b'image/jpg'
 data = raw_data.decode("utf-8")
 condition = "data == 'image/jpg'"
 
 condition_passes = eval(condition, {}, {"data": data})
 
-print(condition_passes)
+print(condition_passes)  # noqa: T201
 
 # Test JSON object
 raw_data = b'{"a": 1}'
@@ -17,7 +17,7 @@ condition = "data['a'] == 1"
 
 condition_passes = eval(condition, {}, {"data": json.loads(data)})
 
-print(condition_passes)
+print(condition_passes)  # noqa: T201
 
 # Test from pipeline execution example
 raw_data = b'{"areas": [[165, 64, 382, 383]]}'
@@ -46,4 +46,4 @@ for file_input in inputs:
 # Check the condition based on the files mapping
 condition_passes = eval(condition, {}, files_mapping)
 
-print(condition_passes)
+print(condition_passes)  # noqa: T201

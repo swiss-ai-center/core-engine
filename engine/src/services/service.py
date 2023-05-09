@@ -246,8 +246,6 @@ class ServicesService:
                 task = Task()
                 task.data_in = task_files
                 task.service_id = service_id
-                # TODO: How to manage the pipeline?
-                # task.pipeline = pipeline
 
                 # Save the task in database
                 task = self.tasks_service.create(task)

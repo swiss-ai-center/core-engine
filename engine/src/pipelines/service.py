@@ -313,7 +313,6 @@ class PipelinesService:
                         )
 
                     # Upload the file to S3
-                    file_key = None
                     try:
                         file_key = await self.storage_service.upload(file)
                     except Exception:
@@ -392,9 +391,8 @@ class PipelinesService:
 
                     self.logger.debug("Updating tasks...")
 
-                    # TODO: Shouldn't the current task be marked as FAILED?
                     for pipeline_task in pipeline_tasks:
-                        pipeline_task.status = TaskStatus.SKIPPED
+                        pipeline_task.status = TaskStatus.ERROR
                         self.tasks_service.update(task.id, pipeline_task)
 
                     raise HTTPException(

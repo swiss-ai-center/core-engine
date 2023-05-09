@@ -84,7 +84,14 @@ async def startup_event():
         get_logger(settings),
         session,
     )
-    tasks_service = TasksService(get_logger(settings), session, http_client, pipeline_executions_service, settings)
+    tasks_service = TasksService(
+        get_logger(settings),
+        session,
+        http_client,
+        pipeline_executions_service,
+        settings,
+        storage_service,
+    )
     services_service = ServicesService(
         get_logger(settings),
         storage_service,

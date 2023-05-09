@@ -1,5 +1,5 @@
-import ast
-
+import json
+import re
 from fastapi import Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select, desc
@@ -7,6 +7,7 @@ from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from uuid import UUID
 from http_client import HttpClient
+from storage.service import StorageService
 from tasks.models import Task, TaskUpdate, TaskStatus
 from common.exceptions import NotFoundException
 from pipeline_executions.service import PipelineExecutionsService
@@ -18,6 +19,54 @@ from config import Settings, get_settings
 from httpx import HTTPError
 
 
+def end_pipeline_execution(pipeline_execution: PipelineExecution):
+    """
+    End the pipeline execution
+    :param pipeline_execution: The pipeline execution to end
+    """
+    pipeline_execution.current_pipeline_step_id = None
+    pipeline_execution.files = None
+
+
+def set_error_state(pipeline_execution: PipelineExecution, task_id: UUID):
+    """
+    Set the pipeline execution task to error state
+    :param pipeline_execution: The pipeline execution to set error state for
+    :param task_id: The task id to set error state for
+    """
+    # Set the pipeline execution task to error state and skip remaining tasks
+
+    for task in pipeline_execution.tasks:
+        if task.id == task_id:
+            task.status = TaskStatus.ERROR
+            break
+
+
+def skip_remaining_tasks(pipeline_execution: PipelineExecution):
+    """
+    Skip remaining tasks in the pipeline execution
+    :param pipeline_execution: The pipeline execution to skip remaining tasks for
+    """
+    for task in pipeline_execution.tasks:
+        if task.status == TaskStatus.SCHEDULED:
+            task.status = TaskStatus.SKIPPED
+
+
+def sanitize(condition: str):
+    """
+    Sanitize the condition
+    :param condition: The condition to sanitize
+    :return: The sanitized condition
+    """
+    # sanitize condition for eval
+    condition = condition.replace("==", "==")
+    condition = condition.replace("!=", "!=")
+    condition = condition.replace("&&", "and")
+    condition = condition.replace("||", "or")
+    condition = condition.replace("!", "not ")
+    return condition
+
+
 class TasksService:
     def __init__(
             self,
@@ -26,6 +75,7 @@ class TasksService:
             http_client: HttpClient = Depends(),
             pipeline_executions_service: PipelineExecutionsService = Depends(),
             settings: Settings = Depends(get_settings),
+            storage_service: StorageService = Depends(),
     ):
         self.logger = logger
         self.logger.set_source(__name__)
@@ -33,6 +83,7 @@ class TasksService:
         self.http_client = http_client
         self.pipeline_executions_service = pipeline_executions_service
         self.settings = settings
+        self.storage_service = storage_service
 
     def find_many(self, skip: int = 0, limit: int = 100, order_by: str = "name", order: str = "desc"):
         """
@@ -128,43 +179,12 @@ class TasksService:
         self.session.commit()
         self.logger.debug(f"Deleted task with id {current_task.id}")
 
-    def end_pipeline_execution(self, pipeline_execution: PipelineExecution):
-        """
-        End the pipeline execution
-        :param pipeline_execution: The pipeline execution to end
-        """
-        pipeline_execution.current_pipeline_step_id = None
-        pipeline_execution.files = None
-
-    def set_error_state(self, pipeline_execution: PipelineExecution, task_id: UUID):
-        """
-        Set the pipeline execution task to error state
-        :param pipeline_execution: The pipeline execution to set error state for
-        :param task_id: The task id to set error state for
-        """
-        # Set the pipeline execution task to error state and skip remaining tasks
-
-        for task in pipeline_execution.tasks:
-            if task.id == task_id:
-                task.status = TaskStatus.ERROR
-                break
-
-    def skip_remaining_tasks(self, pipeline_execution: PipelineExecution):
-        """
-        Skip remaining tasks in the pipeline execution
-        :param pipeline_execution: The pipeline execution to skip remaining tasks for
-        """
-        for task in pipeline_execution.tasks:
-            if task.status != TaskStatus.ERROR:
-                task.status = TaskStatus.SKIPPED
-
     async def launch_next_step_in_pipeline(self, task: Task):
         """
         Launch the next step in the pipeline
         :param task: The task that has been completed
         """
 
-        # TODO: Manage conditions and skipping if condition is not met
         # TODO: How to handle parallel steps?
 
         self.logger.debug("Launch next step in pipeline")
@@ -214,8 +234,9 @@ class TasksService:
 
         # Check if current pipeline step is the last one
         if current_pipeline_step == pipeline.steps[-1]:
-            self.end_pipeline_execution(pipeline_execution)
+            end_pipeline_execution(pipeline_execution)
         else:
+            should_post_task = True
             next_pipeline_step_id = pipeline.steps[pipeline.steps.index(current_pipeline_step) + 1].id
 
             # Get the next pipeline step
@@ -245,69 +266,128 @@ class TasksService:
             if next_pipeline_step.condition:
                 files_mapping = {}
                 # Extract the files needed from the condition
-
                 # If files found, download the required files (text and JSON only) from S3 and update the condition
                 # to match a variable to a file
-                # TODO
+                for file in pipeline_execution.files:
+                    # Get the file key
+                    file_key = file["file_key"]
+
+                    # Get the file reference
+                    file_reference = file["reference"]
+
+                    # Get the file extension
+                    file_extension = file_key.split(".")[-1]
+
+                    # Check if file key is in task_files
+                    if file_key in task_files:
+                        file_reference_one_word = re.sub(r"[-.]", "_", file_reference)
+
+                        # Check if file is a text file
+                        if file_extension == "txt":
+                            try:
+                                # Download the file from S3
+                                file_content = await self.storage_service.get_file_as_bytes(file_key)
+
+                                # Add the file to the files mapping
+                                files_mapping[file_reference_one_word] = file_content.decode("utf-8")
+
+                                # Update the condition
+                                next_pipeline_step.condition = next_pipeline_step.condition.replace(
+                                    file_reference,
+                                    file_reference_one_word
+                                )
+                            except Exception as e:
+                                self.logger.error(f"Could not download file {file_key} from S3.: {e}")
+
+                        # Check if file is a JSON file
+                        elif file_extension == "json":
+                            try:
+                                # Download the file from S3
+                                file_content = await self.storage_service.get_file_as_bytes(file_key)
+
+                                # Add the file to the files mapping as a JSON object
+                                files_mapping[file_reference_one_word] = json.loads(file_content.decode("utf-8"))
+
+                                # Update the condition
+                                next_pipeline_step.condition = next_pipeline_step.condition.replace(
+                                    file_reference,
+                                    file_reference_one_word
+                                )
+                            except Exception as e:
+                                self.logger.error(f"Could not download file {file_key} from S3.: {e}")
+                        else:
+                            self.logger.warning(f"File {file_key} is not a text or JSON file. "
+                                                f"It will not be used in the condition.")
 
                 # Evaluate the condition
-                # TODO: Sanitize the inputs one way or another?
-                if not eval(next_pipeline_step.condition, {}, files_mapping):
+                condition_clean = sanitize(next_pipeline_step.condition)
+                self.logger.debug(f"files_mapping: {files_mapping}")
+                if not eval(condition_clean, {}, files_mapping):
+                    self.logger.info(f"Condition {condition_clean} evaluated to False. "
+                                     f"Skipping the end of pipeline.")
                     # Set the current task as SKIPPED
-                    pass
+                    task.status = TaskStatus.SKIPPED
+                    self.session.add(task)
+                    # Set remaining tasks as SKIPPED
+                    # TODO: Check if this is the right behavior
+                    skip_remaining_tasks(pipeline_execution)
+                    # End the pipeline execution
+                    end_pipeline_execution(pipeline_execution)
+                    should_post_task = False
 
+            if should_post_task:
+                # Update the task
+                task.data_in = task_files
+                task.service_id = next_service.id
+                task.status = TaskStatus.PENDING
+                self.session.add(task)
 
+                # Create the service task
+                service_task = ServiceTask(
+                    s3_access_key_id=self.settings.s3_access_key_id,
+                    s3_secret_access_key=self.settings.s3_secret_access_key,
+                    s3_region=self.settings.s3_region,
+                    s3_host=self.settings.s3_host,
+                    s3_bucket=self.settings.s3_bucket,
+                    task=task,
+                    callback_url=f"{self.settings.host}/tasks/{task.id}"
+                )
 
+                # Submit the service task to the remote service
+                try:
+                    res = await self.http_client.post(
+                        f"{next_service.url}/compute",
+                        json=jsonable_encoder(service_task)
+                    )
 
-            # Update the task
-            task.data_in = task_files
-            task.service_id = next_service.id
-            task.status = TaskStatus.PENDING
-            self.session.add(task)
+                    if res.status_code != 200:
+                        raise HTTPException(status_code=res.status_code, detail=res.text)
 
-            # Create the service task
-            service_task = ServiceTask(
-                s3_access_key_id=self.settings.s3_access_key_id,
-                s3_secret_access_key=self.settings.s3_secret_access_key,
-                s3_region=self.settings.s3_region,
-                s3_host=self.settings.s3_host,
-                s3_bucket=self.settings.s3_bucket,
-                task=task,
-                callback_url=f"{self.settings.host}/tasks/{task.id}"
-            )
+                    self.logger.debug(f"Launched next step in pipeline with id {pipeline_execution.id}")
 
-            # Submit the service task to the remote service
-            try:
-                res = await self.http_client.post(f"{next_service.url}/compute", json=jsonable_encoder(service_task))
+                except HTTPException as e:
+                    self.logger.warning(f"Service {next_service.name} returned an error: {str(e)}")
 
-                if res.status_code != 200:
-                    raise HTTPException(status_code=res.status_code, detail=res.text)
+                    # Set task to error
+                    set_error_state(pipeline_execution, service_task.task.id)
 
-                self.logger.debug(f"Launched next step in pipeline with id {pipeline_execution.id}")
+                    # Skip all remaining tasks
+                    skip_remaining_tasks(pipeline_execution)
 
-            except HTTPException as e:
-                self.logger.warning(f"Service {next_service.name} returned an error: {str(e)}")
+                    # End the pipeline execution
+                    end_pipeline_execution(pipeline_execution)
 
-                # Set task to error
-                self.set_error_state(pipeline_execution, service_task.task.id)
+                except HTTPError as e:
+                    self.logger.error(f"Sending request to the service {next_service.name} failed: {str(e)}")
 
-                # Skip all remaining tasks
-                self.skip_remaining_tasks(pipeline_execution)
+                    # Set task to error
+                    set_error_state(pipeline_execution, service_task.task.id)
 
-                # End the pipeline execution
-                self.end_pipeline_execution(pipeline_execution)
+                    # Skip all remaining tasks
+                    skip_remaining_tasks(pipeline_execution)
 
-            except HTTPError as e:
-                self.logger.error(f"Sending request to the service {next_service.name} failed: {str(e)}")
-
-                # Set task to error
-                self.set_error_state(pipeline_execution, service_task.task.id)
-
-                # Skip all remaining tasks
-                self.skip_remaining_tasks(pipeline_execution)
-
-                # End the pipeline execution
-                self.end_pipeline_execution(pipeline_execution)
+                    # End the pipeline execution
+                    end_pipeline_execution(pipeline_execution)
 
         self.session.add(pipeline_execution)
         self.session.commit()

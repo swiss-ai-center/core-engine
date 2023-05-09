@@ -81,13 +81,14 @@ correct_pipeline_convert_image = {
             "identifier": "image-conversion",
             "needs": [],
             "inputs": ["pipeline.image", "pipeline.format"],
-            "service_id": "421cdd35-0dd9-4bc9-9a11-ce1e98f110a1"
+            "service_id": "76c89db8-3cc0-474a-b16b-14f5f4dd5444"
         },
         {
             "identifier": "image-blur",
             "needs": ["image-conversion"],
             "inputs": ["image-conversion.result", "pipeline.areas"],
-            "service_id": "9ff951a4-57b0-4d91-8c07-3cded33526db"
+            "condition": "1 == 0",
+            "service_id": "20df4a65-906b-4af2-aeb6-a799a3412ac7"
         }
     ]
 }
@@ -120,14 +121,14 @@ correct_pipeline_simple = {
             "identifier": "face-detection",
             "needs": [],
             "inputs": ["pipeline.image"],
-            "service_id": "b24d686a-1e52-44ad-9a67-a977206fc298"
+            "service_id": "124d4cc6-c5ca-4bc4-b4ef-3e150448a938"
         },
         {
             "identifier": "image-blur",
             "needs": ["face-detection"],
-            "condition": "len(face-detection.result['areas']) > 0",
+            "condition": "len(face-detection.result) > 0",
             "inputs": ["pipeline.image", "face-detection.result"],
-            "service_id": "f8265fce-2da6-4b4f-896a-d7217d80063c"
+            "service_id": "20df4a65-906b-4af2-aeb6-a799a3412ac7"
         }
     ]
 }
@@ -447,7 +448,7 @@ dot.node("outputs", color="red")
 # get all the steps that are not needed by any other step
 last_steps = [s for s in steps if s['identifier'] not in referenced_steps]
 for last_step in last_steps:
-    # TODO: check the outputs to get label
+    # optional: check the outputs to get label
     dot.edge(last_step['identifier'], "outputs", color="red")
 
 dot.render(directory='test', format='pdf', view=True)
@@ -484,12 +485,12 @@ while ts.is_active():
 
         # Check if the inputs of the step are available
         used_identifiers = []
-        for input in inputs:
-            input_split = input.split('.')
+        for input_file in inputs:
+            input_split = input_file.split('.')
 
             if len(input_split) != 2:
                 raise Exception(
-                    f"The input {input} is not valid. It should be in the format '<identifier>.<variable>'.")
+                    f"The input {input_file} is not valid. It should be in the format '<identifier>.<variable>'.")
 
             identifier, variable = input_split
             used_identifiers.append(identifier)
@@ -508,7 +509,7 @@ while ts.is_active():
                 elif len(variables_found) > 1:
                     raise Exception(f"The variable {variable} is set multiple times in the pipeline.")
 
-                # TODO: Check if the variable type is compabile with the input type of the remote execution unit
+                # next: Check if the variable type is compatible with the input type of the remote execution unit
             else:
                 # Check if the identifier is a predecessor
                 if identifier not in predecessors:
@@ -522,7 +523,7 @@ while ts.is_active():
                 elif len(steps_found) > 1:
                     raise Exception(f"The identifier {identifier} is set multiple times in the steps.")
 
-                # TODO: Get the outputs of the service in the database and check if it's compatible with the input type
+                # next: Get the outputs of the service in the database and check if it's compatible with the input type
                 #  of the remote execution unit
 
             # Check if all the identifiers in the needs are used in the inputs

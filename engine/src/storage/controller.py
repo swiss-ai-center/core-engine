@@ -17,8 +17,6 @@ async def upload(
     file: UploadFile,
     storage_service: StorageService = Depends(),
 ):
-    key = None
-
     try:
         key = await storage_service.upload(file)
     except Exception as e:
@@ -38,7 +36,7 @@ async def download(
 ):
     try:
         # TODO: Can we move this check in the service file?
-        # It seems an exception thrown in a generator function is not catched.
+        # It seems an exception thrown in a generator function is not caught.
         await storage_service.check_if_file_exists(key)
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
