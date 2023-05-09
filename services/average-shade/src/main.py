@@ -138,7 +138,6 @@ async def startup_event():
     tasks_service.start()
 
     async def announce():
-        # TODO: enhance this to allow multiple engines to be used
         retries = settings.engine_announce_retries
         for engine_url in settings.engine_url:
             announced = False

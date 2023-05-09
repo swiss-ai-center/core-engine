@@ -264,6 +264,7 @@ class TasksService:
 
             # Check if a condition is set for the pipeline step
             if next_pipeline_step.condition:
+                condition = next_pipeline_step.condition
                 files_mapping = {}
                 # Extract the files needed from the condition
                 # If files found, download the required files (text and JSON only) from S3 and update the condition
@@ -292,7 +293,7 @@ class TasksService:
                                 files_mapping[file_reference_one_word] = file_content.decode("utf-8")
 
                                 # Update the condition
-                                next_pipeline_step.condition = next_pipeline_step.condition.replace(
+                                condition = condition.replace(
                                     file_reference,
                                     file_reference_one_word
                                 )
@@ -309,7 +310,7 @@ class TasksService:
                                 files_mapping[file_reference_one_word] = json.loads(file_content.decode("utf-8"))
 
                                 # Update the condition
-                                next_pipeline_step.condition = next_pipeline_step.condition.replace(
+                                condition = condition.replace(
                                     file_reference,
                                     file_reference_one_word
                                 )
@@ -320,8 +321,7 @@ class TasksService:
                                                 f"It will not be used in the condition.")
 
                 # Evaluate the condition
-                condition_clean = sanitize(next_pipeline_step.condition)
-                self.logger.debug(f"files_mapping: {files_mapping}")
+                condition_clean = sanitize(condition)
                 if not eval(condition_clean, {}, files_mapping):
                     self.logger.info(f"Condition {condition_clean} evaluated to False. "
                                      f"Skipping the end of pipeline.")

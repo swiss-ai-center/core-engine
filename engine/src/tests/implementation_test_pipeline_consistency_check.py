@@ -81,13 +81,13 @@ correct_pipeline_convert_image = {
             "identifier": "image-conversion",
             "needs": [],
             "inputs": ["pipeline.image", "pipeline.format"],
+            "condition": "1 == 0",
             "service_id": "76c89db8-3cc0-474a-b16b-14f5f4dd5444"
         },
         {
             "identifier": "image-blur",
             "needs": ["image-conversion"],
             "inputs": ["image-conversion.result", "pipeline.areas"],
-            "condition": "1 == 0",
             "service_id": "20df4a65-906b-4af2-aeb6-a799a3412ac7"
         }
     ]
