@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import List
 from functools import lru_cache
 from pydantic import BaseSettings
 
@@ -18,7 +19,7 @@ class LogLevel(str, Enum):
 
 
 class Settings(BaseSettings):
-    engine_url: str = "http://localhost:8080"
+    engine_url: List[str] = ["http://localhost:8080"]
     service_url: str = "http://localhost:8000"
     environment: Environment = Environment.PRODUCTION
     max_tasks: int = 50

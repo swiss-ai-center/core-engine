@@ -23,7 +23,7 @@ class ServiceService:
 
         self.logger.set_source(__name__)
 
-    async def announce_service(self, my_service: Service):
+    async def announce_service(self, my_service: Service, engine_url: str):
         """
         Announce the service to the engine
         """
@@ -31,16 +31,17 @@ class ServiceService:
             service_json = jsonable_encoder(my_service)
 
             self.logger.debug(f'Announcing service: {service_json}')
-            res = await self.http_client.post(f"{self.settings.engine_url}/services", json=service_json)
+            self.logger.debug(f"url: {engine_url}")
+            res = await self.http_client.post(f"{engine_url}/services", json=service_json)
 
             if res.status_code == 409:
                 self.logger.warning("Service already exists in the engine")
                 self.logger.info("Updating service in the engine")
 
-                service_id = await self.get_service_id(service_json['slug'])
+                service_id = await self.get_service_id(service_json['slug'], engine_url)
 
                 res_update = await self.http_client.patch(
-                    f"{self.settings.engine_url}/services/{service_id}",
+                    f"{engine_url}/services/{service_id}",
                     json=service_json,
                 )
 
@@ -50,7 +51,8 @@ class ServiceService:
                 self.logger.info("Successfully updated service in the engine")
                 return True
             elif res.status_code != 200:
-                self.logger.warning(f"Failed to notify the engine, request returned {str(res.status_code)} {res.text}")
+                self.logger.warning(f"Failed to notify the engine, "
+                                    f"request returned {str(res.status_code)} {res.text}")
                 return False
             else:
                 self.logger.info("Successfully announced to the engine")
@@ -59,17 +61,16 @@ class ServiceService:
             self.logger.warning(f"Failed to notify the engine: {str(e)}")
             return False
 
-    async def graceful_shutdown(self, my_service: Service):
+    async def graceful_shutdown(self, my_service: Service, engine_url: str):
         """
         Gracefully shutdown the service
         """
         try:
             self.logger.info("Gracefully shutting down service")
             self.logger.info("Stopping tasks service")
-            service_id = await self.get_service_id(my_service.slug)
+            service_id = await self.get_service_id(my_service.slug, engine_url)
             service_json = jsonable_encoder({"status": ServiceStatus.UNAVAILABLE})
-            # TODO: modify to handle multiple engines
-            res_update = await self.http_client.patch(f"{self.settings.engine_url}/services/{service_id}",
+            res_update = await self.http_client.patch(f"{engine_url}/services/{service_id}",
                                                       json=service_json)
             if res_update.status_code != 200:
                 self.logger.error(f"Error updating service in the engine: {res_update.text}")
@@ -88,12 +89,12 @@ class ServiceService:
         """
         return self.tasks_service.is_full()
 
-    async def get_service_id(self, slug):
+    async def get_service_id(self, slug, engine_url: str):
         """
         Get the service id from the engine
         """
-        # TODO Improve this when authentication is set on service side
-        services_response = await self.http_client.get(f"{self.settings.engine_url}/services")
+        # TODO: Improve this when authentication is set on service side
+        services_response = await self.http_client.get(f"{engine_url}/services")
         services = services_response.json()
 
         for service in services:
