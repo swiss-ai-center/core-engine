@@ -186,4 +186,5 @@ async def shutdown_event():
     # Global variable
     global service_service
     my_service = MyService()
-    await service_service.graceful_shutdown(my_service)
+    for engine_url in settings.engine_url:
+        await service_service.graceful_shutdown(my_service, engine_url)
