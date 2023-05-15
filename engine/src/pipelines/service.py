@@ -13,7 +13,7 @@ from common_code.common.enums import FieldDescriptionType
 from uuid import UUID
 from pipeline_steps.models import PipelineStep
 from pipelines.models import Pipeline, PipelineUpdate, PipelineCreate
-from common.exceptions import NotFoundException, InconsistentPipelineException
+from common.exceptions import NotFoundException, InconsistentPipelineException, ConflictException
 import graphlib
 from pipeline_executions.models import FileKeyReference, PipelineExecution, PipelineExecutionReadWithPipelineAndTasks
 from pipeline_executions.service import PipelineExecutionsService
@@ -33,12 +33,12 @@ class PipelinesService:
     def __init__(
             self,
             logger: Logger = Depends(get_logger),
-            storage_service: StorageService = Depends(get_settings),
+            storage_service: StorageService = Depends(),
             session: Session = Depends(get_session),
             pipeline_executions_service: PipelineExecutionsService = Depends(),
             tasks_service: TasksService = Depends(),
             settings: Settings = Depends(get_settings),
-            services_service: ServicesService = Depends(get_settings),
+            services_service: ServicesService = Depends(),
             http_client: HttpClient = Depends(),
     ):
         self.logger = logger
@@ -85,6 +85,11 @@ class PipelinesService:
         :return: Created pipeline
         """
         self.logger.debug("Creating pipeline")
+
+        found_pipeline = self.session.exec(select(Pipeline).where(Pipeline.slug == pipeline.slug)).first()
+
+        if found_pipeline:
+            raise ConflictException(f"Pipeline with slug '{found_pipeline.slug}' already exists.")
 
         pipeline_steps_create = pipeline.steps
         pipeline_steps = []

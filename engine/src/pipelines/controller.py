@@ -1,6 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request
-from common.exceptions import NotFoundException, InconsistentPipelineException
+from common.exceptions import NotFoundException, InconsistentPipelineException, ConflictException
 from pipelines.service import PipelinesService
 from common.query_parameters import SkipLimitOrderByAndOrder
 from pipelines.models import PipelineRead, PipelineUpdate, PipelineCreate, Pipeline, \
@@ -76,6 +76,8 @@ def create(
         raise HTTPException(status_code=400, detail=str(e))
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ConflictException as e:
+        raise HTTPException(status_code=409, detail=str(e))
 
     return pipeline
 
@@ -101,6 +103,8 @@ def update(
         raise HTTPException(status_code=404, detail=str(e))
     except InconsistentPipelineException as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except ConflictException as e:
+        raise HTTPException(status_code=409, detail=str(e))
 
     return pipeline
 

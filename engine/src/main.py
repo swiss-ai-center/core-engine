@@ -74,41 +74,44 @@ async def startup_event():
     # https://github.com/tiangolo/fastapi/issues/2057
     # https://github.com/tiangolo/fastapi/issues/425
     settings = get_settings()
-    engine = initialize_db(settings)
+    engine = initialize_db(settings=settings)
     session_generator = get_session(engine)
     session = next(session_generator)
     http_client = HttpClient()
 
-    storage_service = StorageService(get_logger(settings), settings)
+    storage_service = StorageService(
+        logger=get_logger(settings),
+        settings=settings,
+    )
     pipeline_executions_service = PipelineExecutionsService(
-        get_logger(settings),
-        session,
+        logger=get_logger(settings),
+        session=session,
     )
     tasks_service = TasksService(
-        get_logger(settings),
-        session,
-        http_client,
-        pipeline_executions_service,
-        settings,
-        storage_service,
+        logger=get_logger(settings),
+        session=session,
+        http_client=http_client,
+        pipeline_executions_service=pipeline_executions_service,
+        settings=settings,
+        storage_service=storage_service,
     )
     services_service = ServicesService(
-        get_logger(settings),
-        storage_service,
-        tasks_service,
-        settings,
-        session,
-        http_client,
+        logger=get_logger(settings),
+        storage_service=storage_service,
+        tasks_service=tasks_service,
+        settings=settings,
+        session=session,
+        http_client=http_client,
     )
     pipelines_service = PipelinesService(
-        get_logger(settings),
-        storage_service,
-        session,
-        pipeline_executions_service,
-        tasks_service,
-        settings,
-        services_service,
-        http_client,
+        logger=get_logger(settings),
+        storage_service=storage_service,
+        session=session,
+        pipeline_executions_service=pipeline_executions_service,
+        tasks_service=tasks_service,
+        settings=settings,
+        services_service=services_service,
+        http_client=http_client,
     )
 
     # Check storage
