@@ -29,6 +29,7 @@
     "reactflow": "^11.1.2",
     "redux": "^4.2.0",
     "redux-thunk": "^2.4.1",
+    "typeface-inter": "^3.18.1",
     "typescript": "^4.8.4",
     "web-vitals": "^2.1.4"
   },

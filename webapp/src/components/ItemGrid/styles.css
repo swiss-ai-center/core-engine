@@ -1,3 +1,7 @@
 a {
     text-decoration: none;
 }
+
+.acronym-chip {
+    border-radius: 4px !important;
+}
