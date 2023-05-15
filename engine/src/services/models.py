@@ -2,7 +2,7 @@ from typing import List
 from uuid import UUID, uuid4
 from pydantic import BaseModel, AnyHttpUrl
 from sqlmodel import Field, SQLModel, Relationship
-from common_code.common.models import FieldDescription
+from common_code.common.models import FieldDescription, ExecutionUnitTag
 from execution_units.enums import ExecutionUnitStatus
 from execution_units.models import ExecutionUnitBase
 
@@ -64,6 +64,7 @@ class ServiceUpdate(SQLModel):
     status: ExecutionUnitStatus | None
     data_in_fields: List[FieldDescription] | None
     data_out_fields: List[FieldDescription] | None
+    tags: List[ExecutionUnitTag] | None
 
 
 class ServiceTaskBase(BaseModel):

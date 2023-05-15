@@ -121,14 +121,14 @@ correct_pipeline_simple = {
             "identifier": "face-detection",
             "needs": [],
             "inputs": ["pipeline.image"],
-            "service_id": "124d4cc6-c5ca-4bc4-b4ef-3e150448a938"
+            "service_id": "7e5d1363-608b-4906-91a3-868951176504"
         },
         {
             "identifier": "image-blur",
             "needs": ["face-detection"],
             "condition": "len(face-detection.result) > 0",
             "inputs": ["pipeline.image", "face-detection.result"],
-            "service_id": "20df4a65-906b-4af2-aeb6-a799a3412ac7"
+            "service_id": "ae8943fb-c2c9-4378-9551-5e86a9eac010"
         }
     ]
 }

@@ -74,6 +74,8 @@ def create(
         pipeline = pipelines_service.create(pipeline, request.app)
     except InconsistentPipelineException as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except NotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
     return pipeline
 

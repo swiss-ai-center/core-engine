@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 from typing import List
 from pydantic import BaseModel
 from ..common.models import FieldDescription
+from ..common.models import ExecutionUnitTag
 from .enums import ServiceStatus
 
 
@@ -18,6 +19,7 @@ class Service(BaseModel, metaclass=ABCMeta):
     status: ServiceStatus
     data_in_fields: List[FieldDescription] | None
     data_out_fields: List[FieldDescription] | None
+    tags: List[ExecutionUnitTag] | None
 
     def get_data_in_fields(self):
         """
@@ -30,6 +32,12 @@ class Service(BaseModel, metaclass=ABCMeta):
         Data out fields
         """
         return self.data_out_fields
+
+    def get_tags(self):
+        """
+        Tags
+        """
+        return self.tags
 
     @abstractmethod
     def process(self, data):
