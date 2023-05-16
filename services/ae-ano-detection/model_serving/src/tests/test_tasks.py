@@ -23,7 +23,7 @@
 # def client_fixture(reachable_engine_instance: HTTPServer):
 #     def get_settings_override():
 #         settings = get_settings()
-#         settings.engine_url = reachable_engine_instance.url_for("")
+#         settings.engines_urls = reachable_engine_instance.url_for("")
 #         settings.engine_announce_retries = 2
 #         settings.engine_announce_retry_delay = 1
 #         settings.max_tasks = 2

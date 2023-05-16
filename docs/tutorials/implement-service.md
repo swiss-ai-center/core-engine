@@ -105,7 +105,7 @@ metadata:
 data:
   ENVIRONMENT: development
   LOG_LEVEL: debug
-  ENGINE_URL: http://engine-service:8080
+  ENGINES_URLS: '["http://engine-service:8080"]'
   # TODO: 3. CHANGE THE SERVICE URL (3)!
   # (the port must be the same as in the sample-service.service.yml and unused by other services)
   SERVICE_URL: http://image-rotate-service:8001
@@ -252,7 +252,7 @@ LOG_LEVEL=debug
 ENVIRONMENT=development
 
 # The Engine URL
-ENGINE_URL="http://localhost:8080"
+ENGINES_URLS=["http://localhost:8080"]
 
 # The Service URL
 # TODO: 1. REPLACE THE PORT WITH THE SAME AS IN THE CONFIG-MAP FILE (1)!
@@ -491,7 +491,7 @@ jobs:
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
-          ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
+          ENGINES_URLS: '["https://engine-csia-pme.kube.isc.heia-fr.ch"]'
           # TODO: 10. CHANGE THE URL OF THE SAMPLE SERVICE (10)!
           SERVICE_URL: https://image-rotate-csia-pme.kube.isc.heia-fr.ch
         # TODO: 11. CHANGE THE NAME OF THE CONFIGURATION FILES (11)!
@@ -771,7 +771,7 @@ metadata:
 data:
   ENVIRONMENT: development
   LOG_LEVEL: debug
-  ENGINE_URL: http://engine-service:8080
+  ENGINES_URLS: '["http://engine-service:8080"]'
   # TODO: 3. CHANGE THE SERVICE URL (3)!
   # (the port must be the same as in the sample-service.service.yml and unused by other services)
   SERVICE_URL: http://ano-detection-service:8001
@@ -918,7 +918,7 @@ LOG_LEVEL=debug
 ENVIRONMENT=development
 
 # The Engine URL
-ENGINE_URL="http://localhost:8080"
+ENGINES_URLS=["http://localhost:8080"]
 
 # The Service URL
 # TODO: 1. REPLACE THE PORT WITH THE SAME AS IN THE CONFIG-MAP FILE (1)!
@@ -1153,7 +1153,7 @@ jobs:
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
-          ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
+          ENGINES_URLS: '["https://engine-csia-pme.kube.isc.heia-fr.ch"]'
           # TODO: 10. CHANGE THE URL OF THE SAMPLE SERVICE (10)!
           SERVICE_URL: https://ano-detection-csia-pme.kube.isc.heia-fr.ch
         # TODO: 11. CHANGE THE NAME OF THE CONFIGURATION FILES (11)!
