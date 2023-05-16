@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import pytest
 import segment_anything  # noqa: F401
-from common_code.service.enums import FieldDescriptionType
+from common_code.common.enums import FieldDescriptionType
 from common_code.tasks.models import TaskData
 
 from main import MyService
