@@ -82,13 +82,13 @@ correct_pipeline_convert_image = {
             "needs": [],
             "inputs": ["pipeline.image", "pipeline.format"],
             "condition": "1 == 0",
-            "service_id": "76c89db8-3cc0-474a-b16b-14f5f4dd5444"
+            "service_id": ""
         },
         {
             "identifier": "image-blur",
             "needs": ["image-conversion"],
             "inputs": ["image-conversion.result", "pipeline.areas"],
-            "service_id": "20df4a65-906b-4af2-aeb6-a799a3412ac7"
+            "service_id": "0b3a98ba-cf85-4383-91b3-74265d4b5727"
         }
     ]
 }
@@ -121,14 +121,14 @@ correct_pipeline_simple = {
             "identifier": "face-detection",
             "needs": [],
             "inputs": ["pipeline.image"],
-            "service_id": "1c983e49-dc1a-440a-b9c4-66a3e4548c0b"
+            "service_id": "56a0fc39-0953-4411-be11-0639f8b321c7"
         },
         {
             "identifier": "image-blur",
             "needs": ["face-detection"],
             "condition": "len(face-detection.result['areas']) > 0",
             "inputs": ["pipeline.image", "face-detection.result"],
-            "service_id": "6b802314-7d1f-4307-b1a5-7655bce8e70f"
+            "service_id": "0b3a98ba-cf85-4383-91b3-74265d4b5727"
         }
     ]
 }

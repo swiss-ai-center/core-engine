@@ -60,7 +60,6 @@ def sanitize(condition: str):
     """
     # sanitize condition for eval
     condition = condition.replace("==", "==")
-    condition = condition.replace("!=", "!=")
     condition = condition.replace("&&", "and")
     condition = condition.replace("||", "or")
     condition = condition.replace("!", "not ")

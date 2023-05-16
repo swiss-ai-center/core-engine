@@ -126,7 +126,7 @@ export const getResult = async (id: string) => {
     return "";
 }
 
-export const postToService = async (serviceSlug: string, parts: FieldDescriptionWithSetAndValue[]) => {
+export const postToEngine = async (serviceSlug: string, parts: FieldDescriptionWithSetAndValue[]) => {
     try {
         const body = new FormData();
 
@@ -142,7 +142,15 @@ export const postToService = async (serviceSlug: string, parts: FieldDescription
         });
 
         if (response.status === 200) {
-            return await response.json();
+            const result = await response.json();
+            if (result.tasks) {
+                // this means that this is a Pipeline
+                // return the last task
+                return result.tasks[result.tasks.length - 1];
+            } else {
+                // this means that this is a Service
+                return result;
+            }
         }
         return false;
     } catch (error) {
