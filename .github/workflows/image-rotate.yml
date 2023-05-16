@@ -55,7 +55,7 @@ jobs:
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
-          ENGINE_URL: "[https://engine-csia-pme.kube.isc.heia-fr.ch]"
+          ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
           SERVICE_URL: https://image-rotate-csia-pme.kube.isc.heia-fr.ch
         run: |
           # TODO: 11. CHANGE THE NAME OF THE CONFIGURATION FILES
