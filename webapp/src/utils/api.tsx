@@ -39,7 +39,6 @@ export const getServices = async (filter: string, orderBy: string, tags: string[
         const available = json.filter((item: any) => item.status === 'available');
         const ordered = available.sort(createSortBy(orderBy));
         const tagFiltered = ordered.filter((item: any) => {
-            console.log(item)
             if (tags.length === 0) {
                 return true;
             } else if (!item.tags) {
@@ -54,7 +53,6 @@ export const getServices = async (filter: string, orderBy: string, tags: string[
             }
             return false;
         });
-        console.log(tagFiltered)
         return filterItems(tagFiltered, filter);
     }
     return [];

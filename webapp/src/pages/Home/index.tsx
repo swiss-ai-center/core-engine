@@ -53,7 +53,6 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = ({mobileOpen, h
     }
 
     const handleTags = (event: SelectChangeEvent, newValue: string[]) => {
-        console.log(newValue);
         setTags(newValue);
         if (newValue.length === 0) {
             searchParams.delete('tags');
@@ -62,7 +61,6 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = ({mobileOpen, h
             newValue.forEach((tag) => {
                 searchParams.append('tags', tag);
             });
-            console.log(searchParams.getAll('tags'));
         }
         history.pushState({}, '', `?${searchParams.toString()}`);
         handleNoFilter();
@@ -70,7 +68,6 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = ({mobileOpen, h
 
     React.useEffect(() => {
         setSearch(searchParams.get('filter') || '');
-        console.log(searchParams.getAll('tags'));
         setTags(searchParams.getAll('tags'));
         const order = searchParams.get('orderBy');
         if (orderByList.map((item) => item.value).includes(order || '')) {

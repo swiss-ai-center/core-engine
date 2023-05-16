@@ -24,7 +24,6 @@ const loadFromLocalStorage = () => {
         if (serializedState === null) return initialState;
         return JSON.parse(serializedState);
     } catch (e) {
-        console.log(e);
         return initialState;
     }
 }
