@@ -13,8 +13,10 @@ from common_code.storage.service import StorageService
 from common_code.tasks.controller import router as tasks_router
 from common_code.tasks.service import TasksService
 from common_code.tasks.models import TaskData
-from common_code.service.models import Service, FieldDescription
-from common_code.service.enums import ServiceStatus, FieldDescriptionType
+from common_code.service.models import Service
+from common_code.service.enums import ServiceStatus
+from common_code.common.enums import FieldDescriptionType, ExecutionUnitTagName, ExecutionUnitTagAcronym
+from common_code.common.models import FieldDescription, ExecutionUnitTag
 
 # Imports required by the service's model
 import json
@@ -51,6 +53,12 @@ class MyService(Service):
             ],
             data_out_fields=[
                 FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
+            ],
+            tags=[
+                ExecutionUnitTag(
+                    name=ExecutionUnitTagName.IMAGE_PROCESSING,
+                    acronym=ExecutionUnitTagAcronym.IMAGE_PROCESSING
+                ),
             ]
         )
 
@@ -60,6 +68,7 @@ class MyService(Service):
         img = cv2.imdecode(np.frombuffer(raw, np.uint8), 1)
 
         areas = json.loads(data["areas"].data)["areas"]
+
         rows = img.shape[0]
         cols = img.shape[1]
 
@@ -76,11 +85,14 @@ class MyService(Service):
             img[y1:y2 + 1, x1:x2 + 1] = cv2.blur(img[y1:y2 + 1, x1:x2 + 1], (kernelSize, kernelSize))
         guessed_extension = get_extension(input_type)
         is_ok, out_buff = cv2.imencode(guessed_extension, img)
+
+        task_data = TaskData(
+            data=out_buff.tobytes(),
+            type=input_type
+        )
+
         return {
-            "result": TaskData(
-                data=out_buff.tobytes(),
-                type=input_type
-            )
+            "result": task_data
         }
 
 
@@ -153,17 +165,17 @@ async def startup_event():
     tasks_service.start()
 
     async def announce():
-        # TODO: enhance this to allow multiple engines to be used
-        announced = False
-
         retries = settings.engine_announce_retries
-        while not announced and retries > 0:
-            announced = await service_service.announce_service(my_service)
-            retries -= 1
-            if not announced:
-                time.sleep(settings.engine_announce_retry_delay)
-                if retries == 0:
-                    logger.warning(f"Aborting service announcement after {settings.engine_announce_retries} retries")
+        for engine_url in settings.engine_url:
+            announced = False
+            while not announced and retries > 0:
+                announced = await service_service.announce_service(my_service, engine_url)
+                retries -= 1
+                if not announced:
+                    time.sleep(settings.engine_announce_retry_delay)
+                    if retries == 0:
+                        logger.warning(f"Aborting service announcement after "
+                                       f"{settings.engine_announce_retries} retries")
 
     # Announce the service to its engine
     asyncio.ensure_future(announce())
@@ -174,4 +186,5 @@ async def shutdown_event():
     # Global variable
     global service_service
     my_service = MyService()
-    await service_service.graceful_shutdown(my_service)
+    for engine_url in settings.engine_url:
+        await service_service.graceful_shutdown(my_service, engine_url)

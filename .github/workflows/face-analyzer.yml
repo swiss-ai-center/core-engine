@@ -56,7 +56,7 @@ jobs:
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
-          ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
+          ENGINE_URL: "[https://engine-csia-pme.kube.isc.heia-fr.ch]"
           SERVICE_URL: https://face-analyzer-csia-pme.kube.isc.heia-fr.ch
         run: |
           # Set face-analyzer version

@@ -1,19 +1,20 @@
 import React from 'react';
-import { Button, Card, CardActions, CardContent, Grid, Typography } from '@mui/material';
+import { Button, Card, CardActions, CardContent, Chip, Grid, Tooltip, Typography } from '@mui/material';
 import { getPipelines, getServices } from '../../utils/api';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useNotification } from '../../utils/useNotification';
 import "./styles.css";
+import { TagColors } from '../../enums/tagEnums';
 
 
-const ItemGrid: React.FC<{ filter: string, orderBy: string }> = ({filter, orderBy}) => {
+const ItemGrid: React.FC<{ filter: string, orderBy: string, tags: string[] }> = ({filter, orderBy, tags}) => {
     const [searchParams] = useSearchParams();
     const [pipelines, setPipelines] = React.useState([]);
     const [services, setServices] = React.useState([]);
     const {displayNotification} = useNotification();
 
-    const listServices = async (filter: string, orderBy: string) => {
-        const servicesList = await getServices(filter, orderBy);
+    const listServices = async (filter: string, orderBy: string, tags: string[]) => {
+        const servicesList = await getServices(filter, orderBy, tags);
         if (servicesList) {
             setServices(servicesList);
         } else {
@@ -22,8 +23,8 @@ const ItemGrid: React.FC<{ filter: string, orderBy: string }> = ({filter, orderB
         }
     }
 
-    const listPipelines = async (filter: string, orderBy: string) => {
-        const pipelinesList = await getPipelines(filter, orderBy);
+    const listPipelines = async (filter: string, orderBy: string, tags: string[]) => {
+        const pipelinesList = await getPipelines(filter, orderBy, tags);
         if (pipelinesList) {
             setPipelines(pipelinesList);
         } else {
@@ -33,10 +34,10 @@ const ItemGrid: React.FC<{ filter: string, orderBy: string }> = ({filter, orderB
     }
 
     React.useEffect(() => {
-        listServices(filter, orderBy);
-        listPipelines(filter, orderBy);
+        listServices(filter, orderBy, tags);
+        listPipelines(filter, orderBy, tags);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filter, orderBy]);
+    }, [filter, orderBy, tags]);
 
     return (
         <>
@@ -53,31 +54,49 @@ const ItemGrid: React.FC<{ filter: string, orderBy: string }> = ({filter, orderB
                 ) : (
                     services.map((item: any, index: number) => {
                             return (
-                                <Grid item xs={12} sm={6} md={4} key={index} sx={{height: '230px'}}>
+                                <Grid item xs={12} sm={6} xl={4} key={index} sx={{height: 'auto', minHeight: '200px'}}>
                                     <Card
                                         sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
                                     >
                                         <CardContent sx={{flexGrow: 1}}>
-                                            <Typography gutterBottom variant="h5" component="h2">
+                                            <Typography variant="h5" component="h2" gutterBottom>
                                                 {item.name}
                                             </Typography>
+                                            <Grid container spacing={1} sx={{mb: 2}}>
+                                                {item.tags ? item.tags.map((tag: any, index: number) => {
+                                                    return (
+                                                        <Grid item key={`service-tag-${index}`}>
+                                                            <Tooltip title={tag.name}>
+                                                                <Chip
+                                                                    className={"acronym-chip"}
+                                                                    label={tag.acronym}
+                                                                    style={TagColors[tag.acronym]}
+                                                                    variant="outlined"
+                                                                    size={"small"}
+                                                                />
+                                                            </Tooltip>
+                                                        </Grid>
+                                                    )
+                                                }) : ''}
+                                            </Grid>
                                             <Typography>
                                                 {
                                                     item.summary.length > 80 ?
-                                                    item.summary.substring(0, 75)+"..." :
-                                                    item.summary
+                                                        item.summary.substring(0, 75) + "..." :
+                                                        item.summary
                                                 }
                                             </Typography>
                                         </CardContent>
-                                        <CardActions>
+                                        <CardActions sx={{p: 2}}>
                                             <Link
-                                                to={"/showcase/service/"+item.id}>
-                                                <Button size="small">View</Button>
+                                                to={"/showcase/service/" + item.id}>
+                                                <Button size={"small"} variant={"contained"}>View</Button>
                                             </Link>
                                         </CardActions>
                                     </Card>
                                 </Grid>
-                            );
+                            )
+                                ;
                         }
                     ))}
             </Grid>
@@ -94,7 +113,8 @@ const ItemGrid: React.FC<{ filter: string, orderBy: string }> = ({filter, orderB
                 ) : (
                     pipelines.map((item: any, index: number) => {
                             return (
-                                <Grid item xs={6} md={8} key={index}>
+                                <Grid item xs={12} sm={6} xl={4} key={index}
+                                      sx={{height: 'auto', minHeight: '200px'}}>
                                     <Card
                                         sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
                                     >
@@ -102,16 +122,33 @@ const ItemGrid: React.FC<{ filter: string, orderBy: string }> = ({filter, orderB
                                             <Typography gutterBottom variant="h5" component="h2">
                                                 {item.name}
                                             </Typography>
+                                            <Grid container spacing={1} sx={{mb: 2}}>
+                                                {item.tags ? item.tags.map((tag: any, index: number) => {
+                                                    return (
+                                                        <Grid item key={`pipeline-tag-${index}`}>
+                                                            <Tooltip title={tag.name}>
+                                                                <Chip
+                                                                    className={"acronym-chip"}
+                                                                    label={tag.acronym}
+                                                                    style={TagColors[tag.acronym]}
+                                                                    variant="outlined"
+                                                                    size={"small"}
+                                                                />
+                                                            </Tooltip>
+                                                        </Grid>
+                                                    )
+                                                }) : ''}
+                                            </Grid>
                                             <Typography>
                                                 {item.summary}
                                             </Typography>
                                         </CardContent>
-                                        <CardActions>
+                                        <CardActions sx={{p: 2}}>
                                             <Link
-                                                to={"/showcase/pipeline/"+item.id}
+                                                to={"/showcase/pipeline/" + item.id}
                                                 state={{back: searchParams.toString()}}
                                             >
-                                                <Button size="small">View</Button>
+                                                <Button size={"small"} variant={"contained"}>View</Button>
                                             </Link>
                                         </CardActions>
                                     </Card>
@@ -119,7 +156,8 @@ const ItemGrid: React.FC<{ filter: string, orderBy: string }> = ({filter, orderB
                             );
                         }
                     ))}
-            </Grid></>
+            </Grid>
+        </>
     );
 }
 

@@ -5,7 +5,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { Provider } from 'react-redux';
 import store from './utils/store';
-import { Notification } from './components/Notification';
+import { Notification } from './components/Notification/Notification';
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement

@@ -3,6 +3,8 @@ from fastapi import FastAPI, UploadFile, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from makefun import with_signature
 from uuid import UUID
+
+from execution_units.enums import ExecutionUnitStatus
 from storage.service import StorageService
 from tasks.service import TasksService
 from tasks.models import Task, TaskReadWithServiceAndPipeline
@@ -10,12 +12,13 @@ from sqlmodel import Session, select, desc
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from config import Settings, get_settings
-from .enums import ServiceStatus
-from .models import Service, ServiceUpdate, ServiceTask
+from services.models import Service, ServiceUpdate, ServiceTask
 from common.exceptions import NotFoundException, ConflictException, UnreachableException
 from http_client import HttpClient
 from fastapi.encoders import jsonable_encoder
 from httpx import HTTPError
+
+REGISTERED_SERVICES_TAG = "Registered Services"
 
 
 class ServicesService:
@@ -37,15 +40,21 @@ class ServicesService:
 
         self.logger.set_source(__name__)
 
-    def find_many(self, skip: int = 0, limit: int = 100):
+    def find_many(self, skip: int = 0, limit: int = 100, order_by: str = "name", order: str = "desc"):
         """
         Find many services.
         :param skip: The number of services to skip.
         :param limit: The maximum number of services to return.
+        :param order_by: The field to order by.
+        :param order: The order (asc or desc).
         :return: The list of services.
         """
         self.logger.debug("Find many services")
-        return self.session.exec(select(Service).order_by(desc(Service.created_at)).offset(skip).limit(limit)).all()
+
+        if order == "desc":
+            return self.session.exec(select(Service).order_by(desc(order_by)).offset(skip).limit(limit)).all()
+        else:
+            return self.session.exec(select(Service).order_by(order_by).offset(skip).limit(limit)).all()
 
     def find_one(self, service_id: UUID):
         """
@@ -93,16 +102,11 @@ class ServicesService:
             self.enable_service(app, service)
             return service
         else:
-            self.logger.debug(
-                f"The service {service.name} did not respond with an OK status,"
-                "it will be saved in the database as unavailable"
-            )
+            error_message = f"The service {service.name} with ID {service.id} did not respond with an OK status, " \
+                            "it will be saved in the database as unavailable"
+            self.logger.debug(error_message)
             self.disable_service(app, service)
-            raise HTTPException(
-                status_code=500,
-                detail=f"The service {service.name} did not respond with an OK status,"
-                       "it will be saved in the database as unavailable"
-            )
+            raise HTTPException(status_code=500, detail=error_message)
 
     def update(self, service_id: UUID, service: ServiceUpdate):
         """
@@ -125,18 +129,29 @@ class ServicesService:
         self.logger.debug(f"Updated service with id {current_service.id}")
         return current_service
 
-    def delete(self, service_id: UUID):
+    def delete(self, service_id: UUID, app: FastAPI):
         """
         Delete a service.
         :param service_id: The id of the service to delete.
+        :param app: The FastAPI app reference
         """
         self.logger.debug("Delete service")
         current_service = self.session.get(Service, service_id)
         if not current_service:
             raise NotFoundException("Service Not Found")
         self.session.delete(current_service)
+        self.remove_route(app, current_service.slug)
         self.session.commit()
         self.logger.debug(f"Deleted service with id {current_service.id}")
+
+    def remove_route(self, app: FastAPI, slug: str):
+        # Delete the service route from the app
+        for route in app.routes:
+            if route.path == f"/{slug}":
+                app.routes.remove(route)
+                self.logger.debug(f"Route {route.path} removed from FastAPI app")
+                app.openapi_schema = None
+                break
 
     def enable_service(self, app: FastAPI, service: Service):
         """
@@ -147,7 +162,7 @@ class ServicesService:
         self.logger.info(f"Enabling service {service.name}")
 
         # Set the service as available
-        updated_service = self.update(service.id, ServiceUpdate(status=ServiceStatus.AVAILABLE))
+        updated_service = self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.AVAILABLE))
 
         self.logger.debug(f"Service {service.name} status set to {updated_service.status.value}")
 
@@ -231,8 +246,6 @@ class ServicesService:
                 task = Task()
                 task.data_in = task_files
                 task.service_id = service_id
-                # TODO: How to manage the pipeline?
-                # task.pipeline = pipeline
 
                 # Save the task in database
                 task = self.tasks_service.create(task)
@@ -296,7 +309,7 @@ class ServicesService:
                 methods=["POST"],
                 summary=service.summary,
                 description=service.description,
-                tags=[service.name],
+                tags=[REGISTERED_SERVICES_TAG],
                 responses={
                     400: {"detail": "Invalid Content Type"},
                     500: {"detail": "Internal Server Error"},
@@ -314,16 +327,11 @@ class ServicesService:
         self.logger.info(f"Disabling service {service.name}")
 
         # Set the service as unavailable
-        updated_service = self.update(service.id, ServiceUpdate(status=ServiceStatus.UNAVAILABLE))
+        updated_service = self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.UNAVAILABLE))
 
         self.logger.debug(f"Service {service.name} status set to {updated_service.status.value}")
 
-        for route in app.routes:
-            if route.path == f"/{service.slug}":
-                app.routes.remove(route)
-                self.logger.debug(f"Route {route.path} removed from FastAPI app")
-                app.openapi_schema = None
-                break
+        self.remove_route(app, service.slug)
 
         self.logger.info(f"Service {service.name} unregistered")
 

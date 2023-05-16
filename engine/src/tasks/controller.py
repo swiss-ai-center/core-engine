@@ -1,9 +1,9 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from common.exceptions import NotFoundException
-from .service import TasksService
-from common.query_parameters import SkipAndLimit
-from .models import TaskRead, TaskUpdate, TaskCreate, Task, TaskReadWithServiceAndPipeline
+from tasks.service import TasksService
+from common.query_parameters import SkipLimitOrderByAndOrder
+from tasks.models import TaskRead, TaskUpdate, TaskCreate, Task, TaskReadWithServiceAndPipeline
 from uuid import UUID
 
 router = APIRouter()
@@ -53,7 +53,7 @@ async def get_one_status(
         if task.status == "pending":
             task = await tasks_service.get_status_from_service(task)
 
-    return task.status
+    return task
 
 
 @router.get(
@@ -62,10 +62,15 @@ async def get_one_status(
     response_model=List[TaskRead],
 )
 def get_many_tasks(
-        skip_and_limit: SkipAndLimit = Depends(),
+        skip_limit_order_by_and_order: SkipLimitOrderByAndOrder = Depends(),
         tasks_service: TasksService = Depends(),
 ):
-    tasks = tasks_service.find_many(skip_and_limit.skip, skip_and_limit.limit)
+    tasks = tasks_service.find_many(
+        skip_limit_order_by_and_order.skip,
+        skip_limit_order_by_and_order.limit,
+        skip_limit_order_by_and_order.order_by,
+        skip_limit_order_by_and_order.order,
+    )
 
     return tasks
 
@@ -91,13 +96,20 @@ def create(task: TaskCreate, tasks_service: TasksService = Depends()):
     },
     response_model=TaskReadWithServiceAndPipeline,
 )
-def update(
+async def update(
         task_id: UUID,
         task_update: TaskUpdate,
         tasks_service: TasksService = Depends(),
 ):
     try:
+        # Update the task
         task = tasks_service.update(task_id, task_update)
+
+        # Check if the task is linked to a pipeline_execution
+        if task.pipeline_execution_id:
+            # If the task is linked to a pipeline_execution, we need launch the next step in the pipeline
+            await tasks_service.launch_next_step_in_pipeline(task)
+
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
 

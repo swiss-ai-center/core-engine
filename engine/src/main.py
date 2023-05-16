@@ -4,12 +4,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from database import get_session
 from common_code.logger.logger import get_logger
 from pipelines.controller import router as pipelines_router
+from pipeline_executions.controller import router as pipeline_executions_router
 from services.controller import router as services_router
-from services.service import ServicesService
 from stats.controller import router as stats_router
 from tasks.controller import router as tasks_router
-from tasks.service import TasksService
 from storage.controller import router as storage_router
+from tasks.service import TasksService
+from services.service import ServicesService
+from pipelines.service import PipelinesService
+from pipeline_executions.service import PipelineExecutionsService
 from storage.service import StorageService
 from config import get_settings
 from database import initialize_db
@@ -51,6 +54,7 @@ app.add_middleware(
 )
 
 # Include routers from other files
+app.include_router(pipeline_executions_router, tags=['Pipeline Executions'])
 app.include_router(pipelines_router, tags=['Pipelines'])
 app.include_router(services_router, tags=['Services'])
 app.include_router(stats_router, tags=['Stats'])
@@ -70,21 +74,54 @@ async def startup_event():
     # https://github.com/tiangolo/fastapi/issues/2057
     # https://github.com/tiangolo/fastapi/issues/425
     settings = get_settings()
-    engine = initialize_db(settings)
+    engine = initialize_db(settings=settings)
     session_generator = get_session(engine)
     session = next(session_generator)
     http_client = HttpClient()
 
-    storage_service = StorageService(get_logger(settings), settings)
-    tasks_service = TasksService(get_logger(settings), session, http_client)
-    services_service = ServicesService(get_logger(settings), storage_service, tasks_service, settings, session,
-                                       http_client)
+    storage_service = StorageService(
+        logger=get_logger(settings),
+        settings=settings,
+    )
+    pipeline_executions_service = PipelineExecutionsService(
+        logger=get_logger(settings),
+        session=session,
+    )
+    tasks_service = TasksService(
+        logger=get_logger(settings),
+        session=session,
+        http_client=http_client,
+        pipeline_executions_service=pipeline_executions_service,
+        settings=settings,
+        storage_service=storage_service,
+    )
+    services_service = ServicesService(
+        logger=get_logger(settings),
+        storage_service=storage_service,
+        tasks_service=tasks_service,
+        settings=settings,
+        session=session,
+        http_client=http_client,
+    )
+    pipelines_service = PipelinesService(
+        logger=get_logger(settings),
+        storage_service=storage_service,
+        session=session,
+        pipeline_executions_service=pipeline_executions_service,
+        tasks_service=tasks_service,
+        settings=settings,
+        services_service=services_service,
+        http_client=http_client,
+    )
 
     # Check storage
     await storage_service.check_storage_availability()
 
     # Instantiate services in database
     await services_service.check_services_availability(app)
+
+    # Enable pipelines
+    pipelines_service.enable_pipelines(app)
 
     # Check for services that are not running
     check_services_timer = Timer(

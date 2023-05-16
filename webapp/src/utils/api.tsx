@@ -32,24 +32,56 @@ const filterItems = (items: any, filter: string) => {
         item.description.toLowerCase().includes(filter.toLowerCase()));
 }
 
-export const getServices = async (filter: string, orderBy: string) => {
+export const getServices = async (filter: string, orderBy: string, tags: string[]) => {
     const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services`);
     if (response.status === 200) {
         const json = await response.json();
         const available = json.filter((item: any) => item.status === 'available');
         const ordered = available.sort(createSortBy(orderBy));
-        return filterItems(ordered, filter);
+        const tagFiltered = ordered.filter((item: any) => {
+            console.log(item)
+            if (tags.length === 0) {
+                return true;
+            } else if (!item.tags) {
+                return false;
+            }
+            for (const tag of tags) {
+                for (const itemTag of item.tags) {
+                    if (itemTag.name.includes(tag)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        });
+        console.log(tagFiltered)
+        return filterItems(tagFiltered, filter);
     }
     return [];
 }
 
-export const getPipelines = async (filter: string, orderBy: string) => {
+export const getPipelines = async (filter: string, orderBy: string, tags: string[]) => {
     const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines`);
     if (response.status === 200) {
         const json = await response.json();
         const available = json.filter((item: any) => item.status === 'available');
         const ordered = available.sort(createSortBy(orderBy));
-        return filterItems(ordered, filter);
+        const tagFiltered = ordered.filter((item: any) => {
+            if (tags.length === 0) {
+                return true;
+            } else if (!item.tags) {
+                return false;
+            }
+            for (const tag of tags) {
+                for (const itemTag of item.tags) {
+                    if (itemTag.name.includes(tag)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        });
+        return filterItems(tagFiltered, filter);
     }
     return [];
 }
@@ -94,7 +126,7 @@ export const getResult = async (id: string) => {
     return "";
 }
 
-export const postToService = async (serviceSlug: string, parts: FieldDescriptionWithSetAndValue[]) => {
+export const postToEngine = async (serviceSlug: string, parts: FieldDescriptionWithSetAndValue[]) => {
     try {
         const body = new FormData();
 
@@ -110,7 +142,15 @@ export const postToService = async (serviceSlug: string, parts: FieldDescription
         });
 
         if (response.status === 200) {
-            return await response.json();
+            const result = await response.json();
+            if (result.tasks) {
+                // this means that this is a Pipeline
+                // return the last task
+                return result.tasks[result.tasks.length - 1];
+            } else {
+                // this means that this is a Service
+                return result;
+            }
         }
         return false;
     } catch (error) {

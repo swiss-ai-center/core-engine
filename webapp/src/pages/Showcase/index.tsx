@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Button, Container, Tab, Tabs, Typography, CircularProgress } from '@mui/material';
+import { Box, Button, Container, Tab, Tabs, Typography, CircularProgress, Toolbar } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import Board from '../../components/Board/Board';
 import { getPipelineDescription, getServiceDescription } from '../../utils/api';
@@ -8,6 +8,7 @@ import PipelineConfiguration from '../../components/PipelineConfiguration/Pipeli
 import { ArrowBack, Fullscreen } from '@mui/icons-material';
 import { useNotification } from '../../utils/useNotification';
 import { useNavigate } from 'react-router-dom';
+import Copyright from '../../components/Copyright/Copyright';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -95,17 +96,19 @@ const Showcase: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    return (<>
-            {isReady ?
-                <Container>
-                    <main>
+    return (
+        <Box sx={{display: 'flex'}}>
+            <Box component="main" sx={{flexGrow: 1, p: 2, pt: 4}}>
+                {isReady ?
+                    <>
+                        <Toolbar/>
                         <Container maxWidth={'lg'}>
-                            <Button variant={'outlined'} color={'secondary'} sx={{mt: 2}} startIcon={<ArrowBack/>}
+                            <Button variant={'outlined'} color={'secondary'} startIcon={<ArrowBack/>}
                                     onClick={navigateBack}>
                                 Back
                             </Button>
                         </Container>
-                        <Box sx={{pt: 4, pb: 4}}>
+                        <Box sx={{pt: 2, pb: 2}}>
                             <Container maxWidth="lg">
                                 <Typography
                                     component="h1"
@@ -172,14 +175,17 @@ const Showcase: React.FC = () => {
                                 </Box>
                             </TabPanel>
                         </Container>
-                    </main>
-                </Container>
-                :
-                <Box sx={{py: 2, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                    <CircularProgress/>
-                </Box>
-            }
-        </>
+                        <Container maxWidth="lg">
+                            <Copyright/>
+                        </Container>
+                    </>
+                    :
+                    <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                        <CircularProgress/>
+                    </Box>
+                }
+            </Box>
+        </Box>
     );
 }
 

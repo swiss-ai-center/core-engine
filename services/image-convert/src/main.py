@@ -13,8 +13,10 @@ from common_code.storage.service import StorageService
 from common_code.tasks.controller import router as tasks_router
 from common_code.tasks.service import TasksService
 from common_code.tasks.models import TaskData
-from common_code.service.models import Service, FieldDescription
-from common_code.service.enums import ServiceStatus, FieldDescriptionType
+from common_code.service.models import Service
+from common_code.service.enums import ServiceStatus
+from common_code.common.enums import FieldDescriptionType, ExecutionUnitTagName, ExecutionUnitTagAcronym
+from common_code.common.models import FieldDescription, ExecutionUnitTag
 
 # Imports required by the service's model
 import io
@@ -45,24 +47,35 @@ class MyService(Service):
             ],
             data_out_fields=[
                 FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
+            ],
+            tags=[
+                ExecutionUnitTag(
+                    name=ExecutionUnitTagName.IMAGE_PROCESSING,
+                    acronym=ExecutionUnitTagAcronym.IMAGE_PROCESSING
+                ),
             ]
         )
 
+    def get_output_types(self):
+        return self.data_out_fields[0]["type"]
+
     def process(self, data):
-        # TODO: modify to accept any image format and convert to any image format
         raw = data["image"].data
         input_type = data["image"].type
-        output_type = data["format"].data
+        output_type = data["format"].data.decode("utf-8")
 
-        if input_type == output_type:
+        # output_type to FieldDescriptionType
+        output_type_fd = FieldDescriptionType(output_type)
+
+        if input_type == output_type_fd:
             return {
                 "result": TaskData(
                     data=raw,
                     type=output_type,
                 )
             }
-
-        if output_type not in MyService.get_output_types():
+        service = MyService()
+        if output_type_fd not in service.get_output_types():
             raise Exception("Output type not supported.")
 
         stream = io.BytesIO(raw)
@@ -152,17 +165,17 @@ async def startup_event():
     tasks_service.start()
 
     async def announce():
-        # TODO: enhance this to allow multiple engines to be used
-        announced = False
-
         retries = settings.engine_announce_retries
-        while not announced and retries > 0:
-            announced = await service_service.announce_service(my_service)
-            retries -= 1
-            if not announced:
-                time.sleep(settings.engine_announce_retry_delay)
-                if retries == 0:
-                    logger.warning(f"Aborting service announcement after {settings.engine_announce_retries} retries")
+        for engine_url in settings.engine_url:
+            announced = False
+            while not announced and retries > 0:
+                announced = await service_service.announce_service(my_service, engine_url)
+                retries -= 1
+                if not announced:
+                    time.sleep(settings.engine_announce_retry_delay)
+                    if retries == 0:
+                        logger.warning(f"Aborting service announcement after "
+                                       f"{settings.engine_announce_retries} retries")
 
     # Announce the service to its engine
     asyncio.ensure_future(announce())
@@ -173,4 +186,5 @@ async def shutdown_event():
     # Global variable
     global service_service
     my_service = MyService()
-    await service_service.graceful_shutdown(my_service)
+    for engine_url in settings.engine_url:
+        await service_service.graceful_shutdown(my_service, engine_url)

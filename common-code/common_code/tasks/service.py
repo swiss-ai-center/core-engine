@@ -182,7 +182,7 @@ class TasksService:
             )
             TasksService.current_task_data_out = await task_future
         except Exception as e:
-            self.logger.error(f"Failed to process image: {str(e)}")
+            self.logger.error(f"Failed to process: {str(e)}")
             TasksService.current_task.task.status = TaskStatus.ERROR
 
     async def end_task(self):
@@ -246,7 +246,8 @@ class TasksService:
             )
 
             self.logger.info(
-                f"Updating task {TasksService.current_task.task.id} on callback {self.current_task.callback_url}: {data}")
+                f"Updating task {TasksService.current_task.task.id} "
+                f"on callback {self.current_task.callback_url}: {data}")
 
             # Send the update to the engine
             await self.http_client.patch(self.current_task.callback_url, json=data)

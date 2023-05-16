@@ -8,4 +8,7 @@ class TaskStatus(str, Enum):
     SAVING = "saving"
     FINISHED = "finished"
     ERROR = "error"
+    SCHEDULED = "scheduled"
+    SKIPPED = "skipped"
+    ARCHIVED = "archived"
     UNAVAILABLE = "unavailable"

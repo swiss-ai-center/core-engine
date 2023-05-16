@@ -1,26 +1,17 @@
 from typing import List
-from sqlmodel import Field, SQLModel, Relationship
-from common.models import CoreModel
 from uuid import UUID, uuid4
+from sqlmodel import SQLModel, Relationship, Field
+from execution_units.models import ExecutionUnitBase
+from execution_units.enums import ExecutionUnitStatus
+from pipeline_steps.models import PipelineStep, PipelineStepCreate
 
 
-class PipelineServiceLink(SQLModel, table=True):
+class PipelineBase(ExecutionUnitBase):
     """
-    PipelineServiceLink model
-    This model is used to link a pipeline to a service
-    """
-    pipeline_id: UUID = Field(foreign_key="pipeline.id", primary_key=True)
-    service_id: UUID = Field(foreign_key="service.id", primary_key=True)
-
-
-class PipelineBase(CoreModel):
-    """
-    Base class for Pipeline
+    Base class for a Pipeline
     This model is used in subclasses
     """
-    name: str = Field(nullable=False)
-    summary: str = Field(nullable=False)
-    description: str | None = Field(default=None, nullable=True)
+    pass
 
 
 class Pipeline(PipelineBase, table=True):
@@ -28,9 +19,14 @@ class Pipeline(PipelineBase, table=True):
     Pipeline model
     This model is the one that is stored in the database
     """
+    __tablename__ = "pipelines"
+
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    services: List["Service"] = Relationship(back_populates="pipelines", link_model=PipelineServiceLink)  # noqa F821
-    tasks: List["Task"] = Relationship(back_populates="pipeline")  # noqa F821
+    pipeline_executions: List["PipelineExecution"] = Relationship(back_populates="pipeline")  # noqa F821
+    steps: List[PipelineStep] = Relationship(
+        sa_relationship_kwargs={"cascade": "delete"},
+        back_populates="pipeline"
+    )  # noqa F821
 
 
 class PipelineRead(PipelineBase):
@@ -41,15 +37,12 @@ class PipelineRead(PipelineBase):
     id: UUID
 
 
-class PipelineReadWithServiceAndTask(PipelineRead):
+class PipelineReadWithPipelineStepsAndTasks(PipelineRead):
     """
     Pipeline read model with service
     This model is used to return a pipeline to the user with the service
     """
-    from services.models import ServiceRead
-    from tasks.models import TaskRead
-    services: List[ServiceRead]
-    tasks: List[TaskRead]
+    steps: List[PipelineStep]
 
 
 class PipelineCreate(PipelineBase):
@@ -57,9 +50,7 @@ class PipelineCreate(PipelineBase):
     Pipeline create model
     This model is used to create a pipeline
     """
-    from services.models import ServiceRead
-    services: List[UUID]
-    pass
+    steps: List[PipelineStepCreate]
 
 
 class PipelineUpdate(SQLModel):
@@ -68,6 +59,12 @@ class PipelineUpdate(SQLModel):
     This model is used to update a pipeline
     """
     name: str | None
-    url: str | None
     summary: str | None
     description: str | None
+    status: ExecutionUnitStatus | None
+    steps: List[PipelineStepCreate] | None
+
+
+from pipeline_executions.models import PipelineExecution  # noqa E402
+
+Pipeline.update_forward_refs()

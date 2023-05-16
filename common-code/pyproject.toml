@@ -3,7 +3,7 @@
 name = "common_code"
 
 # https://packaging.python.org/guides/single-sourcing-package-version/
-version = "0.0.5"
+version = "0.0.8"
 
 # https://packaging.python.org/specifications/core-metadata/#summary
 description = "Common code used by the CSIA-PME services"

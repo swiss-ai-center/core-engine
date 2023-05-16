@@ -6,7 +6,7 @@ import {
 import { Download, PlayArrow } from '@mui/icons-material';
 import { RunState, setTaskId, setRunState, setResultIdList } from '../../utils/reducers/runStateSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { getResult, getTask, postToService } from '../../utils/api';
+import { getResult, getTask, postToEngine } from '../../utils/api';
 import { useNotification } from '../../utils/useNotification';
 import { FieldDescription, FieldDescriptionWithSetAndValue } from '../../models/Service';
 
@@ -69,7 +69,7 @@ const CustomNode = ({data, styles}: any) => {
     }
 
     const runPipeline = async () => {
-        const response = await postToService(data.label.replace("-entry", ""), array);
+        const response = await postToEngine(data.label.replace("-entry", ""), array);
         if (response.id) {
             dispatch(setRunState(RunState.RUNNING));
             dispatch(setTaskId(response.id));

@@ -1,7 +1,7 @@
 from typing import List
 from pydantic.main import BaseModel
 from .enums import TaskStatus
-from ..service.enums import FieldDescriptionType
+from ..common.enums import FieldDescriptionType
 from uuid import UUID
 
 
@@ -34,6 +34,19 @@ class TaskUpdate(BaseModel):
     status: TaskStatus | None
 
 
+class ServiceTaskTask(BaseModel):
+    """
+    Task update model
+    This model is used to update a task
+    """
+    id: UUID
+    data_in: List[str]
+    data_out: List[str] | None
+    status: TaskStatus
+    service_id: UUID
+    pipeline_execution_id: UUID | None
+
+
 class ServiceTaskBase(BaseModel):
     """
     Base class for Service task
@@ -44,7 +57,7 @@ class ServiceTaskBase(BaseModel):
     s3_region: str
     s3_host: str
     s3_bucket: str
-    task: TaskRead
+    task: ServiceTaskTask
     callback_url: str
 
 

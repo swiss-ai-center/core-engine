@@ -1,11 +1,13 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
-from common.exceptions import NotFoundException
-from .service import PipelinesService
-from services.service import ServicesService
-from common.query_parameters import SkipAndLimit
-from .models import PipelineRead, PipelineUpdate, PipelineCreate, Pipeline, PipelineReadWithServiceAndTask
-from uuid import UUID
+from fastapi import APIRouter, Depends, HTTPException, Request
+from common.exceptions import NotFoundException, InconsistentPipelineException, ConflictException
+from pipelines.service import PipelinesService
+from common.query_parameters import SkipLimitOrderByAndOrder
+from pipelines.models import PipelineRead, PipelineUpdate, PipelineCreate, Pipeline, \
+    PipelineReadWithPipelineStepsAndTasks
+from pipeline_steps.models import PipelineStep
+from uuid import UUID, uuid4
+from sqlalchemy.exc import CompileError
 
 router = APIRouter()
 
@@ -18,7 +20,7 @@ router = APIRouter()
         400: {"detail": "Bad Request"},
         500: {"detail": "Internal Server Error"},
     },
-    response_model=PipelineReadWithServiceAndTask,
+    response_model=PipelineReadWithPipelineStepsAndTasks,
 )
 def get_one(
         pipeline_id: UUID,
@@ -37,27 +39,45 @@ def get_one(
     response_model=List[PipelineRead],
 )
 def get_many_pipelines(
-        skip_and_limit: SkipAndLimit = Depends(),
+        skip_limit_order_by_and_order: SkipLimitOrderByAndOrder = Depends(),
         pipelines_service: PipelinesService = Depends(),
 ):
-    pipelines = pipelines_service.find_many(skip_and_limit.skip, skip_and_limit.limit)
+    try:
+        pipelines = pipelines_service.find_many(
+            skip_limit_order_by_and_order.skip,
+            skip_limit_order_by_and_order.limit,
+            skip_limit_order_by_and_order.order_by,
+            skip_limit_order_by_and_order.order,
+        )
 
-    return pipelines
+        return pipelines
+    except CompileError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post(
     "/pipelines",
     summary="Create a pipeline",
-    response_model=PipelineRead,
+    responses={
+        400: {"detail": "Bad Request"},
+        500: {"detail": "Internal Server Error"},
+    },
+    response_model=PipelineReadWithPipelineStepsAndTasks,
 )
-def create(pipeline: PipelineCreate, pipelines_service: PipelinesService = Depends(),
-           services_service: ServicesService = Depends()):
-    links = []
-    for service_id in pipeline.services:
-        links.append(services_service.find_one(service_id))
-    pipeline_create = Pipeline.from_orm(pipeline)
-    pipeline_create.services = links
-    pipeline = pipelines_service.create(pipeline_create)
+def create(
+        request: Request,
+        pipeline: PipelineCreate,
+        pipelines_service: PipelinesService = Depends(),
+):
+
+    try:
+        pipeline = pipelines_service.create(pipeline, request.app)
+    except InconsistentPipelineException as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except NotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ConflictException as e:
+        raise HTTPException(status_code=409, detail=str(e))
 
     return pipeline
 
@@ -69,17 +89,22 @@ def create(pipeline: PipelineCreate, pipelines_service: PipelinesService = Depen
         404: {"detail": "Pipeline Not Found"},
         500: {"detail": "Internal Server Error"},
     },
-    response_model=PipelineRead,
+    response_model=PipelineReadWithPipelineStepsAndTasks,
 )
 def update(
+        request: Request,
         pipeline_id: UUID,
         pipeline_update: PipelineUpdate,
         pipelines_service: PipelinesService = Depends(),
 ):
     try:
-        pipeline = pipelines_service.update(pipeline_id, pipeline_update)
+        pipeline = pipelines_service.update(request.app, pipeline_id, pipeline_update)
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except InconsistentPipelineException as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except ConflictException as e:
+        raise HTTPException(status_code=409, detail=str(e))
 
     return pipeline
 
@@ -95,10 +120,54 @@ def update(
     status_code=204
 )
 def delete(
+        request: Request,
         pipeline_id: UUID,
         pipelines_service: PipelinesService = Depends(),
 ):
     try:
-        pipelines_service.delete(pipeline_id)
+        pipelines_service.delete(pipeline_id, request.app)
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post(
+    "/pipeline/check",
+    summary="Check if a pipeline is valid",
+    responses={
+        200: {"valid": True},
+        400: {"detail": "Bad Request"},
+        500: {"detail": "Internal Server Error"},
+    }
+)
+def check(
+        pipeline: PipelineCreate,
+        pipelines_service: PipelinesService = Depends(),
+):
+    try:
+        new_pipeline_id = uuid4()
+        new_steps = []
+        for step in pipeline.steps:
+            new_step = PipelineStep(
+                identifier=step.identifier,
+                needs=step.needs,
+                condition=step.condition,
+                inputs=step.inputs,
+                service_id=step.service_id,
+                pipeline_id=new_pipeline_id,
+            )
+            new_steps.append(new_step)
+
+        new_pipeline = Pipeline(
+            id=new_pipeline_id,
+            name=pipeline.name,
+            description=pipeline.description,
+            summary=pipeline.summary,
+            steps=new_steps,
+            data_in_fields=pipeline.data_in_fields,
+            data_out_fields=pipeline.data_out_fields,
+        )
+
+        if pipelines_service.check_pipeline_consistency(new_pipeline):
+            return {"valid": True}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

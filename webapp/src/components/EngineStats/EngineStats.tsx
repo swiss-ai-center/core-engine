@@ -100,7 +100,6 @@ export const EngineStats: React.FC<{
         getStats()
             .then((resp) => {
                 setStats(resp);
-                console.log(resp)
             })
             .catch((err) => {
                 displayNotification({message: `Error loading engine stats: ${err}`, type: "error"});

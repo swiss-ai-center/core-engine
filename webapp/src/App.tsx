@@ -1,17 +1,18 @@
 import React from 'react';
 import {
-    Container, Box, AppBar, Toolbar, Link, Typography, ThemeProvider, Grid, IconButton, Tooltip, PaletteMode
+    AppBar, Toolbar, Link, Grid, IconButton, Tooltip, PaletteMode
 } from '@mui/material';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Showcase from './pages/Showcase';
 import Home from './pages/Home';
 import CssBaseline from '@mui/material/CssBaseline';
-import { QueryStats, LightMode, DarkMode } from '@mui/icons-material';
-import { createTheme } from '@mui/material/styles';
+import { QueryStats, LightMode, DarkMode, Menu as MenuIcon } from '@mui/icons-material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { EngineStats } from './components/EngineStats/EngineStats';
 import { grey } from '@mui/material/colors';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleColorMode } from './utils/reducers/colorModeSlice';
+import "typeface-inter";
 
 declare module '@mui/material/styles' {
     interface Palette {
@@ -30,52 +31,16 @@ declare module '@mui/material/AppBar' {
     }
 }
 
-function Copyright() {
-    return (
-        <Grid container justifyContent={"space-between"}>
-            <Grid item alignItems={"center"} justifyContent={"left"} display={"flex"}>
-                <Typography variant={"body2"} color={"text.secondary"} align={"left"}>
-                    {'Copyright © '}
-                    <Link color={"primary"}
-                          href={"https://www.hes-so.ch/domaines-et-hautes-ecoles/ingenierie-et-architecture"}
-                          target={"_blank"}
-                          sx={{textDecoration: "none"}}
-                    >
-                        HES-SO
-                    </Link>
-                    {' 2022-' + new Date().getFullYear() + '.'}
-                </Typography>
-            </Grid>
-            <Grid item alignItems={"center"} justifyContent={"center"} display={"flex"}>
-                <Link color={"inherit"}
-                      href={"https://www.hes-so.ch/domaines-et-hautes-ecoles/ingenierie-et-architecture"}
-                      underline={"none"} target={"_blank"} marginTop={1}>
-                    <img src={"/hes-so_logo.png"} alt={"HES-SO"} height={"50px"}/>
-                </Link>
-            </Grid>
-            <Grid item alignItems={"center"} justifyContent={"right"} display={"flex"}>
-                <Typography variant={"body2"} color={"text.secondary"} component={"span"}>
-                    <Link color={"primary"} href={"https://swiss-ai-center.ch/"} target={"_blank"}
-                          sx={{textDecoration: "none"}}>
-                        Official Website
-                    </Link>
-                    {' | '}
-                    <Link color={"primary"} href={"https://github.com/csia-pme/csia-pme/"} target={"_blank"}
-                          sx={{textDecoration: "none"}}>
-                        GitHub
-                    </Link>
-                </Typography>
-            </Grid>
-        </Grid>
-    )
-        ;
-}
-
 function App() {
     const dispatch = useDispatch();
     const colorMode = useSelector((state: any) => state.colorMode.value);
     const lightgrey = grey[300];
     const darkgrey = grey[900];
+    const [mobileOpen, setMobileOpen] = React.useState(false);
+
+    const handleDrawerToggle = () => {
+        setMobileOpen(!mobileOpen);
+    };
 
     const getDesignTokens = (mode: PaletteMode) => ({
         palette: {
@@ -84,10 +49,13 @@ function App() {
                 ? {
                     // palette values for light mode
                     primary: {
-                        main: '#da0066',
+                        main: '#d41367',
+                    },
+                    primary_light: {
+                        main: '#e989b3',
                     },
                     secondary: {
-                        main: '#83d6de'
+                        main: '#89264f'
                     },
                     background_color: {
                         main: lightgrey,
@@ -96,18 +64,23 @@ function App() {
                 : {
                     // palette values for dark mode
                     primary: {
-                        main: '#da0066'
+                        main: '#d41367'
+                    },
+                    primary_light: {
+                        main: '#89264f',
                     },
                     secondary: {
-                        main: '#83d6de'
+                        main: '#e989b3'
                     },
                     background_color: {
                         main: darkgrey,
                     }
-                }),
+                })
         },
+        typography: {
+            fontFamily: ["Inter, sans-serif", "Helvetica now, sans-serif"].join(','),
+        }
     });
-
 
     const theme = React.useMemo(
         () =>
@@ -133,12 +106,24 @@ function App() {
             {/* End CssBaseline */}
 
             {/* Header navbar */}
-            <AppBar position="relative" color={"background_color"}>
+            <AppBar position="fixed"
+                    elevation={1}
+                    sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+            >
                 <Toolbar>
+                    <IconButton
+                        color="inherit"
+                        aria-label="open drawer"
+                        edge="start"
+                        onClick={handleDrawerToggle}
+                        sx={{ mr: 2, display: { md: 'none' } }}
+                    >
+                        <MenuIcon />
+                    </IconButton>
                     <Grid container justifyContent={"space-between"} alignItems={"center"} sx={{height: "100%"}}>
                         <Grid item>
                             <Link color={"inherit"} href={"/"} underline={"none"}>
-                                <img src={colorMode === "light" ? "/logo_full.png" : "/logo_full_white.png"}
+                                <img src={colorMode === "light" ? "/logo_full_white_sec.png" : "/logo_full_white.png"}
                                      alt={"Swiss AI Center"} height={"40px"}
                                      style={{marginRight: "10px", marginTop: "2px"}}/>
                             </Link>
@@ -162,23 +147,15 @@ function App() {
             </AppBar>
             {/* End Header navbar */}
 
-            <Container>
-                {/* Main content */}
-                <EngineStats trigger={open} onClose={handleCloseStats}/>
-                <Router>
-                    <Routes>
-                        <Route path={"/showcase/:type/:id"} element={<Showcase/>}/>
-                        <Route path={"*"} element={<Home/>}/>
-                    </Routes>
-                </Router>
-                {/* End Main content */}
-            </Container>
-
-            {/* Footer */}
-            <Box sx={{bgcolor: 'background_color.main', p: 4, mt: 'auto'}} component="footer">
-                <Copyright />
-            </Box>
-            {/* End footer */}
+            {/* Main content */}
+            <EngineStats trigger={open} onClose={handleCloseStats}/>
+            <Router>
+                <Routes>
+                    <Route path={"/showcase/:type/:id"} element={<Showcase/>}/>
+                    <Route path={"*"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
+                </Routes>
+            </Router>
+            {/* End Main content */}
 
         </ThemeProvider>
     );
