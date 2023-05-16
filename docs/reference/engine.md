@@ -70,6 +70,12 @@ source .venv/bin/activate
 pip install --requirement requirements.txt
 ```
 
+Start the dependencies.
+
+```
+docker-compose up
+```
+
 Start the application.
 
 ```sh
