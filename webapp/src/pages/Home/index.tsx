@@ -84,7 +84,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = ({mobileOpen, h
     return (
         <Box sx={{display: 'flex'}}>
             <FilterDrawer
-                mobileOpen={mobileOpen} handleOpen={handleOpen}
+                mobileOpen={mobileOpen}
                 orderBy={orderBy} handleOrder={handleOrder} orderByList={orderByList}
                 search={search} handleSearch={handleSearch}
                 tags={tags} handleTags={handleTags}

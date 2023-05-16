@@ -6,7 +6,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Showcase from './pages/Showcase';
 import Home from './pages/Home';
 import CssBaseline from '@mui/material/CssBaseline';
-import { QueryStats, LightMode, DarkMode, Menu as MenuIcon } from '@mui/icons-material';
+import { QueryStats, LightMode, DarkMode, Menu as MenuIcon, MenuOpen as CloseIcon } from '@mui/icons-material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { EngineStats } from './components/EngineStats/EngineStats';
 import { grey } from '@mui/material/colors';
@@ -118,7 +118,7 @@ function App() {
                         onClick={handleDrawerToggle}
                         sx={{ mr: 2, display: { md: 'none' } }}
                     >
-                        <MenuIcon />
+                        { mobileOpen ? <CloseIcon/> : <MenuIcon/> }
                     </IconButton>
                     <Grid container justifyContent={"space-between"} alignItems={"center"} sx={{height: "100%"}}>
                         <Grid item>

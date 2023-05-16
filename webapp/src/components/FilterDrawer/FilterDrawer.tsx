@@ -21,7 +21,6 @@ const drawerWidth = isSmartphone() ? '100%' : 400;
 
 export const FilterDrawer: React.FC<{
     mobileOpen: boolean,
-    handleOpen: any,
     search: string,
     handleSearch: any,
     orderBy: string,
@@ -31,7 +30,6 @@ export const FilterDrawer: React.FC<{
     handleTags: any,
 }> = ({
           mobileOpen,
-          handleOpen,
           search,
           handleSearch,
           orderBy,
