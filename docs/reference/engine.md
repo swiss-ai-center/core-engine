@@ -73,7 +73,7 @@ pip install --requirement requirements.txt
 Start the dependencies.
 
 ```
-docker-compose up
+docker compose up
 ```
 
 Start the application.
