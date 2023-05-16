@@ -56,7 +56,7 @@ jobs:
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
-          ENGINES_URLS: '["https://engine-csia-pme.kube.isc.heia-fr.ch"]'
+          ENGINE_URLS: "'[\"https://engine-csia-pme.kube.isc.heia-fr.ch\"]'"
           SERVICE_URL: https://face-detection-csia-pme.kube.isc.heia-fr.ch
         run: |
           # Set face-detection version

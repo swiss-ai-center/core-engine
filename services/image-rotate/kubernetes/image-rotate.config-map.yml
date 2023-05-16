@@ -7,5 +7,5 @@ metadata:
 data:
   ENVIRONMENT: development
   LOG_LEVEL: debug
-  ENGINES_URLS: '["http://engine-service:8080"]'
+  ENGINE_URLS: '["http://engine-service:8080"]'
   SERVICE_URL: http://image-rotate-service:9393

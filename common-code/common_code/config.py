@@ -19,7 +19,7 @@ class LogLevel(str, Enum):
 
 
 class Settings(BaseSettings):
-    engines_urls: List[str] = ["http://localhost:8080"]
+    engine_urls: List[str] = ["http://localhost:8080"]
     service_url: str = "http://localhost:8000"
     environment: Environment = Environment.PRODUCTION
     max_tasks: int = 50

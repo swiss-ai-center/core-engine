@@ -148,7 +148,7 @@ async def startup_event():
 
     async def announce():
         retries = settings.engine_announce_retries
-        for engine_url in settings.engines_urls:
+        for engine_url in settings.engine_urls:
             announced = False
             while not announced and retries > 0:
                 announced = await service_service.announce_service(my_service, engine_url)
@@ -168,5 +168,5 @@ async def shutdown_event():
     # Global variable
     global service_service
     my_service = MyService()
-    for engine_url in settings.engines_urls:
+    for engine_url in settings.engine_urls:
         await service_service.graceful_shutdown(my_service, engine_url)
