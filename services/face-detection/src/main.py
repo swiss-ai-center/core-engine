@@ -78,7 +78,10 @@ class MyService(Service):
                     return obj.tolist()
                 return super(NpEncoder, self).default(obj)
 
-        faces_areas = {'areas': [[facial_area for facial_area in f[1]['facial_area']] for f in faces.items()]}
+        if type(faces) is dict:
+            faces_areas = {'areas': [[facial_area for facial_area in f[1]['facial_area']] for f in faces.items()]}
+        else:
+            faces_areas = {'areas': []}
 
         task_data = TaskData(
             data=json.dumps(
