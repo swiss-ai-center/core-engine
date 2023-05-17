@@ -1,11 +1,15 @@
 import {
     Autocomplete,
     Box, Checkbox,
-    Drawer, FormControl, InputLabel, MenuItem, Select, TextField,
+    Drawer, FormControl, IconButton, InputLabel, MenuItem, Select, TextField,
     Toolbar,
 } from '@mui/material';
 import React from 'react';
-import { CheckBox as CheckBoxIcon, CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon } from '@mui/icons-material';
+import {
+    CheckBox as CheckBoxIcon,
+    CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
+    Clear as ClearIcon,
+} from '@mui/icons-material';
 import { TagNames } from '../../enums/tagEnums';
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small"/>;
@@ -13,11 +17,10 @@ const checkedIcon = <CheckBoxIcon fontSize="small"/>;
 const isSmartphone = (): boolean => {
     return window.innerWidth < 600;
 }
-const drawerWidth = isSmartphone() ? '100%' : 400;
+const drawerWidth = isSmartphone() ? '100%' : 500;
 
 export const FilterDrawer: React.FC<{
     mobileOpen: boolean,
-    handleOpen: any,
     search: string,
     handleSearch: any,
     orderBy: string,
@@ -26,15 +29,14 @@ export const FilterDrawer: React.FC<{
     tags: string[],
     handleTags: any,
 }> = ({
-        mobileOpen,
-        handleOpen,
-        search,
-        handleSearch,
-        orderBy,
-        handleOrder,
-        orderByList,
-        tags,
-        handleTags,
+          mobileOpen,
+          search,
+          handleSearch,
+          orderBy,
+          handleOrder,
+          orderByList,
+          tags,
+          handleTags,
       }) => {
 
     const drawer = (
@@ -47,6 +49,13 @@ export const FilterDrawer: React.FC<{
                 <Box sx={{mx: 3}}>
                     <TextField sx={{mb: 2}} name={'search'} label={'Search'}
                                value={search} onChange={handleSearch} fullWidth
+                               InputProps={{
+                                   endAdornment: search ? (
+                                       <IconButton size="small" onClick={() => handleSearch({target: {value: ''}})}>
+                                           <ClearIcon/>
+                                       </IconButton>
+                                   ) : undefined
+                               }}
                     />
                     <Autocomplete
                         multiple

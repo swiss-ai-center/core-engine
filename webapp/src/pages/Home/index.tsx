@@ -84,7 +84,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = ({mobileOpen, h
     return (
         <Box sx={{display: 'flex'}}>
             <FilterDrawer
-                mobileOpen={mobileOpen} handleOpen={handleOpen}
+                mobileOpen={mobileOpen}
                 orderBy={orderBy} handleOrder={handleOrder} orderByList={orderByList}
                 search={search} handleSearch={handleSearch}
                 tags={tags} handleTags={handleTags}
@@ -104,7 +104,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = ({mobileOpen, h
                     <Typography variant="h5" align="justify" color="text.secondary" paragraph>
                         CSIA-PME is a project of the Swiss AI Center created by the University of Applied Sciences
                         Western Switzerland (HES-SO). The objective is to provide a platform for the development of
-                        AI applications for SMEs to accelerate the adoption of AI in Switzerland.
+                        AI applications for SMEs to accelerate its adoption in Switzerland.
                     </Typography>
                 </Container>
                 <Container sx={{py: 4}} maxWidth="lg">

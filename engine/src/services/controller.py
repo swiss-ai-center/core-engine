@@ -4,7 +4,7 @@ from common.exceptions import NotFoundException, ConflictException
 from execution_units.enums import ExecutionUnitStatus
 from services.service import ServicesService
 from common.query_parameters import SkipLimitOrderByAndOrder
-from services.models import ServiceRead, ServiceUpdate, ServiceCreate, Service, ServiceReadWithTasks
+from services.models import ServiceRead, ServiceUpdate, ServiceCreate, Service
 from uuid import UUID
 from sqlalchemy.exc import CompileError
 
@@ -19,7 +19,7 @@ router = APIRouter()
         400: {"detail": "Bad Request"},
         500: {"detail": "Internal Server Error"},
     },
-    response_model=ServiceReadWithTasks,
+    response_model=ServiceRead,
 )
 def get_one(
         service_id: UUID,

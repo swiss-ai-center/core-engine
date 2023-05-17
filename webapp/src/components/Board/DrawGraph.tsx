@@ -1,4 +1,5 @@
-import { FieldDescription, Service } from '../../models/Service';
+import { FieldDescription } from '../../models/ExecutionUnit';
+import { Service } from '../../models/Service';
 import { Pipeline } from '../../models/Pipeline';
 
 const dagre = require("dagre");
@@ -18,14 +19,31 @@ export default function DrawGraph(entity: Service | Pipeline | null) {
         const exitNode = generateExitNode(entity.slug, entity.data_out_fields);
         nodes = [entryNode, serviceNode, exitNode];
         edges = [
-            {id: "e1", source: entryNode.id, target: serviceNode.id, animated: false},
-            {id: "e2", source: serviceNode.id, target: exitNode.id, animated: false},
+            {id: "e0", source: entryNode.id, target: serviceNode.id, animated: false},
+            {id: "e1", source: serviceNode.id, target: exitNode.id, animated: false},
         ];
         edges = edges.flat()
         return getAlignedElements(nodes, edges);
 
     } else if (entity) {
-        // TODO: implement pipeline graph
+        const entryNode = generateEntryNode(entity.slug, entity.data_in_fields);
+        nodes.push(entryNode);
+
+        for (let i = 0; i < entity.steps.length; i++) {
+            const serviceNode = generateNode(entity.steps[i].identifier);
+            nodes.push(serviceNode);
+        }
+
+        const exitNode = generateExitNode(entity.slug, entity.data_out_fields);
+        nodes.push(exitNode);
+
+        edges.push({id: "e0", source: entryNode.id, target: nodes[1].id, animated: false});
+        for (let i = 1; i < entity.steps.length; i++) {
+            edges.push({id: "e"+i, source: nodes[i].id, target: nodes[i+1].id, animated: false});
+        }
+        edges.push({id: "e"+(nodes.length-1), source: nodes[nodes.length-2].id, target: exitNode.id, animated: false});
+        edges = edges.flat()
+        return getAlignedElements(nodes, edges);
     }
 
     return {nodes, edges}

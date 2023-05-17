@@ -1,4 +1,4 @@
-import { FieldDescriptionWithSetAndValue } from '../models/Service';
+import { FieldDescriptionWithSetAndValue } from '../models/ExecutionUnit';
 
 const createSortBy = (order: string) => {
     const infos = order.split('-');

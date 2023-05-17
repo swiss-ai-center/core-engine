@@ -10,6 +10,7 @@ import { grey } from '@mui/material/colors';
 import DrawGraph from './DrawGraph';
 import { Service } from '../../models/Service';
 import "./styles.css";
+import { Pipeline } from '../../models/Pipeline';
 
 const Board: React.FC<{ description: any }> = ({description}) => {
     const nodeTypes = useMemo(() => ({customNode: SelectorNode}), []);
@@ -37,8 +38,13 @@ const Board: React.FC<{ description: any }> = ({description}) => {
 
     useEffect(() => {
         if (description) {
-            const service = Object.assign(new Service(), description);
-            const {nodes: layoutedNodes, edges: layoutedEdges} = DrawGraph(service);
+            let entity
+            if (description.url) {
+                entity = Object.assign(new Service(), description);
+            } else {
+                entity = Object.assign(new Pipeline(), description);
+            }
+            const {nodes: layoutedNodes, edges: layoutedEdges} = DrawGraph(entity);
             setNodes([...layoutedNodes]);
             setEdges([...layoutedEdges]);
         }

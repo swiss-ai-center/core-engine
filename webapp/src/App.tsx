@@ -6,7 +6,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Showcase from './pages/Showcase';
 import Home from './pages/Home';
 import CssBaseline from '@mui/material/CssBaseline';
-import { QueryStats, LightMode, DarkMode, Menu as MenuIcon } from '@mui/icons-material';
+import { QueryStats, LightMode, DarkMode, Menu as MenuIcon, MenuOpen as CloseIcon } from '@mui/icons-material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { EngineStats } from './components/EngineStats/EngineStats';
 import { grey } from '@mui/material/colors';
@@ -108,7 +108,7 @@ function App() {
             {/* Header navbar */}
             <AppBar position="fixed"
                     elevation={1}
-                    sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                    sx={{zIndex: (theme) => theme.zIndex.drawer + 1}}
             >
                 <Toolbar>
                     <IconButton
@@ -116,9 +116,9 @@ function App() {
                         aria-label="open drawer"
                         edge="start"
                         onClick={handleDrawerToggle}
-                        sx={{ mr: 2, display: { md: 'none' } }}
+                        sx={{mr: 2, display: {md: 'none'}}}
                     >
-                        <MenuIcon />
+                        {mobileOpen ? <CloseIcon/> : <MenuIcon/>}
                     </IconButton>
                     <Grid container justifyContent={"space-between"} alignItems={"center"} sx={{height: "100%"}}>
                         <Grid item>
@@ -151,7 +151,8 @@ function App() {
             <EngineStats trigger={open} onClose={handleCloseStats}/>
             <Router>
                 <Routes>
-                    <Route path={"/showcase/:type/:id"} element={<Showcase/>}/>
+                    <Route path={"/showcase/:type/:id"}
+                           element={<Showcase mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
                     <Route path={"*"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
                 </Routes>
             </Router>
