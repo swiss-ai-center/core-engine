@@ -8,7 +8,7 @@ import { RunState, setTaskId, setRunState, setResultIdList } from '../../utils/r
 import { useDispatch, useSelector } from 'react-redux';
 import { getResult, getTask, postToEngine } from '../../utils/api';
 import { useNotification } from '../../utils/useNotification';
-import { FieldDescription, FieldDescriptionWithSetAndValue } from '../../models/Service';
+import { FieldDescription, FieldDescriptionWithSetAndValue } from '../../models/ExecutionUnit';
 
 function createAllowedTypesString(allowedTypes: string[]) {
     return allowedTypes.join(', ');
@@ -106,14 +106,14 @@ const CustomNode = ({data, styles}: any) => {
     }
 
     const actionContent = () => {
-        return <Box sx={{display: 'flex', width: '100%'}}>
+        return <Box sx={{display: "flex", width: "100%"}}>
             <Button disabled={!areItemsUploaded || run === RunState.RUNNING} sx={{flexGrow: 1}} variant={"contained"}
                     color={"success"} size={"small"}
-                    endIcon={<PlayArrow sx={{color: (run === RunState.RUNNING) ? 'transparent' : 'inherit'}}/>}
+                    endIcon={<PlayArrow sx={{color: (run === RunState.RUNNING) ? "transparent" : "inherit"}}/>}
                     onClick={() => runPipeline()}>
                 {run === RunState.RUNNING ? (
                     <CircularProgress size={24} color={"primary"}
-                                      sx={{position: 'absolute', alignSelf: 'center',}}
+                                      sx={{position: "absolute", alignSelf: "center",}}
                     />
                 ) : (<>Run</>)}
             </Button>
@@ -136,7 +136,7 @@ const CustomNode = ({data, styles}: any) => {
     return (
         <>
             <Card
-                sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
+                sx={{height: "100%", display: "flex", flexDirection: "column"}}
             >
                 <CardContent sx={{flexGrow: 1}}>
                     <Typography variant={"subtitle1"} color={"primary"}>{data.label}</Typography>
@@ -153,7 +153,7 @@ const CustomNode = ({data, styles}: any) => {
                                         (<Tooltip title={"type(s): " + item.type} placement={"right"}>
                                             <Button key={`btn-${index}`} variant={"outlined"} component={"label"}
                                                     size={"small"} sx={{mb: 1, mt: 1}}
-                                                    color={item.isSet ? 'success' : 'secondary'}>
+                                                    color={item.isSet ? "success" : "secondary"}>
                                                 Upload
                                                 <input
                                                     accept={createAllowedTypesString(item.type)}
@@ -193,12 +193,12 @@ const CustomNode = ({data, styles}: any) => {
 
             {(data.label && !data.label.includes("entry")) ?
                 <Handle
-                    type="target"
+                    type={"target"}
                     position={Position.Left}
                 /> : <></>}
             {(data.label && !data.label.includes("exit")) ?
                 <Handle
-                    type="source"
+                    type={"source"}
                     position={Position.Right}
                 /> : <></>}
         </>

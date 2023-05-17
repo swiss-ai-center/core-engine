@@ -17,7 +17,7 @@ const checkedIcon = <CheckBoxIcon fontSize="small"/>;
 const isSmartphone = (): boolean => {
     return window.innerWidth < 600;
 }
-const drawerWidth = isSmartphone() ? '100%' : 400;
+const drawerWidth = isSmartphone() ? '100%' : 500;
 
 export const FilterDrawer: React.FC<{
     mobileOpen: boolean,
