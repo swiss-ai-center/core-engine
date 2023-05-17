@@ -66,8 +66,6 @@ jobs:
 
           # Set image-blur configuration
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' image-blur.config-map.yml | envsubst > new-image-blur.config-map.yml && mv new-image-blur.config-map.yml image-blur.config-map.yml
-          
-          cat image-blur.config-map.yml
 
       - name: Deploy image-blur on the Kubernetes cluster
         # Only run on main
