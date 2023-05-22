@@ -78,7 +78,7 @@ function App() {
                 })
         },
         typography: {
-            fontFamily: ["Inter, sans-serif", "Helvetica now, sans-serif"].join(','),
+            fontFamily: ["Neue Haas Grotesk Display Pro, sans-serif", "Helvetica now, sans-serif"].join(','),
         }
     });
 
