@@ -84,7 +84,7 @@ class TasksService:
         self.settings = settings
         self.storage_service = storage_service
 
-    def find_many(self, skip: int = 0, limit: int = 100, order_by: str = "name", order: str = "desc"):
+    def find_many(self, skip: int = 0, limit: int = 100, order_by: str = "updated_at", order: str = "desc"):
         """
         Find many tasks
         :param skip: number of tasks to skip

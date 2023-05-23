@@ -152,8 +152,8 @@ function App() {
             <Router>
                 <Routes>
                     <Route path={"/showcase/:type/:id"}
-                           element={<Showcase mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
-                    <Route path={"*"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
+                           element={<Showcase mobileOpen={mobileOpen}/>}/>
+                    <Route path={"*"} element={<Home mobileOpen={mobileOpen}/>}/>
                 </Routes>
             </Router>
             {/* End Main content */}

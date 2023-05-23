@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import Copyright from '../../components/Copyright/Copyright';
 import { DescriptionDrawer } from '../../components/DescriptionDrawer/DescriptionDrawer';
 
-const Showcase: React.FC<{ mobileOpen: boolean, handleOpen: any }> = ({mobileOpen, handleOpen}) => {
+const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
     const {displayNotification} = useNotification();
     const params = useParams();
     const navigate = useNavigate();

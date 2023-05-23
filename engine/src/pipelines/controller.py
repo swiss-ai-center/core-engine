@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request
 from common.exceptions import NotFoundException, InconsistentPipelineException, ConflictException
 from pipelines.service import PipelinesService
-from common.query_parameters import SkipLimitOrderByAndOrder
+from common.query_parameters import QueryParameters
 from pipelines.models import PipelineRead, PipelineUpdate, PipelineCreate, Pipeline, \
     PipelineReadWithPipelineStepsAndTasks
 from pipeline_steps.models import PipelineStep
@@ -39,15 +39,20 @@ def get_one(
     response_model=List[PipelineRead],
 )
 def get_many_pipelines(
-        skip_limit_order_by_and_order: SkipLimitOrderByAndOrder = Depends(),
+        query_parameters: QueryParameters = Depends(),
         pipelines_service: PipelinesService = Depends(),
 ):
     try:
+        if query_parameters.search:
+            query_parameters.search = query_parameters.search.lower()
         pipelines = pipelines_service.find_many(
-            skip_limit_order_by_and_order.skip,
-            skip_limit_order_by_and_order.limit,
-            skip_limit_order_by_and_order.order_by,
-            skip_limit_order_by_and_order.order,
+            query_parameters.search,
+            query_parameters.skip,
+            query_parameters.limit,
+            query_parameters.order_by,
+            query_parameters.order,
+            query_parameters.tags,
+            query_parameters.status
         )
 
         return pipelines
@@ -69,7 +74,6 @@ def create(
         pipeline: PipelineCreate,
         pipelines_service: PipelinesService = Depends(),
 ):
-
     try:
         pipeline = pipelines_service.create(pipeline, request.app)
     except InconsistentPipelineException as e:

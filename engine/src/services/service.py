@@ -1,14 +1,14 @@
+import json
 from inspect import Parameter, Signature
 from fastapi import FastAPI, UploadFile, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from makefun import with_signature
 from uuid import UUID
-
 from execution_units.enums import ExecutionUnitStatus
 from storage.service import StorageService
 from tasks.service import TasksService
 from tasks.models import Task, TaskReadWithServiceAndPipeline
-from sqlmodel import Session, select, desc
+from sqlmodel import Session, select, desc, col, or_, and_
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from config import Settings, get_settings
@@ -17,6 +17,7 @@ from common.exceptions import NotFoundException, ConflictException, UnreachableE
 from http_client import HttpClient
 from fastapi.encoders import jsonable_encoder
 from httpx import HTTPError
+from common_code.common.models import ExecutionUnitTag
 
 REGISTERED_SERVICES_TAG = "Registered Services"
 
@@ -40,21 +41,62 @@ class ServicesService:
 
         self.logger.set_source(__name__)
 
-    def find_many(self, skip: int = 0, limit: int = 100, order_by: str = "name", order: str = "desc"):
+    def find_many(
+            self,
+            search: str = "",
+            skip: int = 0,
+            limit: int = 100,
+            order_by: str = "name",
+            order: str = "desc",
+            tags: str = None,
+            status: str = ExecutionUnitStatus.AVAILABLE
+    ):
         """
         Find many services.
+        :param search: The search string.
         :param skip: The number of services to skip.
         :param limit: The maximum number of services to return.
         :param order_by: The field to order by.
         :param order: The order (asc or desc).
+        :param tags: The tags to filter by.
+        :param status: The status to filter by.
         :return: The list of services.
         """
         self.logger.debug("Find many services")
 
-        if order == "desc":
-            return self.session.exec(select(Service).order_by(desc(order_by)).offset(skip).limit(limit)).all()
+        if not status:
+            status = ExecutionUnitStatus.AVAILABLE
+
+        if not search:
+            filter_statement = and_(Service.status == status)
         else:
-            return self.session.exec(select(Service).order_by(order_by).offset(skip).limit(limit)).all()
+            filter_statement = and_(
+                Service.status == status,
+                or_(
+                    col(Service.name).ilike(f"%{search}%"),
+                    col(Service.description).ilike(f"%{search}%"),
+                    col(Service.slug).ilike(f"%{search}%"),
+                    col(Service.summary).ilike(f"%{search}%")
+                )
+            )
+
+        statement = select(Service).where(
+            filter_statement
+        )
+        if order == "desc":
+            statement.order_by(desc(order_by)).offset(skip).limit(limit)
+        else:
+            statement.order_by(order_by).offset(skip).limit(limit)
+
+        services = self.session.exec(statement).all()
+
+        if tags:
+            tags_acronyms = tags.split(",")
+            # filter services to keep only those with the at least one tag
+            services = [service for service in services if
+                        any(tag_acronym in [tag["acronym"] for tag in service.tags] for tag_acronym in tags_acronyms)]
+
+        return services
 
     def find_one(self, service_id: UUID):
         """

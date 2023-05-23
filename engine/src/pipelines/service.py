@@ -4,9 +4,10 @@ from fastapi import FastAPI, UploadFile, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from inspect import Parameter, Signature
 from makefun import with_signature
+from execution_units.enums import ExecutionUnitStatus
 from services.models import Service, ServiceTask
 from storage.service import StorageService
-from sqlmodel import Session, select, desc
+from sqlmodel import Session, select, desc, col, or_, and_
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from common_code.common.enums import FieldDescriptionType
@@ -51,21 +52,62 @@ class PipelinesService:
         self.storage_service = storage_service
         self.http_client = http_client
 
-    def find_many(self, skip: int = 0, limit: int = 100, order_by: str = "name", order: str = "desc"):
+    def find_many(
+            self,
+            search: str = "",
+            skip: int = 0,
+            limit: int = 100,
+            order_by: str = "name",
+            order: str = "desc",
+            tags: str = None,
+            status: str = ExecutionUnitStatus.AVAILABLE
+    ):
         """
         Find many pipelines
+        :param search: Search string
         :param skip: Skip the first n pipelines
         :param limit: Limit the number of pipelines
         :param order_by: Order by a field
         :param order: Order ascending or descending
+        :param tags: Filter by tags
+        :param status: Filter by status
         :return: List of pipelines
         """
         self.logger.debug("Find many pipelines")
 
-        if order == "desc":
-            return self.session.exec(select(Pipeline).order_by(desc(order_by)).offset(skip).limit(limit)).all()
+        if not status:
+            status = ExecutionUnitStatus.AVAILABLE
+
+        if not search:
+            filter_statement = and_(Pipeline.status == status)
         else:
-            return self.session.exec(select(Pipeline).order_by(order_by).offset(skip).limit(limit)).all()
+            filter_statement = and_(
+                Pipeline.status == status,
+                or_(
+                    col(Pipeline.name).ilike(f"%{search}%"),
+                    col(Pipeline.description).ilike(f"%{search}%"),
+                    col(Pipeline.slug).ilike(f"%{search}%"),
+                    col(Pipeline.summary).ilike(f"%{search}%")
+                )
+            )
+
+        statement = select(Pipeline).where(
+            filter_statement
+        )
+        if order == "desc":
+            statement.order_by(desc(order_by)).offset(skip).limit(limit)
+        else:
+            statement.order_by(order_by).offset(skip).limit(limit)
+
+        pipelines = self.session.exec(statement).all()
+
+        if tags:
+            tags_acronyms = tags.split(",")
+            # filter services to keep only those with the at least one tag
+            pipelines = [pipeline for pipeline in pipelines if
+                         any(tag_acronym in [tag["acronym"] for tag in pipeline.tags] for tag_acronym in tags_acronyms)]
+
+        return pipelines
 
     def find_one(self, pipeline_id: UUID):
         """

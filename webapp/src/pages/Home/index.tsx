@@ -10,9 +10,11 @@ import ItemGrid from '../../components/ItemGrid/ItemGrid';
 import { FilterDrawer } from '../../components/FilterDrawer/FilterDrawer';
 import { useSearchParams } from 'react-router-dom';
 import Copyright from '../../components/Copyright/Copyright';
+import { Tag } from '../../models/Tag';
+import { TagObjects } from '../../enums/tagEnums';
 
 
-const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = ({mobileOpen, handleOpen}) => {
+const Home: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
     // this is the list of order by options, the first one is the default
     const orderByList = [
         {value: 'name-asc', label: 'Name (A-Z)'},
@@ -20,7 +22,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = ({mobileOpen, h
     ];
     const [search, setSearch] = React.useState('');
     const [orderBy, setOrderBy] = React.useState(orderByList[0].value);
-    const [tags, setTags] = React.useState<string[]>([]);
+    const [tags, setTags] = React.useState<Tag[]>([]);
     const [searchParams] = useSearchParams();
     const history = window.history;
 
@@ -52,14 +54,14 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = ({mobileOpen, h
         handleNoFilter();
     }
 
-    const handleTags = (event: SelectChangeEvent, newValue: string[]) => {
+    const handleTags = (event: SelectChangeEvent, newValue: Tag[]) => {
         setTags(newValue);
         if (newValue.length === 0) {
             searchParams.delete('tags');
         } else {
             searchParams.delete('tags');
             newValue.forEach((tag) => {
-                searchParams.append('tags', tag);
+                searchParams.append('tags', tag.acronym);
             });
         }
         history.pushState({}, '', `?${searchParams.toString()}`);
@@ -68,7 +70,8 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = ({mobileOpen, h
 
     React.useEffect(() => {
         setSearch(searchParams.get('filter') || '');
-        setTags(searchParams.getAll('tags'));
+        const query_tags = searchParams.getAll('tags');
+        setTags(query_tags.map((tag) => TagObjects.filter((tagObject) => tagObject.acronym === tag)[0]));
         const order = searchParams.get('orderBy');
         if (orderByList.map((item) => item.value).includes(order || '')) {
             setOrderBy(searchParams.get('orderBy') || orderByList[0].value);
@@ -108,7 +111,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = ({mobileOpen, h
                     </Typography>
                 </Container>
                 <Container sx={{py: 4}} maxWidth="lg">
-                    <ItemGrid filter={search} orderBy={orderBy} tags={tags}/>
+                    <ItemGrid filter={search} skip={0} limit={20} orderBy={orderBy} tags={tags} />
                 </Container>
                 <Container maxWidth="lg" sx={{pb: 0}}>
                     <Copyright/>

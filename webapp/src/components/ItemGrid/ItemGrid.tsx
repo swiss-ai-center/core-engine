@@ -4,17 +4,20 @@ import { getPipelines, getServices } from '../../utils/api';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useNotification } from '../../utils/useNotification';
 import "./styles.css";
-import { TagColors } from '../../enums/tagEnums';
+import { Tags } from '../../enums/tagEnums';
+import { Tag } from '../../models/Tag';
 
 
-const ItemGrid: React.FC<{ filter: string, orderBy: string, tags: string[] }> = ({filter, orderBy, tags}) => {
+const ItemGrid: React.FC<{
+    filter: string, skip: number, limit: number, orderBy: string, tags: Tag[]
+}> = ({filter, skip, limit, orderBy, tags}) => {
     const [searchParams] = useSearchParams();
     const [pipelines, setPipelines] = React.useState([]);
     const [services, setServices] = React.useState([]);
     const {displayNotification} = useNotification();
 
     const listServices = async (filter: string, orderBy: string, tags: string[]) => {
-        const servicesList = await getServices(filter, orderBy, tags);
+        const servicesList = await getServices(filter, skip, limit, orderBy, tags);
         if (servicesList) {
             setServices(servicesList);
         } else {
@@ -24,7 +27,7 @@ const ItemGrid: React.FC<{ filter: string, orderBy: string, tags: string[] }> = 
     }
 
     const listPipelines = async (filter: string, orderBy: string, tags: string[]) => {
-        const pipelinesList = await getPipelines(filter, orderBy, tags);
+        const pipelinesList = await getPipelines(filter, skip, limit, orderBy, tags);
         if (pipelinesList) {
             setPipelines(pipelinesList);
         } else {
@@ -34,8 +37,8 @@ const ItemGrid: React.FC<{ filter: string, orderBy: string, tags: string[] }> = 
     }
 
     React.useEffect(() => {
-        listServices(filter, orderBy, tags);
-        listPipelines(filter, orderBy, tags);
+        listServices(filter, orderBy, tags.map(t => t.acronym));
+        listPipelines(filter, orderBy, tags.map(t => t.acronym));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filter, orderBy, tags]);
 
@@ -70,7 +73,10 @@ const ItemGrid: React.FC<{ filter: string, orderBy: string, tags: string[] }> = 
                                                                 <Chip
                                                                     className={"acronym-chip"}
                                                                     label={tag.acronym}
-                                                                    style={TagColors[tag.acronym]}
+                                                                    style={
+                                                                        Tags.filter((t) =>
+                                                                            t.acronym === tag.acronym)[0].colors
+                                                                    }
                                                                     variant="outlined"
                                                                     size={"small"}
                                                                 />
@@ -130,7 +136,10 @@ const ItemGrid: React.FC<{ filter: string, orderBy: string, tags: string[] }> = 
                                                                 <Chip
                                                                     className={"acronym-chip"}
                                                                     label={tag.acronym}
-                                                                    style={TagColors[tag.acronym]}
+                                                                    style={
+                                                                        Tags.filter((t) =>
+                                                                            t.acronym === tag.acronym)[0].colors
+                                                                    }
                                                                     variant="outlined"
                                                                     size={"small"}
                                                                 />

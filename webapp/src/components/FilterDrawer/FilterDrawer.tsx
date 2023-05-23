@@ -10,7 +10,8 @@ import {
     CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
     Clear as ClearIcon,
 } from '@mui/icons-material';
-import { TagNames } from '../../enums/tagEnums';
+import { TagObjects } from '../../enums/tagEnums';
+import { Tag } from '../../models/Tag';
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small"/>;
 const checkedIcon = <CheckBoxIcon fontSize="small"/>;
@@ -26,7 +27,7 @@ export const FilterDrawer: React.FC<{
     orderBy: string,
     handleOrder: any,
     orderByList: any[]
-    tags: string[],
+    tags: Tag[],
     handleTags: any,
 }> = ({
           mobileOpen,
@@ -61,9 +62,9 @@ export const FilterDrawer: React.FC<{
                         multiple
                         sx={{mb: 2}}
                         id="tags-filter"
-                        options={Object.values(TagNames)}
+                        options={TagObjects}
                         disableCloseOnSelect
-                        getOptionLabel={(option) => option}
+                        getOptionLabel={(option) => option.name}
                         renderOption={(props, option, {selected}) => (
                             <li {...props}>
                                 <Checkbox
@@ -71,9 +72,10 @@ export const FilterDrawer: React.FC<{
                                     checkedIcon={checkedIcon}
                                     style={{marginRight: 8}}
                                     color={'primary'}
-                                    checked={tags.includes(option)}
+                                    value={option.acronym}
+                                    checked={selected}
                                 />
-                                {option}
+                                {option.name}
                             </li>
                         )}
                         onChange={handleTags}
