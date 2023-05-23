@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     check_services_availability_interval: int = 30
 
     class Config:
-        env_file = "../.env"
+        env_file = ".env", "../.env"
 
 
 @lru_cache()
