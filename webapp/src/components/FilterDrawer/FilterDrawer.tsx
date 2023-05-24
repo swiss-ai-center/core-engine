@@ -1,6 +1,6 @@
 import {
     Autocomplete,
-    Box, Checkbox,
+    Box, Button, Checkbox,
     Drawer, FormControl, IconButton, InputLabel, MenuItem, Select, TextField,
     Toolbar,
 } from '@mui/material';
@@ -47,7 +47,7 @@ export const FilterDrawer: React.FC<{
                 <Box sx={{ml: 3}}>
                     <h3>Filters</h3>
                 </Box>
-                <Box sx={{mx: 3}}>
+                <Box sx={{mx: 3, pb: 2}}>
                     <TextField sx={{mb: 2}} name={'search'} label={'Search'}
                                value={search} onChange={handleSearch} fullWidth
                                InputProps={{
@@ -98,6 +98,19 @@ export const FilterDrawer: React.FC<{
                             ))}
                         </Select>
                     </FormControl>
+                    <Button
+                        variant={"contained"}
+                        color={"secondary"}
+                        fullWidth
+                        size={"large"}
+                        onClick={() => {
+                            handleSearch({target: {value: ''}});
+                            handleTags(null, []);
+                            handleOrder({target: {value: orderByList[0].value}});
+                        }}
+                    >
+                        Reset filters
+                    </Button>
                 </Box>
             </Box>
         </>

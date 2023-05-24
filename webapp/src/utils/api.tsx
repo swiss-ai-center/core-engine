@@ -23,12 +23,12 @@ const createQuery = (unit: string, filter: string, skip: number, limit: number, 
         query += `&limit=${limit}`;
     }
 
-    return query;
+    return query + '&with_count=True';
 }
 
 export const getServices = async (filter: string, skip: number, limit: number, orderBy: string, tags: string[]) => {
     const query = createQuery('services', filter, skip, limit, orderBy, tags);
-    
+
     const response = await fetch(query);
     if (response.status === 200) {
         return await response.json();
