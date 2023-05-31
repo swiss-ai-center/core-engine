@@ -1,7 +1,7 @@
 import os
 from fastapi import Depends, UploadFile
 from config import Settings, get_settings
-from common.exceptions import NotFoundException
+from common.exceptions import NotFoundException, InternalServerErrorException
 from common_code.logger.logger import Logger, get_logger
 from aiobotocore.session import get_session
 from botocore.exceptions import EndpointConnectionError, ClientError
@@ -69,7 +69,7 @@ class StorageService:
             return key
         except ClientError as e:
             self.logger.error(f"Error uploading file: {e}")
-            return None
+            raise InternalServerErrorException("File Cannot Be Uploaded")
 
     async def check_if_file_exists(self, key):
         session = get_session()
@@ -87,7 +87,7 @@ class StorageService:
                 self.logger.error(f"Error getting file: {e}")
                 if e.response['Error']['Code'] == 'NoSuchKey':
                     raise NotFoundException("File Not Found")
-                raise e
+                raise InternalServerErrorException("File Cannot Be Checked")
             finally:
                 await client.close()
 
@@ -145,3 +145,4 @@ class StorageService:
                 await client.delete_object(Bucket=self.s3_bucket, Key=key)
         except ClientError as e:
             self.logger.error(f"Error deleting file: {e}")
+            raise e

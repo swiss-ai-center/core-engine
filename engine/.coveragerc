@@ -1,6 +1,7 @@
 [run]
-omit =
-    tests/*.py
+omit = tests/*.py
+
 [report]
+skip_empty = True
 exclude_lines =
     pragma: no cover

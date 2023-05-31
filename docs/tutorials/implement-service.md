@@ -560,7 +560,7 @@ All the tests should pass.
 Name                        Stmts   Miss  Cover   Missing
 ---------------------------------------------------------
 src/main.py                    70     11    84%   53-70
-src/tests/test_service.py      83     12    86%   13-18, 24-30, 114-115
+src/tests/test_storage_service.py      83     12    86%   13-18, 24-30, 114-115
 ---------------------------------------------------------
 TOTAL                         188     23    88%
 

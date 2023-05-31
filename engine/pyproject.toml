@@ -1,9 +1,6 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
 name = "engine"
 
 [tool.pytest.ini_options]
 pythonpath = [".", "src"]
+addopts = "--cov-config=.coveragerc --cov-report term:skip-covered --cov-report term-missing --cov=./src"

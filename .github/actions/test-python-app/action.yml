@@ -30,5 +30,4 @@ runs:
       shell: bash
       working-directory: ${{ inputs.python-app-path }}
       run: |
-        cd src/
-        pytest --cov-report term:skip-covered --cov-report term-missing --cov=. -s --cov-config=.coveragerc
+        pytest

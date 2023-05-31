@@ -6,9 +6,17 @@ As the website of [envsubst](https://www.gnu.org/software/gettext/manual/html_no
 
 	The `envsubst` program substitutes the values of environment variables.
 
-## How do we use this tool
+## How and why do we use envsubst
 
 We use envsubst to substitute environment variables from [Kubernetes](./about-kubernetes.md) configuration files with secrets stored on [GitHub Secrets](./about-github-secrets.md) before deployment.
+
+## Install yq
+
+envsubst is installed by default on many UNIX distributions.
+
+## Configuration
+
+_None._
 
 ## Resources and alternatives
 
