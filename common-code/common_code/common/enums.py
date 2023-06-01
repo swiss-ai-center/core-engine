@@ -8,7 +8,7 @@ class FieldDescriptionType(str, Enum):
     TEXT_CSV = "text/csv"
     APPLICATION_JSON = "application/json"
     APPLICATION_PDF = "application/pdf"
-    AUDIO_MP3 = "audio/mp3"
+    AUDIO_MP3 = "audio/mpeg"
     AUDIO_OGG = "audio/ogg"
 
 
@@ -24,6 +24,7 @@ class ExecutionUnitTagName(str, Enum):
     SPEECH_RECOGNITION = "Speech Recognition"
     DATA_PREPROCESSING = "Data Preprocessing"
     SENTIMENT_ANALYSIS = "Sentiment Analysis"
+    NEURAL_NETWORKS = "Neural Networks"
 
 
 class ExecutionUnitTagAcronym(str, Enum):
@@ -38,3 +39,4 @@ class ExecutionUnitTagAcronym(str, Enum):
     SPEECH_RECOGNITION = "SR"
     DATA_PREPROCESSING = "DP"
     SENTIMENT_ANALYSIS = "SA"
+    NEURAL_NETWORKS = "NN"
