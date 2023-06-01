@@ -19,11 +19,13 @@ class PipelineExecutionsService:
         self.logger.set_source(__name__)
         self.session = session
 
-    def find_many(self, skip: int = 0, limit: int = 100, order_by: str = "name", order: str = "desc"):
+    def find_many(self, skip: int = 0, limit: int = 100, order_by: str = "updated_at", order: str = "desc"):
         """
         Find many pipeline executions
         :param skip: number of pipeline executions to skip
         :param limit: number of pipeline executions to return
+        :param order_by: field to order by
+        :param order: order to sort by
         :return: list of pipeline executions
         """
         self.logger.debug("Find many pipeline executions")

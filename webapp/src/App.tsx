@@ -14,23 +14,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toggleColorMode } from './utils/reducers/colorModeSlice';
 import "typeface-inter";
 
-declare module '@mui/material/styles' {
-    interface Palette {
-        background_color: Palette['primary'];
-    }
-
-    interface PaletteOptions {
-        background_color: PaletteOptions['primary'];
-    }
-}
-
-// declare module to extend the theme colors
-declare module '@mui/material/AppBar' {
-    interface AppBarPropsColorOverrides {
-        background_color: true;
-    }
-}
-
 function App() {
     const dispatch = useDispatch();
     const colorMode = useSelector((state: any) => state.colorMode.value);
@@ -78,7 +61,7 @@ function App() {
                 })
         },
         typography: {
-            fontFamily: ["Inter, sans-serif", "Helvetica now, sans-serif"].join(','),
+            fontFamily: ["Neue Haas Grotesk Display Pro, sans-serif", "Helvetica now, sans-serif"].join(','),
         }
     });
 
@@ -124,7 +107,7 @@ function App() {
                         <Grid item>
                             <Link color={"inherit"} href={"/"} underline={"none"}>
                                 <img src={colorMode === "light" ? "/logo_full_white_sec.png" : "/logo_full_white.png"}
-                                     alt={"Swiss AI Center"} height={"40px"}
+                                     alt={"Swiss AI Center"} height={"25px"}
                                      style={{marginRight: "10px", marginTop: "2px"}}/>
                             </Link>
                         </Grid>
@@ -152,7 +135,7 @@ function App() {
             <Router>
                 <Routes>
                     <Route path={"/showcase/:type/:id"}
-                           element={<Showcase mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
+                           element={<Showcase mobileOpen={mobileOpen}/>}/>
                     <Route path={"*"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
                 </Routes>
             </Router>

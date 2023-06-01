@@ -2,9 +2,9 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request
 from common.exceptions import NotFoundException, InconsistentPipelineException, ConflictException
 from pipelines.service import PipelinesService
-from common.query_parameters import SkipLimitOrderByAndOrder
+from common.query_parameters import QueryParameters
 from pipelines.models import PipelineRead, PipelineUpdate, PipelineCreate, Pipeline, \
-    PipelineReadWithPipelineStepsAndTasks
+    PipelineReadWithPipelineStepsAndTasks, PipelinesWithCount
 from pipeline_steps.models import PipelineStep
 from uuid import UUID, uuid4
 from sqlalchemy.exc import CompileError
@@ -36,21 +36,42 @@ def get_one(
 @router.get(
     "/pipelines",
     summary="Get many pipelines",
-    response_model=List[PipelineRead],
+    response_model=PipelinesWithCount | List[PipelineRead],
 )
 def get_many_pipelines(
-        skip_limit_order_by_and_order: SkipLimitOrderByAndOrder = Depends(),
+        with_count: bool = False,
+        query_parameters: QueryParameters = Depends(),
         pipelines_service: PipelinesService = Depends(),
 ):
     try:
-        pipelines = pipelines_service.find_many(
-            skip_limit_order_by_and_order.skip,
-            skip_limit_order_by_and_order.limit,
-            skip_limit_order_by_and_order.order_by,
-            skip_limit_order_by_and_order.order,
-        )
+        if query_parameters.search:
+            query_parameters.search = query_parameters.search.lower()
 
-        return pipelines
+        if with_count:
+            count, pipelines = pipelines_service.find_many_with_total_count(
+                query_parameters.search,
+                query_parameters.skip,
+                query_parameters.limit,
+                query_parameters.order_by,
+                query_parameters.order,
+                query_parameters.tags,
+                query_parameters.status
+            )
+
+            return PipelinesWithCount(count=count, pipelines=pipelines)
+        else:
+            pipelines = pipelines_service.find_many(
+                query_parameters.search,
+                query_parameters.skip,
+                query_parameters.limit,
+                query_parameters.order_by,
+                query_parameters.order,
+                query_parameters.tags,
+                query_parameters.status
+            )
+
+            return pipelines
+
     except CompileError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -69,7 +90,6 @@ def create(
         pipeline: PipelineCreate,
         pipelines_service: PipelinesService = Depends(),
 ):
-
     try:
         pipeline = pipelines_service.create(pipeline, request.app)
     except InconsistentPipelineException as e:

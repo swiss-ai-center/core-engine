@@ -1,5 +1,6 @@
 from typing import List
 from uuid import UUID, uuid4
+from pydantic import BaseModel
 from sqlmodel import SQLModel, Relationship, Field
 from execution_units.models import ExecutionUnitBase
 from execution_units.enums import ExecutionUnitStatus
@@ -63,6 +64,15 @@ class PipelineUpdate(SQLModel):
     description: str | None
     status: ExecutionUnitStatus | None
     steps: List[PipelineStepCreate] | None
+
+
+class PipelinesWithCount(BaseModel):
+    """
+    Pipelines with count
+    This model is used to return a list of filtered pipelines with the count of all pipelines matching a filter
+    """
+    count: int
+    pipelines: List[PipelineRead]
 
 
 from pipeline_executions.models import PipelineExecution  # noqa E402

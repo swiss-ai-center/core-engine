@@ -1,6 +1,6 @@
 import {
     Autocomplete,
-    Box, Checkbox,
+    Box, Button, Checkbox,
     Drawer, FormControl, IconButton, InputLabel, MenuItem, Select, TextField,
     Toolbar,
 } from '@mui/material';
@@ -10,7 +10,8 @@ import {
     CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
     Clear as ClearIcon,
 } from '@mui/icons-material';
-import { TagNames } from '../../enums/tagEnums';
+import { TagObjects } from '../../enums/tagEnums';
+import { Tag } from '../../models/Tag';
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small"/>;
 const checkedIcon = <CheckBoxIcon fontSize="small"/>;
@@ -21,15 +22,17 @@ const drawerWidth = isSmartphone() ? '100%' : 500;
 
 export const FilterDrawer: React.FC<{
     mobileOpen: boolean,
+    handleOpen: any,
     search: string,
     handleSearch: any,
     orderBy: string,
     handleOrder: any,
     orderByList: any[]
-    tags: string[],
+    tags: Tag[],
     handleTags: any,
 }> = ({
           mobileOpen,
+          handleOpen,
           search,
           handleSearch,
           orderBy,
@@ -46,7 +49,7 @@ export const FilterDrawer: React.FC<{
                 <Box sx={{ml: 3}}>
                     <h3>Filters</h3>
                 </Box>
-                <Box sx={{mx: 3}}>
+                <Box sx={{mx: 3, pb: 2}}>
                     <TextField sx={{mb: 2}} name={'search'} label={'Search'}
                                value={search} onChange={handleSearch} fullWidth
                                InputProps={{
@@ -61,9 +64,9 @@ export const FilterDrawer: React.FC<{
                         multiple
                         sx={{mb: 2}}
                         id="tags-filter"
-                        options={Object.values(TagNames)}
+                        options={TagObjects}
                         disableCloseOnSelect
-                        getOptionLabel={(option) => option}
+                        getOptionLabel={(option) => option.name}
                         renderOption={(props, option, {selected}) => (
                             <li {...props}>
                                 <Checkbox
@@ -71,9 +74,10 @@ export const FilterDrawer: React.FC<{
                                     checkedIcon={checkedIcon}
                                     style={{marginRight: 8}}
                                     color={'primary'}
-                                    checked={tags.includes(option)}
+                                    value={option.acronym}
+                                    checked={selected}
                                 />
-                                {option}
+                                {option.name}
                             </li>
                         )}
                         onChange={handleTags}
@@ -96,6 +100,20 @@ export const FilterDrawer: React.FC<{
                             ))}
                         </Select>
                     </FormControl>
+                    <Button
+                        variant={"contained"}
+                        color={"secondary"}
+                        fullWidth
+                        size={"large"}
+                        onClick={() => {
+                            handleSearch({target: {value: ''}});
+                            handleTags(null, []);
+                            handleOrder({target: {value: orderByList[0].value}});
+                            handleOpen();
+                        }}
+                    >
+                        Reset filters
+                    </Button>
                 </Box>
             </Box>
         </>
@@ -106,7 +124,6 @@ export const FilterDrawer: React.FC<{
         <Box
             component="nav"
             sx={{width: {md: drawerWidth}, flexShrink: {md: 0}}}
-            aria-label="mailbox folders"
         >
             {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
             <Drawer

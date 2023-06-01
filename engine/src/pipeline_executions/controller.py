@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from common.exceptions import NotFoundException, UnprocessableEntityException
 from pipeline_executions.service import PipelineExecutionsService
-from common.query_parameters import SkipLimitOrderByAndOrder
+from common.query_parameters import QueryParameters
 from pipeline_executions.models import PipelineExecution, PipelineExecutionRead, PipelineExecutionUpdate, \
     PipelineExecutionCreate, PipelineExecutionReadWithPipelineAndTasks
 from uuid import UUID
@@ -37,14 +37,14 @@ def get_one(
     response_model=List[PipelineExecutionReadWithPipelineAndTasks],
 )
 def get_many_pipelines(
-        skip_limit_order_by_and_order: SkipLimitOrderByAndOrder = Depends(),
+        query_parameters: QueryParameters = Depends(),
         pipeline_executions_service: PipelineExecutionsService = Depends(),
 ):
     pipeline_executions = pipeline_executions_service.find_many(
-        skip_limit_order_by_and_order.skip,
-        skip_limit_order_by_and_order.limit,
-        skip_limit_order_by_and_order.order_by,
-        skip_limit_order_by_and_order.order,
+        query_parameters.skip,
+        query_parameters.limit,
+        query_parameters.order_by,
+        query_parameters.order,
     )
 
     return pipeline_executions

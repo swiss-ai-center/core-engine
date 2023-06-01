@@ -1,85 +1,47 @@
 import { FieldDescriptionWithSetAndValue } from '../models/ExecutionUnit';
 
-const createSortBy = (order: string) => {
-    const infos = order.split('-');
+const createQuery = (unit: string, filter: string, skip: number, limit: number, orderBy: string, tags: string[]) => {
+    const infos = orderBy.split('-');
     const prop = infos[0];
     const asc = infos[1] === 'asc';
-    if (asc) {
-        return function (a: any, b: any) {
-            if (a[prop] > b[prop]) {
-                return 1;
-            } else if (a[prop] < b[prop]) {
-                return -1;
-            }
-            return 0;
-        }
-    } else {
-        return function (a: any, b: any) {
-            if (a[prop] > b[prop]) {
-                return -1;
-            } else if (a[prop] < b[prop]) {
-                return 1;
-            }
-            return 0;
-        }
+
+    let query = `${process.env.REACT_APP_ENGINE_URL}/${unit}?`;
+
+    if (filter !== '') {
+        query += `search=${filter}`;
     }
+    if (orderBy !== '') {
+        query += `&order_by=${prop}&order=${asc ? 'asc' : 'desc'}`;
+    }
+    if (tags.length > 0) {
+        query += `&tags=${tags.join(',')}`;
+    }
+    if (skip !== 0) {
+        query += `&skip=${skip}`;
+    }
+    if (limit !== 0) {
+        query += `&limit=${limit}`;
+    }
+
+    return query + '&with_count=True';
 }
 
-const filterItems = (items: any, filter: string) => {
-    return items.filter((item: any) => item.slug.toLowerCase().includes(filter.toLowerCase()) ||
-        item.name.toLowerCase().includes(filter.toLowerCase()) ||
-        item.summary.toLowerCase().includes(filter.toLowerCase()) ||
-        item.description.toLowerCase().includes(filter.toLowerCase()));
-}
+export const getServices = async (filter: string, skip: number, limit: number, orderBy: string, tags: string[]) => {
+    const query = createQuery('services', filter, skip, limit, orderBy, tags);
 
-export const getServices = async (filter: string, orderBy: string, tags: string[]) => {
-    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services`);
+    const response = await fetch(query);
     if (response.status === 200) {
-        const json = await response.json();
-        const available = json.filter((item: any) => item.status === 'available');
-        const ordered = available.sort(createSortBy(orderBy));
-        const tagFiltered = ordered.filter((item: any) => {
-            if (tags.length === 0) {
-                return true;
-            } else if (!item.tags) {
-                return false;
-            }
-            for (const tag of tags) {
-                for (const itemTag of item.tags) {
-                    if (itemTag.name.includes(tag)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        });
-        return filterItems(tagFiltered, filter);
+        return await response.json();
     }
     return [];
 }
 
-export const getPipelines = async (filter: string, orderBy: string, tags: string[]) => {
-    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines`);
+export const getPipelines = async (filter: string, skip: number, limit: number, orderBy: string, tags: string[]) => {
+    const query = createQuery('pipelines', filter, skip, limit, orderBy, tags);
+
+    const response = await fetch(query);
     if (response.status === 200) {
-        const json = await response.json();
-        const available = json.filter((item: any) => item.status === 'available');
-        const ordered = available.sort(createSortBy(orderBy));
-        const tagFiltered = ordered.filter((item: any) => {
-            if (tags.length === 0) {
-                return true;
-            } else if (!item.tags) {
-                return false;
-            }
-            for (const tag of tags) {
-                for (const itemTag of item.tags) {
-                    if (itemTag.name.includes(tag)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        });
-        return filterItems(tagFiltered, filter);
+        return await response.json();
     }
     return [];
 }
