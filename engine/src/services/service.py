@@ -1,4 +1,3 @@
-import json
 from inspect import Parameter, Signature
 from fastapi import FastAPI, UploadFile, Depends, HTTPException
 from fastapi.responses import JSONResponse
@@ -17,9 +16,61 @@ from common.exceptions import NotFoundException, ConflictException, UnreachableE
 from http_client import HttpClient
 from fastapi.encoders import jsonable_encoder
 from httpx import HTTPError
-from common_code.common.models import ExecutionUnitTag
 
 REGISTERED_SERVICES_TAG = "Registered Services"
+
+
+def create_statement(
+        search: str | None,
+        order_by: str | None,
+        order: str | None,
+        tags: str | None,
+        status: str = ExecutionUnitStatus.AVAILABLE
+) -> select:
+    """
+    Create a statement to find many services.
+    :param search: The search string.
+    :param order_by: The field to order by.
+    :param order: The order direction.
+    :param tags: The tags to filter by.
+    :param status: The status to filter by.
+    :return: The statement.
+    """
+    if not status:
+        status = ExecutionUnitStatus.AVAILABLE
+
+    if not search:
+        filter_statement = Service.status == status
+    else:
+        filter_statement = and_(
+            Service.status == status,
+            or_(
+                col(Service.name).ilike(f"%{search}%"),
+                col(Service.description).ilike(f"%{search}%"),
+                col(Service.slug).ilike(f"%{search}%"),
+                col(Service.summary).ilike(f"%{search}%")
+            ),
+        )
+
+    if tags:
+        tags_acronyms = tags.split(",")
+        filter_statement = and_(
+            filter_statement,
+            or_(
+                *[col(Service.tags).contains(tag_acronym) for tag_acronym in tags_acronyms]
+            )
+        )
+
+    statement = select(Service).where(
+        filter_statement
+    )
+
+    if order == "desc":
+        statement = statement.order_by(desc(order_by))
+    else:
+        statement = statement.order_by(order_by)
+
+    return statement
 
 
 class ServicesService:
@@ -41,13 +92,57 @@ class ServicesService:
 
         self.logger.set_source(__name__)
 
+    def get_count(self, statement: select):
+        """
+        Get the number of services from a statement.
+        :return: The number of services.
+        """
+        self.logger.debug("Get the number of services.")
+        count = self.session.exec(statement)
+        return len([service for service in count])
+
+    def find_many_with_total_count(
+            self,
+            search: str = "",
+            skip: int = 0,
+            limit: int = 100,
+            order_by: str = "name",
+            order: str = "asc",
+            tags: str = None,
+            status: str = ExecutionUnitStatus.AVAILABLE
+    ):
+        """
+        Find many services with total count.
+        :param search: The search string.
+        :param skip: The number of services to skip.
+        :param limit: The maximum number of services to return.
+        :param order_by: The field to order by.
+        :param order: The order (asc or desc).
+        :param tags: The tags to filter by.
+        :param status: The status to filter by.
+        :return: The list of filtered services and the total count.
+        """
+        self.logger.debug("Find many services with total count.")
+
+        statement = create_statement(search, order_by, order, tags, status)
+
+        statement_to_count = statement
+
+        statement = statement.offset(skip).limit(limit)
+
+        services = self.session.exec(statement).all()
+
+        total_count = self.get_count(statement_to_count)
+
+        return total_count, services
+
     def find_many(
             self,
             search: str = "",
             skip: int = 0,
             limit: int = 100,
             order_by: str = "name",
-            order: str = "desc",
+            order: str = "asc",
             tags: str = None,
             status: str = ExecutionUnitStatus.AVAILABLE
     ):
@@ -64,37 +159,11 @@ class ServicesService:
         """
         self.logger.debug("Find many services")
 
-        if not status:
-            status = ExecutionUnitStatus.AVAILABLE
+        statement = create_statement(search, order_by, order, tags, status)
 
-        if not search:
-            filter_statement = and_(Service.status == status)
-        else:
-            filter_statement = and_(
-                Service.status == status,
-                or_(
-                    col(Service.name).ilike(f"%{search}%"),
-                    col(Service.description).ilike(f"%{search}%"),
-                    col(Service.slug).ilike(f"%{search}%"),
-                    col(Service.summary).ilike(f"%{search}%")
-                )
-            )
-
-        statement = select(Service).where(
-            filter_statement
-        )
-        if order == "desc":
-            statement.order_by(desc(order_by)).offset(skip).limit(limit)
-        else:
-            statement.order_by(order_by).offset(skip).limit(limit)
+        statement = statement.offset(skip).limit(limit)
 
         services = self.session.exec(statement).all()
-
-        if tags:
-            tags_acronyms = tags.split(",")
-            # filter services to keep only those with the at least one tag
-            services = [service for service in services if
-                        any(tag_acronym in [tag["acronym"] for tag in service.tags] for tag_acronym in tags_acronyms)]
 
         return services
 

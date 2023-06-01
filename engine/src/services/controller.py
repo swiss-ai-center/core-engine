@@ -4,7 +4,7 @@ from common.exceptions import NotFoundException, ConflictException
 from execution_units.enums import ExecutionUnitStatus
 from services.service import ServicesService
 from common.query_parameters import QueryParameters
-from services.models import ServiceRead, ServiceUpdate, ServiceCreate, Service
+from services.models import ServiceRead, ServiceUpdate, ServiceCreate, Service, ServicesWithCount
 from uuid import UUID
 from sqlalchemy.exc import CompileError
 
@@ -35,26 +35,39 @@ def get_one(
 @router.get(
     "/services",
     summary="Get many services",
-    response_model=List[ServiceRead],
+    response_model=ServicesWithCount | List[ServiceRead],
 )
 def get_many_services(
+        with_count: bool = False,
         query_parameters: QueryParameters = Depends(),
         services_service: ServicesService = Depends(),
 ):
     try:
         if query_parameters.search:
             query_parameters.search = query_parameters.search.lower()
-        services = services_service.find_many(
-            query_parameters.search,
-            query_parameters.skip,
-            query_parameters.limit,
-            query_parameters.order_by,
-            query_parameters.order,
-            query_parameters.tags,
-            query_parameters.status
-        )
+        if with_count:
+            count, services = services_service.find_many_with_total_count(
+                query_parameters.search,
+                query_parameters.skip,
+                query_parameters.limit,
+                query_parameters.order_by,
+                query_parameters.order,
+                query_parameters.tags,
+                query_parameters.status
+            )
+            return ServicesWithCount(count=count, services=services)
+        else:
+            services = services_service.find_many(
+                query_parameters.search,
+                query_parameters.skip,
+                query_parameters.limit,
+                query_parameters.order_by,
+                query_parameters.order,
+                query_parameters.tags,
+                query_parameters.status
+            )
+            return services
 
-        return services
     except CompileError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

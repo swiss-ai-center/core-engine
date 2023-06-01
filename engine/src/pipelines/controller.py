@@ -4,7 +4,7 @@ from common.exceptions import NotFoundException, InconsistentPipelineException, 
 from pipelines.service import PipelinesService
 from common.query_parameters import QueryParameters
 from pipelines.models import PipelineRead, PipelineUpdate, PipelineCreate, Pipeline, \
-    PipelineReadWithPipelineStepsAndTasks
+    PipelineReadWithPipelineStepsAndTasks, PipelinesWithCount
 from pipeline_steps.models import PipelineStep
 from uuid import UUID, uuid4
 from sqlalchemy.exc import CompileError
@@ -36,26 +36,42 @@ def get_one(
 @router.get(
     "/pipelines",
     summary="Get many pipelines",
-    response_model=List[PipelineRead],
+    response_model=PipelinesWithCount | List[PipelineRead],
 )
 def get_many_pipelines(
+        with_count: bool = False,
         query_parameters: QueryParameters = Depends(),
         pipelines_service: PipelinesService = Depends(),
 ):
     try:
         if query_parameters.search:
             query_parameters.search = query_parameters.search.lower()
-        pipelines = pipelines_service.find_many(
-            query_parameters.search,
-            query_parameters.skip,
-            query_parameters.limit,
-            query_parameters.order_by,
-            query_parameters.order,
-            query_parameters.tags,
-            query_parameters.status
-        )
 
-        return pipelines
+        if with_count:
+            count, pipelines = pipelines_service.find_many_with_total_count(
+                query_parameters.search,
+                query_parameters.skip,
+                query_parameters.limit,
+                query_parameters.order_by,
+                query_parameters.order,
+                query_parameters.tags,
+                query_parameters.status
+            )
+
+            return PipelinesWithCount(count=count, pipelines=pipelines)
+        else:
+            pipelines = pipelines_service.find_many(
+                query_parameters.search,
+                query_parameters.skip,
+                query_parameters.limit,
+                query_parameters.order_by,
+                query_parameters.order,
+                query_parameters.tags,
+                query_parameters.status
+            )
+
+            return pipelines
+
     except CompileError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

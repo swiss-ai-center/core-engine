@@ -90,6 +90,15 @@ class ServiceTask(ServiceTaskBase):
     pass
 
 
+class ServicesWithCount(BaseModel):
+    """
+    Services with count
+    This model is used to return a list of filtered services with the count of all services matching a filter
+    """
+    count: int
+    services: List[ServiceRead]
+
+
 from tasks.models import Task, TaskRead  # noqa E402
 
 Service.update_forward_refs()

@@ -37,7 +37,7 @@ const ItemGrid: React.FC<{
     const [pipelineCount, setPipelineCount] = React.useState(0);
     const [pageService, setPageService] = React.useState(1);
     const [pagePipeline, setPagePipeline] = React.useState(1);
-    const [servicesPerPage, setServicesPerPage] = React.useState(1);
+    const [servicesPerPage, setServicesPerPage] = React.useState(15);
     const [pipelinesPerPage, setPipelinesPerPage] = React.useState(15);
     const [isReady, setIsReady] = React.useState(false);
     const [searchParams] = useSearchParams();
@@ -62,9 +62,11 @@ const ItemGrid: React.FC<{
         const skip = (pagePipeline - 1) * pipelinesPerPage;
         const pipelinesList = await getPipelines(filter, skip, pipelinesPerPage, orderBy, tags);
         if (pipelinesList) {
-            setPipelines(pipelinesList);
+            setPipelines(pipelinesList.pipelines);
+            setPipelineCount(pipelinesList.count);
         } else {
             setPipelines([]);
+            setPipelineCount(0);
             displayNotification({message: "No pipelines found", type: "info"});
         }
     }
@@ -74,6 +76,90 @@ const ItemGrid: React.FC<{
         await listPipelines(filter, orderBy, tags);
         setIsReady(true);
     }
+
+    const servicePagination = () => {
+        return (
+            <Grid container spacing={4} alignItems={"center"} justifyContent={"center"}>
+                <Grid xs={12} md={6} lg={4} alignItems={"left"} justifyContent={"left"}>
+                    <Box sx={{display: 'flex', alignItems: align, justifyContent: align}}>
+                        <Pagination
+                            page={pageService}
+                            size={"large"}
+                            onChange={(event, page) => {
+                                setPageService(page);
+                            }}
+                            sx={{alignItems: 'center', justifyContent: 'center'}}
+                            count={Math.ceil(serviceCount / servicesPerPage)}
+                            shape={"rounded"}
+                        />
+                    </Box>
+                </Grid>
+                <Grid xs={12} md={6} lg={4} mdOffset={"auto"} alignItems={"right"} justifyContent={"right"}>
+                    <Box sx={{display: 'flex', alignItems: 'right', justifyContent: 'right'}}>
+                        <FormControl sx={{minWidth: minWidth}}>
+                            <InputLabel id={"services-per-page-label"}>Per page</InputLabel>
+                            <Select
+                                labelId={"services-per-page"}
+                                id={"services-per-page"}
+                                value={servicesPerPage}
+                                label={"Per page"}
+                                onChange={(event) => {
+                                    setServicesPerPage(event.target.value as number);
+                                }}
+                            >
+                                <MenuItem value={6}>6</MenuItem>
+                                <MenuItem value={15}>15</MenuItem>
+                                <MenuItem value={30}>30</MenuItem>
+                                <MenuItem value={60}>60</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Box>
+                </Grid>
+            </Grid>
+        );
+    };
+
+    const pipelinePagination = () => {
+        return (
+            <Grid container sx={{pt: 2}} spacing={4} alignItems={"center"} justifyContent={"center"}>
+                <Grid xs={12} md={6} lg={4} alignItems={"left"} justifyContent={"left"}>
+                    <Box sx={{display: 'flex', alignItems: align, justifyContent: align}}>
+                        <Pagination
+                            page={pagePipeline}
+                            size={"large"}
+                            onChange={(event, page) => {
+                                setPagePipeline(page);
+                            }}
+                            sx={{alignItems: 'center', justifyContent: 'center'}}
+                            count={Math.ceil(pipelineCount / pipelinesPerPage)}
+                            shape={"rounded"}
+                        />
+                    </Box>
+                </Grid>
+                <Grid xs={12} md={6} lg={4} mdOffset={"auto"} alignItems={"right"} justifyContent={"right"}>
+                    <Box sx={{display: 'flex', alignItems: 'right', justifyContent: 'right'}}>
+                        <FormControl sx={{minWidth: minWidth}}>
+                            <InputLabel id={"pipelines-per-page-label"}>Per page</InputLabel>
+                            <Select
+                                labelId={"pipelines-per-page"}
+                                id={"pipelines-per-page"}
+                                value={servicesPerPage}
+                                label={"Per page"}
+                                onChange={(event) => {
+                                    setPipelinesPerPage(event.target.value as number);
+                                }}
+                            >
+                                <MenuItem value={6}>6</MenuItem>
+                                <MenuItem value={15}>15</MenuItem>
+                                <MenuItem value={30}>30</MenuItem>
+                                <MenuItem value={60}>60</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Box>
+                </Grid>
+            </Grid>
+        );
+    };
 
     React.useEffect(() => {
         setIsReady(false);
@@ -87,42 +173,7 @@ const ItemGrid: React.FC<{
                 Services
             </Typography>
             {isReady && services.length > 0 ?
-                <Grid container spacing={4} alignItems={"center"} justifyContent={"center"}>
-                    <Grid xs={12} md={6} lg={4} alignItems={"left"} justifyContent={"left"}>
-                        <Box sx={{display: 'flex', alignItems: align, justifyContent: align}}>
-                            <Pagination
-                                page={pageService}
-                                size={"large"}
-                                onChange={(event, page) => {
-                                    setPageService(page);
-                                }}
-                                sx={{alignItems: 'center', justifyContent: 'center'}}
-                                count={Math.ceil(serviceCount / servicesPerPage)}
-                                shape={"rounded"}
-                            />
-                        </Box>
-                    </Grid>
-                    <Grid xs={12} md={6} lg={4} mdOffset={"auto"} alignItems={"right"} justifyContent={"right"}>
-                        <Box sx={{display: 'flex', alignItems: 'right', justifyContent: 'right'}}>
-                            <FormControl sx={{minWidth: minWidth}}>
-                                <InputLabel id={"services-per-page-label"}>Per page</InputLabel>
-                                <Select
-                                    labelId={"services-per-page"}
-                                    id={"services-per-page"}
-                                    value={servicesPerPage}
-                                    label={"Per page"}
-                                    onChange={(event) => {
-                                        setServicesPerPage(event.target.value as number);
-                                    }}
-                                >
-                                    <MenuItem value={1}>1</MenuItem>
-                                    <MenuItem value={30}>30</MenuItem>
-                                    <MenuItem value={60}>60</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Box>
-                    </Grid>
-                </Grid> : <></>
+                servicePagination() : <></>
             }
             {!isReady ?
                 <Grid xs={12} md={8} sx={{textAlign: 'center'}}>
@@ -190,6 +241,9 @@ const ItemGrid: React.FC<{
                         ))}
                 </Grid>
             }
+            {isReady && services.length > 0 ?
+                servicePagination() : <></>
+            }
             <Divider sx={{mt: 2, mb: 2}}>
                 ○
             </Divider>
@@ -197,42 +251,7 @@ const ItemGrid: React.FC<{
                 Pipelines
             </Typography>
             {isReady && pipelines.length > 0 ?
-                <Grid container sx={{pt: 2}} spacing={4} alignItems={"center"} justifyContent={"center"}>
-                    <Grid xs={12} md={6} lg={4} alignItems={"left"} justifyContent={"left"}>
-                        <Box sx={{display: 'flex', alignItems: align, justifyContent: align}}>
-                            <Pagination
-                                page={pagePipeline}
-                                size={"large"}
-                                onChange={(event, page) => {
-                                    setPagePipeline(page);
-                                }}
-                                sx={{alignItems: 'center', justifyContent: 'center'}}
-                                count={Math.ceil(pipelines.length / pipelinesPerPage)}
-                                shape={"rounded"}
-                            />
-                        </Box>
-                    </Grid>
-                    <Grid xs={12} md={6} lg={4} mdOffset={"auto"} alignItems={"right"} justifyContent={"right"}>
-                        <Box sx={{display: 'flex', alignItems: 'right', justifyContent: 'right'}}>
-                            <FormControl sx={{minWidth: minWidth}}>
-                                <InputLabel id={"pipelines-per-page-label"}>Per page</InputLabel>
-                                <Select
-                                    labelId={"pipelines-per-page"}
-                                    id={"pipelines-per-page"}
-                                    value={servicesPerPage}
-                                    label={"Per page"}
-                                    onChange={(event) => {
-                                        setPipelinesPerPage(event.target.value as number);
-                                    }}
-                                >
-                                    <MenuItem value={15}>15</MenuItem>
-                                    <MenuItem value={30}>30</MenuItem>
-                                    <MenuItem value={60}>60</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Box>
-                    </Grid>
-                </Grid> : <></>
+                pipelinePagination() : <></>
             }
             {!isReady ?
                 <Grid xs={12} md={8} sx={{textAlign: 'center'}}>
@@ -296,6 +315,9 @@ const ItemGrid: React.FC<{
                             }
                         ))}
                 </Grid>
+            }
+            {isReady && pipelines.length > 0 ?
+                pipelinePagination() : <></>
             }
         </>
     );

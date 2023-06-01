@@ -12,9 +12,13 @@ import { useSearchParams } from 'react-router-dom';
 import Copyright from '../../components/Copyright/Copyright';
 import { Tag } from '../../models/Tag';
 import { TagObjects } from '../../enums/tagEnums';
+import ScrollToTop from 'react-scroll-to-top';
+import { ArrowUpward } from '@mui/icons-material';
+import { useSelector } from 'react-redux';
 
 
-const Home: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
+const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = ({mobileOpen, handleOpen}) => {
+    const colorMode = useSelector((state: any) => state.colorMode.value);
     // this is the list of order by options, the first one is the default
     const orderByList = [
         {value: 'name-asc', label: 'Name (A-Z)'},
@@ -74,7 +78,7 @@ const Home: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
         setTags(query_tags.map((tag) => TagObjects.filter((tagObject) => tagObject.acronym === tag)[0]));
         const order = searchParams.get('orderBy');
         if (orderByList.map((item) => item.value).includes(order || '')) {
-            setOrderBy(searchParams.get('orderBy') || orderByList[0].value);
+            setOrderBy(order || orderByList[0].value);
         } else {
             searchParams.delete('orderBy');
             setOrderBy('name-asc');
@@ -86,8 +90,10 @@ const Home: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
 
     return (
         <Box sx={{display: 'flex'}}>
+            <ScrollToTop smooth component={<ArrowUpward style={{color: (colorMode === 'light' ? 'white' : 'black')}}
+                                                        sx={{paddingTop: '2px'}}/>}/>
             <FilterDrawer
-                mobileOpen={mobileOpen}
+                mobileOpen={mobileOpen} handleOpen={handleOpen}
                 orderBy={orderBy} handleOrder={handleOrder} orderByList={orderByList}
                 search={search} handleSearch={handleSearch}
                 tags={tags} handleTags={handleTags}
@@ -111,7 +117,7 @@ const Home: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
                     </Typography>
                 </Container>
                 <Container sx={{py: 4}} maxWidth="lg">
-                    <ItemGrid filter={search} orderBy={orderBy} tags={tags} />
+                    <ItemGrid filter={search} orderBy={orderBy} tags={tags}/>
                 </Container>
                 <Container maxWidth="lg" sx={{pb: 0}}>
                     <Copyright/>

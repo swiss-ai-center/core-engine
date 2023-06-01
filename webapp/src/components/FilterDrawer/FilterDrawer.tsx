@@ -22,6 +22,7 @@ const drawerWidth = isSmartphone() ? '100%' : 500;
 
 export const FilterDrawer: React.FC<{
     mobileOpen: boolean,
+    handleOpen: any,
     search: string,
     handleSearch: any,
     orderBy: string,
@@ -31,6 +32,7 @@ export const FilterDrawer: React.FC<{
     handleTags: any,
 }> = ({
           mobileOpen,
+          handleOpen,
           search,
           handleSearch,
           orderBy,
@@ -107,6 +109,7 @@ export const FilterDrawer: React.FC<{
                             handleSearch({target: {value: ''}});
                             handleTags(null, []);
                             handleOrder({target: {value: orderByList[0].value}});
+                            handleOpen();
                         }}
                     >
                         Reset filters
@@ -121,7 +124,6 @@ export const FilterDrawer: React.FC<{
         <Box
             component="nav"
             sx={{width: {md: drawerWidth}, flexShrink: {md: 0}}}
-            aria-label="mailbox folders"
         >
             {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
             <Drawer
