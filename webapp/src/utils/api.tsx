@@ -23,7 +23,7 @@ const createQuery = (unit: string, filter: string, skip: number, limit: number, 
         query += `&limit=${limit}`;
     }
 
-    return query + '&with_count=True';
+    return query + '&with_count=True&status=AVAILABLE';
 }
 
 export const getServices = async (filter: string, skip: number, limit: number, orderBy: string, tags: string[]) => {

@@ -46,21 +46,25 @@ def create_statement(
     :param status: The status to filter by.
     :return: The statement.
     """
-    if not status:
-        status = ExecutionUnitStatus.AVAILABLE
+    filter_statement = or_(
+        Pipeline.status == ExecutionUnitStatus.AVAILABLE,
+        Pipeline.status == ExecutionUnitStatus.UNAVAILABLE,
+        Pipeline.status == ExecutionUnitStatus.DISABLED,
+        )
 
-    if not search:
+    if status:
         filter_statement = Pipeline.status == status
-    else:
+
+    if search:
         filter_statement = and_(
-            Pipeline.status == status,
+            filter_statement,
             or_(
                 col(Pipeline.name).ilike(f"%{search}%"),
                 col(Pipeline.description).ilike(f"%{search}%"),
                 col(Pipeline.slug).ilike(f"%{search}%"),
                 col(Pipeline.summary).ilike(f"%{search}%")
             ),
-            )
+        )
 
     if tags:
         tags_acronyms = tags.split(",")

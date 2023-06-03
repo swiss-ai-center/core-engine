@@ -25,7 +25,7 @@ def create_statement(
         order_by: str | None,
         order: str | None,
         tags: str | None,
-        status: str = ExecutionUnitStatus.AVAILABLE
+        status: str = None,
 ) -> select:
     """
     Create a statement to find many services.
@@ -36,14 +36,18 @@ def create_statement(
     :param status: The status to filter by.
     :return: The statement.
     """
-    if not status:
-        status = ExecutionUnitStatus.AVAILABLE
+    filter_statement = or_(
+        Service.status == ExecutionUnitStatus.AVAILABLE,
+        Service.status == ExecutionUnitStatus.UNAVAILABLE,
+        Service.status == ExecutionUnitStatus.DISABLED,
+    )
 
-    if not search:
+    if status:
         filter_statement = Service.status == status
-    else:
+
+    if search:
         filter_statement = and_(
-            Service.status == status,
+            filter_statement,
             or_(
                 col(Service.name).ilike(f"%{search}%"),
                 col(Service.description).ilike(f"%{search}%"),
@@ -109,7 +113,7 @@ class ServicesService:
             order_by: str = "name",
             order: str = "asc",
             tags: str = None,
-            status: str = ExecutionUnitStatus.AVAILABLE
+            status: str = None,
     ):
         """
         Find many services with total count.
