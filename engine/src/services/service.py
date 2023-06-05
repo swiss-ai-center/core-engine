@@ -148,7 +148,7 @@ class ServicesService:
             order_by: str = "name",
             order: str = "asc",
             tags: str = None,
-            status: str = ExecutionUnitStatus.AVAILABLE
+            status: str = None,
     ):
         """
         Find many services.

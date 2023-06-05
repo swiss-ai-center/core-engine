@@ -35,7 +35,7 @@ def create_statement(
         order_by: str | None,
         order: str | None,
         tags: str | None,
-        status: str = ExecutionUnitStatus.AVAILABLE
+        status: str = None,
 ) -> select:
     """
     Create a statement to find many pipelines.
@@ -126,7 +126,7 @@ class PipelinesService:
             order_by: str = "name",
             order: str = "asc",
             tags: str = None,
-            status: str = ExecutionUnitStatus.AVAILABLE
+            status: str = None
     ):
         """
         Find many pipelines with total count.
@@ -161,7 +161,7 @@ class PipelinesService:
             order_by: str = "name",
             order: str = "asc",
             tags: str = None,
-            status: str = ExecutionUnitStatus.AVAILABLE
+            status: str = None
     ):
         """
         Find many pipelines.

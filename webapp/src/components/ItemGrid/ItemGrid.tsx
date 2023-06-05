@@ -42,8 +42,6 @@ const ItemGrid: React.FC<{
     const [pipelineCount, setPipelineCount] = React.useState(0);
     const [pageService, setPageService] = React.useState(1);
     const [pagePipeline, setPagePipeline] = React.useState(1);
-    //const [servicesPerPage, _setServicesPerPage] = React.useState();
-    //const [pipelinesPerPage, _setPipelinesPerPage] = React.useState(15);
     const [isReady, setIsReady] = React.useState(false);
     const [searchParams] = useSearchParams();
     const [pipelines, setPipelines] = React.useState([]);
@@ -87,6 +85,8 @@ const ItemGrid: React.FC<{
     }
 
     const listElements = async (filter: string, orderBy: string, tags: string[]) => {
+        setPageService(1);
+        setPagePipeline(1);
         await listServices(filter, orderBy, tags);
         await listPipelines(filter, orderBy, tags);
         setIsReady(true);
@@ -158,7 +158,7 @@ const ItemGrid: React.FC<{
                             <Select
                                 labelId={"pipelines-per-page"}
                                 id={"pipelines-per-page"}
-                                value={servicesPerPage}
+                                value={pipelinesPerPage}
                                 label={"Per page"}
                                 onChange={(event) => {
                                     setPipelinesPerPage(event.target.value as number);
@@ -180,7 +180,17 @@ const ItemGrid: React.FC<{
         setIsReady(false);
         listElements(filter, orderBy, tags.map(t => t.acronym));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filter, orderBy, tags, pageService, pagePipeline, servicesPerPage, pipelinesPerPage]);
+    }, [orderBy, tags, pageService, pagePipeline, servicesPerPage, pipelinesPerPage]);
+
+    React.useEffect(() => {
+        // on filter change, use listElements to update the list only if the user stopped typing for 1000ms
+        const timeout = setTimeout(() => {
+            setIsReady(false);
+            listElements(filter, orderBy, tags.map(t => t.acronym));
+        }, 300);
+        return () => clearTimeout(timeout);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filter]);
 
     return (
         <>

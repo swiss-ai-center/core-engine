@@ -62,6 +62,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                 onConnect={onConnect}
                 nodeTypes={nodeTypes}
                 fitView
+                nodesDraggable={false}
                 about={colorMode === 'dark' ? 'dark' : 'light'}
             >
                 <CustomControls/>
