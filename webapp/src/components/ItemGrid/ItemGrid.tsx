@@ -23,6 +23,8 @@ import { useNotification } from '../../utils/useNotification';
 import "./styles.css";
 import { Tags } from '../../enums/tagEnums';
 import { Tag } from '../../models/Tag';
+import { useDispatch, useSelector } from 'react-redux';
+import { setServicePerPage, setPipelinePerPage } from '../../utils/reducers/perPageSlice';
 
 // min width is 100% for mobile, 50% for tablet, 33% for desktop
 const minWidth = (window.innerWidth < 600) ? '100%' : (window.innerWidth < 900) ? '50%' : '33%';
@@ -33,17 +35,30 @@ const align = (window.innerWidth < 600) ? 'center' : 'left';
 const ItemGrid: React.FC<{
     filter: string, orderBy: string, tags: Tag[]
 }> = ({filter, orderBy, tags}) => {
+    const dispatch = useDispatch();
+    const servicesPerPage = useSelector((state: any) => state.perPage.value.services);
+    const pipelinesPerPage = useSelector((state: any) => state.perPage.value.pipelines);
     const [serviceCount, setServiceCount] = React.useState(0);
     const [pipelineCount, setPipelineCount] = React.useState(0);
     const [pageService, setPageService] = React.useState(1);
     const [pagePipeline, setPagePipeline] = React.useState(1);
-    const [servicesPerPage, setServicesPerPage] = React.useState(15);
-    const [pipelinesPerPage, setPipelinesPerPage] = React.useState(15);
+    //const [servicesPerPage, _setServicesPerPage] = React.useState();
+    //const [pipelinesPerPage, _setPipelinesPerPage] = React.useState(15);
     const [isReady, setIsReady] = React.useState(false);
     const [searchParams] = useSearchParams();
     const [pipelines, setPipelines] = React.useState([]);
     const [services, setServices] = React.useState([]);
     const {displayNotification} = useNotification();
+
+    const setServicesPerPage = (value: number) => {
+        setPageService(1);
+        dispatch(setServicePerPage(value));
+    };
+
+    const setPipelinesPerPage = (value: number) => {
+        setPagePipeline(1);
+        dispatch(setPipelinePerPage(value));
+    }
 
     const listServices = async (filter: string, orderBy: string, tags: string[]) => {
         const skip = (pageService - 1) * servicesPerPage;

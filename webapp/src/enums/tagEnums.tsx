@@ -99,6 +99,15 @@ export const Tags = [
             "color": "rgba(153, 102, 255, 1)",
             "borderColor": "rgba(153, 102, 255, 1)"
         }
+    },
+    {
+        "acronym": "NN",
+        "name": "Neural Networks",
+        "colors": {
+            "backgroundColor": "rgba(255, 159, 64, 0.2)",
+            "color": "rgba(255, 159, 64, 1)",
+            "borderColor": "rgba(255, 159, 64, 1)"
+        }
     }
 ];
 
