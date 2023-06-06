@@ -7,10 +7,12 @@ from makefun import with_signature
 from execution_units.enums import ExecutionUnitStatus
 from services.models import Service, ServiceTask
 from storage.service import StorageService
-from sqlmodel import Session, select, desc, col, or_, and_
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlmodel import Session, select, desc, col, or_, and_, cast
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
-from common_code.common.enums import FieldDescriptionType
+from common_code.common.models import ExecutionUnitTag
+from common_code.common.enums import FieldDescriptionType, ExecutionUnitTagName, ExecutionUnitTagAcronym
 from uuid import UUID
 from pipeline_steps.models import PipelineStep
 from pipelines.models import Pipeline, PipelineUpdate, PipelineCreate
@@ -28,63 +30,6 @@ from http_client import HttpClient
 from fastapi.encoders import jsonable_encoder
 
 REGISTERED_PIPELINES_TAG = "Registered Pipelines"
-
-
-def create_statement(
-        search: str | None,
-        order_by: str | None,
-        order: str | None,
-        tags: str | None,
-        status: str = None,
-) -> select:
-    """
-    Create a statement to find many pipelines.
-    :param search: The search string.
-    :param order_by: The field to order by.
-    :param order: The order direction.
-    :param tags: The tags to filter by.
-    :param status: The status to filter by.
-    :return: The statement.
-    """
-    filter_statement = or_(
-        Pipeline.status == ExecutionUnitStatus.AVAILABLE,
-        Pipeline.status == ExecutionUnitStatus.UNAVAILABLE,
-        Pipeline.status == ExecutionUnitStatus.DISABLED,
-        )
-
-    if status:
-        filter_statement = Pipeline.status == status
-
-    if search:
-        filter_statement = and_(
-            filter_statement,
-            or_(
-                col(Pipeline.name).ilike(f"%{search}%"),
-                col(Pipeline.description).ilike(f"%{search}%"),
-                col(Pipeline.slug).ilike(f"%{search}%"),
-                col(Pipeline.summary).ilike(f"%{search}%")
-            ),
-        )
-
-    if tags:
-        tags_acronyms = tags.split(",")
-        filter_statement = and_(
-            filter_statement,
-            or_(
-                *[col(Pipeline.tags).contains(tag_acronym) for tag_acronym in tags_acronyms]
-            )
-        )
-
-    statement = select(Pipeline).where(
-        filter_statement
-    )
-
-    if order == "desc":
-        statement = statement.order_by(desc(order_by))
-    else:
-        statement = statement.order_by(order_by)
-
-    return statement
 
 
 class PipelinesService:
@@ -118,6 +63,81 @@ class PipelinesService:
         count = self.session.exec(statement)
         return len([pipeline for pipeline in count])
 
+    def create_statement(
+            self,
+            search: str | None,
+            order_by: str | None,
+            order: str | None,
+            tags: str | None,
+            status: str = None,
+    ) -> select:
+        """
+        Create a statement to find many pipelines.
+        :param search: The search string.
+        :param order_by: The field to order by.
+        :param order: The order direction.
+        :param tags: The tags to filter by.
+        :param status: The status to filter by.
+        :return: The statement.
+        """
+        filter_statement = or_(
+            Pipeline.status == ExecutionUnitStatus.AVAILABLE,
+            Pipeline.status == ExecutionUnitStatus.UNAVAILABLE,
+            Pipeline.status == ExecutionUnitStatus.DISABLED,
+            )
+
+        if status:
+            filter_statement = Pipeline.status == status
+
+        if search:
+            filter_statement = and_(
+                filter_statement,
+                or_(
+                    col(Pipeline.name).ilike(f"%{search}%"),
+                    col(Pipeline.description).ilike(f"%{search}%"),
+                    col(Pipeline.slug).ilike(f"%{search}%"),
+                    col(Pipeline.summary).ilike(f"%{search}%")
+                ),
+            )
+
+        if tags:
+            tags_acronyms_string = tags.split(",")
+            # from tag acronym to tag acronym enum
+            tags_acronyms_string = [ExecutionUnitTagAcronym(tag_acronym) for tag_acronym in tags_acronyms_string]
+            # get the key of the enum for each acronym
+            tags_enums = [tag_acronym.name for tag_acronym in tags_acronyms_string]
+            # create the list of tag acronyms
+            tags_acronyms = [ExecutionUnitTagAcronym[tag_name] for tag_name in tags_enums]
+            # create the list of tag names
+            tags_names = [ExecutionUnitTagName[tag_name] for tag_name in tags_enums]
+            # create the list of tags
+            tags_list = [ExecutionUnitTag(name=tag_name, acronym=tag_acronym) for tag_name, tag_acronym in
+                         zip(tags_names, tags_acronyms)]
+
+            if self.session.bind.dialect.name == "postgresql":
+                tags_filter = cast(Pipeline.tags, JSONB) == jsonable_encoder(tags_list)
+            else:
+                tags_filter = Pipeline.tags == jsonable_encoder(tags_list)
+
+            filter_statement = and_(
+                filter_statement,
+                and_(
+                    Pipeline.tags is not None,
+                    tags_filter
+                )
+            )
+
+        statement = select(Pipeline).where(
+            filter_statement
+        )
+
+        if order == "desc":
+            statement = statement.order_by(desc(order_by))
+        else:
+            statement = statement.order_by(order_by)
+
+        return statement
+
     def find_many_with_total_count(
             self,
             search: str = "",
@@ -141,7 +161,7 @@ class PipelinesService:
         """
         self.logger.debug("Find many pipelines with total count.")
 
-        statement = create_statement(search, order_by, order, tags, status)
+        statement = self.create_statement(search, order_by, order, tags, status)
 
         statement_to_count = statement
 
@@ -176,7 +196,7 @@ class PipelinesService:
         """
         self.logger.debug("Find many pipelines")
 
-        statement = create_statement(search, order_by, order, tags, status)
+        statement = self.create_statement(search, order_by, order, tags, status)
 
         statement = statement.offset(skip).limit(limit)
 
