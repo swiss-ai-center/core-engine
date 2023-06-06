@@ -105,7 +105,6 @@ class ServicesService:
             if self.session.bind.dialect.name == "postgresql":
                 tags_filter = cast(Service.tags, JSONB).contains(cast(jsonable_encoder(tags_list), JSONB))
             else:
-                # filter independent of the order of the tags. Service.tags.contains(tags_list) does not wor
                 tags_filter = and_(*[Service.tags.contains(tag) for tag in tags_list])
 
             filter_statement = and_(

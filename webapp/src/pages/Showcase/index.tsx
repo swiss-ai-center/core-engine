@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import Board from '../../components/Board/Board';
 import { getPipelineDescription, getServiceDescription } from '../../utils/api';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
-import { Api, ArrowBack, Fullscreen } from '@mui/icons-material';
+import { OpenInNew, ArrowBack, Fullscreen } from '@mui/icons-material';
 import { useNotification } from '../../utils/useNotification';
 import { useNavigate } from 'react-router-dom';
 import Copyright from '../../components/Copyright/Copyright';
@@ -107,14 +107,15 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
                                 </Box>
                             </FullScreen>
                         </Container>
+                        {params.type as string === "service" ? (
                         <Container sx={{pb: 2}} maxWidth={"lg"}>
                             <URLLink href={description.url}>
                                 <Button sx={{mb: 2}} color={"secondary"} variant={"outlined"}
-                                        startIcon={<Api />}>
-                                    Service API
+                                        startIcon={<OpenInNew/>}>
+                                    OpenAPI Specification
                                 </Button>
                             </URLLink>
-                        </Container>
+                        </Container>) : <></>}
                         <Container maxWidth={"lg"}>
                             <Copyright/>
                         </Container>

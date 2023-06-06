@@ -491,7 +491,14 @@ class PipelinesService:
                 pipeline_execution = self.pipeline_executions_service.create(pipeline_execution)
 
                 # Get the first task of the pipeline
-                task = pipeline_execution.tasks[0]
+                task = None
+                for task_elem in pipeline_execution.tasks:
+                    if task_elem.service_id == pipeline_steps[0].service_id:
+                        task = task_elem
+                        break
+
+                if not task:
+                    raise NotFoundException("Task not found")
 
                 service = self.services_service.find_one(task.service_id)
 
