@@ -115,16 +115,14 @@ class PipelinesService:
                          zip(tags_names, tags_acronyms)]
 
             if self.session.bind.dialect.name == "postgresql":
-                tags_filter = cast(Pipeline.tags, JSONB) == jsonable_encoder(tags_list)
+                tags_filter = cast(Pipeline.tags, JSONB).contains(cast(jsonable_encoder(tags_list), JSONB))
             else:
-                tags_filter = Pipeline.tags == jsonable_encoder(tags_list)
+                tags_filter = and_(*[Pipeline.tags.contains(tag) for tag in tags_list])
 
             filter_statement = and_(
+                Pipeline.tags.is_not(None),
                 filter_statement,
-                and_(
-                    Pipeline.tags is not None,
-                    tags_filter
-                )
+                tags_filter
             )
 
         statement = select(Pipeline).where(

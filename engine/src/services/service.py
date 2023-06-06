@@ -103,16 +103,15 @@ class ServicesService:
                          zip(tags_names, tags_acronyms)]
 
             if self.session.bind.dialect.name == "postgresql":
-                tags_filter = cast(Service.tags, JSONB) == jsonable_encoder(tags_list)
+                tags_filter = cast(Service.tags, JSONB).contains(cast(jsonable_encoder(tags_list), JSONB))
             else:
-                tags_filter = Service.tags == jsonable_encoder(tags_list)
+                # filter independent of the order of the tags. Service.tags.contains(tags_list) does not wor
+                tags_filter = and_(*[Service.tags.contains(tag) for tag in tags_list])
 
             filter_statement = and_(
+                Service.tags.is_not(None),
                 filter_statement,
-                and_(
-                    Service.tags is not None,
-                    tags_filter
-                )
+                tags_filter
             )
 
         statement = select(Service).where(
