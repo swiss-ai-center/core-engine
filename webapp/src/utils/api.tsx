@@ -105,8 +105,13 @@ export const postToEngine = async (serviceSlug: string, parts: FieldDescriptionW
             const result = await response.json();
             if (result.tasks) {
                 // this means that this is a Pipeline
-                // return the last task
-                return result.tasks[result.tasks.length - 1];
+                // get the pipeline info
+                const pipeline = await getPipelineDescription(result.pipeline_id);
+                // get the last step's service id
+                const serviceId = pipeline.steps[pipeline.steps.length - 1].service_id;
+                // filter result tasks with the last step's service id
+                const task = result.tasks.filter((task: any) => task.service_id === serviceId);
+                return task[0];
             } else {
                 // this means that this is a Service
                 return result;
