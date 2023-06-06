@@ -1,10 +1,10 @@
 import React from 'react';
-import { Box, Button, Container, Typography, CircularProgress, Toolbar } from '@mui/material';
+import { Box, Button, Container, Typography, CircularProgress, Toolbar, Link as URLLink } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import Board from '../../components/Board/Board';
 import { getPipelineDescription, getServiceDescription } from '../../utils/api';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
-import { ArrowBack, Fullscreen } from '@mui/icons-material';
+import { Api, ArrowBack, Fullscreen } from '@mui/icons-material';
 import { useNotification } from '../../utils/useNotification';
 import { useNavigate } from 'react-router-dom';
 import Copyright from '../../components/Copyright/Copyright';
@@ -73,10 +73,10 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
                         <Box sx={{pt: 2, pb: 2}}>
                             <Container maxWidth={"lg"}>
                                 <Typography
-                                    component="h1"
-                                    variant="h2"
-                                    align="center"
-                                    color="text.primary"
+                                    component={"h1"}
+                                    variant={"h2"}
+                                    align={"center"}
+                                    color={"text.primary"}
                                     gutterBottom
                                 >
                                     {description ? description.name : ''}
@@ -97,7 +97,6 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
                             <FullScreen handle={handle}>
                                 <Box sx={handle.active ? {height: "100%", width: "100%"} :
                                     {
-                                        mb: 2,
                                         height: 500,
                                         width: "100%",
                                         border: 1,
@@ -107,6 +106,14 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
                                     <Board description={description}/>
                                 </Box>
                             </FullScreen>
+                        </Container>
+                        <Container sx={{pb: 2}} maxWidth={"lg"}>
+                            <URLLink href={description.url}>
+                                <Button sx={{mb: 2}} color={"secondary"} variant={"outlined"}
+                                        startIcon={<Api />}>
+                                    Service API
+                                </Button>
+                            </URLLink>
                         </Container>
                         <Container maxWidth={"lg"}>
                             <Copyright/>

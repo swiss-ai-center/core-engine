@@ -85,8 +85,6 @@ const ItemGrid: React.FC<{
     }
 
     const listElements = async (filter: string, orderBy: string, tags: string[]) => {
-        setPageService(1);
-        setPagePipeline(1);
         await listServices(filter, orderBy, tags);
         await listPipelines(filter, orderBy, tags);
         setIsReady(true);
@@ -178,14 +176,24 @@ const ItemGrid: React.FC<{
 
     React.useEffect(() => {
         setIsReady(false);
+        setPageService(1);
+        setPagePipeline(1);
         listElements(filter, orderBy, tags.map(t => t.acronym));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [orderBy, tags, pageService, pagePipeline, servicesPerPage, pipelinesPerPage]);
+    }, [servicesPerPage, pipelinesPerPage]);
+
+    React.useEffect(() => {
+        setIsReady(false);
+        listElements(filter, orderBy, tags.map(t => t.acronym));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pageService, pagePipeline, orderBy, tags]);
 
     React.useEffect(() => {
         // on filter change, use listElements to update the list only if the user stopped typing for 1000ms
         const timeout = setTimeout(() => {
             setIsReady(false);
+            setPageService(1);
+            setPagePipeline(1);
             listElements(filter, orderBy, tags.map(t => t.acronym));
         }, 300);
         return () => clearTimeout(timeout);

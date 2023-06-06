@@ -1,5 +1,9 @@
 import { FieldDescriptionWithSetAndValue } from '../models/ExecutionUnit';
 
+const HEADERS = {
+    'Access-Control-Allow-Origin': '*',
+}
+
 const createQuery = (unit: string, filter: string, skip: number, limit: number, orderBy: string, tags: string[]) => {
     const infos = orderBy.split('-');
     const prop = infos[0];
@@ -29,7 +33,7 @@ const createQuery = (unit: string, filter: string, skip: number, limit: number, 
 export const getServices = async (filter: string, skip: number, limit: number, orderBy: string, tags: string[]) => {
     const query = createQuery('services', filter, skip, limit, orderBy, tags);
 
-    const response = await fetch(query);
+    const response = await fetch(query, {headers: HEADERS});
     if (response.status === 200) {
         return await response.json();
     }
@@ -39,7 +43,7 @@ export const getServices = async (filter: string, skip: number, limit: number, o
 export const getPipelines = async (filter: string, skip: number, limit: number, orderBy: string, tags: string[]) => {
     const query = createQuery('pipelines', filter, skip, limit, orderBy, tags);
 
-    const response = await fetch(query);
+    const response = await fetch(query, {headers: HEADERS});
     if (response.status === 200) {
         return await response.json();
     }
@@ -47,7 +51,7 @@ export const getPipelines = async (filter: string, skip: number, limit: number, 
 }
 
 export const getServiceDescription = async (id: string) => {
-    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + id);
+    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + id, {headers: HEADERS});
     if (response.status === 200) {
         return await response.json();
     }
@@ -55,7 +59,7 @@ export const getServiceDescription = async (id: string) => {
 }
 
 export const getPipelineDescription = async (id: string) => {
-    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines/` + id);
+    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines/` + id, {headers: HEADERS});
     if (response.status === 200) {
         return await response.json();
     }
@@ -63,7 +67,7 @@ export const getPipelineDescription = async (id: string) => {
 }
 
 export const getStats = async () => {
-    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/stats`);
+    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/stats`, {headers: HEADERS});
     if (response.status === 200) {
         return await response.json();
     }
@@ -71,7 +75,7 @@ export const getStats = async () => {
 }
 
 export const getTask = async (id: string) => {
-    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/tasks/${id}`);
+    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/tasks/${id}`, {headers: HEADERS});
     if (response.status === 200) {
         return await response.json();
     }
@@ -79,7 +83,7 @@ export const getTask = async (id: string) => {
 }
 
 export const getResult = async (id: string) => {
-    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/storage/${id}`);
+    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/storage/${id}`, {headers: HEADERS});
     if (response.status === 200) {
         return response.blob();
     }
@@ -97,6 +101,7 @@ export const postToEngine = async (serviceSlug: string, parts: FieldDescriptionW
         }
 
         const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/${serviceSlug}`, {
+            headers: HEADERS,
             method: 'POST',
             body,
         });
