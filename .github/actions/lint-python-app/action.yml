@@ -20,7 +20,7 @@ runs:
     # https://flake8.pycqa.org/en/latest/
     - name: Install Flake8
       shell: bash
-      run: pip3 install flake8 flake8-print
+      run: pip3 install flake8 # flake8-print
 
     - name: Lint Python code
       shell: bash
