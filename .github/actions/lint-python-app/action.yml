@@ -25,5 +25,4 @@ runs:
     - name: Lint Python code
       shell: bash
       working-directory: ${{ inputs.python-app-path }}
-      continue-on-error: true
       run: flake8 .

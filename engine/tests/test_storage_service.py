@@ -3,41 +3,70 @@ import io
 import os
 import pytest
 from botocore.exceptions import ClientError
-from common_code.logger.logger import get_logger
+from common_code.logger.logger import get_logger, Logger
 from fastapi import UploadFile
+from testcontainers.minio import MinioContainer
+
 from common.exceptions import NotFoundException, InternalServerErrorException
 from storage.service import StorageService
 from config import get_settings
 from uuid import UUID
 
 
-@pytest.fixture(name="storage_service")
-def storage_service_fixture():
+@pytest.fixture(name="logger")
+def logger_fixture():
+    settings = get_settings()
+    logger = get_logger(settings)
+
+    yield logger
+
+
+@pytest.fixture(name="minio")
+def minio_fixture():
     settings = get_settings()
 
-    storage_service = StorageService(logger=get_logger(settings), settings=settings)
+    config = MinioContainer(
+        access_key=settings.s3_access_key_id,
+        secret_key=settings.s3_secret_access_key,
+    )
+
+    with config as minio:
+        client = minio.get_client()
+        client.make_bucket(settings.s3_bucket)
+
+        yield minio
+
+
+@pytest.fixture(name="storage_service")
+def storage_service_fixture(logger: Logger, minio: MinioContainer):
+    settings = get_settings()
+
+    settings.s3_host = f"http://localhost:{minio.get_exposed_port(9000)}"
+
+    storage_service = StorageService(logger=logger, settings=settings)
 
     yield storage_service
 
 
 @pytest.fixture(name="storage_service_wrong_s3_host")
-def storage_service_wrong_s3_host_fixture():
+def storage_service_wrong_s3_host_fixture(logger: Logger):
     settings = copy.deepcopy(get_settings())
 
     settings.s3_host = "http://host-not-found.localhost"
 
-    storage_service = StorageService(logger=get_logger(settings), settings=settings)
+    storage_service = StorageService(logger=logger, settings=settings)
 
     yield storage_service
 
 
 @pytest.fixture(name="storage_service_wrong_bucket")
-def storage_service_wrong_bucket_fixture():
+def storage_service_wrong_bucket_fixture(logger: Logger, minio: MinioContainer):
     settings = copy.deepcopy(get_settings())
 
+    settings.s3_host = f"http://localhost:{minio.get_exposed_port(9000)}"
     settings.s3_bucket = "bucket-not-found"
 
-    storage_service = StorageService(logger=get_logger(settings), settings=settings)
+    storage_service = StorageService(logger=logger, settings=settings)
 
     yield storage_service
 

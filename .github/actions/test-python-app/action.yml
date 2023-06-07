@@ -29,5 +29,4 @@ runs:
     - name: Run Python tests
       shell: bash
       working-directory: ${{ inputs.python-app-path }}
-      run: |
-        pytest
+      run: pytest
