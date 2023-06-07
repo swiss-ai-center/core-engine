@@ -17,3 +17,8 @@
 | [face-analyzer](./face-analyzer.md){ style="color: inherit;" }            | <https://github.com/csia-pme/csia-pme/tree/main/services/face-analyzer>       | <http://localhost:8585/docs>          | <https://face-analyzer-csia-pme.kube.isc.heia-fr.ch/docs>     |
 | [face-detection](./face-detection.md){ style="color: inherit;" }          | <https://github.com/csia-pme/csia-pme/tree/main/services/face-detection>      | <http://localhost:8686/docs>          | <https://face-detection-csia-pme.kube.isc.heia-fr.ch/docs>    |
 
+## [Pipelines](./pipeline.md)
+
+| Pipeline                                                                  | Chained services                                                              |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Face Blur                                                                 | Face detection, Image blur                                                    |

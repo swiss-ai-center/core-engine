@@ -1,14 +1,15 @@
-# Service
+# Pipeline
 
-This page describes the service architecture and its specifications.
+This page describes the pipeline architecture and its specifications.
 
-The service is a [FastAPI](https://fastapi.tiangolo.com/) application that is deployed on a Kubernetes cluster. It is a REST API that can be used to process data.
+The Pipeline is a group of services that are chained together. It is defined by a JSON file that describes the services and their order and is available through a REST API that can be used to process data.
+It does not rely on a Pod or a Docker image since it is a group of services. It is only stored in the database.
 
 ## Architecture
 
 To see the general architecture of the project, see the global [UML Diagram](/csia-pme/reference/engine/#uml-diagram).
 
-This sequence diagram illustrates the interaction between an user and the service, without using the Engine.
+This sequence diagram illustrates the interaction between an user and the pipeline.
 
 ```mermaid
 sequenceDiagram
@@ -35,17 +36,15 @@ sequenceDiagram
 
 ## Specifications
 
-Inside the project, the services are implemented using Python. But the service is a REST API, so it can be implemented in any language.
+Any service can be part of a pipeline. It must be registered to the engine.
 
 ### Endpoints
 
-To match the specifications, the service must implement the following endpoints:
+A pipeline will be registered on the Engine URL with its slug. For example, if the pipeline slug is `my-pipeline`, the endpoints will be:
 
--   GET `/status` : returns the service availability. (Returns a string)
--   GET `/tasks/{task_id}/status` : returns the status of a task. (Returns a string)
--   POST `/compute` : computes the given task and returns the result. (Returns a string)
+- `POST /my-pipeline`: Add a task to the pipeline
 
-![service-endpoints](service-endpoints.png)
+![pipeline-endpoint](pipeline-endpoint.png)
 
 ### Models
 
@@ -89,6 +88,8 @@ class TaskStatus(str, Enum):
     SAVING = "saving"
     FINISHED = "finished"
     ERROR = "error"
+    SCHEDULED = "scheduled"
+    SKIPPED = "skipped"
     UNAVAILABLE = "unavailable"
 ```
 
@@ -141,9 +142,6 @@ class TaskStatus(str, Enum):
     SAVING = "saving"
     FINISHED = "finished"
     ERROR = "error"
-    SCHEDULED = "scheduled"
-    SKIPPED = "skipped"
-    UNAVAILABLE = "unavailable"
 ```
 
 A JSON representation would look like this:

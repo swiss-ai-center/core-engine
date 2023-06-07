@@ -28,12 +28,14 @@ nav:
       - Team: reference/team.md
       - Engine: reference/engine.md
       - Service: reference/service.md
+      - Pipeline: reference/pipeline.md
       - Webapp: reference/webapp.md
       - ae-ano-detection service: reference/ae-ano-detection.md
       - average-shade service: reference/average-shade.md
       - digit-recognition service: reference/digit-recognition.md
       - face-analyzer service: reference/face-analyzer.md
       - face-detection service: reference/face-detection.md
+      - image-sam service: reference/image-sam.md
   - Explanations:
       - explanations/index.md
       - About this documentation: explanations/about-this-documentation.md
@@ -48,6 +50,8 @@ nav:
       - About minikube: explanations/about-minikube.md
       - About MinIO: explanations/about-minio.md
       - About yq: explanations/about-yq.md
+  - Glossary:
+      - glossary.md
 edit_uri: blob/main/docs/
 theme:
   language: en
