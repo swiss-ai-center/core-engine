@@ -1,5 +1,6 @@
 [run]
 omit = tests/*.py
+relative_files = True
 
 [report]
 skip_empty = True

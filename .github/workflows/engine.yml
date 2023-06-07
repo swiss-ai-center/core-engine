@@ -21,7 +21,19 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-workflow:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Lint Python app
+        uses: ./.github/actions/lint-python-app
+        with:
+          python-app-path: ./engine
+
+  test:
+    needs: review
     runs-on: ubuntu-latest
     services:
       # https://stackoverflow.com/questions/60849745/how-can-i-run-a-command-in-github-action-service-containers
@@ -33,8 +45,10 @@ jobs:
         ports:
           - 9000:9000
         options: --name=minio
-
     steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
       - name: Create the MinIO bucket
         env:
           MINIO_HOST: http://localhost:9000
@@ -52,14 +66,6 @@ jobs:
           ./mc config host add --api s3v4 local $MINIO_HOST $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD
           ./mc mb --ignore-existing local/engine
 
-      - name: Clone repository
-        uses: actions/checkout@v3
-
-      - name: Lint Python app
-        uses: ./.github/actions/lint-python-app
-        with:
-          python-app-path: ./engine
-
       - name: Test Python app
         uses: ./.github/actions/test-python-app
         env:
@@ -73,6 +79,13 @@ jobs:
         with:
           python-app-path: ./engine
 
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
       - name: Build and push Docker image to GitHub
         id: build-and-push-docker-image-to-github
         # Only run on main
@@ -83,10 +96,19 @@ jobs:
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           docker-image-name: ${{ github.repository }}-engine
           docker-image-context: ./engine
+    outputs:
+      docker-image-tags: ${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}
+
+  deploy:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
 
       - name: Prepare configuration files
         # Only run on main
-        if: github.ref == 'refs/heads/main'
+        if: success() && github.ref == 'refs/heads/main'
         shell: bash
         working-directory: engine/kubernetes
         env:
@@ -105,7 +127,7 @@ jobs:
           S3_BUCKET: ${{ secrets.ENGINE_S3_BUCKET }}
         run: |
           # Set Engine version
-          docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
+          docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" engine.stateful.yml > new-engine.stateful.yml && mv new-engine.stateful.yml engine.stateful.yml
 

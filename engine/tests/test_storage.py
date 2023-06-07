@@ -3,11 +3,10 @@ import io
 import os
 import pytest
 from common_code.logger.logger import get_logger, Logger
-from config import get_settings, Settings
+from config import get_settings
 from storage.service import StorageService
 from fastapi import UploadFile
 from fastapi.testclient import TestClient
-from httpx import AsyncClient
 from database import get_session
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
