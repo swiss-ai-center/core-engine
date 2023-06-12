@@ -35,6 +35,13 @@ nav:
       - digit-recognition service: reference/digit-recognition.md
       - face-analyzer service: reference/face-analyzer.md
       - face-detection service: reference/face-detection.md
+      - image-analyzer service: reference/image-analyzer.md
+      - image-blur service: reference/image-blur.md
+      - image-convert service: reference/image-convert.md
+      - image-crop service: reference/image-crop.md
+      - image-greyscale service: reference/image-greyscale.md
+      - image-resize service: reference/image-resize.md
+      - image-rotate service: reference/image-rotate.md
       - image-sam service: reference/image-sam.md
   - Explanations:
       - explanations/index.md
