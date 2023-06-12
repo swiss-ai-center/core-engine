@@ -8,7 +8,7 @@ The service is a [FastAPI](https://fastapi.tiangolo.com/) application that is de
 
 To see the general architecture of the project, see the global [UML Diagram](/csia-pme/reference/engine/#uml-diagram).
 
-This sequence diagram illustrates the interaction between an user and the service, without using the Engine.
+This sequence diagram illustrates the interaction between an user and a service, without using the Engine.
 
 ```mermaid
 sequenceDiagram
@@ -164,34 +164,35 @@ A JSON representation would look like this:
 To register the service to the Engine, the service must send a POST request to the Engine `/services` endpoint with the following model:
 
 ```python
-class ServiceStatus(Enum):
-    AVAILABLE = "available"
-    UNAVAILABLE = "unavailable"
-
-
-class ServiceBase(CoreModel):
+class ExecutionUnitBase(CoreModel):
     """
-    Base class for Service
-    This model is used in subclasses
+    ExecutionUnit model
     """
     name: str = Field(nullable=False)
     slug: str = Field(nullable=False, unique=True)
-    url: str = Field(nullable=False)
     summary: str = Field(nullable=False)
     description: str | None = Field(default=None, nullable=True)
-    status: ServiceStatus = Field(default=ServiceStatus.AVAILABLE, nullable=False)
+    status: ExecutionUnitStatus = Field(default=ExecutionUnitStatus.AVAILABLE, nullable=False)
     data_in_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
     data_out_fields: List[FieldDescription] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
-
-    @validator("slug")
-    def slug_format(cls, v):
-        if not re.match(r"[a-z\-]+", v):
-            raise ValueError("Slug must be in kebab-case format. Example: my-service")
-        return v
+    tags: List[ExecutionUnitTag] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
 
     # Needed for Column(JSON) to work
     class Config:
         arbitrary_types_allowed = True
+
+class ExecutionUnitStatus(Enum):
+    AVAILABLE = "available"
+    UNAVAILABLE = "unavailable"
+    DISABLED = "disabled"
+
+
+class ServiceBase(ExecutionUnitBase):
+    """
+    Base class for a Service
+    This model is used in subclasses
+    """
+    url: AnyHttpUrl = Field(nullable=False)
 ```
 
 The `data_in_fields` and `data_out_fields` fields are lists of `FieldDescription` models. A `FieldDescription` model is defined as follows:
@@ -203,6 +204,9 @@ class FieldDescriptionType(str, Enum):
     TEXT_PLAIN = "text/plain"
     TEXT_CSV = "text/csv"
     APPLICATION_JSON = "application/json"
+    APPLICATION_PDF = "application/pdf"
+    AUDIO_MP3 = "audio/mpeg"
+    AUDIO_OGG = "audio/ogg"
 
 
 class FieldDescription(TypedDict):
@@ -248,8 +252,14 @@ A JSON representation would look like this:
         "image/png"
       ]
     }
+  ],
+  "tags": [
+    {
+      "name": "Neural Networks",
+      "acronym": "NN"
+    }
   ]
 }
 ```
 
-After the service is registered, it will be available to the Engine's `/service-slug` endpoint.
+After the service is registered, it will be available on the Engine's `/service-slug` endpoint.
