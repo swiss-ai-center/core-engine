@@ -5,8 +5,8 @@ Authorization and authentication have been designed, but not implemented.
 The [engine](./engine.md) is responsible for the authorization and authentication.
 
 ## Service authorization
-Each service stores an authorization key. The engine will provide this secret to
-prove it is authorized to use the service.
+Services may require a token to authenticate the engine. The engine will store the authentication token in it's database.
+If the service is secured by `https`, the token may be directly stored in the service's `URL`. In any case, if the service isn't using `https`, the _secret_ token may not be _secret_.
 
 ## User authentication
 Authentication will be delegated to a [OpenID](https://en.wikipedia.org/wiki/OpenID) compliant service, for instance
@@ -29,7 +29,7 @@ sequenceDiagram
 
 ## Authorization
 A matrix of groups of users and a matrix of groups and authorizations will be used
-to store the permissions.
+to store the permissions, for each services.
 
 ## Identified key points
 * When the engine is first started, an *admin* user must be created
