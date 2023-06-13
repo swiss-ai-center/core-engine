@@ -597,7 +597,7 @@ INFO:     [2023-03-01 11:14:18,023]  [common_code.service.service]: Successfully
 
 Now, you can test the service by sending a request to the engine. To do so, open your browser and navigate to the following URL: `http://localhost:8080/`. You should see the following page:
 
-![image-rotate](image-rotate.png)
+![image-rotate](../assets/screenshots/image-rotate.png)
 
 Now you can test the service by uploading an image and selecting the rotation. Create a file called rotation.txt and add the following content:
 

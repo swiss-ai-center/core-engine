@@ -45,7 +45,7 @@ To match the specifications, the service must implement the following endpoints:
 - GET `/tasks/{task_id}/status` : returns the status of a task. (Returns a string)
 - POST `/compute` : computes the given task and returns the result. (Returns a string)
 
-![service-endpoints](service-endpoints.png)
+![service-endpoints](../assets/screenshots/service-endpoints.png)
 
 ### Models
 

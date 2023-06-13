@@ -37,7 +37,7 @@ If the services are not running you can follow the explanations in the reference
 
 The [Pipeline](/csia-pme/reference/pipeline) is created by posting a JSON object to the `/pipelines` endpoint of the [Engine](/csia-pme/reference/engine). Create a file named `face-blur-pipeline.json` in your IDE with the following code:
 
-``` json
+``` json hl_lines="29 36"
 {
     "name": "Face Blur",
     "slug": "face-blur",
@@ -83,7 +83,7 @@ The [Pipeline](/csia-pme/reference/pipeline) is created by posting a JSON object
     You can find the id of your services by going to the FastAPI documentation of the running [Engine](/csia-pme/reference/engine) and use the `/services` endpoint.
     You will find the id of your services in the response.
     <!-- markdownlint-disable MD046 MD038 -->
-    ``` json
+    ``` json hl_lines="8 16"
         [
             {
                 "created_at": "2023-06-01T13:55:15.936033",
@@ -118,9 +118,9 @@ Now that we have our [Pipeline](/csia-pme/reference/pipeline), we can post it to
 
 Simply copy the content of the `face-blur-pipeline.json` file and paste it in the `body` field of the `/pipelines` endpoint and click on the `Execute` button.
 
-![Post pipeline](post-pipeline.png)
+![Post pipeline](../assets/screenshots/post-pipeline.png)
 
-You should receive a `200` response with the pipel[Pipeline](/csia-pme/reference/pipeline)ine you just posted.
+You should receive a `200` response with the [Pipeline](/csia-pme/reference/pipeline)ine you just posted.
 
 ### Run the pipeline
 
@@ -130,15 +130,15 @@ You can run the pipeline using the FastAPI Swagger interface or by using the [We
 
 Now that we have our [Pipeline](/csia-pme/reference/pipeline), we can run it. To do so, go to the FastAPI documentation of the running [Engine](/csia-pme/reference/engine) and you should see the [Pipeline](/csia-pme/reference/pipeline) you just posted in the `Registered pipelines` endpoint with the slug `/face-blur`.
 
-![Registered pipelines](registered-pipeline.png)
+![Registered pipelines](../assets/screenshots/registered-pipeline.png)
 
 Click on the `Try it out` button, add an image to the body and click on the `Execute` button.
 
-![Post pipeline execution](pipeline-execution.png)
+![Post pipeline execution](../assets/screenshots/post-pipeline.png)
 
 You should receive a `200` response with a `Pipeline Execution` object in the response body. This object contains the id of the execution and the tasks that will be executed.
 
-``` json
+``` json hl_lines="5-24"
 {
   "pipeline_id": "2175ae79-4e48-4d1b-97df-0bcbba4c5d2b",
   "current_pipeline_step_id": "e0028cf9-0b62-48b4-b0c7-b91ec930d083",
@@ -168,7 +168,7 @@ You should receive a `200` response with a `Pipeline Execution` object in the re
 
 You can check the status of the execution by checking the status of the last task with the `/tasks/{task_id}` endpoint. You can find the id of the last task in the `tasks` array of the [Pipeline](/csia-pme/reference/pipeline) execution object.
 
-``` json
+``` json hl_lines="9 14"
  {
   "created_at": "2023-06-06T14:45:25.517644",
   "updated_at": "2023-06-13T11:50:10.151580",
@@ -197,7 +197,7 @@ You can check the status of the execution by checking the status of the last tas
 
 Once the status of the last task is `finished`, you can download the result by copying the data_out file keys and use them with the `/storage/{key}` endpoint.
 
-![Get result](pipeline-result.png)
+![Get result](../assets/screenshots/pipeline-result.png)
 
 If the picture you provided had a face, the result should be blurred.
 
@@ -205,15 +205,15 @@ If the picture you provided had a face, the result should be blurred.
 
 You can also run the [Pipeline](/csia-pme/reference/pipeline) using the [Webapp](/csia-pme/reference/webapp). To do so, go to the Webapp in your browser and find the [Pipeline](/csia-pme/reference/pipeline) you just posted in the `Pipelines` section.
 
-![Pipelines](pipelines.png)
+![Pipelines](../assets/screenshots/pipelines.png)
 
 Click on the `VIEW` button and you should see the [Pipeline](/csia-pme/reference/pipeline) as a Flow.
 
-![Pipeline flow](pipeline-flow.png)
+![Pipeline flow](../assets/screenshots/pipeline-flow.png)
 
 Click on the `UPLOAD` button and upload an image. Now you can click on the `RUN` button and the [Pipeline](/csia-pme/reference/pipeline) will be executed. When the [Pipeline](/csia-pme/reference/pipeline) is finished, you can download the result by clicking on the `DOWNLOAD` button that will be enabled.
 
-![Pipeline result](pipeline-result-webapp.png)
+![Pipeline result](../assets/screenshots/pipeline-result-webapp.png)
 
 If the picture you provided had a face, the result should be blurred.
 

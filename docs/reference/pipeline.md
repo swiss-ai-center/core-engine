@@ -62,7 +62,7 @@ A pipeline will be registered on the Engine URL with its slug. For example, if t
 
 - `POST /my-pipeline`: Add a task to the pipeline
 
-![pipeline-endpoint](pipeline-endpoint.png)
+![pipeline-endpoint](../assets/screenshots/pipeline-endpoint.png)
 
 ### Models
 

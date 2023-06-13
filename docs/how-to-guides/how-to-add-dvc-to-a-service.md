@@ -6,7 +6,7 @@ This guide will help you add DVC to your service.
 
 ### Install DVC
 
-[https://dvc.org/doc/install](https://dvc.org/doc/install)
+<https://dvc.org/doc/install>
 
 You can install DVC with `pip`, but make sure to install with s3 optional dependencies.
 
@@ -16,7 +16,7 @@ pip install dvc[s3]
 
 ### Initialize DVC
 
-[https://dvc.org/doc/command-reference/init](https://dvc.org/doc/command-reference/init)
+<https://dvc.org/doc/command-reference/init>
 
 Now that DVC is installed we have to init it, so go to your service folder and use this command.
 
@@ -32,7 +32,7 @@ Go to your MinIO server, connect with the provided credentials and use the GUI t
 
 ### Configure DVC for Minio
 
-[https://dvc.org/doc/command-reference/remote/add](https://dvc.org/doc/command-reference/remote/add)
+<https://dvc.org/doc/command-reference/remote/add>
 
 ```sh
 dvc remote add -d myremote s3://name-of-your-bucket
