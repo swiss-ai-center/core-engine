@@ -7,6 +7,10 @@ inputs:
     description: Python app path
     required: true
     default: .
+  token:
+    description: GitHub token
+    required: true
+    default: ""
 
 runs:
   using: composite
@@ -31,10 +35,11 @@ runs:
       working-directory: ${{ inputs.python-app-path }}
       run: pytest
 
-    - name: Coverage comment
-      uses: py-cov-action/python-coverage-comment-action@v3
+    - name: Coverage report
+      uses: orgoro/coverage@v3.1
+      if: github.event_name == 'pull_request'
       with:
-        GITHUB_TOKEN: ${{ github.token }}
-        COVERAGE_DATA_BRANCH: coverage
+        coverageFile: ${{ inputs.python-app-path }}/coverage.xml
+        token: ${{ inputs.token }}
 
 

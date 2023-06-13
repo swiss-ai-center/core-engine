@@ -3,4 +3,4 @@ name = "engine"
 
 [tool.pytest.ini_options]
 pythonpath = [".", "src"]
-addopts = "--cov-config=.coveragerc --cov-report term-missing --cov=./src"
+addopts = "--cov-config=.coveragerc --cov-report xml --cov-report term-missing --cov=./src"

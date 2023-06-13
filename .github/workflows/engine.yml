@@ -9,6 +9,18 @@ concurrency:
 
 on:
   push:
+    branches:
+      - main
+    paths:
+      - .github/actions/build-and-push-docker-image-to-github/action.yml
+      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
+      - .github/actions/lint-python-app/action.yml
+      - .github/actions/test-python-app/action.yml
+      - .github/workflows/engine.yml
+      - common-code/**/*
+      - engine/**/*
+
+  pull_request:
     paths:
       - .github/actions/build-and-push-docker-image-to-github/action.yml
       - .github/actions/execute-command-on-kubernetes-cluster/action.yml
@@ -55,6 +67,7 @@ jobs:
         uses: ./.github/actions/test-python-app
         with:
           python-app-path: ./engine
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   release:
     needs: test
