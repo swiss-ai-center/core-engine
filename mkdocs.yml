@@ -21,9 +21,6 @@ nav:
   - How-to guides:
       - how-to-guides/index.md
       - How to add DVC to a service: how-to-guides/how-to-add-dvc-to-a-service.md
-      - How to create a GitHub Secret: how-to-guides/how-to-create-a-github-secret.md
-      - How to set expiration time on bucket files with MinIO: how-to-guides/how-to-set-expiration-time-on-bucket-files-with-minio.md
-      - How to use Material for MkDocs: how-to-guides/how-to-use-material-for-mkdocs.md
   - Reference:
       - reference/index.md
       - Team: reference/team.md
@@ -57,9 +54,8 @@ nav:
       - About Material for MkDocs: explanations/about-material-for-mkdocs.md
       - About minikube: explanations/about-minikube.md
       - About MinIO: explanations/about-minio.md
+      - About pytest: explanations/about-pytest.md
       - About yq: explanations/about-yq.md
-  - Glossary:
-      - glossary.md
 edit_uri: blob/main/docs/
 theme:
   language: en

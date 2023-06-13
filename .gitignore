@@ -20,6 +20,7 @@ __pycache__/
 
 # Pytest Coverage
 .coverage
+coverage.xml
 
 ## IntelliJ's IDEs
 .idea

@@ -7,6 +7,8 @@
 | [Engine](./engine.md){ style="color: inherit;" }  | <https://github.com/csia-pme/csia-pme/tree/main/engine>   | <http://localhost:8080/docs>          | <https://engine-csia-pme.kube.isc.heia-fr.ch/docs>    |
 | [Webapp](./webapp.md){ style="color: inherit;" }  | <https://github.com/csia-pme/csia-pme/tree/main/webapp>   | <http://localhost:8181/docs>          | <https://webapp-csia-pme.kube.isc.heia-fr.ch/docs>    |
 
+## [Authentication](./auth.md)
+
 ## [Services](./service.md)
 
 | Service                                                                   | Code                                                                          | URL when run locally with minikube    | URL when deployed on Fribourg's Kubernetes                    |
