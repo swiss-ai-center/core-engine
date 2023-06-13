@@ -23,22 +23,6 @@ def logger_fixture():
     yield logger
 
 
-@pytest.fixture(name="minio")
-def minio_fixture():
-    settings = get_settings()
-
-    config = MinioContainer(
-        access_key=settings.s3_access_key_id,
-        secret_key=settings.s3_secret_access_key,
-    )
-
-    with config as minio:
-        client = minio.get_client()
-        client.make_bucket(settings.s3_bucket)
-
-        yield minio
-
-
 @pytest.fixture(name="storage_service")
 def storage_service_fixture(logger: Logger, minio: MinioContainer):
     settings = get_settings()
