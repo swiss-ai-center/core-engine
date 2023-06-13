@@ -28,6 +28,7 @@ nav:
       - Service: reference/service.md
       - Pipeline: reference/pipeline.md
       - Webapp: reference/webapp.md
+      - Authentication: reference/auth.md
       - ae-ano-detection service: reference/ae-ano-detection.md
       - average-shade service: reference/average-shade.md
       - digit-recognition service: reference/digit-recognition.md

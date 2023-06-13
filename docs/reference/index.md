@@ -1,6 +1,6 @@
 # Reference
 
-## Engine and Webapp
+## [Engine](engine.md) and [Webapp](webapp.md)
 
 | Service                                           | Code                                                      | URL when run locally with minikube    | URL when deployed on Fribourg's Kubernetes            |
 | ------------------------------------------------- | --------------------------------------------------------- | ------------------------------------- | ----------------------------------------------------- |
