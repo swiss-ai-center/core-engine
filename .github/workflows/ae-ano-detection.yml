@@ -81,10 +81,6 @@ jobs:
           name: model
           path: services/ae-ano-detection/model_serving
 
-      - name: Display structure of downloaded files
-        run: ls -R
-        working-directory: services/ae-ano-detection/model_serving
-
       - name: Test Python app
         uses: ./.github/actions/test-python-app
         with:
