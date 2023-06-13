@@ -7,6 +7,10 @@ inputs:
     description: Python app path
     required: true
     default: .
+  token:
+    description: GitHub token
+    required: true
+    default: ""
 
 runs:
   using: composite
@@ -29,6 +33,13 @@ runs:
     - name: Run Python tests
       shell: bash
       working-directory: ${{ inputs.python-app-path }}
-      run: |
-        cd src/
-        pytest --cov-report term:skip-covered --cov-report term-missing --cov=. -s --cov-config=.coveragerc
+      run: pytest
+
+    - name: Coverage report
+      uses: orgoro/coverage@v3.1
+      if: github.event_name == 'pull_request'
+      with:
+        coverageFile: ${{ inputs.python-app-path }}/coverage.xml
+        token: ${{ inputs.token }}
+
+

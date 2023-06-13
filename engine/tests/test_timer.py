@@ -5,12 +5,12 @@ from timer import Timer
 
 @pytest.mark.asyncio
 async def test_timer():
-    testing_timer = Timer(
+    timer = Timer(
         timeout=0.1,
         callback=lambda: print("test"),  # noqa: T201
         app_ref=None,
     )
 
-    testing_timer.start()
+    timer.start()
     await asyncio.sleep(0.2)
-    testing_timer.stop()
+    timer.stop()

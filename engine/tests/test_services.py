@@ -1,10 +1,41 @@
 import pytest
+from common_code.logger.logger import get_logger
 from fastapi.testclient import TestClient
+from testcontainers.minio import MinioContainer
 from main import app
 from database import get_session
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 from pytest_httpserver import HTTPServer
+from config import get_settings
+from storage.service import StorageService
+
+
+@pytest.fixture(name="minio")
+def minio_fixture():
+    settings = get_settings()
+
+    config = MinioContainer(
+        access_key=settings.s3_access_key_id,
+        secret_key=settings.s3_secret_access_key,
+    )
+
+    with config as minio:
+        client = minio.get_client()
+        client.make_bucket(settings.s3_bucket)
+
+        yield minio
+
+
+@pytest.fixture(name="storage_service")
+def storage_service_fixture(minio: MinioContainer):
+    settings = get_settings()
+
+    settings.s3_host = f"http://localhost:{minio.get_exposed_port(9000)}"
+
+    storage_service = StorageService(logger=get_logger(settings), settings=settings)
+
+    yield storage_service
 
 
 @pytest.fixture(name="session")
@@ -21,14 +52,20 @@ def session_fixture():
 
 @pytest.fixture(name="client")
 @pytest.mark.anyio
-def client_fixture(session: Session):
+def client_fixture(session: Session, storage_service: StorageService):
     def get_session_override():
         return session
 
+    def storage_service_override():
+        return storage_service
+
     app.dependency_overrides[get_session] = get_session_override
+    app.dependency_overrides[StorageService] = storage_service_override
 
     client = TestClient(app)
+
     yield client
+
     app.dependency_overrides.clear()
 
 

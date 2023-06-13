@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
-from common.exceptions import NotFoundException
+from common.exceptions import NotFoundException, InternalServerErrorException
 from common_code.logger.logger import get_logger, Logger
 from storage.service import StorageService
 from storage.models import FileRead
@@ -19,7 +19,7 @@ async def upload(
 ):
     try:
         key = await storage_service.upload(file)
-    except Exception as e:
+    except InternalServerErrorException as e:
         raise HTTPException(status_code=500, detail=str(e))
 
     return FileRead(key=key)
@@ -40,7 +40,7 @@ async def download(
         await storage_service.check_if_file_exists(key)
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
+    except InternalServerErrorException as e:
         logger.error(f"Error while downloading file: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -67,15 +67,15 @@ async def download(
 )
 async def delete(
         key: str,
-        services_service: StorageService = Depends(),
+        storage_service: StorageService = Depends(),
         logger: Logger = Depends(get_logger),
 ):
     try:
-        await services_service.check_if_file_exists(key)
+        await storage_service.check_if_file_exists(key)
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
+    except InternalServerErrorException as e:
         logger.error(f"Error while downloading file: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-    await services_service.delete(key)
+    await storage_service.delete(key)
