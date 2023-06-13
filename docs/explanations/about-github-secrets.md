@@ -4,7 +4,7 @@ As the website of [GitHub Secrets](https://docs.github.com/en/actions/security-g
 
 !!! quote
 
-	Encrypted secrets allow you to store sensitive information in your organization, repository, or repository environments.
+    Encrypted secrets allow you to store sensitive information in your organization, repository, or repository environments.
 
 ## How and why do we use GitHub Secrets
 

@@ -58,7 +58,7 @@ docker run -p 8181:80 csia-pme/webapp
 The Webapp is available on <http://localhost:8181>.
 
 > **Q**: _Why don't we build the React application within the Docker image?_
-
+>
 > **A**: This setup allows us to speed up the build process of the Docker image: it does not need to download and install all dependencies every time the `package.json` file is updated. In a CI/CD set up, the `node_modules` can be cached in the `build` stage and the output can be passed to the `publish` stage.
 
 ## Start the service locally with minikube and the Docker image hosted on GitHub

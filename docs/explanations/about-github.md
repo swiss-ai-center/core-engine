@@ -4,7 +4,7 @@ As the website of [GitHub](https://github.com/about) mentions:
 
 !!! quote
 
-	The complete developer platform to build, scale, and deliver secure software.
+    The complete developer platform to build, scale, and deliver secure software.
 
 ## How and why do we use GitHub
 

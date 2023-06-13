@@ -17,6 +17,7 @@ nav:
       - tutorials/index.md
       - Getting started: tutorials/getting-started.md
       - Implement a service: tutorials/implement-service.md
+      - Implement a pipeline: tutorials/implement-pipeline.md
   - How-to guides:
       - how-to-guides/index.md
       - How to add DVC to a service: how-to-guides/how-to-add-dvc-to-a-service.md
@@ -25,12 +26,21 @@ nav:
       - Team: reference/team.md
       - Engine: reference/engine.md
       - Service: reference/service.md
+      - Pipeline: reference/pipeline.md
       - Webapp: reference/webapp.md
+      - Authentication: reference/auth.md
       - ae-ano-detection service: reference/ae-ano-detection.md
       - average-shade service: reference/average-shade.md
       - digit-recognition service: reference/digit-recognition.md
       - face-analyzer service: reference/face-analyzer.md
       - face-detection service: reference/face-detection.md
+      - image-analyzer service: reference/image-analyzer.md
+      - image-blur service: reference/image-blur.md
+      - image-convert service: reference/image-convert.md
+      - image-crop service: reference/image-crop.md
+      - image-greyscale service: reference/image-greyscale.md
+      - image-resize service: reference/image-resize.md
+      - image-rotate service: reference/image-rotate.md
       - image-sam service: reference/image-sam.md
   - Explanations:
       - explanations/index.md

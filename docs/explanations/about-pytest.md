@@ -3,8 +3,7 @@
 As the website of [pytest](https://docs.pytest.org) mentions:
 
 !!! quote
-
-	The pytest framework makes it easy to write small, readable tests, and can scale to support complex functional testing for applications and libraries.
+    The pytest framework makes it easy to write small, readable tests, and can scale to support complex functional testing for applications and libraries.
 
 ## How and why do we use pytest
 

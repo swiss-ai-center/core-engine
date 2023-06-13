@@ -4,7 +4,7 @@ As the website of [minikube](https://minikube.sigs.k8s.io/docs/) mentions:
 
 !!! quote
 
-	minikube quickly sets up a local Kubernetes cluster on macOS, Linux, and Windows. We proudly focus on helping application developers and new Kubernetes users.
+    minikube quickly sets up a local Kubernetes cluster on macOS, Linux, and Windows. We proudly focus on helping application developers and new Kubernetes users.
 
 ## How and why do we use minikube
 

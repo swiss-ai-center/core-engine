@@ -4,7 +4,7 @@ As the website of [envsubst](https://www.gnu.org/software/gettext/manual/html_no
 
 !!! quote
 
-	The `envsubst` program substitutes the values of environment variables.
+    The `envsubst` program substitutes the values of environment variables.
 
 ## How and why do we use envsubst
 
