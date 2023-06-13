@@ -35,7 +35,7 @@ More information on their website: [_Get Started: Data Pipelines_ - dvc.org](htt
 
 ### Push new data/results to MinIO
 
-In order to push new results to MinIO, use the following commands (similar to Git). **Note**: DVC automatically adds files that are specified in the pipelines. In other words, there are no needs to explicitely add those files with `dvc add`. Don't forget to then add the DVC metadata files to Git as well.
+In order to push new results to MinIO, use the following commands (similar to Git). **Note**: DVC automatically adds files that are specified in the pipelines. In other words, there are no needs to explicitly add those files with `dvc add`. Don't forget to then add the DVC metadata files to Git as well.
 
 ```sh
 # Get the data status
@@ -182,4 +182,3 @@ minikube tunnel --bind-address 127.0.0.1
 Access the `ae-ano-detection` documentation on <http://localhost:8282/docs>.
 
 Access the Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Engine.
-

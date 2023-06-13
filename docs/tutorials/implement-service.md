@@ -13,6 +13,7 @@ It will guide you through the process of creating a service with or without a mo
 To follow this tutorial, you need to have the following tools installed:
 
 - [Python 3.10](https://www.python.org/downloads/)
+- An IDE (e.g. [Visual Studio Code](https://code.visualstudio.com/))
 
 ### 1. Service without a model
 
@@ -61,6 +62,7 @@ Then, install the dependencies:
 ```sh
 pip install -r requirements.txt
 ```
+
 This will install the default service dependencies and the ones we just added.
 
 #### 1.4 Implement the service
@@ -81,7 +83,7 @@ In the `kubernetes` folder, you will find the configuration files for the servic
 
 Rename all the files by replacing `sample-service` with `image-rotate`.
 
-```
+``` sh
 image-rotate
 ├── kubernetes
 │   ├── image-rotate.config-map.yaml
@@ -401,7 +403,6 @@ app = FastAPI(
 6. Change the API description and summary.
 7. Change the API title, version, contact and license.
 
-
 ##### 1.4.4 Dockerfile
 
 The Dockerfile is used to build the Docker image of the service. We need to add some packages in order to use the OpenCV library.
@@ -538,7 +539,6 @@ jobs:
 13. Change the Kubernetes context.
 14. Change the path to the Kubernetes configuration files.
 
-
 !!! info "Note"
     The host can be changed to your own domain name if the service is deployed on another Kubernetes cluster.
 
@@ -588,11 +588,11 @@ INFO:     Uvicorn running on http://localhost:9393 (Press CTRL+C to quit)
 INFO:     Started reloader process [22602] using StatReload
 INFO:     Started server process [22604]
 INFO:     Waiting for application startup.
-INFO:     [2023-03-01 11:14:17,950]  [common_code.service.service]: 	Started tasks service
-DEBUG:    [2023-03-01 11:14:17,950]  [common_code.service.service]: 	Announcing service: {'name': 'Image Rotate', 'slug': 'image-rotate', 'url': 'http://localhost:9393', 'summary': '\nRotate an image by 90 degrees clockwise.\n', 'description': '\nRotate an image by 90 degrees clockwise depending on the value of the `rotation` parameter. (90, 180, 270)\n', 'status': 'available', 'data_in_fields': [{'name': 'image', 'type': ['image/png', 'image/jpeg']}, {'name': 'rotation', 'type': ['text/plain']}], 'data_out_fields': [{'name': 'result', 'type': ['image/png', 'image/jpeg']}]}
+INFO:     [2023-03-01 11:14:17,950]  [common_code.service.service]: Started tasks service
+DEBUG:    [2023-03-01 11:14:17,950]  [common_code.service.service]: Announcing service: {'name': 'Image Rotate', 'slug': 'image-rotate', 'url': 'http://localhost:9393', 'summary': '\nRotate an image by 90 degrees clockwise.\n', 'description': '\nRotate an image by 90 degrees clockwise depending on the value of the `rotation` parameter. (90, 180, 270)\n', 'status': 'available', 'data_in_fields': [{'name': 'image', 'type': ['image/png', 'image/jpeg']}, {'name': 'rotation', 'type': ['text/plain']}], 'data_out_fields': [{'name': 'result', 'type': ['image/png', 'image/jpeg']}]}
 INFO:     [2023-03-01 11:14:17,953]  Application startup complete.
 INFO:     [2023-03-01 11:14:18,005]   127.0.0.1:54863 - "GET /status HTTP/1.1" 200 OK
-INFO:     [2023-03-01 11:14:18,023]  [common_code.service.service]: 	Successfully announced to the engine
+INFO:     [2023-03-01 11:14:18,023]  [common_code.service.service]: Successfully announced to the engine
 ```
 
 Now, you can test the service by sending a request to the engine. To do so, open your browser and navigate to the following URL: `http://localhost:8080/`. You should see the following page:
@@ -661,7 +661,7 @@ Now, you can unfold the `/image-rotate` endpoint and click on the Try it out but
 
 Now, copy the id of the task and unfold the GET `/tasks/{task_id}` endpoint under the Tasks name.
 
-1. Click on Try it out and paste the id in the task_id field. 
+1. Click on Try it out and paste the id in the task_id field.
 2. Click on Execute.
 3. In the body response, find the `data_out` field and copy the id of the image (e.g. `a38ef233-ac01-431d-adc8-cb6269cdeb71.png`).
 4. Now, unfold the GET `/storage/{key}` endpoint under the Storage name.
@@ -673,7 +673,6 @@ The image should be rotated by 90 degrees.
 
 !!! success "Congratulations!"
     You have successfully created a service and tested it locally. Now, you can push the service to GitHub and deploy it on the engine using the workflow created in the previous section.
-
 
 ### 2. Service with a model
 
@@ -727,6 +726,7 @@ Then, install the dependencies:
 ```sh
 pip install -r requirements.txt
 ```
+
 This will install the default service dependencies and the ones we just added.
 
 #### 2.4 Implement the service
@@ -747,7 +747,7 @@ In the `kubernetes` folder, you will find the configuration files for the servic
 
 Rename all the files by replacing `sample-service` with `ano-detection`.
 
-```
+``` sh
 ano-detection
 ├── kubernetes
 │   ├── ano-detection.config-map.yaml
@@ -1082,7 +1082,7 @@ COPY ae_model.h5 .
 
 #### 2.5 Create the Workflow for GitHub Actions
 
-First, if you don't have the file already, download the `sample-service-without-model.yml` file from the [GitHub repository](https://github.com/csia-pme/services-templates/workflows) and rename it to `ano-detection.yml` in the `.github/workflows` folder.
+First, if you don't have the file already, download the `sample-service-without-model.yml` file from the [GitHub repository](/csia-pme/services-templates/workflows) and rename it to `ano-detection.yml` in the `.github/workflows` folder.
 
 Open it with your IDE and modify the `sample-service` texts with `ano-detection`
 

@@ -4,7 +4,7 @@ As the website of [yq](https://mikefarah.gitbook.io/yq) mentions:
 
 !!! quote
 
-	yq a lightweight and portable command-line YAML processor. yq uses [jq](https://github.com/stedolan/jq) like syntax but works with yaml files as well as json.
+    yq a lightweight and portable command-line YAML processor. yq uses [jq](https://github.com/stedolan/jq) like syntax but works with yaml files as well as json.
 
 ## How do we use this tool
 

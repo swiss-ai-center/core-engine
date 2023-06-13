@@ -72,7 +72,7 @@ pip install --requirement requirements.txt
 
 Start the dependencies.
 
-```
+``` sh
 docker compose up
 ```
 

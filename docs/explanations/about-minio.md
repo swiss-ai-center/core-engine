@@ -4,7 +4,7 @@ As the website of [MinIO](https://min.io/) mentions:
 
 !!! quote
 
-	MinIO offers high-performance, S3 compatible object storage.
+    MinIO offers high-performance, S3 compatible object storage.
 
 ## How do we use this tool
 

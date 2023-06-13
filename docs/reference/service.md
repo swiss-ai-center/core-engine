@@ -41,13 +41,15 @@ Inside the project, the services are implemented using Python. But the service i
 
 To match the specifications, the service must implement the following endpoints:
 
--   GET `/status` : returns the service availability. (Returns a string)
--   GET `/tasks/{task_id}/status` : returns the status of a task. (Returns a string)
--   POST `/compute` : computes the given task and returns the result. (Returns a string)
+- GET `/status` : returns the service availability. (Returns a string)
+- GET `/tasks/{task_id}/status` : returns the status of a task. (Returns a string)
+- POST `/compute` : computes the given task and returns the result. (Returns a string)
 
 ![service-endpoints](service-endpoints.png)
 
 ### Models
+
+The different models used in the pipeline are described below.
 
 #### Task Input
 
@@ -95,6 +97,7 @@ class TaskStatus(str, Enum):
 The S3 settings are used to connect to the S3 storage where the data is stored and where the result will be stored. The `callback_url` is the url where the service should send the response.
 
 A JSON representation would look like this:
+
 ```json
 {
   "s3_access_key_id": "access_key",

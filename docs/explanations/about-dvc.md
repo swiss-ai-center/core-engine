@@ -4,7 +4,7 @@ As the website of [DVC](https://marketplace.visualstudio.com/items?itemName=ms-v
 
 !!! quote
 
-	Open-source, Git-based data science. Apply version control to machine learning development, make your repo the backbone of your project, and instill best practices across your team.
+    Open-source, Git-based data science. Apply version control to machine learning development, make your repo the backbone of your project, and instill best practices across your team.
 
 ## How do we use this tool
 

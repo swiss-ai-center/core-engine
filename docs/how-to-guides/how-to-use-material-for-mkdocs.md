@@ -6,56 +6,56 @@ Install [Material for MkDocs](../explanations/about-material-for-mkdocs.md) with
 
 === ":simple-linux: Linux"
 
-	```sh title="In a terminal, execute the following command(s)."
-	# Install Material for MkDocs and all its extensions
-	pip install --user \
-		cairosvg \
-		mkdocs-git-revision-date-localized-plugin \
-		mkdocs-glightbox \
-		mkdocs-material \
-		mkdocs-minify-plugin
-	```
+```sh title="In a terminal, execute the following command(s)."
+# Install Material for MkDocs and all its extensions
+pip install --user \
+    cairosvg \
+    mkdocs-git-revision-date-localized-plugin \
+    mkdocs-glightbox \
+    mkdocs-material \
+    mkdocs-minify-plugin
+```
 
 === ":simple-apple: macOS"
 
-	```sh title="In a terminal, execute the following command(s)."
-	# Install Material for MkDocs and all its extensions
-	pip3 install \
-		cairosvg \
-		mkdocs-git-revision-date-localized-plugin \
-		mkdocs-glightbox \
-		mkdocs-material \
-		mkdocs-minify-plugin \
-		pillow
+```sh title="In a terminal, execute the following command(s)."
+# Install Material for MkDocs and all its extensions
+pip3 install \
+    cairosvg \
+    mkdocs-git-revision-date-localized-plugin \
+    mkdocs-glightbox \
+    mkdocs-material \
+    mkdocs-minify-plugin \
+    pillow
 
-	# Install Material for MkDocs dependencies
-	brew install \
-		cairo \
-		freetype \
-		libffi \
-		libjpeg \
-		libpng \
-		zlib
-	```
+# Install Material for MkDocs dependencies
+brew install \
+    cairo \
+    freetype \
+    libffi \
+    libjpeg \
+    libpng \
+    zlib
+```
 
 === ":simple-windows: Windows"
 
-	```sh title="In a terminal, execute the following command(s)."
-	TODO
-	```
+```sh title="In a terminal, execute the following command(s)."
+TODO
+```
 
 === ":simple-docker: Docker"
 
-	You can use the dev container to develop within. You can read more [here](https://code.visualstudio.com/docs/devcontainers/containers).
+You can use the dev container to develop within. You can read more [here](https://code.visualstudio.com/docs/devcontainers/containers).
 
-	Once in the dev container you can run the following commands:
+Once in the dev container you can run the following commands:
 
-	```sh title="In a terminal, execute the following command(s)."
-	# Activate the virtual environment
-	poetry shell
-	# Install the dependencies
-	poetry install
-	```
+```sh title="In a terminal, execute the following command(s)."
+# Activate the virtual environment
+poetry shell
+# Install the dependencies
+poetry install
+```
 
 ## Start the website for development
 
@@ -89,7 +89,7 @@ Add a new entry to the glossary in the `docs/glossary.md` file.
 
 The format must be as follow.
 
-```
+``` md
 *[Abbr]: The full definition of the abbreviation
 ```
 

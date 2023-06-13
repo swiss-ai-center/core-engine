@@ -66,7 +66,9 @@ A pipeline will be registered on the Engine URL with its slug. For example, if t
 
 ### Models
 
-#### Pipeline
+The different models used in the pipeline are described below.
+
+#### Pipeline model
 
 This is the model of a pipeline:
 
@@ -102,7 +104,7 @@ class PipelineBase(ExecutionUnitBase):
     pass
 ```
 
-#### Pipeline Step
+#### Pipeline Step model
 
 Each pipeline is composed of steps. A step is a service that is part of the pipeline. It is defined by the following model:
 
@@ -133,6 +135,7 @@ A pipeline step is linked to a service and can have a condition. The condition i
 ### JSON representation
 
 A JSON representation of a pipeline would look like this:
+
 ```json
 {
     "name": "Face Blur",
@@ -178,8 +181,7 @@ A JSON representation of a pipeline would look like this:
 The `needs` field is a list of the identifiers of the previous steps needed to be executed before the current one. So the steps need to be ordered. The `inputs` field is a list of the inputs of the step. The `service_id` field is the id of the service that will be executed.
 
 The `inputs` should be in the following format: `<step_identifier>.<output_name>`. For example, if the step `face-detection` has an output `result`, the input of the step `image-blur` should be `face-detection.result`.
-To access the inputs of the pipeline, the input should be `pipeline.<input_name>`. For example, if the pipeline has an input `image`, the input of the step `face-detection` should be `pipeline.image`. 
-
+To access the inputs of the pipeline, the input should be `pipeline.<input_name>`. For example, if the pipeline has an input `image`, the input of the step `face-detection` should be `pipeline.image`.
 
 !!! warning
     The `inputs` need to be ordered in the same order as the `data_in_fields` of the service linked to the step.

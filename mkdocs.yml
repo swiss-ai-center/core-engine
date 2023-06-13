@@ -17,6 +17,7 @@ nav:
       - tutorials/index.md
       - Getting started: tutorials/getting-started.md
       - Implement a service: tutorials/implement-service.md
+      - Implement a pipeline: tutorials/implement-pipeline.md
   - How-to guides:
       - how-to-guides/index.md
       - How to add DVC to a service: how-to-guides/how-to-add-dvc-to-a-service.md
