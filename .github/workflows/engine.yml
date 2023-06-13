@@ -44,6 +44,7 @@ jobs:
       # python-coverage-comment-action branch, and for editing existing
       # comments (to avoid publishing multiple comments in the same PR)
       contents: write
+    working-directory: ./engine
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
