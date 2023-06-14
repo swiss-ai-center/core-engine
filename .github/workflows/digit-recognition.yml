@@ -17,7 +17,7 @@ on:
       - .github/actions/lint-python-app/action.yml
       - .github/actions/run-ml-experiment-with-dvc/action.yml
       - .github/actions/test-python-app/action.yml
-      - .github/workflows/ae-ano-detection.yml
+      - .github/workflows/digit-recognition.yml
       - common-code/**/*
       - services/digit-recognition/**/*
 
@@ -28,7 +28,7 @@ on:
       - .github/actions/lint-python-app/action.yml
       - .github/actions/run-ml-experiment-with-dvc/action.yml
       - .github/actions/test-python-app/action.yml
-      - .github/workflows/ae-ano-detection.yml
+      - .github/workflows/digit-recognition.yml
       - common-code/**/*
       - services/digit-recognition/**/*
 
