@@ -87,7 +87,7 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v3
 
-      - name: Prepare configuration files with secrets from GitHub Secrets
+      - name: Prepare configuration files
         shell: bash
         working-directory: services/average-shade/kubernetes
         env:
