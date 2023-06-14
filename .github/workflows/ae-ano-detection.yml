@@ -14,12 +14,12 @@ on:
     paths:
       - .github/actions/build-and-push-docker-image-to-github/action.yml
       - .github/actions/execute-command-on-kubernetes-cluster/action.yml
+      - .github/actions/lint-python-app/action.yml
       - .github/actions/run-ml-experiment-with-dvc/action.yml
       - .github/actions/test-python-app/action.yml
       - .github/workflows/ae-ano-detection.yml
       - common-code/**/*
-      - services/ae-ano-detection/model_creation/**/*
-      - services/ae-ano-detection/model_serving/**/*
+      - services/ae-ano-detection/**/*
 
   pull_request:
     paths:
@@ -29,8 +29,7 @@ on:
       - .github/actions/test-python-app/action.yml
       - .github/workflows/ae-ano-detection.yml
       - common-code/**/*
-      - services/ae-ano-detection/model_creation/**/*
-      - services/ae-ano-detection/model_serving/**/*
+      - services/ae-ano-detection/**/*
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -132,7 +131,7 @@ jobs:
           SERVICE_URL: https://ae-ano-detection-csia-pme.kube.isc.heia-fr.ch
         run: |
           # Set ae-ano-detection version
-          docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
+          docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" ae-ano-detection.stateful.yml > new-ae-ano-detection.stateful.yml && mv new-ae-ano-detection.stateful.yml ae-ano-detection.stateful.yml
 
