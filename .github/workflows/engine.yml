@@ -48,17 +48,6 @@ jobs:
   test:
     needs: review
     runs-on: ubuntu-latest
-    permissions:
-      # Gives the action the necessary permissions for publishing new
-      # comments in pull requests.
-      pull-requests: write
-      # Gives the action the necessary permissions for pushing data to the
-      # python-coverage-comment-action branch, and for editing existing
-      # comments (to avoid publishing multiple comments in the same PR)
-      contents: write
-    defaults:
-      run:
-        working-directory: ./engine
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
@@ -122,8 +111,6 @@ jobs:
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' engine.config-map.yml | envsubst > new-engine.config-map.yml && mv new-engine.config-map.yml engine.config-map.yml
 
       - name: Deploy Engine on the Kubernetes cluster
-        # Only run on main
-        if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
           kube-config: ${{ secrets.KUBE_CONFIG }}

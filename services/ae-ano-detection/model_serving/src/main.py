@@ -1,5 +1,6 @@
 import asyncio
 import time
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
@@ -57,7 +58,7 @@ class MyService(Service):
                 ),
             ]
         )
-        self.model = tf.keras.models.load_model("../ae_model.h5")
+        self.model = tf.keras.models.load_model(os.path.join(os.path.dirname(__file__), "..", "ae_model.h5"))
 
     def process(self, data):
         raw = str(data["text"].data)[2:-1]

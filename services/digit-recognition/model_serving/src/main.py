@@ -1,4 +1,5 @@
 import asyncio
+import os
 import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -56,7 +57,7 @@ class MyService(Service):
             ]
         )
 
-        self.model = models.load_model("../mnist_model.h5")
+        self.model = models.load_model(os.path.join(os.path.dirname(__file__), "..", "mnist_model.h5"))
 
     def process(self, data):
         # Get raw image data
