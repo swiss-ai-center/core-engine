@@ -57,8 +57,8 @@ jobs:
         uses: ./.github/actions/run-ml-experiment-with-dvc
         with:
           ml-experiment-path: ./services/ae-ano-detection/model_creation
-          aws-access-key-id: ${{ secrets.DIGIT_RECOGNITION_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.DIGIT_RECOGNITION_AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.AE_ANO_DETECTION_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AE_ANO_DETECTION_AWS_SECRET_ACCESS_KEY }}
 
       - name: Upload model
         uses: actions/upload-artifact@v3
