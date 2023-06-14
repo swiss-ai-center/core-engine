@@ -4,3 +4,26 @@ name = "engine"
 [tool.pytest.ini_options]
 pythonpath = [".", "src"]
 addopts = "--cov-config=.coveragerc --cov-report xml --cov-report term-missing --cov=./src"
+
+[tool.poetry]
+name = "engine"
+version = "0.1.0"
+description = ""
+authors = ["CSIA-PME contibutors <ia.recherche@hes-so.ch>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+common-code = {git = "https://github.com/csia-pme/csia-pme.git", rev = "main", subdirectory = "common-code", extras = ["test"]}
+makefun = "^1.15.1"
+sqlmodel = "^0.0.8"
+psycopg2-binary = "^2.9.6"
+python-multipart = "^0.0.6"
+testcontainers-core = "^0.0.1rc1"
+testcontainers-minio = "^0.0.1rc1"
+testcontainers-postgres = "^0.0.1rc1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

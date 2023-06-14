@@ -4,3 +4,19 @@ name = "face-analyzer"
 [tool.pytest.ini_options]
 pythonpath = [".", "src"]
 addopts = "--cov-config=.coveragerc --cov-report xml --cov-report term-missing --cov=./src"
+
+[tool.poetry]
+name = "face-analyzer"
+version = "0.1.0"
+description = ""
+authors = ["CSIA-PME contibutors <ia.recherche@hes-so.ch>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+common-code = {git = "https://github.com/csia-pme/csia-pme.git", rev = "main", subdirectory = "common-code", extras = ["test"]}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
