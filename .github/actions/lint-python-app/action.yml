@@ -21,10 +21,10 @@ runs:
         python-version: '3.10'
         cache: 'poetry'
 
-    # https://flake8.pycqa.org/en/latest/
-    - name: Install Flake8
+    - name: Install app dependencies
       shell: bash
-      run: poetry add flake8 # flake8-print
+      working-directory: ${{ inputs.python-app-path }}
+      run: poetry install
 
     - name: Lint Python code
       shell: bash

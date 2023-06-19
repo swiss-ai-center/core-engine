@@ -18,6 +18,9 @@ pyyaml = "^6.0"
 numpy = "^1.25.0"
 
 
+[tool.poetry.group.dev.dependencies]
+flake8 = "5.0.4"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

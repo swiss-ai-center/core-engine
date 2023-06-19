@@ -18,6 +18,12 @@ common-code = {git = "https://github.com/csia-pme/csia-pme.git", rev = "main", s
 pillow = "^9.5.0"
 
 
+[tool.poetry.group.dev.dependencies]
+pytest = "7.2.0"
+pytest-asyncio = "0.20.3"
+aiofile = "^3.8.7"
+flake8 = "5.0.4"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

@@ -25,10 +25,6 @@ runs:
         python-version: '3.10'
         cache: 'poetry'
 
-    - name: Install additional packages
-      shell: bash
-      run: poetry add pytest pytest-asyncio aiofile
-
     - name: Install app dependencies
       shell: bash
       working-directory: ${{ inputs.python-app-path }}
