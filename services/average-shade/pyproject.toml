@@ -13,7 +13,7 @@ authors = ["CSIA-PME contibutors <ia.recherche@hes-so.ch>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "~3.10,<3.12"
 common-code = {git = "https://github.com/csia-pme/csia-pme.git", rev = "main", subdirectory = "common-code", extras = ["test"]}
 numpy = "^1.24.3"
 opencv-python = "^4.7.0.72"

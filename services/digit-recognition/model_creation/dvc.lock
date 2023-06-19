@@ -4,8 +4,9 @@ stages:
     cmd: python3 src/generate_datasets.py
     deps:
     - path: src/generate_datasets.py
-      md5: bff5045375c976c16220fc661d7536ca
-      size: 2409
+      hash: md5
+      md5: 9fb02b70d1ab5bfb7d8439c6cd128b77
+      size: 2411
     params:
       params.yaml:
         prepare.numbers:
@@ -21,6 +22,7 @@ stages:
         - 9
     outs:
     - path: datasets
+      hash: md5
       md5: 9cdba036e9fc0caa18f90070c9786f4b.dir
       size: 342297612
       nfiles: 2
@@ -28,19 +30,24 @@ stages:
     cmd: python3 src/create_model.py
     deps:
     - path: datasets
+      hash: md5
       md5: 9cdba036e9fc0caa18f90070c9786f4b.dir
       size: 342297612
       nfiles: 2
     - path: src/create_model.py
-      md5: 2372d61b539bd92b3582c1b4ad8b1327
-      size: 2974
+      hash: md5
+      md5: b584093577f4b22af71315eab6b634b9
+      size: 2966
     outs:
     - path: graphs/model_accuracy.jpg
-      md5: 3484b310c802c110570bdb38335e24b8
-      size: 18855
+      hash: md5
+      md5: d770a149e899571a98d6093b67534492
+      size: 18858
     - path: graphs/model_loss.jpg
-      md5: 6e8250403f7db9f47923962f3938737d
-      size: 18707
+      hash: md5
+      md5: 7674056aea758a9924d9e8b84ab49f92
+      size: 18516
     - path: mnist_model.h5
-      md5: d5eb5c00ae33569bba5e3203269e48de
-      size: 3271144
+      hash: md5
+      md5: 706ebb3e524730c80522461b6479c324
+      size: 3272912

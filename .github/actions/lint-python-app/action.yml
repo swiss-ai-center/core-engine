@@ -15,14 +15,14 @@ runs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-        cache: 'pip'
+        cache: 'poetry'
 
     # https://flake8.pycqa.org/en/latest/
     - name: Install Flake8
       shell: bash
-      run: pip3 install flake8 # flake8-print
+      run: poetry add flake8 # flake8-print
 
     - name: Lint Python code
       shell: bash
       working-directory: ${{ inputs.python-app-path }}
-      run: flake8 .
+      run: poetry run flake8 .

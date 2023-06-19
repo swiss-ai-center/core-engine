@@ -23,12 +23,12 @@ runs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-        cache: 'pip'
+        cache: 'poetry'
 
     - name: Install ML experiment dependencies
       shell: bash
       working-directory: ${{ inputs.ml-experiment-path }}
-      run: pip3 install -r ./src/requirements.txt
+      run: poetry install
 
     - name: Retrieve ML experiment data
       shell: bash
@@ -36,9 +36,9 @@ runs:
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
         AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
-      run: dvc pull
+      run: poetry run dvc pull
 
     - name: Reproduce ML experiment
       shell: bash
       working-directory: ${{ inputs.ml-experiment-path }}
-      run: dvc repro
+      run: poetry run dvc repro

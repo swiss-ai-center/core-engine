@@ -57,7 +57,7 @@ jobs:
       - name: Run ML experiment with DVC
         uses: ./.github/actions/run-ml-experiment-with-dvc
         with:
-          ml-experiment-path: ./services/digit-recognition/model_creation
+          ml-experiment-path: ./services/digit-recognition/model-creation
           aws-access-key-id: ${{ secrets.DIGIT_RECOGNITION_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.DIGIT_RECOGNITION_AWS_SECRET_ACCESS_KEY }}
 
@@ -65,7 +65,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: model
-          path: services/digit-recognition/model_creation/mnist_model.h5
+          path: services/digit-recognition/model-creation/mnist_model.h5
           retention-days: 5
 
   test:

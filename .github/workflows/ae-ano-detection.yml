@@ -56,7 +56,7 @@ jobs:
       - name: Run ML experiment with DVC
         uses: ./.github/actions/run-ml-experiment-with-dvc
         with:
-          ml-experiment-path: ./services/ae-ano-detection/model_creation
+          ml-experiment-path: ./services/ae-ano-detection/model-creation
           aws-access-key-id: ${{ secrets.AE_ANO_DETECTION_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AE_ANO_DETECTION_AWS_SECRET_ACCESS_KEY }}
 
@@ -64,7 +64,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: model
-          path: services/ae-ano-detection/model_creation/model/ae_model.h5
+          path: services/ae-ano-detection/model-creation/model/ae_model.h5
           retention-days: 5
 
   test:

@@ -19,21 +19,21 @@ runs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-        cache: 'pip'
+        cache: 'poetry'
 
     - name: Install additional packages
       shell: bash
-      run: pip3 install pytest pytest-asyncio aiofile
+      run: poetry add pytest pytest-asyncio aiofile
 
     - name: Install app dependencies
       shell: bash
       working-directory: ${{ inputs.python-app-path }}
-      run: pip3 install -r requirements.txt
+      run: poetry install
 
     - name: Run Python tests
       shell: bash
       working-directory: ${{ inputs.python-app-path }}
-      run: pytest
+      run: poetry run pytest
 
     - name: Coverage report
       uses: orgoro/coverage@v3.1

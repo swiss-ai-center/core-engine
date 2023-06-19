@@ -100,7 +100,7 @@ Run the following command to get the model created from the previous step.
 
 ```sh
 # Copy the model from the creation directory
-cp ../model_creation/model/ae_model.h5 ./model/ae_model.h5
+cp ../model-creation/model/ae_model.h5 ./model/ae_model.h5
 ```
 
 ### How to run

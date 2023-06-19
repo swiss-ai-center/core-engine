@@ -64,7 +64,7 @@ Run the following command to get the model created from the previous step.
 
 ```sh
 # Copy the model from the creation directory
-cp ../model_creation/mnist_model.h5 .
+cp ../model-creation/mnist_model.h5 .
 ```
 
 ### How to run
