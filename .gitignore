@@ -8,6 +8,9 @@
 
 ## Python
 
+# Poetry
+dist
+
 # Environments
 .venv
 venv

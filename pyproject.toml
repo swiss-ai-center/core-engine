@@ -1,8 +1,8 @@
 [project]
-name = "csia-pme"
+name = "csia-pme-root"
 
 [tool.poetry]
-name = "csia-pme"
+name = "csia-pme-root"
 version = "0.1.0"
 description = "The main repository for the CSIA-PME project"
 authors = ["CSIA-PME contibutors <ia.recherche@hes-so.ch>"]
