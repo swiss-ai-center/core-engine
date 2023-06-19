@@ -15,6 +15,10 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Install poetry
+      shell: bash
+      run: pip install poetry==1.4.0
+
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
