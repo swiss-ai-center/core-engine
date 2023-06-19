@@ -2,14 +2,11 @@
 name = "csia-pme"
 version = "0.1.0"
 description = "The main repository for the CSIA-PME project"
-authors = []
+authors = ["CSIA-PME contibutors <ia.recherche@hes-so.ch>"]
 readme = "README.md"
-packages = []
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.12"
-
-# [tool.poetry.group.dev.dependencies]
+python = "~3.10,<3.12"
 
 [tool.poetry.group.docs.dependencies]
 cairosvg = "2.7.0"
