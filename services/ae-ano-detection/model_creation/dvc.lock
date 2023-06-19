@@ -4,31 +4,39 @@ stages:
     cmd: python src/create_model.py --dataset data/train.txt
     deps:
     - path: data/train.txt
-      md5: 58f9f76ea3b715566badb5eff9b1b067
+      hash: md5
+      md5: 2e6fa1bd5fc1764c009e8b3caa946c97
       size: 79829
     - path: src/create_model.py
-      md5: 161cc5ed557bb1a7a972a498d9bac6a3
-      size: 1966
+      hash: md5
+      md5: 663d4ca9131847924ac250bc849b6781
+      size: 1912
     outs:
     - path: graph/training_loss.png
-      md5: 013fdfedc083467b34872d1aa59cfba3
-      size: 14634
+      hash: md5
+      md5: db7e874eef6489fb0fa03d32b38f90e8
+      size: 15353
     - path: model/ae_model.h5
-      md5: 93cff3f70f089383ef7082d5e486af97
-      size: 67752
+      hash: md5
+      md5: f4048b63754339e2fb44950b8ff69951
+      size: 65728
   test:
     cmd: python src/test_model.py --model model/ae_model.h5 --test_dataset data/test.txt
     deps:
     - path: data/test.txt
-      md5: 4a59ff2ad83a8cc8ca371a03812db540
+      hash: md5
+      md5: 70763e0012a40f60e851eab3c606aca4
       size: 185786
     - path: model/ae_model.h5
-      md5: 93cff3f70f089383ef7082d5e486af97
-      size: 67752
+      hash: md5
+      md5: f4048b63754339e2fb44950b8ff69951
+      size: 65728
     - path: src/test_model.py
-      md5: 963fa7593fd43148bc33cae03f8dd03e
-      size: 1591
+      hash: md5
+      md5: 0be6964c6fcdbf230340dc034c5dea4b
+      size: 1544
     outs:
     - path: graph/result.png
-      md5: 28bbc868662c38ba659fd5462d536b0c
+      hash: md5
+      md5: 7f2c3be68a2cccbe0310af3f758d2133
       size: 78777
