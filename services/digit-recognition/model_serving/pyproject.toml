@@ -13,7 +13,7 @@ authors = ["CSIA-PME contibutors <ia.recherche@hes-so.ch>"]
 
 [tool.poetry.dependencies]
 python = "~3.10,<3.12"
-common-code = {git = "https://github.com/csia-pme/csia-pme.git", rev = "main", subdirectory = "common-code", extras = ["test"]}
+common-code = {git = "https://github.com/csia-pme/csia-pme.git", rev = "95-move-python-dependencies-from-pip-to-poetry", subdirectory = "common-code"}
 keras = "^2.12.0"
 opencv-python = "^4.7.0.72"
 tensorflow = "^2.12.0"
