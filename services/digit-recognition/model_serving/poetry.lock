@@ -461,11 +461,11 @@ files = [
 
 [[package]]
 name = "common-code"
-version = "0.0.10"
-description = "Common code used by the CSIA-PME services"
+version = "0.1.0"
+description = ""
 category = "main"
 optional = false
-python-versions = ">=3.10"
+python-versions = "~3.10,<3.12"
 files = []
 develop = false
 
@@ -477,17 +477,14 @@ fastapi = "0.87.0"
 flake8 = "5.0.4"
 httpx = "0.23.1"
 python-dotenv = "0.21.0"
-PyYAML = "6.0"
+pyyaml = "6.0"
 uvicorn = "0.19.0"
-
-[package.extras]
-test = ["pytest (==7.2.0)", "pytest-asyncio (==0.20.3)", "pytest-cov (==4.0.0)", "pytest-httpserver (==1.0.6)"]
 
 [package.source]
 type = "git"
 url = "https://github.com/csia-pme/csia-pme.git"
 reference = "95-move-python-dependencies-from-pip-to-poetry"
-resolved_reference = "92cc1faa496906c8caa85b16f50799c1e32e3f90"
+resolved_reference = "6f8218da32e2ce9a308dc63f5808edf40a363c0c"
 subdirectory = "common-code"
 
 [[package]]
