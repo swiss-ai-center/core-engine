@@ -1,4 +1,4 @@
-[project]
+                 [project]
 name = "digit-recognition-model-serving"
 
 [tool.pytest.ini_options]
