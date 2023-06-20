@@ -24,7 +24,7 @@ runs:
     - name: Install app dependencies
       shell: bash
       working-directory: ${{ inputs.python-app-path }}
-      run: poetry install
+      run: poetry install -vv
 
     - name: Lint Python code
       shell: bash
