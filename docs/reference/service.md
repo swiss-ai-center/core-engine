@@ -17,7 +17,7 @@ sequenceDiagram
     participant S3 as s3 - Storage
     C->>+S3: file_keys = for file in data: upload(file)
     S3-->>-C: return(200, file_key)
-    C->>+S: POST(s.url, callback_url: str, service_task: ServiceTask)
+    C->>+S: POST(s.url/process, callback_url: str, service_task: ServiceTask)
     Note right of S: callback_url is the url where the service should send the response
     Note right of S: service_task should match the model
     S-->>-C: return(200, Task added to the queue)

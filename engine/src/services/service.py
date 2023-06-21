@@ -200,6 +200,16 @@ class ServicesService:
 
         return self.session.get(Service, service_id)
 
+    def find_one_by_slug(self, service_slug: str):
+        """
+        Find a service by its slug.
+        :param service_slug:
+        :return: The service if found, None otherwise
+        """
+        self.logger.debug(f"Find service with slug {service_slug}")
+
+        return self.session.exec(select(Service).where(Service.slug == service_slug)).first()
+
     async def create(self, service: Service, app: FastAPI):
         """
         Create a new service.
