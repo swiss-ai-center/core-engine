@@ -118,7 +118,6 @@ class PipelineStepBase(CoreModel):
     needs: List[str] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
     condition: str | None = Field(default=None, nullable=True)
     inputs: List[str] = Field(sa_column=Column(JSON), nullable=False)
-    service_id: UUID = Field(nullable=False, foreign_key="services.id")
 
     @validator("identifier")
     def identifier_format(cls, v):
@@ -165,20 +164,20 @@ A JSON representation of a pipeline would look like this:
             "identifier": "face-detection",
             "needs": [],
             "inputs": ["pipeline.image"],
-            "service_id": "00000000-0000-0000-0000-000000000000"
+            "service_slug": "face-detection"
         },
         {
             "identifier": "image-blur",
             "needs": ["face-detection"],
             "condition": "len(face-detection.result['areas']) > 0",
             "inputs": ["pipeline.image", "face-detection.result"],
-            "service_id": "00000000-0000-0000-0000-000000000000"
+            "service_slug": "image-blur"
         }
     ]
 }
 ```
 
-The `needs` field is a list of the identifiers of the previous steps needed to be executed before the current one. So the steps need to be ordered. The `inputs` field is a list of the inputs of the step. The `service_id` field is the id of the service that will be executed.
+The `needs` field is a list of the identifiers of the previous steps needed to be executed before the current one. So the steps need to be ordered. The `inputs` field is a list of the inputs of the step. The `service_slug` field is the slug of the service that will be executed.
 
 The `inputs` should be in the following format: `<step_identifier>.<output_name>`. For example, if the step `face-detection` has an output `result`, the input of the step `image-blur` should be `face-detection.result`.
 To access the inputs of the pipeline, the input should be `pipeline.<input_name>`. For example, if the pipeline has an input `image`, the input of the step `face-detection` should be `pipeline.image`.
