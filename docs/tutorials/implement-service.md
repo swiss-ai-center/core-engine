@@ -1,10 +1,10 @@
 # Implement a service
 
-This tutorial shows how to implement a service in the CSIA-PME project step by step.
-It will guide you through the process of creating a service with or without a model.
+This tutorial shows how to implement a [Service](/csia-pme/reference/service) in the CSIA-PME project step by step.
+It will guide you through the process of creating a [Service](/csia-pme/reference/service) with or without a model.
 
 !!! Info
-    Note that a service can be implemented in any programming language as long as it follows the [specifications](/csia-pme/reference/service/#specifications) of the CSIA-PME project. This tutorial is using Python 3.10.
+    Note that a [Service](/csia-pme/reference/service) can be implemented in any programming language as long as it follows the [specifications](/csia-pme/reference/service/#specifications) of the CSIA-PME project. This tutorial is using Python 3.10.
 
 ## Tutorial
 
@@ -21,7 +21,7 @@ To follow this tutorial, you need to have the following tools installed:
 
 First, you can download or clone the source code from the [CSIA-PME service templates repository](https://github.com/csia-pme/services-templates).
 
-In this tutorial, we will implement a service that does not require a model, so we will use the `sample-service-without-model` template.
+In this tutorial, we will implement a [Service](/csia-pme/reference/service) that does not require a model, so we will use the `sample-service-without-model` template.
 
 Open your terminal and copy the content of the template to a new folder called `image-rotate`. Then go inside it.
 
@@ -48,7 +48,7 @@ source .venv/bin/activate
 
 #### 1.3 Install the dependencies
 
-For the service to work we will need to install numpy and opencv-python in addition to the dependencies of the template.
+For the [Service](/csia-pme/reference/service) to work we will need to install numpy and opencv-python in addition to the dependencies of the template.
 So edit the `requirements.txt` file and add the following lines:
 
 ```txt hl_lines="2 3"
@@ -63,13 +63,13 @@ Then, install the dependencies:
 pip install -r requirements.txt
 ```
 
-This will install the default service dependencies and the ones we just added.
+This will install the default [Service](/csia-pme/reference/service) dependencies and the ones we just added.
 
 #### 1.4 Implement the service
 
 ##### 1.4.1 Update the README
 
-Open the `README.md` file and update the title and the description of the service.
+Open the `README.md` file and update the title and the description of the [Service](/csia-pme/reference/service).
 
 ```md
 # Image Rotate
@@ -79,7 +79,7 @@ This service rotates an image by 90, 180 or 270 degrees clockwise.
 
 ##### 1.4.2 Update the service kubernetes configuration
 
-In the `kubernetes` folder, you will find the configuration files for the service.
+In the `kubernetes` folder, you will find the configuration files for the [Service](/csia-pme/reference/service).
 
 Rename all the files by replacing `sample-service` with `image-rotate`.
 
@@ -154,7 +154,7 @@ spec:
 4. Change the host to `image-rotate-csia-pme.kube.isc.heia-fr.ch`
 
 !!! info "Note"
-    The host can be changed to your own domain name if the service is deployed on another Kubernetes cluster.
+    The host can be changed to your own domain name if the [Service](/csia-pme/reference/service) is deployed on another Kubernetes cluster.
 
 Open the `image-rotate.service.yaml` file and update `sample-service` with `image-rotate`.
 
@@ -272,8 +272,8 @@ ENGINE_ANNOUNCE_RETRY_DELAY=3
 
 1. Replace the port with the same as in the `image-rotate.config-map.yaml` file.
 
-All the code of the service is in the `main.py` file.
-The service is a simple image rotation service that rotates the image by 90, 180, 270 degrees clockwise depending on the value of the `rotation` parameter.
+All the code of the [Service](/csia-pme/reference/service) is in the `main.py` file.
+The [Service](/csia-pme/reference/service) is a simple image rotation service that rotates the image by 90, 180, 270 degrees clockwise depending on the value of the `rotation` parameter.
 
 Open the `main.py` with your favorite editor and follow the instructions below.
 
@@ -405,7 +405,7 @@ app = FastAPI(
 
 ##### 1.4.4 Dockerfile
 
-The Dockerfile is used to build the Docker image of the service. We need to add some packages in order to use the OpenCV library.
+The Dockerfile is used to build the Docker image of the [Service](/csia-pme/reference/service). We need to add some packages in order to use the OpenCV library.
 
 ```dockerfile hl_lines="6"
 # Base image
@@ -540,7 +540,7 @@ jobs:
 14. Change the path to the Kubernetes configuration files.
 
 !!! info "Note"
-    The host can be changed to your own domain name if the service is deployed on another Kubernetes cluster.
+    The host can be changed to your own domain name if the [Service](/csia-pme/reference/service) is deployed on another Kubernetes cluster.
 
 #### 1.6 Test the service
 
@@ -570,9 +570,9 @@ TOTAL                         188     23    88%
 ========================= 5 passed in 29.12s =========================
 ```
 
-In order to test the service, you need to have a running engine. To do so, follow the instructions in the [Engine](/csia-pme/reference/engine/#start-the-service-locally-with-minikube-and-the-docker-image-hosted-on-github) reference.
+In order to test the [Service](/csia-pme/reference/service), you need to have a running engine. To do so, follow the instructions in the [Engine](/csia-pme/reference/engine/#start-the-service-locally-with-minikube-and-the-docker-image-hosted-on-github) reference.
 
-Once the engine is running, you can start the service by running the following command:
+Once the engine is running, you can start the [Service](/csia-pme/reference/service) by running the following command:
 
 ```bash
 uvicorn main:app --reload --host localhost --port 8001 # (1)!
@@ -595,11 +595,11 @@ INFO:     [2023-03-01 11:14:18,005]   127.0.0.1:54863 - "GET /status HTTP/1.1" 2
 INFO:     [2023-03-01 11:14:18,023]  [common_code.service.service]: Successfully announced to the engine
 ```
 
-Now, you can test the service by sending a request to the engine. To do so, open your browser and navigate to the following URL: `http://localhost:8080/`. You should see the following page:
+Now, you can test the [Service](/csia-pme/reference/service) by sending a request to the engine. To do so, open your browser and navigate to the following URL: `http://localhost:8080/`. You should see the following page:
 
 ![image-rotate](../assets/screenshots/image-rotate.png)
 
-Now you can test the service by uploading an image and selecting the rotation. Create a file called rotation.txt and add the following content:
+Now you can test the [Service](/csia-pme/reference/service) by uploading an image and selecting the rotation. Create a file called rotation.txt and add the following content:
 
 ```txt
 90
@@ -672,7 +672,7 @@ Now, copy the id of the task and unfold the GET `/tasks/{task_id}` endpoint unde
 The image should be rotated by 90 degrees.
 
 !!! success "Congratulations!"
-    You have successfully created a service and tested it locally. Now, you can push the service to GitHub and deploy it on the engine using the workflow created in the previous section.
+    You have successfully created a [Service](/csia-pme/reference/service) and tested it locally. Now, you can push the [Service](/csia-pme/reference/service) to GitHub and deploy it on the engine using the workflow created in the previous section.
 
 ### 2. Service with a model
 
@@ -682,7 +682,7 @@ In this section, you will create a service that uses a model.
 
 First, you can download or clone the source code from the [CSIA-PME service templates repository](https://github.com/csia-pme/services-templates).
 
-In this tutorial, we will implement a service that does require a model, so we will use the `sample-service-with-model` template.
+In this tutorial, we will implement a [Service](/csia-pme/reference/service) that does require a model, so we will use the `sample-service-with-model` template.
 
 Open your terminal and copy the content of the template to a new folder called `ano-detection`. Then go inside it.
 
@@ -727,13 +727,13 @@ Then, install the dependencies:
 pip install -r requirements.txt
 ```
 
-This will install the default service dependencies and the ones we just added.
+This will install the default [Service](/csia-pme/reference/service) dependencies and the ones we just added.
 
 #### 2.4 Implement the service
 
 ##### 2.4.1 Update the README
 
-Open the `README.md` file and update the title and the description of the service.
+Open the `README.md` file and update the title and the description of the [Service](/csia-pme/reference/service).
 
 ```md
 # Anomaly detection
@@ -743,7 +743,7 @@ This service detects anomalies in a time series.
 
 ##### 2.4.2 Update the service kubernetes configuration
 
-In the `kubernetes` folder, you will find the configuration files for the service.
+In the `kubernetes` folder, you will find the configuration files for the [Service](/csia-pme/reference/service).
 
 Rename all the files by replacing `sample-service` with `ano-detection`.
 
@@ -818,7 +818,7 @@ spec:
 4. Change the host to `ano-detection-csia-pme.kube.isc.heia-fr.ch`
 
 !!! info "Note"
-    The host can be changed to your own domain name if the service is deployed on another Kubernetes cluster.
+    The host can be changed to your own domain name if the [Service](/csia-pme/reference/service) is deployed on another Kubernetes cluster.
 
 Open the `ano-detection.service.yaml` file and update `sample-service` with `ano-detection`.
 
@@ -936,7 +936,7 @@ ENGINE_ANNOUNCE_RETRY_DELAY=3
 
 1. Replace the port with the same as in the `ano-detection.config-map.yaml` file.
 
-All the code of the service is in the `main.py` file.
+All the code of the [Service](/csia-pme/reference/service) is in the `main.py` file.
 
 Open the `main.py` with your favorite editor and follow the instructions below.
 
@@ -1070,7 +1070,7 @@ app = FastAPI(
 
 ##### 2.4.4 Dockerfile
 
-The Dockerfile is used to build the Docker image of the service. We need to copy the model in the docker.
+The Dockerfile is used to build the Docker image of the [Service](/csia-pme/reference/service). We need to copy the model in the docker.
 
 ```dockerfile hl_lines="3"
 # Copy model
@@ -1201,7 +1201,7 @@ jobs:
 14. Change the path to the Kubernetes configuration files.
 
 !!! info "Note"
-    The host can be changed to your own domain name if the service is deployed on another Kubernetes cluster.
+    The host can be changed to your own domain name if the [Service](/csia-pme/reference/service) is deployed on another Kubernetes cluster.
 
 !!! success "Congratulations!"
-    You have successfully created a service locally. Now, you can push the service to GitHub and deploy it on the engine using the workflow created in the previous section.
+    You have successfully created a [Service](/csia-pme/reference/service) locally. Now, you can push the [Service](/csia-pme/reference/service) to GitHub and deploy it on the engine using the workflow created in the previous section.

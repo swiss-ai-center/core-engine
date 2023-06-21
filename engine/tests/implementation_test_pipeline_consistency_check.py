@@ -29,14 +29,14 @@ correct_pipeline_blur_women = {
             "identifier": "face-analyzer",
             "needs": [],
             "inputs": ["pipeline.image"],
-            "service_id": "b24d686a-1e52-44ad-9a67-a977206fc298"
+            "service_slug": "face-analyzer"
         },
         {
             "identifier": "image-blur",
             "needs": ["face-detection"],
             "condition": "len(face-detection.result['areas']) > 0",
             "inputs": ["pipeline.image", "face-detection.result"],
-            "service_id": "f8265fce-2da6-4b4f-896a-d7217d80063c"
+            "service_slug": "image-blur"
         }
     ]
 }
@@ -82,13 +82,13 @@ correct_pipeline_convert_image = {
             "needs": [],
             "inputs": ["pipeline.image", "pipeline.format"],
             "condition": "1 == 0",
-            "service_id": ""
+            "service_slug": "image-conversion"
         },
         {
             "identifier": "image-blur",
             "needs": ["image-conversion"],
             "inputs": ["image-conversion.result", "pipeline.areas"],
-            "service_id": "0b3a98ba-cf85-4383-91b3-74265d4b5727"
+            "service_slug": "image-blur"
         }
     ]
 }
@@ -121,14 +121,14 @@ correct_pipeline_simple = {
             "identifier": "face-detection",
             "needs": [],
             "inputs": ["pipeline.image"],
-            "service_id": "35ace881-6673-4fb6-b454-2f94b1547fd6"
+            "service_slug": "face-detection"
         },
         {
             "identifier": "image-blur",
             "needs": ["face-detection"],
             "condition": "len(face-detection.result['areas']) > 0",
             "inputs": ["pipeline.image", "face-detection.result"],
-            "service_id": "6a20b1b7-ef3d-4a01-bf05-409558bda916"
+            "service_slug": "image-blur"
         }
     ]
 }
@@ -176,31 +176,31 @@ correct_pipeline = {
             "identifier": "face-detection",
             "needs": [],
             "inputs": ["pipeline.image_1", "pipeline.image_2"],
-            "service_id": "793db858-e66b-4ad8-a2f4-2c65c03e32e5"
+            "service_slug": "face-detection"
         },
         {
             "identifier": "weather-metrics",
             "needs": [],
             "inputs": ["pipeline.json"],
-            "service_id": "793db858-e66b-4ad8-a2f4-2c65c03e32e5"
+            "service_slug": "weather-metrics"
         },
         {
             "identifier": "image-blur",
             "needs": ["face-detection", "weather-metrics"],
             "inputs": ["weather-metrics.results", "face-detection.result"],
-            "service_id": "793db858-e66b-4ad8-a2f4-2c65c03e32e5"
+            "service_slug": "image-blur"
         },
         {
             "identifier": "rotate-image",
             "needs": ["image-blur"],
             "inputs": ["image-blur.result"],
-            "service_id": "793db858-e66b-4ad8-a2f4-2c65c03e32e5"
+            "service_slug": "rotate-image"
         },
         {
             "identifier": "crop-image",
             "needs": ["rotate-image", "weather-metrics"],
             "inputs": ["weather-metrics.json", "rotate-image.result"],
-            "service_id": "793db858-e66b-4ad8-a2f4-2c65c03e32e5"
+            "service_slug": "crop-image"
         }
     ]
 }

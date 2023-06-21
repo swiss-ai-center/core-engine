@@ -231,13 +231,18 @@ class PipelinesService:
         pipeline = Pipeline.from_orm(pipeline)
 
         for pipeline_step in pipeline_steps_create:
+
+            service = self.services_service.find_one_by_slug(pipeline_step.service_slug)
+            if not service:
+                raise NotFoundException(f"Service with slug '{pipeline_step.service_slug}' not found.")
+
             new_pipeline_step = PipelineStep(
                 pipeline_id=pipeline.id,
                 identifier=pipeline_step.identifier,
                 needs=pipeline_step.needs,
                 condition=pipeline_step.condition,
                 inputs=pipeline_step.inputs,
-                service_id=pipeline_step.service_id,
+                service_id=service.id,
             )
             pipeline_step_create = PipelineStep.from_orm(new_pipeline_step)
             pipeline_steps.append(pipeline_step_create)
@@ -292,13 +297,18 @@ class PipelinesService:
         # Create new pipeline steps for the updated pipeline
         pipeline_steps = []
         for pipeline_step in pipeline.steps:
+
+            service = self.services_service.find_one_by_slug(pipeline_step.service_slug)
+            if not service:
+                raise NotFoundException(f"Service with slug '{pipeline_step.service_slug}' not found.")
+
             new_pipeline_step = PipelineStep(
                 pipeline_id=pipeline_id,
                 identifier=pipeline_step.identifier,
                 needs=pipeline_step.needs,
                 condition=pipeline_step.condition,
                 inputs=pipeline_step.inputs,
-                service_id=pipeline_step.service_id,
+                service_id=pipeline_step.service.id,
             )
             pipeline_step_create = PipelineStep.from_orm(new_pipeline_step)
             self.session.add(new_pipeline_step)

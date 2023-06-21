@@ -66,21 +66,21 @@ The [Pipeline](/csia-pme/reference/pipeline) is created by posting a JSON object
             "identifier": "face-detection",
             "needs": [],
             "inputs": ["pipeline.image"],
-            "service_id": "00000000-0000-0000-0000-000000000000" // change this id with the id of your face detection service
+            "service_slug": "face-detection" // change this id with the slug of your face detection service
         },
         {
             "identifier": "image-blur",
             "needs": ["face-detection"],
             "condition": "len(face-detection.result['areas']) > 0",
             "inputs": ["pipeline.image", "face-detection.result"],
-            "service_id": "00000000-0000-0000-0000-000000000000" // change this id with the id of your image blur service
+            "service_slug": "image-blur" // change this id with the slug of your image blur service
         }
     ]
 }
 ```
 
 !!! note
-    You can find the id of your services by going to the FastAPI documentation of the running [Engine](/csia-pme/reference/engine) and use the `/services` endpoint.
+    You can find the slug of your services by going to the FastAPI documentation of the running [Engine](/csia-pme/reference/engine) and use the `/services` endpoint.
     You will find the id of your services in the response.
     <!-- markdownlint-disable MD046 MD038 -->
     ``` json hl_lines="8 16"
@@ -90,16 +90,12 @@ The [Pipeline](/csia-pme/reference/pipeline) is created by posting a JSON object
                 "updated_at": "2023-06-01T13:55:19.831817",
                 "name": "Face Detection",
                 "slug": "face-detection",
-                ...
-                "id": "35ace881-6673-4fb6-b454-2f94b1547fd6"
             },
             {
                 "created_at": "2023-06-01T13:55:15.936033",
                 "updated_at": "2023-06-01T13:55:19.800560",
                 "name": "Image Blur",
                 "slug": "image-blur",
-                ...
-                "id": "6a20b1b7-ef3d-4a01-bf05-409558bda916"
             }
         ]
     ```
