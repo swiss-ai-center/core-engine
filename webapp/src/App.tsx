@@ -6,7 +6,11 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Showcase from './pages/Showcase';
 import Home from './pages/Home';
 import CssBaseline from '@mui/material/CssBaseline';
-import { QueryStats, LightMode, DarkMode, Menu as MenuIcon, MenuOpen as CloseIcon } from '@mui/icons-material';
+import {
+    Menu as MenuIcon,
+    MenuOpen as CloseIcon,
+    LightModeTwoTone, DarkModeTwoTone, QueryStatsTwoTone, DescriptionTwoTone
+} from '@mui/icons-material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { EngineStats } from './components/EngineStats/EngineStats';
 import { grey } from '@mui/material/colors';
@@ -115,13 +119,13 @@ function App() {
                             <Tooltip title={"Toggle dark / light mode"}>
                                 <IconButton sx={{marginLeft: "auto"}} color={"inherit"} size={"large"}
                                             onClick={() => dispatch(toggleColorMode())}>
-                                    {colorMode === 'light' ? <LightMode/> : <DarkMode/>}
+                                    {colorMode === 'light' ? <LightModeTwoTone/> : <DarkModeTwoTone/>}
                                 </IconButton>
                             </Tooltip>
                             <Tooltip title={"Engine stats"}>
                                 <IconButton sx={{marginLeft: "auto"}} color={"inherit"} size={"large"}
                                             onClick={() => handleOpenStats()}>
-                                    <QueryStats/>
+                                    <QueryStatsTwoTone/>
                                 </IconButton>
                             </Tooltip>
                         </Grid>
