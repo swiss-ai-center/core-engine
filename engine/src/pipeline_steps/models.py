@@ -16,7 +16,6 @@ class PipelineStepBase(CoreModel):
     needs: List[str] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
     condition: str | None = Field(default=None, nullable=True)
     inputs: List[str] = Field(sa_column=Column(JSON), nullable=False)
-    service_id: UUID = Field(nullable=False, foreign_key="services.id")
 
     @validator("identifier")
     def identifier_format(cls, v):
@@ -44,6 +43,7 @@ class PipelineStep(
     pipeline_executions: List["PipelineExecution"] = Relationship(
         back_populates="current_pipeline_step"
     )  # noqa F821
+    service_id: UUID = Field(nullable=False, foreign_key="services.id")
     service: Service = Relationship(back_populates="pipeline_steps")
 
 
@@ -61,7 +61,7 @@ class PipelineStepCreate(PipelineStepBase):
     Pipeline Step create model
     This model is used to create a pipeline step
     """
-    pass
+    service_slug: str
 
 
 class PipelineStepUpdate(PipelineStepBase):
@@ -69,7 +69,7 @@ class PipelineStepUpdate(PipelineStepBase):
     Pipeline Step update model
     This model is used to update a pipeline step
     """
-    pass
+    service_slug: str
 
 
 from pipelines.models import Pipeline  # noqa F401
