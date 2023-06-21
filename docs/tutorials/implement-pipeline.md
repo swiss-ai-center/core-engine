@@ -66,14 +66,14 @@ The [Pipeline](/csia-pme/reference/pipeline) is created by posting a JSON object
             "identifier": "face-detection",
             "needs": [],
             "inputs": ["pipeline.image"],
-            "service_slug": "face-detection" // change this id with the slug of your face detection service
+            "service_slug": "face-detection" // change this with the slug of your face detection service
         },
         {
             "identifier": "image-blur",
             "needs": ["face-detection"],
             "condition": "len(face-detection.result['areas']) > 0",
             "inputs": ["pipeline.image", "face-detection.result"],
-            "service_slug": "image-blur" // change this id with the slug of your image blur service
+            "service_slug": "image-blur" // change this with the slug of your image blur service
         }
     ]
 }
@@ -81,9 +81,9 @@ The [Pipeline](/csia-pme/reference/pipeline) is created by posting a JSON object
 
 !!! note
     You can find the slug of your services by going to the FastAPI documentation of the running [Engine](/csia-pme/reference/engine) and use the `/services` endpoint.
-    You will find the id of your services in the response.
+    You will find the slug of your services in the response.
     <!-- markdownlint-disable MD046 MD038 -->
-    ``` json hl_lines="8 16"
+    ``` json hl_lines="6 12"
         [
             {
                 "created_at": "2023-06-01T13:55:15.936033",
