@@ -41,5 +41,3 @@ runs:
       with:
         coverageFile: ${{ inputs.python-app-path }}/coverage.xml
         token: ${{ inputs.token }}
-
-
