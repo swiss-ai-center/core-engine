@@ -1,118 +1,118 @@
-## Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
-#name: face-analyzer_workflow
-#run-name: face-analyzer workflow
-#
-## Allow one concurrent deployment
-#concurrency:
-#  group: "face-analyzer"
-#  cancel-in-progress: true
-#
-#on:
-#  push:
-#    branches:
-#      - main
-#    paths:
-#      - .github/actions/build-and-push-docker-image-to-github/action.yml
-#      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
-#      - .github/actions/lint-python-app/action.yml
-#      - .github/actions/test-python-app/action.yml
-#      - .github/workflows/face-analyzer.yml
-#      - common-code/**/*
-#      - services/face-analyzer/**/*
-#
-#  pull_request:
-#    paths:
-#      - .github/actions/build-and-push-docker-image-to-github/action.yml
-#      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
-#      - .github/actions/lint-python-app/action.yml
-#      - .github/actions/test-python-app/action.yml
-#      - .github/workflows/face-analyzer.yml
-#      - common-code/**/*
-#      - services/face-analyzer/**/*
-#
-#  # Allows you to run this workflow manually from the Actions tab
-#  workflow_dispatch:
-#
-#jobs:
-#  review:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Clone repository
-#        uses: actions/checkout@v3
-#
-#      - name: Lint Python app
-#        uses: ./.github/actions/lint-python-app
-#        with:
-#          python-app-path: ./services/face-analyzer
-#
-#  test:
-#    needs: review
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Clone repository
-#        uses: actions/checkout@v3
-#
-#      - name: Test Python app
-#        uses: ./.github/actions/test-python-app
-#        with:
-#          python-app-path: ./services/face-analyzer
-#          token: ${{ secrets.GITHUB_TOKEN }}
-#
-#  release:
-#    needs: test
-#    runs-on: ubuntu-latest
-#    # Only run on main
-#    if: success() && github.ref == 'refs/heads/main'
-#    steps:
-#      - name: Clone repository
-#        uses: actions/checkout@v3
-#
-#      - name: Build and push Docker image to GitHub
-#        id: build-and-push-docker-image-to-github
-#        uses: ./.github/actions/build-and-push-docker-image-to-github
-#        with:
-#          docker-registry-username: ${{ github.actor }}
-#          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-#          docker-image-name: ${{ github.repository }}-face-analyzer
-#          docker-image-context: ./services/face-analyzer
-#    outputs:
-#      docker-image-tags: ${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}
-#
-#  deploy:
-#    needs: release
-#    runs-on: ubuntu-latest
-#    # Only run on main
-#    if: success() && github.ref == 'refs/heads/main'
-#    steps:
-#      - name: Clone repository
-#        uses: actions/checkout@v3
-#
-#      - name: Prepare configuration files
-#        shell: bash
-#        working-directory: services/face-analyzer/kubernetes
-#        env:
-#          ENVIRONMENT: production
-#          LOG_LEVEL: info
-#          ENGINE_URLS: "'[\"https://engine-csia-pme.kube.isc.heia-fr.ch\"]'"
-#          SERVICE_URL: https://face-analyzer-csia-pme.kube.isc.heia-fr.ch
-#        run: |
-#          # Set face-analyzer version
-#          docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
-#          docker_image_sha_tag="${docker_image_tags[1]}"
-#          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" face-analyzer.stateful.yml > new-face-analyzer.stateful.yml && mv new-face-analyzer.stateful.yml face-analyzer.stateful.yml
-#
-#          # Set face-analyzer configuration
-#          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' face-analyzer.config-map.yml | envsubst > new-face-analyzer.config-map.yml && mv new-face-analyzer.config-map.yml face-analyzer.config-map.yml
-#
-#      - name: Deploy face-analyzer on the Kubernetes cluster
-#        uses: ./.github/actions/execute-command-on-kubernetes-cluster
-#        with:
-#          kube-config: ${{ secrets.KUBE_CONFIG }}
-#          kube-namespace: csia-pme-prod
-#          kubectl-context: ./services/face-analyzer/kubernetes
-#          kubectl-args: |
-#            apply \
-#              -f face-analyzer.config-map.yml \
-#              -f face-analyzer.stateful.yml \
-#              -f face-analyzer.service.yml \
-#              -f face-analyzer.ingress.yml
+# Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
+name: face-analyzer_workflow
+run-name: face-analyzer workflow
+
+# Allow one concurrent deployment
+concurrency:
+  group: "face-analyzer"
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/actions/build-and-push-docker-image-to-github/action.yml
+      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
+      - .github/actions/lint-python-app/action.yml
+      - .github/actions/test-python-app/action.yml
+      - .github/workflows/face-analyzer.yml
+      - common-code/**/*
+      - services/face-analyzer/**/*
+
+  pull_request:
+    paths:
+      - .github/actions/build-and-push-docker-image-to-github/action.yml
+      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
+      - .github/actions/lint-python-app/action.yml
+      - .github/actions/test-python-app/action.yml
+      - .github/workflows/face-analyzer.yml
+      - common-code/**/*
+      - services/face-analyzer/**/*
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Lint Python app
+        uses: ./.github/actions/lint-python-app
+        with:
+          python-app-path: ./services/face-analyzer
+
+  test:
+    needs: review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Test Python app
+        uses: ./.github/actions/test-python-app
+        with:
+          python-app-path: ./services/face-analyzer
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    # Only run on main
+    if: success() && github.ref == 'refs/heads/main'
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Build and push Docker image to GitHub
+        id: build-and-push-docker-image-to-github
+        uses: ./.github/actions/build-and-push-docker-image-to-github
+        with:
+          docker-registry-username: ${{ github.actor }}
+          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          docker-image-name: ${{ github.repository }}-face-analyzer
+          docker-image-context: ./services/face-analyzer
+    outputs:
+      docker-image-tags: ${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}
+
+  deploy:
+    needs: release
+    runs-on: ubuntu-latest
+    # Only run on main
+    if: success() && github.ref == 'refs/heads/main'
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Prepare configuration files
+        shell: bash
+        working-directory: services/face-analyzer/kubernetes
+        env:
+          ENVIRONMENT: production
+          LOG_LEVEL: info
+          ENGINE_URLS: "'[\"https://engine-csia-pme.kube.isc.heia-fr.ch\"]'"
+          SERVICE_URL: https://face-analyzer-csia-pme.kube.isc.heia-fr.ch
+        run: |
+          # Set face-analyzer version
+          docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" face-analyzer.stateful.yml > new-face-analyzer.stateful.yml && mv new-face-analyzer.stateful.yml face-analyzer.stateful.yml
+
+          # Set face-analyzer configuration
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' face-analyzer.config-map.yml | envsubst > new-face-analyzer.config-map.yml && mv new-face-analyzer.config-map.yml face-analyzer.config-map.yml
+
+      - name: Deploy face-analyzer on the Kubernetes cluster
+        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        with:
+          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-namespace: csia-pme-prod
+          kubectl-context: ./services/face-analyzer/kubernetes
+          kubectl-args: |
+            apply \
+              -f face-analyzer.config-map.yml \
+              -f face-analyzer.stateful.yml \
+              -f face-analyzer.service.yml \
+              -f face-analyzer.ingress.yml

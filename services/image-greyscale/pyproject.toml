@@ -1,22 +1,22 @@
 [project]
-name = "digit-recognition-model-serving"
+name = "image-greyscale"
 
 [tool.pytest.ini_options]
 pythonpath = [".", "src"]
 addopts = "--cov-config=.coveragerc --cov-report xml --cov-report term-missing --cov=./src"
 
 [tool.poetry]
-name = "digit-recognition-model-serving"
+name = "image-greyscale"
 version = "0.1.0"
 description = ""
 authors = ["CSIA-PME contibutors <ia.recherche@hes-so.ch>"]
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "~3.10,<3.12"
 common-code = {git = "https://github.com/csia-pme/csia-pme.git", rev = "95-move-python-dependencies-from-pip-to-poetry", subdirectory = "common-code", extras = ["test"]}
-keras = "^2.12.0"
-opencv-python = "^4.7.0.72"
-tensorflow = "^2.12.0"
+pillow = "^9.5.0"
+
 
 [tool.poetry.group.dev.dependencies]
 pytest = "7.2.0"

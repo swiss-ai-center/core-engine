@@ -1,118 +1,118 @@
-## Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
-#name: image-blur_workflow
-#run-name: image-blur workflow
-#
-## Allow one concurrent deployment
-#concurrency:
-#  group: "image-blur"
-#  cancel-in-progress: true
-#
-#on:
-#  push:
-#    branches:
-#      - main
-#    paths:
-#      - .github/actions/build-and-push-docker-image-to-github/action.yml
-#      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
-#      - .github/actions/lint-python-app/action.yml
-#      - .github/actions/test-python-app/action.yml
-#      - .github/workflows/image-blur.yml
-#      - common-code/**/*
-#      - services/image-blur/**/*
-#
-#  pull_request:
-#    paths:
-#      - .github/actions/build-and-push-docker-image-to-github/action.yml
-#      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
-#      - .github/actions/lint-python-app/action.yml
-#      - .github/actions/test-python-app/action.yml
-#      - .github/workflows/image-blur.yml
-#      - common-code/**/*
-#      - services/image-blur/**/*
-#
-#  # Allows you to run this workflow manually from the Actions tab
-#  workflow_dispatch:
-#
-#jobs:
-#  review:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Clone repository
-#        uses: actions/checkout@v3
-#
-#      - name: Lint Python app
-#        uses: ./.github/actions/lint-python-app
-#        with:
-#          python-app-path: ./services/image-blur
-#
-#  test:
-#    needs: review
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Clone repository
-#        uses: actions/checkout@v3
-#
-#      - name: Test Python app
-#        uses: ./.github/actions/test-python-app
-#        with:
-#          python-app-path: ./services/image-blur
-#          token: ${{ secrets.GITHUB_TOKEN }}
-#
-#  release:
-#    needs: test
-#    runs-on: ubuntu-latest
-#    # Only run on main
-#    if: success() && github.ref == 'refs/heads/main'
-#    steps:
-#      - name: Clone repository
-#        uses: actions/checkout@v3
-#
-#      - name: Build and push Docker image to GitHub
-#        id: build-and-push-docker-image-to-github
-#        uses: ./.github/actions/build-and-push-docker-image-to-github
-#        with:
-#          docker-registry-username: ${{ github.actor }}
-#          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-#          docker-image-name: ${{ github.repository }}-image-blur
-#          docker-image-context: ./services/image-blur
-#    outputs:
-#      docker-image-tags: ${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}
-#
-#  deploy:
-#    needs: release
-#    runs-on: ubuntu-latest
-#    # Only run on main
-#    if: success() && github.ref == 'refs/heads/main'
-#    steps:
-#      - name: Clone repository
-#        uses: actions/checkout@v3
-#
-#      - name: Prepare configuration files
-#        shell: bash
-#        working-directory: services/image-blur/kubernetes
-#        env:
-#          ENVIRONMENT: production
-#          LOG_LEVEL: info
-#          ENGINE_URLS: "'[\"https://engine-csia-pme.kube.isc.heia-fr.ch\"]'"
-#          SERVICE_URL: https://image-blur-csia-pme.kube.isc.heia-fr.ch
-#        run: |
-#          # Set image-blur version
-#          docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
-#          docker_image_sha_tag="${docker_image_tags[1]}"
-#          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" image-blur.stateful.yml > new-image-blur.stateful.yml && mv new-image-blur.stateful.yml image-blur.stateful.yml
-#
-#          # Set image-blur configuration
-#          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' image-blur.config-map.yml | envsubst > new-image-blur.config-map.yml && mv new-image-blur.config-map.yml image-blur.config-map.yml
-#
-#      - name: Deploy image-blur on the Kubernetes cluster
-#        uses: ./.github/actions/execute-command-on-kubernetes-cluster
-#        with:
-#          kube-config: ${{ secrets.KUBE_CONFIG }}
-#          kube-namespace: csia-pme-prod
-#          kubectl-context: ./services/image-blur/kubernetes
-#          kubectl-args: |
-#            apply \
-#              -f image-blur.config-map.yml \
-#              -f image-blur.stateful.yml \
-#              -f image-blur.service.yml \
-#              -f image-blur.ingress.yml
+# Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
+name: image-blur_workflow
+run-name: image-blur workflow
+
+# Allow one concurrent deployment
+concurrency:
+  group: "image-blur"
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/actions/build-and-push-docker-image-to-github/action.yml
+      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
+      - .github/actions/lint-python-app/action.yml
+      - .github/actions/test-python-app/action.yml
+      - .github/workflows/image-blur.yml
+      - common-code/**/*
+      - services/image-blur/**/*
+
+  pull_request:
+    paths:
+      - .github/actions/build-and-push-docker-image-to-github/action.yml
+      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
+      - .github/actions/lint-python-app/action.yml
+      - .github/actions/test-python-app/action.yml
+      - .github/workflows/image-blur.yml
+      - common-code/**/*
+      - services/image-blur/**/*
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Lint Python app
+        uses: ./.github/actions/lint-python-app
+        with:
+          python-app-path: ./services/image-blur
+
+  test:
+    needs: review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Test Python app
+        uses: ./.github/actions/test-python-app
+        with:
+          python-app-path: ./services/image-blur
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    # Only run on main
+    if: success() && github.ref == 'refs/heads/main'
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Build and push Docker image to GitHub
+        id: build-and-push-docker-image-to-github
+        uses: ./.github/actions/build-and-push-docker-image-to-github
+        with:
+          docker-registry-username: ${{ github.actor }}
+          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          docker-image-name: ${{ github.repository }}-image-blur
+          docker-image-context: ./services/image-blur
+    outputs:
+      docker-image-tags: ${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}
+
+  deploy:
+    needs: release
+    runs-on: ubuntu-latest
+    # Only run on main
+    if: success() && github.ref == 'refs/heads/main'
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Prepare configuration files
+        shell: bash
+        working-directory: services/image-blur/kubernetes
+        env:
+          ENVIRONMENT: production
+          LOG_LEVEL: info
+          ENGINE_URLS: "'[\"https://engine-csia-pme.kube.isc.heia-fr.ch\"]'"
+          SERVICE_URL: https://image-blur-csia-pme.kube.isc.heia-fr.ch
+        run: |
+          # Set image-blur version
+          docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" image-blur.stateful.yml > new-image-blur.stateful.yml && mv new-image-blur.stateful.yml image-blur.stateful.yml
+
+          # Set image-blur configuration
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' image-blur.config-map.yml | envsubst > new-image-blur.config-map.yml && mv new-image-blur.config-map.yml image-blur.config-map.yml
+
+      - name: Deploy image-blur on the Kubernetes cluster
+        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        with:
+          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-namespace: csia-pme-prod
+          kubectl-context: ./services/image-blur/kubernetes
+          kubectl-args: |
+            apply \
+              -f image-blur.config-map.yml \
+              -f image-blur.stateful.yml \
+              -f image-blur.service.yml \
+              -f image-blur.ingress.yml
