@@ -14,6 +14,7 @@ python = "~3.10,<3.12"
 common-code = {git = "https://github.com/csia-pme/csia-pme.git", rev = "95-move-python-dependencies-from-pip-to-poetry", subdirectory = "common-code", extras = ["test"]}
 numpy = "1.24.2"
 h5py = "^3.8.0"
+pillow = "^9.5.0"
 
 [tool.poetry.group.dev.dependencies]
 aiofile = "3.8.7"
