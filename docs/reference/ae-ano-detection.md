@@ -9,11 +9,11 @@ The service is built in two steps:
 
 ## Model creation
 
-The goal of this step is to prepare the data and train a new model. All further commands are ran in the `model_creation` directory.
+The goal of this step is to prepare the data and train a new model. All further commands are ran in the `model-creation` directory.
 
 !!! info
 
-    All following commands are done in the `services/ae-ano-detection/model_creation` directory.
+    All following commands are done in the `services/ae-ano-detection/model-creation` directory.
 
 ### Set up the environment
 

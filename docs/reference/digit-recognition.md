@@ -9,7 +9,7 @@ The service is built in two steps:
 
 ## Model creation
 
-The goal of this step is to prepare the data and train a new model. All further commands are ran in the `model_creation` directory.
+The goal of this step is to prepare the data and train a new model. All further commands are ran in the `model-creation` directory.
 
 ### Run the experiment
 
