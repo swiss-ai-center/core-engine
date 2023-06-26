@@ -484,7 +484,7 @@ uvicorn = "0.19.0"
 type = "git"
 url = "https://github.com/csia-pme/csia-pme.git"
 reference = "95-move-python-dependencies-from-pip-to-poetry"
-resolved_reference = "2d73c09d1ac2109968cb989d366393bbbd48371b"
+resolved_reference = "53541a292ef8be12c68e952d76e17cb3f6ee304c"
 subdirectory = "common-code"
 [[package]]
 name = "contourpy"
@@ -2003,6 +2003,21 @@ pytest = ">=4.6"
 testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtualenv"]
 
 [[package]]
+name = "pytest-httpserver"
+version = "1.0.6"
+description = "pytest-httpserver is a httpserver for pytest"
+category = "dev"
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "pytest_httpserver-1.0.6-py3-none-any.whl", hash = "sha256:ac2379acc91fe8bdbe2911c93af8dd130e33b5899fb9934d15669480739c6d32"},
+    {file = "pytest_httpserver-1.0.6.tar.gz", hash = "sha256:9040d07bf59ac45d8de3db1d4468fd2d1d607975e4da4c872ecc0402cdbf7b3e"},
+]
+
+[package.dependencies]
+Werkzeug = ">=2.0.0"
+
+[[package]]
 name = "python-dateutil"
 version = "2.8.2"
 description = "Extensions to the standard Python datetime module"
@@ -2734,4 +2749,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10,<3.12"
-content-hash = "b12c9228fc0f748b30a184ab606d618eb6b2ed378c5ff5437c89ed35ea6dcfb9"
+content-hash = "28546c75501cae8e01989d322ac00b7a753a746d82b20086b3c5fb19a3cfd6dd"
