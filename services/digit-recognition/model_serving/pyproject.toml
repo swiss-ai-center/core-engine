@@ -17,7 +17,6 @@ common-code = {git = "https://github.com/csia-pme/csia-pme.git", rev = "95-move-
 keras = "^2.12.0"
 opencv-python = "^4.7.0.72"
 tensorflow = "^2.12.0"
-numpy = "^1.25.0"
 
 
 [tool.poetry.group.dev.dependencies]
