@@ -8,28 +8,28 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - .github/actions/build-and-push-docker-image-to-github/action.yml
-      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
-      - .github/actions/lint-python-app/action.yml
-      - .github/actions/run-ml-experiment-with-dvc/action.yml
-      - .github/actions/test-python-app/action.yml
-      - .github/workflows/ae-ano-detection.yml
-      - common-code/**/*
-      - services/ae-ano-detection/**/*
-
-  pull_request:
-    paths:
-      - .github/actions/build-and-push-docker-image-to-github/action.yml
-      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
-      - .github/actions/run-ml-experiment-with-dvc/action.yml
-      - .github/actions/test-python-app/action.yml
-      - .github/workflows/ae-ano-detection.yml
-      - common-code/**/*
-      - services/ae-ano-detection/**/*
+#  push:
+#    branches:
+#      - main
+#    paths:
+#      - .github/actions/build-and-push-docker-image-to-github/action.yml
+#      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
+#      - .github/actions/lint-python-app/action.yml
+#      - .github/actions/run-ml-experiment-with-dvc/action.yml
+#      - .github/actions/test-python-app/action.yml
+#      - .github/workflows/ae-ano-detection.yml
+#      - common-code/**/*
+#      - services/ae-ano-detection/**/*
+#
+#  pull_request:
+#    paths:
+#      - .github/actions/build-and-push-docker-image-to-github/action.yml
+#      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
+#      - .github/actions/run-ml-experiment-with-dvc/action.yml
+#      - .github/actions/test-python-app/action.yml
+#      - .github/workflows/ae-ano-detection.yml
+#      - common-code/**/*
+#      - services/ae-ano-detection/**/*
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:

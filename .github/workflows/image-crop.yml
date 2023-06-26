@@ -8,27 +8,27 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - .github/actions/build-and-push-docker-image-to-github/action.yml
-      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
-      - .github/actions/lint-python-app/action.yml
-      - .github/actions/test-python-app/action.yml
-      - .github/workflows/image-crop.yml
-      - common-code/**/*
-      - services/image-crop/**/*
-
-  pull_request:
-    paths:
-      - .github/actions/build-and-push-docker-image-to-github/action.yml
-      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
-      - .github/actions/lint-python-app/action.yml
-      - .github/actions/test-python-app/action.yml
-      - .github/workflows/image-crop.yml
-      - common-code/**/*
-      - services/image-crop/**/*
+#  push:
+#    branches:
+#      - main
+#    paths:
+#      - .github/actions/build-and-push-docker-image-to-github/action.yml
+#      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
+#      - .github/actions/lint-python-app/action.yml
+#      - .github/actions/test-python-app/action.yml
+#      - .github/workflows/image-crop.yml
+#      - common-code/**/*
+#      - services/image-crop/**/*
+#
+#  pull_request:
+#    paths:
+#      - .github/actions/build-and-push-docker-image-to-github/action.yml
+#      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
+#      - .github/actions/lint-python-app/action.yml
+#      - .github/actions/test-python-app/action.yml
+#      - .github/workflows/image-crop.yml
+#      - common-code/**/*
+#      - services/image-crop/**/*
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
