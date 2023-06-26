@@ -13,7 +13,7 @@ authors = ["CSIA-PME contibutors <ia.recherche@hes-so.ch>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "~3.10,<3.12"
 common-code = {git = "https://github.com/csia-pme/csia-pme.git", rev = "95-move-python-dependencies-from-pip-to-poetry", subdirectory = "common-code", extras = ["test"]}
 makefun = "^1.15.1"
 sqlmodel = "^0.0.8"

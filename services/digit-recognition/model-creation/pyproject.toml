@@ -15,7 +15,6 @@ tensorflow = "^2.12.0"
 pandas = "^2.0.2"
 matplot = "^0.1.9"
 pyyaml = "^6.0"
-numpy = "^1.25.0"
 
 
 [tool.poetry.group.dev.dependencies]
