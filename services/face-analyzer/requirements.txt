@@ -1,5 +1,6 @@
 aiofile==3.8.7
 common-code[test] @ git+https://github.com/csia-pme/csia-pme.git@95-move-python-dependencies-from-pip-to-poetry#subdirectory=common-code
+deepface==0.0.78
 flake8==5.0.4
 numpy==1.24.2
 Pillow==9.4.0
@@ -7,4 +8,3 @@ pytest==7.2.0
 pytest-asyncio==0.20.3
 pytest-cov==4.0.0
 pytest-httpserver==1.0.6
-retina-face==0.0.13

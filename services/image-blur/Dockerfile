@@ -7,11 +7,16 @@ RUN apt update && apt install --yes ffmpeg libsm6 libxext6
 # Work directory
 WORKDIR /app
 
-# Copy requirements file
-COPY ./requirements.txt .
+# Install and configure Poetry
+RUN pip install poetry==1.5.1
+RUN poetry config virtualenvs.create false
+
+# Copy Python project file
+COPY ./pyproject.toml .
+COPY ./poetry.lock .
 
 # Install dependencies
-RUN pip install --requirement requirements.txt
+RUN poetry install --no-dev
 
 # Copy sources
 COPY src src

@@ -40,10 +40,19 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v3
 
-      - name: Lint Python app
-        uses: ./.github/actions/lint-python-app
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          python-app-path: ./services/face-analyzer
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install app dependencies
+        working-directory: ./services/face-analyzer
+        run: pip3 install -r requirements.txt -r requirements-all.txt
+
+      - name: Lint Python code
+        working-directory: ./services/face-analyzer
+        run: flake8 .
 
   test:
     needs: review
@@ -52,10 +61,25 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v3
 
-      - name: Test Python app
-        uses: ./.github/actions/test-python-app
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          python-app-path: ./services/face-analyzer
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install app dependencies
+        working-directory: ./services/face-analyzer
+        run: pip3 install -r requirements.txt -r requirements-all.txt
+
+      - name: Run Python tests
+        working-directory: ./services/face-analyzer
+        run: pytest
+
+      - name: Coverage report
+        uses: orgoro/coverage@v3.1
+        if: github.event_name == 'pull_request'
+        with:
+          coverageFile: ./services/face-analyzer/coverage.xml
           token: ${{ secrets.GITHUB_TOKEN }}
 
   release:
