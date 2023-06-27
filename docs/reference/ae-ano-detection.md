@@ -17,17 +17,14 @@ The goal of this step is to prepare the data and train a new model. All further 
 
 ### Set up the environment
 
-Set up the environment with the following commands.
+Set up the environment with the following commands. You must have [Poetry](../explanations/about-poetry.md) installed.
 
 ```sh
-# Generate the virtual environment
-python3.10 -m venv .venv
+# Enable the Python virtual environment with Poetry
+poetry shell
 
-# Activate the virtual environment
-source .venv/bin/activate
-
-# Install the requirements
-pip install --requirement requirements.txt
+# Install all dependencies
+poetry install
 ```
 
 ### Run the experiment

@@ -16,15 +16,14 @@ The environment variables can be overwritten during the CI/CD pipeline described
 
 In the `services/average-shade` directory, start the service with the following commands.
 
+Set up the environment with the following commands. You must have [Poetry](../explanations/about-poetry.md) installed.
+
 ```sh
-# Generate the virtual environment
-python3 -m venv .venv
+# Enable the Python virtual environment with Poetry
+poetry shell
 
-# Activate the virtual environment
-source .venv/bin/activate
-
-# Install the requirements
-pip install --requirement requirements.txt
+# Install all dependencies
+poetry install
 ```
 
 Start the application.
