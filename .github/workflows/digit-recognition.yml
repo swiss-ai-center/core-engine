@@ -45,7 +45,7 @@ jobs:
       - name: Lint Python app
         uses: ./.github/actions/lint-python-app
         with:
-          python-app-path: ./services/digit-recognition/model_serving
+          python-app-path: ./services/digit-recognition/model-serving
 
   train:
     needs: review
@@ -57,7 +57,7 @@ jobs:
       - name: Run ML experiment with DVC
         uses: ./.github/actions/run-ml-experiment-with-dvc
         with:
-          ml-experiment-path: ./services/digit-recognition/model_creation
+          ml-experiment-path: ./services/digit-recognition/model-creation
           aws-access-key-id: ${{ secrets.DIGIT_RECOGNITION_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.DIGIT_RECOGNITION_AWS_SECRET_ACCESS_KEY }}
 
@@ -65,7 +65,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: model
-          path: services/digit-recognition/model_creation/mnist_model.h5
+          path: services/digit-recognition/model-creation/mnist_model.h5
           retention-days: 5
 
   test:
@@ -79,12 +79,12 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: model
-          path: services/digit-recognition/model_serving
+          path: services/digit-recognition/model-serving
 
       - name: Test Python app
         uses: ./.github/actions/test-python-app
         with:
-          python-app-path: ./services/digit-recognition/model_serving
+          python-app-path: ./services/digit-recognition/model-serving
           token: ${{ secrets.GITHUB_TOKEN }}
 
   release:
@@ -100,7 +100,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: model
-          path: services/digit-recognition/model_serving
+          path: services/digit-recognition/model-serving
 
       - name: Build and push Docker image to GitHub
         id: build-and-push-docker-image-to-github
@@ -109,7 +109,7 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           docker-image-name: ${{ github.repository }}-digit-recognition
-          docker-image-context: ./services/digit-recognition/model_serving
+          docker-image-context: ./services/digit-recognition/model-serving
     outputs:
       docker-image-tags: ${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}
 
@@ -124,7 +124,7 @@ jobs:
 
       - name: Prepare configuration files
         shell: bash
-        working-directory: services/digit-recognition/model_serving/kubernetes
+        working-directory: services/digit-recognition/model-serving/kubernetes
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
@@ -144,7 +144,7 @@ jobs:
         with:
           kube-config: ${{ secrets.KUBE_CONFIG }}
           kube-namespace: csia-pme-prod
-          kubectl-context: ./services/digit-recognition/model_serving/kubernetes
+          kubectl-context: ./services/digit-recognition/model-serving/kubernetes
           kubectl-args: |
             apply \
               -f digit-recognition.config-map.yml \

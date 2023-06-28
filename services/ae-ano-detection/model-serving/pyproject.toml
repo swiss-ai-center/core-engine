@@ -1,5 +1,5 @@
 [project]
-name = "digit-recognition"
+name = "ae-ano-detection-model-serving"
 
 [tool.pytest.ini_options]
 pythonpath = [".", "src"]

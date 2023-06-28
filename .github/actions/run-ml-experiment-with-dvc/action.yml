@@ -28,7 +28,7 @@ runs:
     - name: Install ML experiment dependencies
       shell: bash
       working-directory: ${{ inputs.ml-experiment-path }}
-      run: pip3 install -r ./src/requirements.txt
+      run: pip3 install -r requirements.txt
 
     - name: Retrieve ML experiment data
       shell: bash
