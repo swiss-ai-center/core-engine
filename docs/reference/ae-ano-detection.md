@@ -27,7 +27,9 @@ python3.10 -m venv .venv
 source .venv/bin/activate
 
 # Install the requirements
-pip install --requirement requirements.txt
+pip install \
+    --requirement requirements.txt \
+    --requirement requirements-all.txt
 ```
 
 ### Run the experiment
@@ -91,7 +93,9 @@ python3.10 -m venv .venv
 source .venv/bin/activate
 
 # Install the requirements
-pip install --requirement requirements.txt
+pip install \
+    --requirement requirements.txt \
+    --requirement requirements-all.txt
 ```
 
 ### Retrieve the model

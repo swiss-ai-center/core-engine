@@ -60,7 +60,9 @@ opencv-python==4.7.0.72
 Then, install the dependencies:
 
 ```sh
-pip install -r requirements.txt
+pip install \
+    --requirement requirements.txt \
+    --requirement requirements-all.txt
 ```
 
 This will install the default [Service](/csia-pme/reference/service) dependencies and the ones we just added.
@@ -724,7 +726,9 @@ tensorflow==2.9.0
 Then, install the dependencies:
 
 ```sh
-pip install -r requirements.txt
+pip install \
+    --requirement requirements.txt \
+    --requirement requirements-all.txt
 ```
 
 This will install the default [Service](/csia-pme/reference/service) dependencies and the ones we just added.
