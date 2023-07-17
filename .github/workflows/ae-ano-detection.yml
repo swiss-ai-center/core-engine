@@ -56,7 +56,7 @@ jobs:
       - name: Run ML experiment with DVC
         uses: ./.github/actions/run-ml-experiment-with-dvc
         with:
-          ml-experiment-path: ./services/ae-ano-detection/model_creation
+          ml-experiment-path: ./services/ae-ano-detection/model-creation
           aws-access-key-id: ${{ secrets.AE_ANO_DETECTION_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AE_ANO_DETECTION_AWS_SECRET_ACCESS_KEY }}
 
@@ -64,7 +64,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: model
-          path: services/ae-ano-detection/model_creation/model/ae_model.h5
+          path: services/ae-ano-detection/model-creation/model/ae_model.h5
           retention-days: 5
 
   test:
@@ -78,12 +78,12 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: model
-          path: services/ae-ano-detection/model_serving
+          path: services/ae-ano-detection/model-serving
 
       - name: Test Python app
         uses: ./.github/actions/test-python-app
         with:
-          python-app-path: ./services/ae-ano-detection/model_serving
+          python-app-path: ./services/ae-ano-detection/model-serving
           token: ${{ secrets.GITHUB_TOKEN }}
 
   release:
@@ -99,7 +99,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: model
-          path: services/ae-ano-detection/model_serving
+          path: services/ae-ano-detection/model-serving
 
       - name: Build and push Docker image to GitHub
         id: build-and-push-docker-image-to-github
@@ -108,7 +108,7 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           docker-image-name: ${{ github.repository }}-ae-ano-detection
-          docker-image-context: ./services/ae-ano-detection/model_serving
+          docker-image-context: ./services/ae-ano-detection/model-serving
     outputs:
       docker-image-tags: ${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}
 
@@ -123,7 +123,7 @@ jobs:
 
       - name: Prepare configuration files
         shell: bash
-        working-directory: services/ae-ano-detection/model_serving/kubernetes
+        working-directory: services/ae-ano-detection/model-serving/kubernetes
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
@@ -143,7 +143,7 @@ jobs:
         with:
           kube-config: ${{ secrets.KUBE_CONFIG }}
           kube-namespace: csia-pme-prod
-          kubectl-context: ./services/ae-ano-detection/model_serving/kubernetes
+          kubectl-context: ./services/ae-ano-detection/model-serving/kubernetes
           kubectl-args: |
             apply \
               -f ae-ano-detection.config-map.yml \

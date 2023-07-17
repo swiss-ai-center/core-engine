@@ -17,10 +17,10 @@ runs:
         python-version: '3.10'
         cache: 'pip'
 
-    # https://flake8.pycqa.org/en/latest/
-    - name: Install Flake8
+    - name: Install app dependencies
       shell: bash
-      run: pip3 install flake8 # flake8-print
+      working-directory: ${{ inputs.python-app-path }}
+      run: pip3 install -r requirements.txt -r requirements-all.txt
 
     - name: Lint Python code
       shell: bash

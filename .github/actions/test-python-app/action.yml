@@ -21,14 +21,10 @@ runs:
         python-version: '3.10'
         cache: 'pip'
 
-    - name: Install additional packages
-      shell: bash
-      run: pip3 install pytest pytest-asyncio aiofile
-
     - name: Install app dependencies
       shell: bash
       working-directory: ${{ inputs.python-app-path }}
-      run: pip3 install -r requirements.txt
+      run: pip3 install -r requirements.txt -r requirements-all.txt
 
     - name: Run Python tests
       shell: bash

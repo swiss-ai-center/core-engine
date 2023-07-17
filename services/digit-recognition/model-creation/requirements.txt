@@ -1,8 +1,7 @@
-aiofile==3.8.7
 common-code[test] @ git+https://github.com/csia-pme/csia-pme.git@main#subdirectory=common-code
+dvc[s3]==2.10.2
 flake8==5.0.4
-Pillow==9.4.0
-pytest==7.2.0
-pytest-asyncio==0.20.3
-pytest-cov==4.0.0
-pytest-httpserver==1.0.6
+matplotlib==3.6.3
+numpy==1.24.2
+pandas==1.5.3
+tensorflow==2.9.0
