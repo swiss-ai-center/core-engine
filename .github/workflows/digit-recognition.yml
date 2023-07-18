@@ -141,8 +141,8 @@ jobs:
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' digit-recognition.config-map.yml | envsubst > new-digit-recognition.config-map.yml && mv new-digit-recognition.config-map.yml digit-recognition.config-map.yml
 
           # Set digit-recognition configuration (Ingress)
-          yq ".spec.rules[0].host = \"$SERVICE_URL\"" digit-recognition.ingress.yml > digit-recognition.ingress.yml
-          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" digit-recognition.ingress.yml > digit-recognition.ingress.yml
+          yq ".spec.rules[0].host = \"${SERVICE_URL#*://}\"" digit-recognition.ingress.yml > new-digit-recognition.ingress.yml && mv new-digit-recognition.ingress.yml digit-recognition.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${SERVICE_URL#*://}\"" digit-recognition.ingress.yml > new-digit-recognition.ingress.yml && mv new-digit-recognition.ingress.yml digit-recognition.ingress.yml
 
       - name: Deploy digit-recognition on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
@@ -184,8 +184,8 @@ jobs:
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' digit-recognition.config-map.yml | envsubst > new-digit-recognition.config-map.yml && mv new-digit-recognition.config-map.yml digit-recognition.config-map.yml
 
           # Set digit-recognition configuration (Ingress)
-          yq ".spec.rules[0].host = \"$SERVICE_URL\"" digit-recognition.ingress.yml > digit-recognition.ingress.yml
-          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" digit-recognition.ingress.yml > digit-recognition.ingress.yml
+          yq ".spec.rules[0].host = \"${SERVICE_URL#*://}\"" digit-recognition.ingress.yml > new-digit-recognition.ingress.yml && mv new-digit-recognition.ingress.yml digit-recognition.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${SERVICE_URL#*://}\"" digit-recognition.ingress.yml > new-digit-recognition.ingress.yml && mv new-digit-recognition.ingress.yml digit-recognition.ingress.yml
 
       - name: Deploy digit-recognition on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster

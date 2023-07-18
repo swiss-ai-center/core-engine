@@ -106,8 +106,8 @@ jobs:
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' image-greyscale.config-map.yml | envsubst > new-image-greyscale.config-map.yml && mv new-image-greyscale.config-map.yml image-greyscale.config-map.yml
 
           # Set image-greyscale configuration (Ingress)
-          yq ".spec.rules[0].host = \"$SERVICE_URL\"" image-greyscale.ingress.yml > image-greyscale.ingress.yml
-          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" image-greyscale.ingress.yml > image-greyscale.ingress.yml
+          yq ".spec.rules[0].host = \"${SERVICE_URL#*://}\"" image-greyscale.ingress.yml > new-image-greyscale.ingress.yml && mv new-image-greyscale.ingress.yml image-greyscale.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${SERVICE_URL#*://}\"" image-greyscale.ingress.yml > new-image-greyscale.ingress.yml && mv new-image-greyscale.ingress.yml image-greyscale.ingress.yml
 
       - name: Deploy image-greyscale on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
@@ -149,8 +149,8 @@ jobs:
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' image-greyscale.config-map.yml | envsubst > new-image-greyscale.config-map.yml && mv new-image-greyscale.config-map.yml image-greyscale.config-map.yml
 
           # Set image-greyscale configuration (Ingress)
-          yq ".spec.rules[0].host = \"$SERVICE_URL\"" image-greyscale.ingress.yml > image-greyscale.ingress.yml
-          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" image-greyscale.ingress.yml > image-greyscale.ingress.yml
+          yq ".spec.rules[0].host = \"${SERVICE_URL#*://}\"" image-greyscale.ingress.yml > new-image-greyscale.ingress.yml && mv new-image-greyscale.ingress.yml image-greyscale.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${SERVICE_URL#*://}\"" image-greyscale.ingress.yml > new-image-greyscale.ingress.yml && mv new-image-greyscale.ingress.yml image-greyscale.ingress.yml
 
       - name: Deploy image-greyscale on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster

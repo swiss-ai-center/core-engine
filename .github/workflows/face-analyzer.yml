@@ -106,8 +106,8 @@ jobs:
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' face-analyzer.config-map.yml | envsubst > new-face-analyzer.config-map.yml && mv new-face-analyzer.config-map.yml face-analyzer.config-map.yml
 
           # Set face-analyzer configuration (Ingress)
-          yq ".spec.rules[0].host = \"$SERVICE_URL\"" face-analyzer.ingress.yml > face-analyzer.ingress.yml
-          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" face-analyzer.ingress.yml > face-analyzer.ingress.yml
+          yq ".spec.rules[0].host = \"${SERVICE_URL#*://}\"" face-analyzer.ingress.yml > new-face-analyzer.ingress.yml && mv new-face-analyzer.ingress.yml face-analyzer.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${SERVICE_URL#*://}\"" face-analyzer.ingress.yml > new-face-analyzer.ingress.yml && mv new-face-analyzer.ingress.yml face-analyzer.ingress.yml
 
       - name: Deploy face-analyzer on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
@@ -149,8 +149,8 @@ jobs:
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' face-analyzer.config-map.yml | envsubst > new-face-analyzer.config-map.yml && mv new-face-analyzer.config-map.yml face-analyzer.config-map.yml
 
           # Set face-analyzer configuration (Ingress)
-          yq ".spec.rules[0].host = \"$SERVICE_URL\"" face-analyzer.ingress.yml > face-analyzer.ingress.yml
-          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" face-analyzer.ingress.yml > face-analyzer.ingress.yml
+          yq ".spec.rules[0].host = \"${SERVICE_URL#*://}\"" face-analyzer.ingress.yml > new-face-analyzer.ingress.yml && mv new-face-analyzer.ingress.yml face-analyzer.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${SERVICE_URL#*://}\"" face-analyzer.ingress.yml > new-face-analyzer.ingress.yml && mv new-face-analyzer.ingress.yml face-analyzer.ingress.yml
 
       - name: Deploy face-analyzer on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster

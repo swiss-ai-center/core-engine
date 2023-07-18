@@ -106,8 +106,8 @@ jobs:
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' average-shade.config-map.yml | envsubst > new-average-shade.config-map.yml && mv new-average-shade.config-map.yml average-shade.config-map.yml
 
           # Set average-shade configuration (Ingress)
-          yq ".spec.rules[0].host = \"$SERVICE_URL\"" average-shade.ingress.yml > average-shade.ingress.yml
-          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" average-shade.ingress.yml > average-shade.ingress.yml
+          yq ".spec.rules[0].host = \"${SERVICE_URL#*://}\"" average-shade.ingress.yml > new-average-shade.ingress.yml && mv new-average-shade.ingress.yml average-shade.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${SERVICE_URL#*://}\"" average-shade.ingress.yml > new-average-shade.ingress.yml && mv new-average-shade.ingress.yml average-shade.ingress.yml
 
       - name: Deploy average-shade on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
@@ -149,8 +149,8 @@ jobs:
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' average-shade.config-map.yml | envsubst > new-average-shade.config-map.yml && mv new-average-shade.config-map.yml average-shade.config-map.yml
 
           # Set average-shade configuration (Ingress)
-          yq ".spec.rules[0].host = \"$SERVICE_URL\"" average-shade.ingress.yml > average-shade.ingress.yml
-          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" average-shade.ingress.yml > average-shade.ingress.yml
+          yq ".spec.rules[0].host = \"${SERVICE_URL#*://}\"" average-shade.ingress.yml > new-average-shade.ingress.yml && mv new-average-shade.ingress.yml average-shade.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${SERVICE_URL#*://}\"" average-shade.ingress.yml > new-average-shade.ingress.yml && mv new-average-shade.ingress.yml average-shade.ingress.yml
 
       - name: Deploy average-shade on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster

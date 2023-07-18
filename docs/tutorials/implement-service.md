@@ -512,8 +512,8 @@ jobs:
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' image-rotate.config-map.yml | envsubst > new-image-rotate.config-map.yml && mv new-image-rotate.config-map.yml image-rotate.config-map.yml
 
           # Set image-rotate configuration (Ingress)
-          yq ".spec.rules[0].host = \"$SERVICE_URL\"" image-rotate.ingress.yml > image-rotate.ingress.yml
-          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" image-rotate.ingress.yml > image-rotate.ingress.yml
+          yq ".spec.rules[0].host = \"${SERVICE_URL#*://}\"" image-rotate.ingress.yml > image-rotate.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${SERVICE_URL#*://}\"" image-rotate.ingress.yml > image-rotate.ingress.yml
 
       # TODO: 12. CHANGE THE NAME OF THE ACTION (12)!
       - name: Deploy image-rotate on the Kubernetes cluster

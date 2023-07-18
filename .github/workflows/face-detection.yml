@@ -106,8 +106,8 @@ jobs:
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' face-detection.config-map.yml | envsubst > new-face-detection.config-map.yml && mv new-face-detection.config-map.yml face-detection.config-map.yml
 
           # Set face-detection configuration (Ingress)
-          yq ".spec.rules[0].host = \"$SERVICE_URL\"" face-detection.ingress.yml > face-detection.ingress.yml
-          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" face-detection.ingress.yml > face-detection.ingress.yml
+          yq ".spec.rules[0].host = \"${SERVICE_URL#*://}\"" face-detection.ingress.yml > new-face-detection.ingress.yml && mv new-face-detection.ingress.yml face-detection.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${SERVICE_URL#*://}\"" face-detection.ingress.yml > new-face-detection.ingress.yml && mv new-face-detection.ingress.yml face-detection.ingress.yml
 
       - name: Deploy face-detection on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
@@ -149,8 +149,8 @@ jobs:
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' face-detection.config-map.yml | envsubst > new-face-detection.config-map.yml && mv new-face-detection.config-map.yml face-detection.config-map.yml
 
           # Set face-detection configuration (Ingress)
-          yq ".spec.rules[0].host = \"$SERVICE_URL\"" face-detection.ingress.yml > face-detection.ingress.yml
-          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" face-detection.ingress.yml > face-detection.ingress.yml
+          yq ".spec.rules[0].host = \"${SERVICE_URL#*://}\"" face-detection.ingress.yml > new-face-detection.ingress.yml && mv new-face-detection.ingress.yml face-detection.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${SERVICE_URL#*://}\"" face-detection.ingress.yml > new-face-detection.ingress.yml && mv new-face-detection.ingress.yml face-detection.ingress.yml
 
       - name: Deploy face-detection on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster

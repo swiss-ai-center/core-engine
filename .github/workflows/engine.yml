@@ -112,8 +112,8 @@ jobs:
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' engine.config-map.yml | envsubst > new-engine.config-map.yml && mv new-engine.config-map.yml engine.config-map.yml
 
           # Set Engine configuration (Ingress)
-          yq ".spec.rules[0].host = \"$HOST\"" engine.ingress.yml > engine.ingress.yml
-          yq ".spec.tls[0].hosts[0] = \"$HOST\"" engine.ingress.yml > engine.ingress.yml
+          yq ".spec.rules[0].host = \"$HOST\"" engine.ingress.yml > new-engine.ingress.yml && mv new-engine.ingress.yml engine.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"$HOST\"" engine.ingress.yml > new-engine.ingress.yml && mv new-engine.ingress.yml engine.ingress.yml
 
       - name: Deploy Engine on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
