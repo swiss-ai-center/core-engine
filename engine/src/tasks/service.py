@@ -3,6 +3,7 @@ import re
 from fastapi import Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select, desc
+from connection_manager import ConnectionManager, get_connection_manager
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from uuid import UUID
@@ -75,6 +76,7 @@ class TasksService:
             pipeline_executions_service: PipelineExecutionsService = Depends(),
             settings: Settings = Depends(get_settings),
             storage_service: StorageService = Depends(),
+            connection_manager: ConnectionManager = Depends(get_connection_manager),
     ):
         self.logger = logger
         self.logger.set_source(__name__)
@@ -83,6 +85,7 @@ class TasksService:
         self.pipeline_executions_service = pipeline_executions_service
         self.settings = settings
         self.storage_service = storage_service
+        self.connection_manager = connection_manager
 
     def find_many(self, skip: int = 0, limit: int = 100, order_by: str = "updated_at", order: str = "desc"):
         """
@@ -142,7 +145,7 @@ class TasksService:
 
         return task
 
-    def update(self, task_id: UUID, task: TaskUpdate):
+    async def update(self, task_id: UUID, task: TaskUpdate):
         """
         Update task
         :param task_id: id of task to update
@@ -158,6 +161,10 @@ class TasksService:
 
         for key, value in task_data.items():
             setattr(current_task, key, value)
+
+        if not current_task.pipeline_execution_id:
+            print("active connections: ", self.connection_manager.active_connections)
+            await self.connection_manager.send_json(current_task.dict(), task_id)
 
         self.session.add(current_task)
         self.session.commit()
@@ -361,6 +368,8 @@ class TasksService:
 
                     if res.status_code != 200:
                         raise HTTPException(status_code=res.status_code, detail=res.text)
+
+                    await self.connection_manager.send_json(task.dict(), pipeline_execution.id)
 
                     self.logger.debug(f"Launched next step in pipeline with id {pipeline_execution.id}")
 

@@ -6,6 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import { Provider } from 'react-redux';
 import store from './utils/store';
 import { Notification } from './components/Notification/Notification';
+import { FileArrayProvider } from './utils/providers/fileArray';
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
@@ -14,8 +15,10 @@ const root = ReactDOM.createRoot(
 root.render(
     <React.StrictMode>
         <Provider store={store}>
-            <App/>
-            <Notification/>
+            <FileArrayProvider>
+                <App/>
+                <Notification/>
+            </FileArrayProvider>
         </Provider>
     </React.StrictMode>
 );

@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
+from connection_manager import ConnectionManager, get_connection_manager
 from database import get_session
 from common_code.logger.logger import get_logger
 from pipelines.controller import router as pipelines_router
@@ -20,6 +21,8 @@ from timer import Timer
 from http_client import HttpClient
 
 timers = []
+connection_manager: ConnectionManager = get_connection_manager()
+
 
 api_description = """
 CSIA-PME API - The **best** API in the world.
@@ -68,8 +71,31 @@ async def root():
     return RedirectResponse("/docs", status_code=301)
 
 
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    global connection_manager
+    await connection_manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_json()
+            print(data)
+            connection_manager.set_linked_id(websocket, data["linked_id"])
+            connection_manager.set_execution_type(websocket, data["execution_type"])
+            print(connection_manager.active_connections)
+            await connection_manager.send_json(
+                {"message": f"Connection linked to {data['linked_id']} with execution type {data['execution_type']}"},
+                data["linked_id"],
+            )
+            await connection_manager.broadcast_json(
+                {"message": f"Client #{data['linked_id']} says: {data['execution_type']}"})
+    except WebSocketDisconnect:
+        connection_manager.disconnect(websocket)
+        await connection_manager.broadcast("Client disconnected")
+
+
 @app.on_event("startup")
 async def startup_event():
+    global connection_manager
     # Manual instances because startup events doesn't support Dependency Injection
     # https://github.com/tiangolo/fastapi/issues/2057
     # https://github.com/tiangolo/fastapi/issues/425
@@ -78,6 +104,7 @@ async def startup_event():
     session_generator = get_session(engine)
     session = next(session_generator)
     http_client = HttpClient()
+    # connection_manager = get_connection_manager()
 
     storage_service = StorageService(
         logger=get_logger(settings),
@@ -94,6 +121,7 @@ async def startup_event():
         pipeline_executions_service=pipeline_executions_service,
         settings=settings,
         storage_service=storage_service,
+        connection_manager=connection_manager,
     )
     services_service = ServicesService(
         logger=get_logger(settings),
@@ -137,5 +165,8 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
+    global connection_manager
     for timer in timers:
         timer.stop()
+    for connection in connection_manager.active_connections:
+        await connection_manager.disconnect(connection.websocket)
