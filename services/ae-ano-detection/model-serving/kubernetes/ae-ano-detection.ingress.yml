@@ -7,16 +7,16 @@ metadata:
     nginx.org/client-max-body-size: "16m"
 spec:
   rules:
-  - host: ae-ano-detection-csia-pme.kube.isc.heia-fr.ch
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: ae-ano-detection-service
-            port:
-              number: 80
+    - host: ae-ano-detection-csia-pme.kube.isc.heia-fr.ch
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ae-ano-detection-service
+                port:
+                  number: 80
   tls:
     - hosts:
         - ae-ano-detection-csia-pme.kube.isc.heia-fr.ch

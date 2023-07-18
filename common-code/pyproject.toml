@@ -1,24 +1,13 @@
 [project]
-# https://packaging.python.org/specifications/core-metadata/#name
 name = "common_code"
-
-# https://packaging.python.org/guides/single-sourcing-package-version/
 version = "0.0.10"
-
-# https://packaging.python.org/specifications/core-metadata/#summary
 description = "Common code used by the CSIA-PME services"
-
-# https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
 requires-python = ">=3.10"
-
-# https://packaging.python.org/en/latest/specifications/core-metadata/#license
 license = {text = "AGPL-3.0"}
-
 authors = [
   {name = "Andrea Petrucci", email = "andrea.petrucci@hefr.ch" },
   {name = "Ludovic Delafontaine", email = "ludovic.delafontaine@heig-vd.ch" }
 ]
-
 maintainers = [
   {name = "Andrea Petrucci", email = "andrea.petrucci@hefr.ch" },
   {name = "Ludovic Delafontaine", email = "ludovic.delafontaine@heig-vd.ch" }
@@ -45,7 +34,7 @@ dependencies = [
 #
 # Similar to `dependencies` above, these must be valid existing
 # projects.
-[project.optional-dependencies] # Optional
+[project.optional-dependencies]
 test = [
   "pytest==7.2.0",
   "pytest-asyncio==0.20.3",
@@ -53,15 +42,12 @@ test = [
   "pytest-httpserver==1.0.6"
 ]
 
-# https://packaging.python.org/specifications/core-metadata/#project-url-multiple-use
-# https://packaging.python.org/specifications/core-metadata/#home-page-optional
-[project.urls]  # Optional
+[project.urls]
 "Homepage" = "https://csia-pme.github.io/csia-pme/"
 "Bug Reports" = "https://github.com/csia-pme/csia-pme/issues"
 "Demo" = "https://swiss-ai-center.ch/engine"
 "Source" = "https://github.com/csia-pme/csia-pme"
 
 [build-system]
-# https://pip.pypa.io/en/stable/reference/pip/#pep-517-and-518-support
 requires = ["setuptools>=43.0.0", "wheel"]
 build-backend = "setuptools.build_meta"

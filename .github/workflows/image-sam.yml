@@ -11,6 +11,7 @@ on:
   push:
     branches:
       - main
+      - prod
     paths:
       - .github/actions/build-and-push-docker-image-to-github/action.yml
       - .github/actions/execute-command-on-kubernetes-cluster/action.yml
@@ -101,8 +102,55 @@ jobs:
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" image-sam.stateful.yml > new-image-sam.stateful.yml && mv new-image-sam.stateful.yml image-sam.stateful.yml
 
-          # Set image-sam configuration
+          # Set image-sam configuration (ConfigMap)
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' image-sam.config-map.yml | envsubst > new-image-sam.config-map.yml && mv new-image-sam.config-map.yml image-sam.config-map.yml
+
+          # Set image-sam configuration (Ingress)
+          yq ".spec.rules[0].host = \"${SERVICE_URL#*://}\"" image-sam.ingress.yml > new-image-sam.ingress.yml && mv new-image-sam.ingress.yml image-sam.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${SERVICE_URL#*://}\"" image-sam.ingress.yml > new-image-sam.ingress.yml && mv new-image-sam.ingress.yml image-sam.ingress.yml
+
+      - name: Deploy image-sam on the Kubernetes cluster
+        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        with:
+          kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
+          kube-namespace: csia-pme-dev
+          kubectl-context: ./services/image-sam/kubernetes
+          kubectl-args: |
+            apply \
+              -f image-sam.config-map.yml \
+              -f image-sam.stateful.yml \
+              -f image-sam.service.yml \
+              -f image-sam.ingress.yml
+
+  deploy-prod:
+    needs: release
+    runs-on: ubuntu-latest
+    # Only run on prod
+    if: success() && github.ref == 'refs/heads/prod'
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Prepare configuration files
+        shell: bash
+        working-directory: services/image-sam/kubernetes
+        env:
+          ENVIRONMENT: production
+          LOG_LEVEL: info
+          ENGINE_URLS: "'[\"https://engine-csia-pme.kube.isc.heia-fr.ch\"]'"
+          SERVICE_URL: https://image-sam-csia-pme.kube.isc.heia-fr.ch
+        run: |
+          # Set image-sam version
+          docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" image-sam.stateful.yml > new-image-sam.stateful.yml && mv new-image-sam.stateful.yml image-sam.stateful.yml
+
+          # Set image-sam configuration (ConfigMap)
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' image-sam.config-map.yml | envsubst > new-image-sam.config-map.yml && mv new-image-sam.config-map.yml image-sam.config-map.yml
+
+          # Set image-sam configuration (Ingress)
+          yq ".spec.rules[0].host = \"${SERVICE_URL#*://}\"" image-sam.ingress.yml > new-image-sam.ingress.yml && mv new-image-sam.ingress.yml image-sam.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${SERVICE_URL#*://}\"" image-sam.ingress.yml > new-image-sam.ingress.yml && mv new-image-sam.ingress.yml image-sam.ingress.yml
 
       - name: Deploy image-sam on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster

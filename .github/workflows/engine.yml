@@ -11,6 +11,7 @@ on:
   push:
     branches:
       - main
+      - prod
     paths:
       - .github/actions/build-and-push-docker-image-to-github/action.yml
       - .github/actions/execute-command-on-kubernetes-cluster/action.yml
@@ -94,27 +95,31 @@ jobs:
           HOST: https://engine-csia-pme.kube.isc.heia-fr.ch
           ENVIRONMENT: production
           LOG_LEVEL: info
-          DATABASE_URL: ${{ secrets.ENGINE_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.ENGINE_DEV_DATABASE_URL }}
           DATABASE_CONNECT_ARGS: '"{}"'
-          S3_ACCESS_KEY_ID: ${{ secrets.ENGINE_S3_ACCESS_KEY_ID }}
-          S3_SECRET_ACCESS_KEY: ${{ secrets.ENGINE_S3_SECRET_ACCESS_KEY }}
-          S3_HOST: ${{ secrets.ENGINE_S3_HOST }}
-          S3_REGION: ${{ secrets.ENGINE_S3_REGION }}
-          S3_BUCKET: ${{ secrets.ENGINE_S3_BUCKET }}
+          S3_ACCESS_KEY_ID: ${{ secrets.ENGINE_DEV_S3_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.ENGINE_DEV_S3_SECRET_ACCESS_KEY }}
+          S3_HOST: ${{ secrets.ENGINE_DEV_S3_HOST }}
+          S3_REGION: eu-central-2
+          S3_BUCKET: engine
         run: |
           # Set Engine version
           docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" engine.stateful.yml > new-engine.stateful.yml && mv new-engine.stateful.yml engine.stateful.yml
 
-          # Set Engine configuration
+          # Set Engine configuration (ConfigMap)
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' engine.config-map.yml | envsubst > new-engine.config-map.yml && mv new-engine.config-map.yml engine.config-map.yml
+
+          # Set Engine configuration (Ingress)
+          yq ".spec.rules[0].host = \"${HOST#*://}\"" engine.ingress.yml > new-engine.ingress.yml && mv new-engine.ingress.yml engine.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${HOST#*://}\"" engine.ingress.yml > new-engine.ingress.yml && mv new-engine.ingress.yml engine.ingress.yml
 
       - name: Deploy Engine on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
-          kube-config: ${{ secrets.KUBE_CONFIG }}
-          kube-namespace: csia-pme-prod
+          kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
+          kube-namespace: csia-pme-dev
           kubectl-context: ./engine/kubernetes
           kubectl-args: |
             apply \

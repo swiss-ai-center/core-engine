@@ -8,12 +8,12 @@ inputs:
     required: true
     default: .
 
-  aws-access-key-id:
-    description: AWS access key ID (S3)
+  s3-access-key-id:
+    description: S3 access key ID
     required: false
 
-  aws-secret-access-key:
-    description: AWS secret access key (S3)
+  s3-secret-access-key:
+    description: S3 secret access key
     required: false
 
 runs:
@@ -28,14 +28,14 @@ runs:
     - name: Install ML experiment dependencies
       shell: bash
       working-directory: ${{ inputs.ml-experiment-path }}
-      run: pip3 install -r ./src/requirements.txt
+      run: pip3 install -r requirements.txt
 
     - name: Retrieve ML experiment data
       shell: bash
       working-directory: ${{ inputs.ml-experiment-path }}
       env:
-        AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
-        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
+        AWS_ACCESS_KEY_ID: ${{ inputs.s3-access-key-id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.s3-secret-access-key }}
       run: dvc pull
 
     - name: Reproduce ML experiment

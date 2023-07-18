@@ -30,9 +30,22 @@ jobs:
         working-directory: webapp
         run: npm ci --legacy-peer-deps
 
-      - name: Build app
+      - name: Build app for dev
+        # Only run on main
+        if: github.ref == 'refs/heads/main'
         working-directory: webapp
         env:
+          REACT_APP_ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
+          # So it does not treat warnings as errors
+          CI: false
+        run: npm run build
+
+      - name: Build app for prod
+        # Only run on prod
+        if: github.ref == 'refs/heads/prod'
+        working-directory: webapp
+        env:
+          # TODO: Change this to the prod engine URL
           REACT_APP_ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
           # So it does not treat warnings as errors
           CI: false
@@ -60,12 +73,26 @@ jobs:
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" webapp.stateful.yml > new-webapp.stateful.yml && mv new-webapp.stateful.yml webapp.stateful.yml
 
-      - name: Deploy Webapp on the Kubernetes cluster
+      - name: Deploy Webapp on the Kubernetes cluster (dev)
         # Only run on main
         if: github.ref == 'refs/heads/main'
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
-          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
+          kube-namespace: csia-pme-dev
+          kubectl-context: ./webapp/kubernetes
+          kubectl-args: |
+            apply \
+              -f webapp.stateful.yml \
+              -f webapp.service.yml \
+              -f webapp.ingress.yml
+
+      - name: Deploy Webapp on the Kubernetes cluster (prod)
+        # Only run on prod
+        if: github.ref == 'refs/heads/prod'
+        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        with:
+          kube-config: ${{ secrets.KUBE_CONFIG_PROD }}
           kube-namespace: csia-pme-prod
           kubectl-context: ./webapp/kubernetes
           kubectl-args: |
