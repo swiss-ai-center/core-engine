@@ -59,8 +59,8 @@ jobs:
         uses: ./.github/actions/run-ml-experiment-with-dvc
         with:
           ml-experiment-path: ./services/digit-recognition/model-creation
-          aws-access-key-id: ${{ secrets.DIGIT_RECOGNITION_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.DIGIT_RECOGNITION_AWS_SECRET_ACCESS_KEY }}
+          s3-access-key-id: ${{ secrets.DIGIT_RECOGNITION_S3_ACCESS_KEY_ID }}
+          s3-secret-access-key: ${{ secrets.DIGIT_RECOGNITION_S3_SECRET_ACCESS_KEY }}
 
       - name: Upload model
         uses: actions/upload-artifact@v3
