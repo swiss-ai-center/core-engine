@@ -11,6 +11,7 @@ on:
   push:
     branches:
       - main
+      - prod
     paths:
       - .github/actions/build-and-push-docker-image-to-github/action.yml
       - .github/actions/execute-command-on-kubernetes-cluster/action.yml
@@ -113,7 +114,7 @@ jobs:
     outputs:
       docker-image-tags: ${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}
 
-  deploy:
+  deploy-dev:
     needs: release
     runs-on: ubuntu-latest
     # Only run on main
@@ -136,8 +137,55 @@ jobs:
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" digit-recognition.stateful.yml > new-digit-recognition.stateful.yml && mv new-digit-recognition.stateful.yml digit-recognition.stateful.yml
 
-          # Set digit-recognition configuration
+          # Set digit-recognition configuration (ConfigMap)
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' digit-recognition.config-map.yml | envsubst > new-digit-recognition.config-map.yml && mv new-digit-recognition.config-map.yml digit-recognition.config-map.yml
+
+          # Set digit-recognition configuration (Ingress)
+          yq ".spec.rules[0].host = \"$SERVICE_URL\"" digit-recognition.ingress.yml > digit-recognition.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" digit-recognition.ingress.yml > digit-recognition.ingress.yml
+
+      - name: Deploy digit-recognition on the Kubernetes cluster
+        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        with:
+          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-namespace: csia-pme-prod
+          kubectl-context: ./services/digit-recognition/model-serving/kubernetes
+          kubectl-args: |
+            apply \
+              -f digit-recognition.config-map.yml \
+              -f digit-recognition.stateful.yml \
+              -f digit-recognition.service.yml \
+              -f digit-recognition.ingress.yml
+
+  deploy-prod:
+    needs: release
+    runs-on: ubuntu-latest
+    # Only run on prod
+    if: success() && github.ref == 'refs/heads/prod'
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Prepare configuration files
+        shell: bash
+        working-directory: services/digit-recognition/model-serving/kubernetes
+        env:
+          ENVIRONMENT: production
+          LOG_LEVEL: info
+          ENGINE_URLS: "'[\"https://engine-csia-pme.kube.isc.heia-fr.ch\"]'"
+          SERVICE_URL: https://digit-recognition-csia-pme.kube.isc.heia-fr.ch
+        run: |
+          # Set digit-recognition version
+          docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" digit-recognition.stateful.yml > new-digit-recognition.stateful.yml && mv new-digit-recognition.stateful.yml digit-recognition.stateful.yml
+
+          # Set digit-recognition configuration (ConfigMap)
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' digit-recognition.config-map.yml | envsubst > new-digit-recognition.config-map.yml && mv new-digit-recognition.config-map.yml digit-recognition.config-map.yml
+
+          # Set digit-recognition configuration (Ingress)
+          yq ".spec.rules[0].host = \"$SERVICE_URL\"" digit-recognition.ingress.yml > digit-recognition.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" digit-recognition.ingress.yml > digit-recognition.ingress.yml
 
       - name: Deploy digit-recognition on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster

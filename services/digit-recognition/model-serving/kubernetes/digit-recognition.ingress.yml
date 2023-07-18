@@ -7,16 +7,16 @@ metadata:
     nginx.org/client-max-body-size: "16m"
 spec:
   rules:
-  - host: digit-recognition-csia-pme.kube.isc.heia-fr.ch
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: digit-recognition-service
-            port:
-              number: 80
+    - host: digit-recognition-csia-pme.kube.isc.heia-fr.ch
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: digit-recognition-service
+                port:
+                  number: 80
   tls:
     - hosts:
         - digit-recognition-csia-pme.kube.isc.heia-fr.ch
