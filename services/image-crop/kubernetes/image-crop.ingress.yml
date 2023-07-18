@@ -7,16 +7,16 @@ metadata:
     nginx.org/client-max-body-size: "16m"
 spec:
   rules:
-  - host: image-crop-csia-pme.kube.isc.heia-fr.ch
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: image-crop-service
-            port:
-              number: 80
+    - host: image-crop-csia-pme.kube.isc.heia-fr.ch
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: image-crop-service
+                port:
+                  number: 80
   tls:
     - hosts:
         - image-crop-csia-pme.kube.isc.heia-fr.ch

@@ -11,6 +11,7 @@ on:
   push:
     branches:
       - main
+      - prod
     paths:
       - .github/actions/build-and-push-docker-image-to-github/action.yml
       - .github/actions/execute-command-on-kubernetes-cluster/action.yml
@@ -57,8 +58,8 @@ jobs:
         uses: ./.github/actions/run-ml-experiment-with-dvc
         with:
           ml-experiment-path: ./services/ae-ano-detection/model-creation
-          aws-access-key-id: ${{ secrets.AE_ANO_DETECTION_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AE_ANO_DETECTION_AWS_SECRET_ACCESS_KEY }}
+          s3-access-key-id: ${{ secrets.AE_ANO_DETECTION_S3_ACCESS_KEY_ID }}
+          s3-secret-access-key: ${{ secrets.AE_ANO_DETECTION_S3_SECRET_ACCESS_KEY }}
 
       - name: Upload model
         uses: actions/upload-artifact@v3
@@ -112,7 +113,7 @@ jobs:
     outputs:
       docker-image-tags: ${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}
 
-  deploy:
+  deploy-dev:
     needs: release
     runs-on: ubuntu-latest
     # Only run on main
@@ -135,13 +136,60 @@ jobs:
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" ae-ano-detection.stateful.yml > new-ae-ano-detection.stateful.yml && mv new-ae-ano-detection.stateful.yml ae-ano-detection.stateful.yml
 
-          # Set ae-ano-detection configuration
+          # Set ae-ano-detection configuration (ConfigMap)
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' ae-ano-detection.config-map.yml | envsubst > new-ae-ano-detection.config-map.yml && mv new-ae-ano-detection.config-map.yml ae-ano-detection.config-map.yml
+
+          # Set ae-ano-detection configuration (Ingress)
+          yq ".spec.rules[0].host = \"$SERVICE_URL\"" ae-ano-detection.ingress.yml > ae-ano-detection.config-map.yml
+          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" ae-ano-detection.ingress.yml > ae-ano-detection.config-map.yml
 
       - name: Deploy ae-ano-detection on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
-          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
+          kube-namespace: csia-pme-dev
+          kubectl-context: ./services/ae-ano-detection/model-serving/kubernetes
+          kubectl-args: |
+            apply \
+              -f ae-ano-detection.config-map.yml \
+              -f ae-ano-detection.stateful.yml \
+              -f ae-ano-detection.service.yml \
+              -f ae-ano-detection.ingress.yml
+
+  deploy-prod:
+    needs: release
+    runs-on: ubuntu-latest
+    # Only run on prod
+    if: success() && github.ref == 'refs/heads/prod'
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Prepare configuration files
+        shell: bash
+        working-directory: services/ae-ano-detection/model-serving/kubernetes
+        env:
+          ENVIRONMENT: production
+          LOG_LEVEL: info
+          ENGINE_URLS: "'[\"https://engine-csia-pme.kube.isc.heia-fr.ch\"]'"
+          SERVICE_URL: https://ae-ano-detection-csia-pme.kube.isc.heia-fr.ch
+        run: |
+          # Set ae-ano-detection version
+          docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" ae-ano-detection.stateful.yml > new-ae-ano-detection.stateful.yml && mv new-ae-ano-detection.stateful.yml ae-ano-detection.stateful.yml
+
+          # Set ae-ano-detection configuration (ConfigMap)
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' ae-ano-detection.config-map.yml | envsubst > new-ae-ano-detection.config-map.yml && mv new-ae-ano-detection.config-map.yml ae-ano-detection.config-map.yml
+
+          # Set ae-ano-detection configuration (Ingress)
+          yq ".spec.rules[0].host = \"$SERVICE_URL\"" ae-ano-detection.ingress.yml > ae-ano-detection.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" ae-ano-detection.ingress.yml > ae-ano-detection.ingress.yml
+
+      - name: Deploy ae-ano-detection on the Kubernetes cluster
+        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        with:
+          kube-config: ${{ secrets.KUBE_CONFIG_PROD }}
           kube-namespace: csia-pme-prod
           kubectl-context: ./services/ae-ano-detection/model-serving/kubernetes
           kubectl-args: |

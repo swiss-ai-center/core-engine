@@ -11,6 +11,7 @@ on:
   push:
     branches:
       - main
+      - prod
     paths:
       - .github/actions/build-and-push-docker-image-to-github/action.yml
       - .github/actions/execute-command-on-kubernetes-cluster/action.yml
@@ -78,7 +79,7 @@ jobs:
     outputs:
       docker-image-tags: ${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}
 
-  deploy:
+  deploy-dev:
     needs: release
     runs-on: ubuntu-latest
     # Only run on main
@@ -101,13 +102,60 @@ jobs:
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" image-convert.stateful.yml > new-image-convert.stateful.yml && mv new-image-convert.stateful.yml image-convert.stateful.yml
 
-          # Set image-convert configuration
+          # Set image-convert configuration (ConfigMap)
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' image-convert.config-map.yml | envsubst > new-image-convert.config-map.yml && mv new-image-convert.config-map.yml image-convert.config-map.yml
+
+          # Set image-convert configuration (Ingress)
+          yq ".spec.rules[0].host = \"$SERVICE_URL\"" image-convert.ingress.yml > image-convert.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" image-convert.ingress.yml > image-convert.ingress.yml
 
       - name: Deploy image-convert on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
-          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
+          kube-namespace: csia-pme-dev
+          kubectl-context: ./services/image-convert/kubernetes
+          kubectl-args: |
+            apply \
+              -f image-convert.config-map.yml \
+              -f image-convert.stateful.yml \
+              -f image-convert.service.yml \
+              -f image-convert.ingress.yml
+
+  deploy-prod:
+    needs: release
+    runs-on: ubuntu-latest
+    # Only run on prod
+    if: success() && github.ref == 'refs/heads/prod'
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Prepare configuration files
+        shell: bash
+        working-directory: services/image-convert/kubernetes
+        env:
+          ENVIRONMENT: production
+          LOG_LEVEL: info
+          ENGINE_URLS: "'[\"https://engine-csia-pme.kube.isc.heia-fr.ch\"]'"
+          SERVICE_URL: https://image-convert-csia-pme.kube.isc.heia-fr.ch
+        run: |
+          # Set image-convert version
+          docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" image-convert.stateful.yml > new-image-convert.stateful.yml && mv new-image-convert.stateful.yml image-convert.stateful.yml
+
+          # Set image-convert configuration (ConfigMap)
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' image-convert.config-map.yml | envsubst > new-image-convert.config-map.yml && mv new-image-convert.config-map.yml image-convert.config-map.yml
+
+          # Set image-convert configuration (Ingress)
+          yq ".spec.rules[0].host = \"$SERVICE_URL\"" image-convert.ingress.yml > image-convert.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" image-convert.ingress.yml > image-convert.ingress.yml
+
+      - name: Deploy image-convert on the Kubernetes cluster
+        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        with:
+          kube-config: ${{ secrets.KUBE_CONFIG_PROD }}
           kube-namespace: csia-pme-prod
           kubectl-context: ./services/image-convert/kubernetes
           kubectl-args: |

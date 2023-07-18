@@ -11,6 +11,7 @@ on:
   push:
     branches:
       - main
+      - prod
     paths:
       - .github/actions/build-and-push-docker-image-to-github/action.yml
       - .github/actions/execute-command-on-kubernetes-cluster/action.yml
@@ -78,7 +79,7 @@ jobs:
     outputs:
       docker-image-tags: ${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}
 
-  deploy:
+  deploy-dev:
     needs: release
     runs-on: ubuntu-latest
     # Only run on main
@@ -101,13 +102,60 @@ jobs:
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" face-analyzer.stateful.yml > new-face-analyzer.stateful.yml && mv new-face-analyzer.stateful.yml face-analyzer.stateful.yml
 
-          # Set face-analyzer configuration
+          # Set face-analyzer configuration (ConfigMap)
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' face-analyzer.config-map.yml | envsubst > new-face-analyzer.config-map.yml && mv new-face-analyzer.config-map.yml face-analyzer.config-map.yml
+
+          # Set face-analyzer configuration (Ingress)
+          yq ".spec.rules[0].host = \"$SERVICE_URL\"" face-analyzer.ingress.yml > face-analyzer.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" face-analyzer.ingress.yml > face-analyzer.ingress.yml
 
       - name: Deploy face-analyzer on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
-          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
+          kube-namespace: csia-pme-dev
+          kubectl-context: ./services/face-analyzer/kubernetes
+          kubectl-args: |
+            apply \
+              -f face-analyzer.config-map.yml \
+              -f face-analyzer.stateful.yml \
+              -f face-analyzer.service.yml \
+              -f face-analyzer.ingress.yml
+
+  deploy-prod:
+    needs: release
+    runs-on: ubuntu-latest
+    # Only run on prod
+    if: success() && github.ref == 'refs/heads/prod'
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Prepare configuration files
+        shell: bash
+        working-directory: services/face-analyzer/kubernetes
+        env:
+          ENVIRONMENT: production
+          LOG_LEVEL: info
+          ENGINE_URLS: "'[\"https://engine-csia-pme.kube.isc.heia-fr.ch\"]'"
+          SERVICE_URL: https://face-analyzer-csia-pme.kube.isc.heia-fr.ch
+        run: |
+          # Set face-analyzer version
+          docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" face-analyzer.stateful.yml > new-face-analyzer.stateful.yml && mv new-face-analyzer.stateful.yml face-analyzer.stateful.yml
+
+          # Set face-analyzer configuration (ConfigMap)
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' face-analyzer.config-map.yml | envsubst > new-face-analyzer.config-map.yml && mv new-face-analyzer.config-map.yml face-analyzer.config-map.yml
+
+          # Set face-analyzer configuration (Ingress)
+          yq ".spec.rules[0].host = \"$SERVICE_URL\"" face-analyzer.ingress.yml > face-analyzer.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"$SERVICE_URL\"" face-analyzer.ingress.yml > face-analyzer.ingress.yml
+
+      - name: Deploy face-analyzer on the Kubernetes cluster
+        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        with:
+          kube-config: ${{ secrets.KUBE_CONFIG_PROD }}
           kube-namespace: csia-pme-prod
           kubectl-context: ./services/face-analyzer/kubernetes
           kubectl-args: |
