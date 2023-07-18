@@ -112,8 +112,8 @@ jobs:
       - name: Deploy image-sam on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
-          kube-config: ${{ secrets.KUBE_CONFIG }}
-          kube-namespace: csia-pme-prod
+          kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
+          kube-namespace: csia-pme-dev
           kubectl-context: ./services/image-sam/kubernetes
           kubectl-args: |
             apply \

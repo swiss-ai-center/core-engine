@@ -118,7 +118,7 @@ jobs:
       - name: Deploy Engine on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
-          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-config: ${{ secrets.KUBE_CONFIG_PROD }}
           kube-namespace: csia-pme-prod
           kubectl-context: ./engine/kubernetes
           kubectl-args: |

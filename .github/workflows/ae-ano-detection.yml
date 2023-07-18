@@ -147,7 +147,7 @@ jobs:
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
           kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
-          kube-namespace: csia-pme-prod
+          kube-namespace: csia-pme-dev
           kubectl-context: ./services/ae-ano-detection/model-serving/kubernetes
           kubectl-args: |
             apply \
@@ -189,7 +189,7 @@ jobs:
       - name: Deploy ae-ano-detection on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
-          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-config: ${{ secrets.KUBE_CONFIG_PROD }}
           kube-namespace: csia-pme-prod
           kubectl-context: ./services/ae-ano-detection/model-serving/kubernetes
           kubectl-args: |

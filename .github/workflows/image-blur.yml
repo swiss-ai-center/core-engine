@@ -112,8 +112,8 @@ jobs:
       - name: Deploy image-blur on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
-          kube-config: ${{ secrets.KUBE_CONFIG }}
-          kube-namespace: csia-pme-prod
+          kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
+          kube-namespace: csia-pme-dev
           kubectl-context: ./services/image-blur/kubernetes
           kubectl-args: |
             apply \
@@ -155,7 +155,7 @@ jobs:
       - name: Deploy image-blur on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
-          kube-config: ${{ secrets.KUBE_CONFIG }}
+          kube-config: ${{ secrets.KUBE_CONFIG_PROD }}
           kube-namespace: csia-pme-prod
           kubectl-context: ./services/image-blur/kubernetes
           kubectl-args: |
