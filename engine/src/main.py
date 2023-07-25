@@ -78,16 +78,12 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_json()
-            print(data)
             connection_manager.set_linked_id(websocket, data["linked_id"])
             connection_manager.set_execution_type(websocket, data["execution_type"])
-            print(connection_manager.active_connections)
             await connection_manager.send_json(
                 {"message": f"Connection linked to {data['linked_id']} with execution type {data['execution_type']}"},
                 data["linked_id"],
             )
-            await connection_manager.broadcast_json(
-                {"message": f"Client #{data['linked_id']} says: {data['execution_type']}"})
     except WebSocketDisconnect:
         connection_manager.disconnect(websocket)
         await connection_manager.broadcast("Client disconnected")
@@ -104,7 +100,6 @@ async def startup_event():
     session_generator = get_session(engine)
     session = next(session_generator)
     http_client = HttpClient()
-    # connection_manager = get_connection_manager()
 
     storage_service = StorageService(
         logger=get_logger(settings),
@@ -165,8 +160,5 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    global connection_manager
     for timer in timers:
         timer.stop()
-    for connection in connection_manager.active_connections:
-        await connection_manager.disconnect(connection.websocket)

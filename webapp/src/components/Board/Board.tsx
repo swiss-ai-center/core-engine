@@ -73,10 +73,6 @@ const Board: React.FC<{ description: any }> = ({description}) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastJsonMessage, setTaskUpdates]);
 
-    React.useEffect(() => {
-        console.log(fileArray);
-    }, [fileArray]);
-
     return (
         <ReactFlowProvider>
             <ReactFlow

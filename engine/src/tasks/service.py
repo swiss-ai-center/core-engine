@@ -1,3 +1,4 @@
+import asyncio
 import json
 import re
 from fastapi import Depends, HTTPException
@@ -145,7 +146,7 @@ class TasksService:
 
         return task
 
-    async def update(self, task_id: UUID, task: TaskUpdate):
+    def update(self, task_id: UUID, task: TaskUpdate):
         """
         Update task
         :param task_id: id of task to update
@@ -162,14 +163,18 @@ class TasksService:
         for key, value in task_data.items():
             setattr(current_task, key, value)
 
-        if not current_task.pipeline_execution_id:
-            print("active connections: ", self.connection_manager.active_connections)
-            await self.connection_manager.send_json(current_task.dict(), task_id)
-
         self.session.add(current_task)
         self.session.commit()
         self.session.refresh(current_task)
         self.logger.debug(f"Updated task with id {current_task.id}")
+
+        if not current_task.pipeline_execution_id:
+            self.logger.debug(f"Sending task {current_task} to client")
+            try:
+                asyncio.ensure_future(self.connection_manager.send_json(jsonable_encoder(current_task), task_id))
+            except Exception as e:
+                self.logger.error(f"Could not send task {current_task} to client: {e}")
+
         return current_task
 
     def delete(self, task_id: UUID):
@@ -369,7 +374,7 @@ class TasksService:
                     if res.status_code != 200:
                         raise HTTPException(status_code=res.status_code, detail=res.text)
 
-                    await self.connection_manager.send_json(task.dict(), pipeline_execution.id)
+                    asyncio.ensure_future(self.connection_manager.send_json(task.dict(), pipeline_execution.id))
 
                     self.logger.debug(f"Launched next step in pipeline with id {pipeline_execution.id}")
 

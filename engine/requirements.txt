@@ -12,3 +12,4 @@ sqlmodel==0.0.8
 testcontainers-core==0.0.1rc1
 testcontainers-minio==0.0.1rc1
 testcontainers-postgres==0.0.1rc1
+websockets==11.0.3

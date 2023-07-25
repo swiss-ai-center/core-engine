@@ -103,7 +103,7 @@ async def update(
 ):
     try:
         # Update the task
-        task = await tasks_service.update(task_id, task_update)
+        task = tasks_service.update(task_id, task_update)
 
         # Check if the task is linked to a pipeline_execution
         if task.pipeline_execution_id:

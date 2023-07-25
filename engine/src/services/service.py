@@ -276,7 +276,7 @@ class ServicesService:
     def delete(self, service_id: UUID, app: FastAPI):
         """
         Delete a service.
-        :param service_id: The id of the service to delete.
+        :param service_id: The id of the service to delete
         :param app: The FastAPI app reference
         """
         self.logger.debug("Delete service")
@@ -308,12 +308,12 @@ class ServicesService:
         # Set the service as available
         updated_service = self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.AVAILABLE))
 
-        self.logger.debug(f"Service {service.name} status set to {updated_service.status.value}")
+        self.logger.debug(f"Service {updated_service.name} status set to {updated_service.status.value}")
 
         is_service_route_present = False
 
         for route in app.routes:
-            if route.path == f"/{service.slug}":
+            if route.path == f"/{updated_service.slug}":
                 is_service_route_present = True
                 break
 
@@ -321,7 +321,7 @@ class ServicesService:
         if not is_service_route_present:
             # Create the `handler` signature from service's `data_in_fields`
             handler_params = []
-            for data_in_field in service.data_in_fields:
+            for data_in_field in updated_service.data_in_fields:
                 handler_params.append(
                     Parameter(
                         data_in_field["name"],
@@ -330,7 +330,7 @@ class ServicesService:
                     )
                 )
 
-            service_id = service.id
+            service_id = updated_service.id
 
             @with_signature(Signature(handler_params))
             async def handler(*args, **kwargs: UploadFile):
@@ -355,10 +355,10 @@ class ServicesService:
                     file_content_type = file.content_type
 
                     # Get the file name of the part
-                    file_part_name = service.data_in_fields[param_index]["name"]
+                    file_part_name = updated_service.data_in_fields[param_index]["name"]
 
                     # Get the accepted content types for the file
-                    accepted_file_content_types = service.data_in_fields[param_index]["type"]
+                    accepted_file_content_types = updated_service.data_in_fields[param_index]["type"]
 
                     # Check if the content type of the uploaded file is accepted
                     if file_content_type not in accepted_file_content_types:
@@ -412,7 +412,7 @@ class ServicesService:
                     for task_file in task_files:
                         await self.storage_service.delete(task_file)
 
-                    self.logger.debug("Files from storage removed.")
+                    self.logger.debug("Files removed from storage.")
 
                     self.logger.debug("Removing task...")
 
@@ -423,36 +423,36 @@ class ServicesService:
 
                     raise HTTPException(
                         status_code=500,
-                        detail=f"The submission of the task to the service '{service.name}' has failed."
+                        detail=f"The submission of the task to the service '{updated_service.name}' has failed."
                     )
 
                 # Submit the service task to the remote service
                 try:
-                    res = await self.http_client.post(f"{service.url}/compute", json=jsonable_encoder(service_task))
+                    res = await self.http_client.post(f"{updated_service.url}/compute", json=jsonable_encoder(service_task))
 
                     if res.status_code != 200:
                         raise HTTPException(status_code=res.status_code, detail=res.text)
                 except HTTPException as e:
-                    self.logger.warning(f"Service {service.name} returned an error: {str(e)}")
+                    self.logger.warning(f"Service {updated_service.name} returned an error: {str(e)}")
                     await clean_up()
                     raise e
                 except HTTPError as e:
-                    self.logger.error(f"Sending request to the service {service.name} failed: {str(e)}")
+                    self.logger.error(f"Sending request to the service {updated_service.name} failed: {str(e)}")
                     await clean_up()
                     raise HTTPException(
                         status_code=500,
-                        detail=f"Sending request to the service {service.name} failed: {str(e)}",
+                        detail=f"Sending request to the service {updated_service.name} failed: {str(e)}",
                     )
                 else:
                     # Return the created task to the end-user
                     return task
 
             app.add_api_route(
-                f"/{service.slug}",
+                f"/{updated_service.slug}",
                 handler,
                 methods=["POST"],
-                summary=service.summary,
-                description=service.description,
+                summary=updated_service.summary,
+                description=updated_service.description,
                 tags=[REGISTERED_SERVICES_TAG],
                 responses={
                     400: {"detail": "Invalid Content Type"},

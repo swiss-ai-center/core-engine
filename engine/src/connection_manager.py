@@ -1,3 +1,4 @@
+import json
 from enum import Enum
 from typing import List
 from fastapi import WebSocket
@@ -28,7 +29,10 @@ class ConnectionManager:
 
     def find_by_linked_id(self, linked_id: UUID):
         for connection in self.active_connections:
-            if connection.linked_id == linked_id:
+            print(connection.linked_id, linked_id,connection.linked_id == linked_id)
+            print(type(connection.linked_id), type(linked_id))
+            if str(connection.linked_id) == str(linked_id):
+                print(connection.linked_id, linked_id)
                 return connection
         return None
 
@@ -69,7 +73,7 @@ class ConnectionManager:
     async def send_json(self, message: dict, linked_id: UUID):
         connection = self.find_by_linked_id(linked_id)
         if connection:
-            await connection.websocket.send_json(message)
+            await connection.websocket.send_json(json.dumps(message))
 
     async def send_json_websocket(self, message: dict, websocket: WebSocket):
         await websocket.send_json(message)
