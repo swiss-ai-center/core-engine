@@ -19,12 +19,12 @@ import {
 import Grid from '@mui/material/Unstable_Grid2';
 import { getPipelines, getServices } from '../../utils/api';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useNotification } from '../../utils/useNotification';
 import "./styles.css";
 import { Tags } from '../../enums/tagEnums';
 import { Tag } from '../../models/Tag';
 import { useDispatch, useSelector } from 'react-redux';
 import { setServicePerPage, setPipelinePerPage } from '../../utils/reducers/perPageSlice';
+import { toast } from 'react-toastify';
 
 // min width is 100% for mobile, 50% for tablet, 33% for desktop
 const minWidth = (window.innerWidth < 600) ? '100%' : (window.innerWidth < 900) ? '50%' : '33%';
@@ -46,7 +46,6 @@ const ItemGrid: React.FC<{
     const [searchParams] = useSearchParams();
     const [pipelines, setPipelines] = React.useState([]);
     const [services, setServices] = React.useState([]);
-    const {displayNotification} = useNotification();
 
     const setServicesPerPage = (value: number) => {
         setPageService(1);
@@ -62,12 +61,18 @@ const ItemGrid: React.FC<{
         const skip = (pageService - 1) * servicesPerPage;
         const servicesList = await getServices(filter, skip, servicesPerPage, orderBy, tags);
         if (servicesList) {
-            setServices(servicesList.services);
-            setServiceCount(servicesList.count);
+            if (servicesList.services.length === 0) {
+                setServices([]);
+                setServiceCount(0);
+                toast("No services found", {type: "info"});
+            } else {
+                setServices(servicesList.services);
+                setServiceCount(servicesList.count);
+            }
         } else {
             setServices([]);
             setServiceCount(0);
-            displayNotification({message: "No services found", type: "info"});
+            toast("Error while fetching services", {type: "error"});
         }
     }
 
@@ -75,12 +80,18 @@ const ItemGrid: React.FC<{
         const skip = (pagePipeline - 1) * pipelinesPerPage;
         const pipelinesList = await getPipelines(filter, skip, pipelinesPerPage, orderBy, tags);
         if (pipelinesList) {
-            setPipelines(pipelinesList.pipelines);
-            setPipelineCount(pipelinesList.count);
+            if (pipelinesList.pipelines.length === 0) {
+                setPipelines([]);
+                setPipelineCount(0);
+                toast("No pipelines found", {type: "info"});
+            } else {
+                setPipelines(pipelinesList.pipelines);
+                setPipelineCount(pipelinesList.count);
+            }
         } else {
             setPipelines([]);
             setPipelineCount(0);
-            displayNotification({message: "No pipelines found", type: "info"});
+            toast("Error while fetching pipelines", {type: "error"});
         }
     }
 
@@ -189,7 +200,7 @@ const ItemGrid: React.FC<{
     }, [pageService, pagePipeline, orderBy, tags]);
 
     React.useEffect(() => {
-        // on filter change, use listElements to update the list only if the user stopped typing for 1000ms
+        // on filter change, use listElements to update the list only if the user stopped typing for 300ms
         const timeout = setTimeout(() => {
             setIsReady(false);
             setPageService(1);

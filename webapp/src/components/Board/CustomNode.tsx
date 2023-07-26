@@ -11,10 +11,10 @@ import {
 } from '../../utils/reducers/runStateSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { getResult, postToEngine } from '../../utils/api';
-import { useNotification } from '../../utils/useNotification';
 import { FieldDescription, FieldDescriptionWithSetAndValue } from '../../models/ExecutionUnit';
 import { useFileArray } from '../../utils/hooks/fileArray';
 import { useWebSocketConnection } from '../../utils/useWebSocketConnection';
+import { toast } from 'react-toastify';
 
 function createAllowedTypesString(allowedTypes: string[]) {
     return allowedTypes.join(', ');
@@ -32,7 +32,6 @@ const CustomNode = ({data, styles}: any) => {
     const run = useSelector((state: any) => state.runState.value);
     useSelector((state: any) => state.runState.taskId);
     const resultIdList = useSelector((state: any) => state.runState.resultIdList);
-    const {displayNotification} = useNotification();
     const {sendJsonMessage} = useWebSocketConnection();
 
     const [areItemsUploaded, setAreItemsUploaded] = React.useState(false);
@@ -59,7 +58,8 @@ const CustomNode = ({data, styles}: any) => {
 
     const downloadResult = async () => {
         for (const id of resultIdList) {
-            const file = await getResult(id);
+            const file: any = await getResult(id);
+            console.log(file);
             if (file) {
                 const link = document.createElement('a');
                 link.href = window.URL.createObjectURL(file);
@@ -67,12 +67,7 @@ const CustomNode = ({data, styles}: any) => {
                 document.body.appendChild(link);
                 link.click();
             } else {
-                displayNotification({
-                    message: "Error downloading file" + id,
-                    type: "error",
-                    open: true,
-                    timeout: 2000
-                });
+                toast(`Error downloading file ${id}`, {type: "error"});
             }
         }
     }
@@ -82,18 +77,13 @@ const CustomNode = ({data, styles}: any) => {
         if (response.id) {
             dispatch(setRunState(RunState.RUNNING));
             dispatch(setTaskId(response.id));
-            displayNotification({message: "Pipeline started", type: "success", open: true, timeout: 2000});
+            toast(`Pipeline started`, {type: "success"});
             sendJsonMessage({
                 linked_id: response.id,
                 execution_type: data.executionType,
             });
         } else {
-            displayNotification({
-                message: `Error while running pipeline: ${response.detail}`,
-                type: "error",
-                open: true,
-                timeout: 2000
-            });
+            toast(`Error while running pipeline: ${response.detail}`, {type: "error"});
         }
     }
 

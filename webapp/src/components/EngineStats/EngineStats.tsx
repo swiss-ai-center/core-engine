@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { alpha, Box, Grid, IconButton, Modal, styled, Typography } from '@mui/material';
+import { alpha, Box, CircularProgress, Grid, IconButton, Modal, styled, Typography } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { DataGrid, gridClasses } from '@mui/x-data-grid';
 import { getStats } from '../../utils/api';
-import { useNotification } from '../../utils/useNotification';
+import { toast } from 'react-toastify';
 
 const style = {
     position: 'absolute' as 'absolute',
@@ -93,20 +93,21 @@ export const EngineStats: React.FC<{
         {field: 'status', headerName: 'Status', width: 150},
         {field: 'count', headerName: 'Count', width: 120},
     ]
-    const [stats, setStats] = useState<any>({})
-    const {displayNotification} = useNotification();
+    const [isReady, setIsReady] = useState(false);
+    const [stats, setStats] = useState<any>({});
 
     const loadStats = async () => {
-        getStats()
-            .then((resp) => {
-                setStats(resp);
-            })
-            .catch((err) => {
-                displayNotification({message: `Error loading engine stats: ${err}`, type: "error"});
-            })
+        const stats = await getStats();
+        if (stats) {
+            setStats(stats);
+        } else {
+            toast("Error loading engine stats", {type: "error"});
+        }
+        setIsReady(true);
     }
 
     useEffect(() => {
+        setIsReady(false);
         loadStats();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [trigger])
@@ -130,91 +131,97 @@ export const EngineStats: React.FC<{
                     <CloseIcon/>
                 </IconButton>
                 <Box sx={{mt: 2}}>
-                    {stats.summary && stats.summary.length > 0 &&
-                        <Box sx={{height: 250, width: '100%'}}>
-                            <Typography id={"modal-modal-title"} variant={"h5"} color={"primary"}
-                                        component={"h2"} marginY={2}>
-                                Summary (Total tasks: {stats.total})
-                            </Typography>
-                            <StripedDataGrid
-                                sx={{textTransform: 'uppercase', borderColor: 'primary.main'}} hideFooter={true}
-                                rows={stats.summary.map((row: any, index: number) => {
-                                    return {...row, id: index}
-                                })}
-                                columns={columns}
-                                getRowClassName={(params) =>
-                                    params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
-                                }
-                            />
-                        </Box>
-                    }
-                    {stats.services && stats.services.length > 0 &&
-                        <Box marginTop={8} marginBottom={4}>
-                            <Typography id={"modal-modal-title"} variant={"h5"} color={"primary"}
-                                        component={"h2"} marginTop={2}>
-                                Services
-                            </Typography>
-                            <Grid container spacing={2} rowSpacing={6}>
-                                {stats.services.map((service: any, index: number) => {
-                                    return (
-                                        <Grid item xs={12} md={6} lg={4} key={index}>
-                                            <Box sx={{height: 250, width: 'auto'}}>
-                                                <Typography id="modal-modal-title" variant="h6" component="h4">
-                                                    {service.service_name} (Total tasks: {service.total})
-                                                </Typography>
-                                                <StripedDataGrid
-                                                    sx={{
-                                                        textTransform: 'uppercase',
-                                                        borderColor: 'primary.main'
-                                                    }} hideFooter={true}
-                                                    rows={service.status.map((row: any, index: number) => {
-                                                        return {...row, id: index};
-                                                    })}
-                                                    columns={columns}
-                                                    getRowClassName={(params) =>
-                                                        params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
-                                                    }
-                                                />
-                                            </Box>
-                                        </Grid>
-                                    )
-                                })}
-                            </Grid>
-                        </Box>
-                    }
-                    {stats.pipelines && stats.pipelines.length > 0 &&
-                        <Box marginTop={8} marginBottom={4}>
-                            <Typography id={"modal-modal-title"} variant={"h5"} color={"primary"}
-                                        component={"h2"} marginTop={2}>
-                                Pipelines
-                            </Typography>
-                            <Grid container spacing={2} rowSpacing={6}>
-                                {stats.pipelines.map((pipeline: any, index: number) => {
-                                    return (
-                                        <Grid item xs={12} md={6} lg={4} key={index}>
-                                            <Box sx={{height: 250, width: 'auto'}}>
-                                                <Typography id="modal-modal-title" variant="h6" component="h4">
-                                                    {pipeline.pipeline_name}
-                                                </Typography>
-                                                <StripedDataGrid
-                                                    sx={{
-                                                        textTransform: 'uppercase',
-                                                        borderColor: 'primary.main'
-                                                    }} hideFooter={true}
-                                                    rows={pipeline.status.map((row: any, index: number) => {
-                                                        return {...row, id: index};
-                                                    })}
-                                                    columns={columns}
-                                                    getRowClassName={(params) =>
-                                                        params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
-                                                    }
-                                                />
-                                            </Box>
-                                        </Grid>
-                                    )
-                                })}
-                            </Grid>
-                        </Box>
+                    {!isReady ?
+                        <CircularProgress/>
+                        :
+                        <>
+                            {stats.summary && stats.summary.length > 0 &&
+                                <Box sx={{height: 250, width: '100%'}}>
+                                    <Typography id={"modal-modal-title"} variant={"h5"} color={"primary"}
+                                                component={"h2"} marginY={2}>
+                                        Summary (Total tasks: {stats.total})
+                                    </Typography>
+                                    <StripedDataGrid
+                                        sx={{textTransform: 'uppercase', borderColor: 'primary.main'}} hideFooter={true}
+                                        rows={stats.summary.map((row: any, index: number) => {
+                                            return {...row, id: index}
+                                        })}
+                                        columns={columns}
+                                        getRowClassName={(params) =>
+                                            params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
+                                        }
+                                    />
+                                </Box>
+                            }
+                            {stats.services && stats.services.length > 0 &&
+                                <Box marginTop={8} marginBottom={4}>
+                                    <Typography id={"modal-modal-title"} variant={"h5"} color={"primary"}
+                                                component={"h2"} marginTop={2}>
+                                        Services
+                                    </Typography>
+                                    <Grid container spacing={2} rowSpacing={6}>
+                                        {stats.services.map((service: any, index: number) => {
+                                            return (
+                                                <Grid item xs={12} md={6} lg={4} key={index}>
+                                                    <Box sx={{height: 250, width: 'auto'}}>
+                                                        <Typography id="modal-modal-title" variant="h6" component="h4">
+                                                            {service.service_name} (Total tasks: {service.total})
+                                                        </Typography>
+                                                        <StripedDataGrid
+                                                            sx={{
+                                                                textTransform: 'uppercase',
+                                                                borderColor: 'primary.main'
+                                                            }} hideFooter={true}
+                                                            rows={service.status.map((row: any, index: number) => {
+                                                                return {...row, id: index};
+                                                            })}
+                                                            columns={columns}
+                                                            getRowClassName={(params) =>
+                                                                params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
+                                                            }
+                                                        />
+                                                    </Box>
+                                                </Grid>
+                                            )
+                                        })}
+                                    </Grid>
+                                </Box>
+                            }
+                            {stats.pipelines && stats.pipelines.length > 0 &&
+                                <Box marginTop={8} marginBottom={4}>
+                                    <Typography id={"modal-modal-title"} variant={"h5"} color={"primary"}
+                                                component={"h2"} marginTop={2}>
+                                        Pipelines
+                                    </Typography>
+                                    <Grid container spacing={2} rowSpacing={6}>
+                                        {stats.pipelines.map((pipeline: any, index: number) => {
+                                            return (
+                                                <Grid item xs={12} md={6} lg={4} key={index}>
+                                                    <Box sx={{height: 250, width: 'auto'}}>
+                                                        <Typography id="modal-modal-title" variant="h6" component="h4">
+                                                            {pipeline.pipeline_name}
+                                                        </Typography>
+                                                        <StripedDataGrid
+                                                            sx={{
+                                                                textTransform: 'uppercase',
+                                                                borderColor: 'primary.main'
+                                                            }} hideFooter={true}
+                                                            rows={pipeline.status.map((row: any, index: number) => {
+                                                                return {...row, id: index};
+                                                            })}
+                                                            columns={columns}
+                                                            getRowClassName={(params) =>
+                                                                params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
+                                                            }
+                                                        />
+                                                    </Box>
+                                                </Grid>
+                                            )
+                                        })}
+                                    </Grid>
+                                </Box>
+                            }
+                        </>
                     }
                 </Box>
             </Box>

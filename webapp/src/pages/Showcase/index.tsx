@@ -5,14 +5,13 @@ import Board from '../../components/Board/Board';
 import { getPipelineDescription, getServiceDescription } from '../../utils/api';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
 import { OpenInNew, ArrowBack, Fullscreen } from '@mui/icons-material';
-import { useNotification } from '../../utils/useNotification';
 import { useNavigate } from 'react-router-dom';
 import Copyright from '../../components/Copyright/Copyright';
 import { DescriptionDrawer } from '../../components/DescriptionDrawer/DescriptionDrawer';
+import { toast } from 'react-toastify';
 
 
 const Showcase: React.FC<{ mobileOpen: boolean}> = ({mobileOpen}) => {
-    const {displayNotification} = useNotification();
     const params = useParams();
     const navigate = useNavigate();
     const [isReady, setIsReady] = React.useState(false);
@@ -28,7 +27,7 @@ const Showcase: React.FC<{ mobileOpen: boolean}> = ({mobileOpen}) => {
     const getDescription = async (id: string, type: string) => {
         setIsReady(false);
         if (!id || !type) {
-            displayNotification({message: "No id or type provided", type: "warning"});
+            toast("No id or type provided", {type: "warning"});
             navigateBack();
         }
         let desc = {};
@@ -41,12 +40,12 @@ const Showcase: React.FC<{ mobileOpen: boolean}> = ({mobileOpen}) => {
             if (desc) {
                 setDescription(desc);
             } else {
-                displayNotification({message: "No description found with this id", type: "warning"});
+                toast("No description found with this id", {type: "warning"});
                 navigateBack();
             }
             setIsReady(true);
         } catch (e: any) {
-            displayNotification({message: e.message, type: "error"});
+            toast("No description found with this id", {type: "warning"});
             navigateBack();
         }
     }

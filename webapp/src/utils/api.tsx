@@ -1,10 +1,20 @@
 import { FieldDescriptionWithSetAndValue } from '../models/ExecutionUnit';
 
+// Allow all origins
 const HEADERS = {
     'Access-Control-Allow-Origin': '*',
 }
 
 const createQuery = (unit: string, filter: string, skip: number, limit: number, orderBy: string, tags: string[]) => {
+    /*
+     * Function to create the query string for the engine
+     * unit: string - the unit to query (services or pipelines)
+     * filter: string - the search string
+     * skip: number - the number of items to skip
+     * limit: number - the number of items to return
+     * orderBy: string - the order by string
+     * tags: string[] - the tags to filter by
+     */
     const infos = orderBy.split('-');
     const prop = infos[0];
     const asc = infos[1] === 'asc';
@@ -31,66 +41,141 @@ const createQuery = (unit: string, filter: string, skip: number, limit: number, 
 }
 
 export const getServices = async (filter: string, skip: number, limit: number, orderBy: string, tags: string[]) => {
-    const query = createQuery('services', filter, skip, limit, orderBy, tags);
+    /*
+     * Function to fetch services from the engine
+     * filter: string - the search string
+     * skip: number - the number of items to skip
+     * limit: number - the number of items to return
+     * orderBy: string - the order by string
+     * tags: string[] - the tags to filter by
+     */
+    try {
+        const query = createQuery('services', filter, skip, limit, orderBy, tags);
 
-    const response = await fetch(query, {headers: HEADERS});
-    if (response.status === 200) {
-        return await response.json();
+        const response = await fetch(query, {headers: HEADERS});
+        if (response.status === 200) {
+            return await response.json();
+        }
+        return {services: [], count: 0};
+    } catch (error) {
+        console.log(`Error fetching services: ${error}`);
+        return null;
     }
-    return [];
 }
 
 export const getPipelines = async (filter: string, skip: number, limit: number, orderBy: string, tags: string[]) => {
-    const query = createQuery('pipelines', filter, skip, limit, orderBy, tags);
+    /*
+     * Function to fetch pipelines from the engine
+     * filter: string - the search string
+     * skip: number - the number of items to skip
+     * limit: number - the number of items to return
+     * orderBy: string - the order by string
+     * tags: string[] - the tags to filter by
+     */
+    try {
+        const query = createQuery('pipelines', filter, skip, limit, orderBy, tags);
 
-    const response = await fetch(query, {headers: HEADERS});
-    if (response.status === 200) {
-        return await response.json();
+        const response = await fetch(query, {headers: HEADERS});
+        if (response.status === 200) {
+            return await response.json();
+        }
+        return {pipelines: [], count: 0};
+    } catch (error) {
+        console.log(`Error fetching pipelines: ${error}`);
+        return null;
     }
-    return [];
 }
 
 export const getServiceDescription = async (id: string) => {
-    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + id, {headers: HEADERS});
-    if (response.status === 200) {
-        return await response.json();
+    /*
+     * Function to fetch a service description from the engine
+     * id: string - the id of the service
+     */
+    try {
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + id, {headers: HEADERS});
+        if (response.status === 200) {
+            return await response.json();
+        }
+        return null;
+    } catch (error) {
+        console.log(`Error fetching service description: ${error}`);
+        return null;
     }
-    return null;
 }
 
 export const getPipelineDescription = async (id: string) => {
-    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines/` + id, {headers: HEADERS});
-    if (response.status === 200) {
-        return await response.json();
+    /*
+     * Function to fetch a pipeline description from the engine
+     * id: string - the id of the pipeline
+     */
+    try {
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines/` + id, {headers: HEADERS});
+        if (response.status === 200) {
+            return await response.json();
+        }
+        return null;
+    } catch (error) {
+        console.log(`Error fetching pipeline description: ${error}`);
+        return null;
     }
-    return null;
 }
 
 export const getStats = async () => {
-    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/stats`, {headers: HEADERS});
-    if (response.status === 200) {
-        return await response.json();
+    /*
+     * Function to fetch stats from the engine
+     */
+    try {
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/stats`, {headers: HEADERS});
+        if (response.status === 200) {
+            return await response.json();
+        }
+        return null;
+    } catch (error) {
+        console.log(`Error fetching stats: ${error}`);
+        return null;
     }
-    return [];
 }
 
 export const getTask = async (id: string) => {
-    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/tasks/${id}`, {headers: HEADERS});
-    if (response.status === 200) {
-        return await response.json();
+    /*
+     * Function to fetch a task from the engine
+     * id: string - the id of the task
+     */
+    try {
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/tasks/${id}`, {headers: HEADERS});
+        if (response.status === 200) {
+            return await response.json();
+        }
+        return {total: 0, summary: []};
+    } catch (error) {
+        console.log(`Error fetching task: ${error}`);
+        return null;
     }
-    return [];
 }
 
 export const getResult = async (id: string) => {
-    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/storage/${id}`, {headers: HEADERS});
-    if (response.status === 200) {
-        return response.blob();
+    /*
+     * Function to fetch a result from the engine
+     * id: string - the id of the result
+     */
+    try {
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/storage/${id}`, {headers: HEADERS});
+        if (response.status === 200) {
+            return response.blob();
+        }
+        return "";
+    } catch (error) {
+        console.log(`Error fetching result: ${error}`);
+        return null;
     }
-    return "";
 }
 
 export const postToEngine = async (serviceSlug: string, parts: FieldDescriptionWithSetAndValue[]) => {
+    /*
+     * Function to post a task to the engine
+     * serviceSlug: string - the slug of the service
+     * parts: FieldDescriptionWithSetAndValue[] - the parts of the form data
+     */
     try {
         const body = new FormData();
 
@@ -122,8 +207,9 @@ export const postToEngine = async (serviceSlug: string, parts: FieldDescriptionW
                 return result;
             }
         }
-        return false;
+        return null;
     } catch (error) {
-        return error;
+        console.log(`Error posting to engine: ${error}`);
+        return null;
     }
 }

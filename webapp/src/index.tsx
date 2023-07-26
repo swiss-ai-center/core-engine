@@ -5,8 +5,9 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { Provider } from 'react-redux';
 import store from './utils/store';
-import { Notification } from './components/Notification/Notification';
 import { FileArrayProvider } from './utils/providers/fileArray';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
@@ -17,7 +18,10 @@ root.render(
         <Provider store={store}>
             <FileArrayProvider>
                 <App/>
-                <Notification/>
+                <ToastContainer
+                    position="bottom-left"
+                    theme={"colored"}
+                />
             </FileArrayProvider>
         </Provider>
     </React.StrictMode>
