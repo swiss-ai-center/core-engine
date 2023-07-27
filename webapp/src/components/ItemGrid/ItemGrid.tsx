@@ -60,7 +60,7 @@ const ItemGrid: React.FC<{
     const listServices = async (filter: string, orderBy: string, tags: string[]) => {
         const skip = (pageService - 1) * servicesPerPage;
         const servicesList = await getServices(filter, skip, servicesPerPage, orderBy, tags);
-        if (servicesList) {
+        if (servicesList.services) {
             if (servicesList.services.length === 0) {
                 setServices([]);
                 setServiceCount(0);
@@ -72,14 +72,14 @@ const ItemGrid: React.FC<{
         } else {
             setServices([]);
             setServiceCount(0);
-            toast("Error while fetching services", {type: "error"});
+            toast(`Error while fetching services: ${servicesList.error}`, {type: "error"});
         }
     }
 
     const listPipelines = async (filter: string, orderBy: string, tags: string[]) => {
         const skip = (pagePipeline - 1) * pipelinesPerPage;
         const pipelinesList = await getPipelines(filter, skip, pipelinesPerPage, orderBy, tags);
-        if (pipelinesList) {
+        if (pipelinesList.pipelines) {
             if (pipelinesList.pipelines.length === 0) {
                 setPipelines([]);
                 setPipelineCount(0);
@@ -91,7 +91,7 @@ const ItemGrid: React.FC<{
         } else {
             setPipelines([]);
             setPipelineCount(0);
-            toast("Error while fetching pipelines", {type: "error"});
+            toast(`Error while fetching pipelines: ${pipelinesList.error}`, {type: "error"});
         }
     }
 
@@ -186,30 +186,26 @@ const ItemGrid: React.FC<{
     };
 
     React.useEffect(() => {
-        setIsReady(false);
         setPageService(1);
         setPagePipeline(1);
-        listElements(filter, orderBy, tags.map(t => t.acronym));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [servicesPerPage, pipelinesPerPage]);
 
     React.useEffect(() => {
-        setIsReady(false);
-        listElements(filter, orderBy, tags.map(t => t.acronym));
+        setPageService(1);
+        setPagePipeline(1);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pageService, pagePipeline, orderBy, tags]);
+    }, [filter]);
 
     React.useEffect(() => {
         // on filter change, use listElements to update the list only if the user stopped typing for 300ms
         const timeout = setTimeout(() => {
             setIsReady(false);
-            setPageService(1);
-            setPagePipeline(1);
             listElements(filter, orderBy, tags.map(t => t.acronym));
         }, 300);
         return () => clearTimeout(timeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filter]);
+    }, [filter, pageService, pagePipeline, orderBy, tags, servicesPerPage, pipelinesPerPage]);
 
     return (
         <>
@@ -233,56 +229,54 @@ const ItemGrid: React.FC<{
                         </Grid>
                     ) : (
                         services.map((item: any, index: number) => {
-                                return (
-                                    <Grid xs={12} sm={6} xl={4} key={index}
-                                          sx={{height: 'auto', minHeight: '200px'}}>
-                                        <Card
-                                            sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
-                                        >
-                                            <CardContent sx={{flexGrow: 1}}>
-                                                <Typography variant="h5" component="h2" gutterBottom>
-                                                    {item.name}
-                                                </Typography>
-                                                <Grid container spacing={1} sx={{p: 0, mb: 2}}>
-                                                    {item.tags ? item.tags.map((tag: any, index: number) => {
-                                                        return (
-                                                            <Grid key={`service-tag-${index}`}>
-                                                                <Tooltip title={tag.name}>
-                                                                    <Chip
-                                                                        className={"acronym-chip"}
-                                                                        label={tag.acronym}
-                                                                        style={
-                                                                            Tags.filter((t) =>
-                                                                                t.acronym === tag.acronym)[0].colors
-                                                                        }
-                                                                        variant="outlined"
-                                                                        size={"small"}
-                                                                    />
-                                                                </Tooltip>
-                                                            </Grid>
-                                                        )
-                                                    }) : ''}
-                                                </Grid>
-                                                <Typography>
-                                                    {
-                                                        item.summary.length > 80 ?
-                                                            item.summary.substring(0, 75) + "..." :
-                                                            item.summary
-                                                    }
-                                                </Typography>
-                                            </CardContent>
-                                            <CardActions sx={{p: 2}}>
-                                                <Link
-                                                    to={"/showcase/service/" + item.id}>
-                                                    <Button size={"small"} variant={"contained"}>View</Button>
-                                                </Link>
-                                            </CardActions>
-                                        </Card>
-                                    </Grid>
-                                )
-                                    ;
-                            }
-                        ))}
+                            return (
+                                <Grid xs={12} sm={6} xl={4} key={index}
+                                      sx={{height: 'auto', minHeight: '200px'}}>
+                                    <Card
+                                        sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
+                                    >
+                                        <CardContent sx={{flexGrow: 1}}>
+                                            <Typography variant="h5" component="h2" gutterBottom>
+                                                {item.name}
+                                            </Typography>
+                                            <Grid container spacing={1} sx={{p: 0, mb: 2}}>
+                                                {item.tags ? item.tags.map((tag: any, index: number) => {
+                                                    return (
+                                                        <Grid key={`service-tag-${index}`}>
+                                                            <Tooltip title={tag.name}>
+                                                                <Chip
+                                                                    className={"acronym-chip"}
+                                                                    label={tag.acronym}
+                                                                    style={
+                                                                        Tags.filter((t) =>
+                                                                            t.acronym === tag.acronym)[0].colors
+                                                                    }
+                                                                    variant="outlined"
+                                                                    size={"small"}
+                                                                />
+                                                            </Tooltip>
+                                                        </Grid>
+                                                    )
+                                                }) : ''}
+                                            </Grid>
+                                            <Typography>
+                                                {
+                                                    item.summary.length > 80 ?
+                                                        item.summary.substring(0, 75) + "..." :
+                                                        item.summary
+                                                }
+                                            </Typography>
+                                        </CardContent>
+                                        <CardActions sx={{p: 2}}>
+                                            <Link
+                                                to={"/showcase/service/" + item.id}>
+                                                <Button size={"small"} variant={"contained"}>View</Button>
+                                            </Link>
+                                        </CardActions>
+                                    </Card>
+                                </Grid>
+                            );
+                        }))}
                 </Grid>
             }
             {isReady && services.length > 0 ?
@@ -311,53 +305,52 @@ const ItemGrid: React.FC<{
                         </Grid>
                     ) : (
                         pipelines.map((item: any, index: number) => {
-                                return (
-                                    <Grid xs={12} sm={6} xl={4} key={index}
-                                          sx={{height: 'auto', minHeight: '200px'}}>
-                                        <Card
-                                            sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
-                                        >
-                                            <CardContent sx={{flexGrow: 1}}>
-                                                <Typography gutterBottom variant="h5" component="h2">
-                                                    {item.name}
-                                                </Typography>
-                                                <Grid container spacing={1} sx={{mb: 2}}>
-                                                    {item.tags ? item.tags.map((tag: any, index: number) => {
-                                                        return (
-                                                            <Grid key={`pipeline-tag-${index}`}>
-                                                                <Tooltip title={tag.name}>
-                                                                    <Chip
-                                                                        className={"acronym-chip"}
-                                                                        label={tag.acronym}
-                                                                        style={
-                                                                            Tags.filter((t) =>
-                                                                                t.acronym === tag.acronym)[0].colors
-                                                                        }
-                                                                        variant="outlined"
-                                                                        size={"small"}
-                                                                    />
-                                                                </Tooltip>
-                                                            </Grid>
-                                                        )
-                                                    }) : ''}
-                                                </Grid>
-                                                <Typography>
-                                                    {item.summary}
-                                                </Typography>
-                                            </CardContent>
-                                            <CardActions sx={{p: 2}}>
-                                                <Link
-                                                    to={"/showcase/pipeline/" + item.id}
-                                                    state={{back: searchParams.toString()}}
-                                                >
-                                                    <Button size={"small"} variant={"contained"}>View</Button>
-                                                </Link>
-                                            </CardActions>
-                                        </Card>
-                                    </Grid>
-                                );
-                            }
-                        ))}
+                            return (
+                                <Grid xs={12} sm={6} xl={4} key={index}
+                                      sx={{height: 'auto', minHeight: '200px'}}>
+                                    <Card
+                                        sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
+                                    >
+                                        <CardContent sx={{flexGrow: 1}}>
+                                            <Typography gutterBottom variant="h5" component="h2">
+                                                {item.name}
+                                            </Typography>
+                                            <Grid container spacing={1} sx={{mb: 2}}>
+                                                {item.tags ? item.tags.map((tag: any, index: number) => {
+                                                    return (
+                                                        <Grid key={`pipeline-tag-${index}`}>
+                                                            <Tooltip title={tag.name}>
+                                                                <Chip
+                                                                    className={"acronym-chip"}
+                                                                    label={tag.acronym}
+                                                                    style={
+                                                                        Tags.filter((t) =>
+                                                                            t.acronym === tag.acronym)[0].colors
+                                                                    }
+                                                                    variant="outlined"
+                                                                    size={"small"}
+                                                                />
+                                                            </Tooltip>
+                                                        </Grid>
+                                                    )
+                                                }) : ''}
+                                            </Grid>
+                                            <Typography>
+                                                {item.summary}
+                                            </Typography>
+                                        </CardContent>
+                                        <CardActions sx={{p: 2}}>
+                                            <Link
+                                                to={"/showcase/pipeline/" + item.id}
+                                                state={{back: searchParams.toString()}}
+                                            >
+                                                <Button size={"small"} variant={"contained"}>View</Button>
+                                            </Link>
+                                        </CardActions>
+                                    </Card>
+                                </Grid>
+                            );
+                        }))}
                 </Grid>
             }
             {isReady && pipelines.length > 0 ?

@@ -57,9 +57,8 @@ export const getServices = async (filter: string, skip: number, limit: number, o
             return await response.json();
         }
         return {services: [], count: 0};
-    } catch (error) {
-        console.log(`Error fetching services: ${error}`);
-        return null;
+    } catch (error: any) {
+        return {error: error.message};
     }
 }
 
@@ -80,9 +79,8 @@ export const getPipelines = async (filter: string, skip: number, limit: number, 
             return await response.json();
         }
         return {pipelines: [], count: 0};
-    } catch (error) {
-        console.log(`Error fetching pipelines: ${error}`);
-        return null;
+    } catch (error: any) {
+        return {error: error.message};
     }
 }
 
@@ -97,9 +95,8 @@ export const getServiceDescription = async (id: string) => {
             return await response.json();
         }
         return null;
-    } catch (error) {
-        console.log(`Error fetching service description: ${error}`);
-        return null;
+    } catch (error: any) {
+        return {error: error.message}
     }
 }
 
@@ -114,9 +111,8 @@ export const getPipelineDescription = async (id: string) => {
             return await response.json();
         }
         return null;
-    } catch (error) {
-        console.log(`Error fetching pipeline description: ${error}`);
-        return null;
+    } catch (error: any) {
+        return {error: error.message}
     }
 }
 
@@ -130,9 +126,8 @@ export const getStats = async () => {
             return await response.json();
         }
         return null;
-    } catch (error) {
-        console.log(`Error fetching stats: ${error}`);
-        return null;
+    } catch (error: any) {
+        return {error: error.message}
     }
 }
 
@@ -147,9 +142,8 @@ export const getTask = async (id: string) => {
             return await response.json();
         }
         return {total: 0, summary: []};
-    } catch (error) {
-        console.log(`Error fetching task: ${error}`);
-        return null;
+    } catch (error: any) {
+        return {error: error.message}
     }
 }
 
@@ -164,9 +158,8 @@ export const getResult = async (id: string) => {
             return response.blob();
         }
         return "";
-    } catch (error) {
-        console.log(`Error fetching result: ${error}`);
-        return null;
+    } catch (error: any) {
+        return {error: error.message}
     }
 }
 
@@ -208,8 +201,7 @@ export const postToEngine = async (serviceSlug: string, parts: FieldDescriptionW
             }
         }
         return null;
-    } catch (error) {
-        console.log(`Error posting to engine: ${error}`);
-        return null;
+    } catch (error: any) {
+        return {error: error.message}
     }
 }

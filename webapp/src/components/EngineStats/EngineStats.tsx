@@ -107,8 +107,10 @@ export const EngineStats: React.FC<{
     }
 
     useEffect(() => {
-        setIsReady(false);
-        loadStats();
+        if (trigger) {
+            setIsReady(false);
+            loadStats();
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [trigger])
 

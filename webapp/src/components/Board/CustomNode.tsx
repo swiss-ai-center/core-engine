@@ -59,7 +59,6 @@ const CustomNode = ({data, styles}: any) => {
     const downloadResult = async () => {
         for (const id of resultIdList) {
             const file: any = await getResult(id);
-            console.log(file);
             if (file) {
                 const link = document.createElement('a');
                 link.href = window.URL.createObjectURL(file);
