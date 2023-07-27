@@ -6,7 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import { Provider } from 'react-redux';
 import store from './utils/store';
 import { FileArrayProvider } from './utils/providers/fileArray';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, Slide } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const root = ReactDOM.createRoot(
@@ -21,6 +21,7 @@ root.render(
                 <ToastContainer
                     position="bottom-left"
                     theme={"colored"}
+                    transition={Slide}
                 />
             </FileArrayProvider>
         </Provider>

@@ -155,9 +155,9 @@ export const getResult = async (id: string) => {
     try {
         const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/storage/${id}`, {headers: HEADERS});
         if (response.status === 200) {
-            return response.blob();
+            return {file: response.blob()};
         }
-        return "";
+        return {file: ""};
     } catch (error: any) {
         return {error: error.message}
     }

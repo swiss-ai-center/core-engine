@@ -98,10 +98,10 @@ export const EngineStats: React.FC<{
 
     const loadStats = async () => {
         const stats = await getStats();
-        if (stats) {
+        if (stats.total) {
             setStats(stats);
         } else {
-            toast("Error loading engine stats", {type: "error"});
+            toast(`Error loading engine stats: ${stats.error}`, {type: "error"});
         }
         setIsReady(true);
     }
@@ -179,7 +179,8 @@ export const EngineStats: React.FC<{
                                                             })}
                                                             columns={columns}
                                                             getRowClassName={(params) =>
-                                                                params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
+                                                                params.indexRelativeToCurrentPage % 2 === 0 ?
+                                                                    'even' : 'odd'
                                                             }
                                                         />
                                                     </Box>
@@ -213,7 +214,8 @@ export const EngineStats: React.FC<{
                                                             })}
                                                             columns={columns}
                                                             getRowClassName={(params) =>
-                                                                params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
+                                                                params.indexRelativeToCurrentPage % 2 === 0 ?
+                                                                    'even' : 'odd'
                                                             }
                                                         />
                                                     </Box>

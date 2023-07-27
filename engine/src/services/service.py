@@ -428,7 +428,10 @@ class ServicesService:
 
                 # Submit the service task to the remote service
                 try:
-                    res = await self.http_client.post(f"{updated_service.url}/compute", json=jsonable_encoder(service_task))
+                    res = await self.http_client.post(
+                        f"{updated_service.url}/compute",
+                        json=jsonable_encoder(service_task)
+                    )
 
                     if res.status_code != 200:
                         raise HTTPException(status_code=res.status_code, detail=res.text)

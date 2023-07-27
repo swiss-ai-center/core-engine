@@ -4,7 +4,8 @@ import re
 from fastapi import Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select, desc
-from connection_manager import ConnectionManager, get_connection_manager
+from connection_manager.connection_manager import ConnectionManager, get_connection_manager
+from connection_manager.models import Message, MessageType, MessageSubject
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from uuid import UUID
@@ -19,6 +20,30 @@ from pipelines.models import Pipeline
 from services.models import Service, ServiceTask
 from config import Settings, get_settings
 from httpx import HTTPError
+
+
+def create_message(task: Task):
+    if task.status == TaskStatus.SCHEDULED or \
+            task.status == TaskStatus.PENDING or \
+            task.status == TaskStatus.SKIPPED or \
+            task.status == TaskStatus.ARCHIVED or \
+            task.status == TaskStatus.FETCHING or \
+            task.status == TaskStatus.SAVING:
+        message_type = MessageType.INFO
+    elif task.status == TaskStatus.PROCESSING or \
+            task.status == TaskStatus.FINISHED:
+        message_type = MessageType.SUCCESS
+    elif task.status == TaskStatus.ERROR:
+        message_type = MessageType.ERROR
+    else:
+        message_type = MessageType.WARNING
+    return Message(
+        message={
+            "text": "Task updated",
+            "data": task.dict(),
+        },
+        type=message_type, subject=MessageSubject.EXECUTION
+    )
 
 
 def end_pipeline_execution(pipeline_execution: PipelineExecution):
@@ -171,7 +196,8 @@ class TasksService:
         if not current_task.pipeline_execution_id:
             self.logger.debug(f"Sending task {current_task} to client")
             try:
-                asyncio.ensure_future(self.connection_manager.send_json(jsonable_encoder(current_task), task_id))
+                message = create_message(current_task)
+                asyncio.ensure_future(self.connection_manager.send_json(message, task_id))
             except Exception as e:
                 self.logger.error(f"Could not send task {current_task} to client: {e}")
 
@@ -374,7 +400,12 @@ class TasksService:
                     if res.status_code != 200:
                         raise HTTPException(status_code=res.status_code, detail=res.text)
 
-                    asyncio.ensure_future(self.connection_manager.send_json(task.dict(), pipeline_execution.id))
+                    self.logger.debug(f"Sending task {task} to client")
+                    try:
+                        message = create_message(task)
+                        asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+                    except Exception as e:
+                        self.logger.error(f"Could not send task {task} to client: {e}")
 
                     self.logger.debug(f"Launched next step in pipeline with id {pipeline_execution.id}")
 

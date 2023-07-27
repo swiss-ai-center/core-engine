@@ -1,7 +1,8 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
-from connection_manager import ConnectionManager, get_connection_manager
+from connection_manager.connection_manager import ConnectionManager, get_connection_manager
+from connection_manager.models import ConnectionData, Message, MessageType, MessageSubject
 from database import get_session
 from common_code.logger.logger import get_logger
 from pipelines.controller import router as pipelines_router
@@ -78,12 +79,17 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_json()
-            connection_manager.set_linked_id(websocket, data["linked_id"])
-            connection_manager.set_execution_type(websocket, data["execution_type"])
-            await connection_manager.send_json(
-                {"message": f"Connection linked to {data['linked_id']} with execution type {data['execution_type']}"},
-                data["linked_id"],
+            connection = connection_manager.set_linked_id(websocket, data["linked_id"])
+            connection = connection_manager.set_execution_type(websocket, data["execution_type"])
+            connection_data = ConnectionData(linked_id=connection.linked_id, execution_type=connection.execution_type)
+            message = Message(
+                message={
+                    "text": "Connection linked",
+                    "data": connection_data.dict(),
+                },
+                type=MessageType.SUCCESS, subject=MessageSubject.CONNECTION
             )
+            await connection_manager.send_json(message, connection.linked_id)
     except WebSocketDisconnect:
         connection_manager.disconnect(websocket)
         await connection_manager.broadcast("Client disconnected")

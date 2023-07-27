@@ -59,14 +59,14 @@ const CustomNode = ({data, styles}: any) => {
     const downloadResult = async () => {
         for (const id of resultIdList) {
             const file: any = await getResult(id);
-            if (file) {
+            if (file.file) {
                 const link = document.createElement('a');
                 link.href = window.URL.createObjectURL(file);
                 link.setAttribute('download', 'result.' + id.split('.')[1]);
                 document.body.appendChild(link);
                 link.click();
             } else {
-                toast(`Error downloading file ${id}`, {type: "error"});
+                toast(`Error downloading file ${id}: ${file.error}`, {type: "error"});
             }
         }
     }
@@ -88,13 +88,19 @@ const CustomNode = ({data, styles}: any) => {
 
     const actionContent = () => {
         return <Box sx={{display: "flex", width: "100%"}}>
-            <Button disabled={!areItemsUploaded || run === RunState.RUNNING} sx={{flexGrow: 1}} variant={"contained"}
-                    color={"success"} size={"small"}
-                    endIcon={<PlayArrow sx={{color: (run === RunState.RUNNING) ? "transparent" : "inherit"}}/>}
-                    onClick={() => launchExecution(data.label.replace("-entry", ""))}>
+            <Button
+                disabled={!areItemsUploaded || run === RunState.RUNNING}
+                sx={{flexGrow: 1}}
+                variant={"contained"}
+                color={"success"}
+                size={"small"}
+                endIcon={<PlayArrow sx={{color: (run === RunState.RUNNING) ? "transparent" : "inherit"}}/>}
+                onClick={() => launchExecution(data.label.replace("-entry", ""))}>
                 {run === RunState.RUNNING ? (
-                    <CircularProgress size={24} color={"primary"}
-                                      sx={{position: "absolute", alignSelf: "center",}}
+                    <CircularProgress
+                        size={24}
+                        color={"primary"}
+                        sx={{position: "absolute", alignSelf: "center",}}
                     />
                 ) : (<>Run</>)}
             </Button>
@@ -132,9 +138,13 @@ const CustomNode = ({data, styles}: any) => {
                                         (<Input key={`input-${index}`} placeholder={"Enter text"}/>)
                                         :
                                         (<Tooltip title={"type(s): " + item.type} placement={"right"}>
-                                            <Button key={`btn-${index}`} variant={"outlined"} component={"label"}
-                                                    size={"small"} sx={{mb: 1, mt: 1}}
-                                                    color={item.isSet ? "success" : "secondary"}>
+                                            <Button key={`btn-${index}`}
+                                                    variant={"outlined"}
+                                                    component={"label"}
+                                                    size={"small"}
+                                                    sx={{mb: 1, mt: 1}}
+                                                    color={item.isSet ? "success" : "secondary"}
+                                            >
                                                 Upload
                                                 <input
                                                     accept={createAllowedTypesString(item.type)}
@@ -151,37 +161,41 @@ const CustomNode = ({data, styles}: any) => {
                             );
                         })
                         :
-                        <Typography></Typography>
+                        <Typography/>
                     }
                 </CardContent>
-                {(data.label.includes("entry")) ?
-                    (
-                        <CardActions>
-                            {actionContent()}
-                        </CardActions>)
-                    :
-                    (<></>)}
+                {(data.label.includes("entry")) ? (<CardActions>{actionContent()}</CardActions>) : (<></>)}
                 {(data.label.includes("exit")) ?
                     (
                         <CardActions>
-                            <Button disabled={!(run === RunState.ENDED)} sx={{flexGrow: 1}} variant={"contained"}
-                                    color={"info"} size={"small"} endIcon={<Download/>}
-                                    onClick={downloadResult}>Download</Button>
-                        </CardActions>)
-                    :
-                    (<></>)}
+                            <Button
+                                disabled={!(run === RunState.ENDED)}
+                                sx={{flexGrow: 1}}
+                                variant={"contained"}
+                                color={"info"}
+                                size={"small"}
+                                endIcon={<Download/>}
+                                onClick={downloadResult}
+                            >
+                                Download
+                            </Button>
+                        </CardActions>
+                    ) : (<></>)
+                }
             </Card>
 
             {(data.label && !data.label.includes("entry")) ?
                 <Handle
                     type={"target"}
                     position={Position.Left}
-                /> : <></>}
+                /> : <></>
+            }
             {(data.label && !data.label.includes("exit")) ?
                 <Handle
                     type={"source"}
                     position={Position.Right}
-                /> : <></>}
+                /> : <></>
+            }
         </>
     );
 };
