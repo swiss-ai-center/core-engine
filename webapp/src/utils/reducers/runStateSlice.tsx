@@ -1,17 +1,22 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-export const RunState = {
-    STOPPED: 0,
-    RUNNING: 1,
-    PAUSED: 2,
-    ENDED: 3,
-    ERROR: 4
-};
+export enum RunState {
+    PENDING = "pending",
+    FETCHING = "fetching",
+    PROCESSING = "processing",
+    SAVING = "saving",
+    FINISHED = "finished",
+    ERROR = "error",
+    SCHEDULED = "scheduled",
+    SKIPPED = "skipped",
+    ARCHIVED = "archived",
+    UNAVAILABLE = "unavailable"
+}
 
 export const runStateSlice = createSlice({
     name: 'runState',
     initialState: {
-        value: RunState.STOPPED,
+        value: RunState.PENDING,
         taskId: '',
         resultIdList: []
     },
@@ -25,7 +30,7 @@ export const runStateSlice = createSlice({
         setResultIdList: (state, action) => {
             state.resultIdList = action.payload;
         }
-    },
+    }
 })
 
 // Action creators are generated for each case reducer function

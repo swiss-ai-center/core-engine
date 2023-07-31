@@ -5,17 +5,19 @@ import ReactFlow, {
 import SelectorNode from './CustomNode';
 import { ControlButton } from 'reactflow';
 import { FullscreenExit } from '@mui/icons-material';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
 import DrawGraph from './DrawGraph';
 import { Service } from '../../models/Service';
-import "./styles.css";
 import { Pipeline } from '../../models/Pipeline';
-import { useFileArray } from '../../utils/hooks/fileArray';
 import { useWebSocketConnection } from '../../utils/useWebSocketConnection';
+import "./styles.css";
+import { toast } from 'react-toastify';
+import { Message, MessageSubject } from '../../models/Message';
+import { RunState, setResultIdList, setRunState } from '../../utils/reducers/runStateSlice';
 
-const Board: React.FC<{ description: any }> = ({description}) => {
-    const {fileArray} = useFileArray();
+const Board: React.FC<{ description: any, fullscreen: boolean }> = ({description, fullscreen}) => {
+    const dispatch = useDispatch();
     const nodeTypes = React.useMemo(() => ({customNode: SelectorNode}), []);
     const colorMode = useSelector((state: any) => state.colorMode.value);
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -29,9 +31,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
         []
     );
 
-    const [taskUpdates, setTaskUpdates] = React.useState<any[]>([]);
-
-    const {lastJsonMessage, sendJsonMessage} = useWebSocketConnection();
+    const {lastJsonMessage} = useWebSocketConnection();
 
     function CustomControls() {
         return (
@@ -41,6 +41,37 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                 </ControlButton>
             </Controls>
         );
+    }
+
+    const handleMessage = (message: Message) => {
+        const {message: messageData, type, subject} = message;
+        if (messageData) {
+            const {text, data} = messageData;
+            if (text && data) {
+                const dataObject = data as any;
+                if (subject === MessageSubject.EXECUTION) {
+                    const str = `${text}, status: ${dataObject.status}`;
+                    dispatch(setRunState(dataObject.status));
+                    toast(str, {type: type});
+                    if (dataObject.status === RunState.FINISHED) {
+                        dispatch(setResultIdList(dataObject.data_out));
+                    }
+                } else if (subject === MessageSubject.CONNECTION) {
+                    let str = text;
+                    if (dataObject.linked_id) {
+                        str += `, linked_id: ${dataObject.linked_id}`;
+                    }
+                    if (dataObject.execution_type) {
+                        str += `, execution_type: ${dataObject.execution_type}`;
+                    }
+                    toast(str, {type: type, theme: colorMode === 'light' ? 'dark' : 'light'});
+                }
+            } else {
+                toast("Message is not valid", {type: "warning"});
+            }
+        } else {
+            toast("Message is empty", {type: "warning"});
+        }
     }
 
     React.useEffect(() => {
@@ -64,14 +95,13 @@ const Board: React.FC<{ description: any }> = ({description}) => {
 
     React.useEffect(() => {
         if (lastJsonMessage !== null) {
-            // Handle incoming messages from the WebSocket as text data
-            const messageData = lastJsonMessage;
-            console.log('Message received:', messageData);
-            // add the message to the task updates
-            setTaskUpdates((prev: any) => [...prev, messageData]);
+            // Handle incoming messages from the WebSocket from json to object Message
+            const message: Message = Object.assign(new Message(), lastJsonMessage);
+            console.log('Message received:', message);
+            handleMessage(message);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lastJsonMessage, setTaskUpdates]);
+    }, [lastJsonMessage]);
 
     return (
         <ReactFlowProvider>
@@ -86,6 +116,10 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                 fitView
                 nodesDraggable={false}
                 about={colorMode}
+                style={{
+                    backgroundColor: colorMode === 'dark' ? '#121212' : '#fff',
+                    borderRadius: fullscreen ? 0 : 5,
+                }}
             >
                 <CustomControls/>
                 <Background/>

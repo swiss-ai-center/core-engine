@@ -103,7 +103,7 @@ const Showcase: React.FC<{ mobileOpen: boolean}> = ({mobileOpen}) => {
                                         borderRadius: "5px",
                                         borderColor: "primary.main"
                                     }}>
-                                    <Board description={description}/>
+                                    <Board description={description} fullscreen={handle.active}/>
                                 </Box>
                             </FullScreen>
                         </Container>

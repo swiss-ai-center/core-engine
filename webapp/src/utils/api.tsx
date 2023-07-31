@@ -155,7 +155,7 @@ export const getResult = async (id: string) => {
     try {
         const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/storage/${id}`, {headers: HEADERS});
         if (response.status === 200) {
-            return {file: response.blob()};
+            return {file: await response.blob()};
         }
         return {file: ""};
     } catch (error: any) {
@@ -200,7 +200,7 @@ export const postToEngine = async (serviceSlug: string, parts: FieldDescriptionW
                 return result;
             }
         }
-        return null;
+        return {error: `${response.status} ${response.statusText}`};
     } catch (error: any) {
         return {error: error.message}
     }

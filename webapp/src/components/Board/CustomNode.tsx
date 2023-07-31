@@ -7,7 +7,7 @@ import { Download, PlayArrow } from '@mui/icons-material';
 import {
     RunState,
     setRunState,
-    setResultIdList, setTaskId,
+    setResultIdList,
 } from '../../utils/reducers/runStateSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { getResult, postToEngine } from '../../utils/api';
@@ -30,7 +30,6 @@ const CustomNode = ({data, styles}: any) => {
     const dispatch = useDispatch();
     const {fileArray, setFileArray} = useFileArray();
     const run = useSelector((state: any) => state.runState.value);
-    useSelector((state: any) => state.runState.taskId);
     const resultIdList = useSelector((state: any) => state.runState.resultIdList);
     const {sendJsonMessage} = useWebSocketConnection();
 
@@ -45,6 +44,14 @@ const CustomNode = ({data, styles}: any) => {
         });
         setAreItemsUploaded(allItemsAreUploaded);
     }, [fileArray]);
+
+    const isExecuting = () => {
+        return (
+            run === RunState.PROCESSING ||
+            run === RunState.SAVING ||
+            run === RunState.FETCHING ||
+            run === RunState.SCHEDULED);
+    }
 
     const handleUpload = (field: string, value: any) => {
         setFileArray((prevState: any[]) => prevState.map(item => {
@@ -61,7 +68,7 @@ const CustomNode = ({data, styles}: any) => {
             const file: any = await getResult(id);
             if (file.file) {
                 const link = document.createElement('a');
-                link.href = window.URL.createObjectURL(file);
+                link.href = window.URL.createObjectURL(file.file);
                 link.setAttribute('download', 'result.' + id.split('.')[1]);
                 document.body.appendChild(link);
                 link.click();
@@ -74,29 +81,28 @@ const CustomNode = ({data, styles}: any) => {
     const launchExecution = async (serviceSlug: string) => {
         const response = await postToEngine(serviceSlug, fileArray);
         if (response.id) {
-            dispatch(setRunState(RunState.RUNNING));
-            dispatch(setTaskId(response.id));
-            toast(`Pipeline started`, {type: "success"});
+            dispatch(setRunState(RunState.PROCESSING));
+            toast(`Execution started`, {type: "success"});
             sendJsonMessage({
                 linked_id: response.id,
                 execution_type: data.executionType,
             });
         } else {
-            toast(`Error while running pipeline: ${response.detail}`, {type: "error"});
+            toast(`Error while running pipeline: ${response.error}`, {type: "error"});
         }
     }
 
     const actionContent = () => {
         return <Box sx={{display: "flex", width: "100%"}}>
             <Button
-                disabled={!areItemsUploaded || run === RunState.RUNNING}
+                disabled={!areItemsUploaded || isExecuting()}
                 sx={{flexGrow: 1}}
                 variant={"contained"}
                 color={"success"}
                 size={"small"}
-                endIcon={<PlayArrow sx={{color: (run === RunState.RUNNING) ? "transparent" : "inherit"}}/>}
+                endIcon={<PlayArrow sx={{color: (isExecuting()) ? "transparent" : "inherit"}}/>}
                 onClick={() => launchExecution(data.label.replace("-entry", ""))}>
-                {run === RunState.RUNNING ? (
+                {isExecuting() ? (
                     <CircularProgress
                         size={24}
                         color={"primary"}
@@ -108,7 +114,7 @@ const CustomNode = ({data, styles}: any) => {
     }
 
     React.useEffect(() => {
-        dispatch(setRunState(RunState.STOPPED));
+        dispatch(setRunState(RunState.PENDING));
         dispatch(setResultIdList([]));
         if (data.data_in_fields) {
             setFileArray(addIsSetToFields(data.data_in_fields));
@@ -169,7 +175,7 @@ const CustomNode = ({data, styles}: any) => {
                     (
                         <CardActions>
                             <Button
-                                disabled={!(run === RunState.ENDED)}
+                                disabled={!(run === RunState.FINISHED)}
                                 sx={{flexGrow: 1}}
                                 variant={"contained"}
                                 color={"info"}
