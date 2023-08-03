@@ -9,10 +9,11 @@ export const useWebSocketConnection = () => {
         `${process.env.REACT_APP_ENGINE_WS_URL}/ws`,
         {
             share: true,
-            onClose: () => toast(
-                'Connection to engine lost. Please refresh the page.',
-                {type: 'warning', theme: colorMode === 'light' ? 'dark' : 'light', toastId: 'connectionLost'}
-            ),
+            onError: (event: any) => {
+                toast.error('Connection to engine lost. Please refresh the page.', {
+                    theme: colorMode === 'light' ? 'dark' : 'light'
+                });
+            }
         }
     );
 
