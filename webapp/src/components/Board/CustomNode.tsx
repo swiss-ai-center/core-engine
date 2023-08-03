@@ -88,7 +88,7 @@ const CustomNode = ({data, styles}: any) => {
                 execution_type: data.executionType,
             });
         } else {
-            toast(`Error while running pipeline: ${response.error}`, {type: "error"});
+            toast(`Error while launching execution: ${response.error}`, {type: "error"});
         }
     }
 

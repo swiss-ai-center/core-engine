@@ -25,6 +25,7 @@ import { Tag } from '../../models/Tag';
 import { useDispatch, useSelector } from 'react-redux';
 import { setServicePerPage, setPipelinePerPage } from '../../utils/reducers/perPageSlice';
 import { toast } from 'react-toastify';
+import LoadingGrid from '../LoadingGrid/LoadingGrid';
 
 // min width is 100% for mobile, 50% for tablet, 33% for desktop
 const minWidth = (window.innerWidth < 600) ? '100%' : (window.innerWidth < 900) ? '50%' : '33%';
@@ -103,7 +104,7 @@ const ItemGrid: React.FC<{
 
     const servicePagination = () => {
         return (
-            <Grid container spacing={4} alignItems={"center"} justifyContent={"center"}>
+            <Grid container sx={{pt: 2}} spacing={4} alignItems={"center"} justifyContent={"center"}>
                 <Grid xs={12} md={6} lg={4} alignItems={"left"} justifyContent={"left"}>
                     <Box sx={{display: 'flex', alignItems: align, justifyContent: align}}>
                         <Pagination
@@ -113,8 +114,9 @@ const ItemGrid: React.FC<{
                                 setPageService(page);
                             }}
                             sx={{alignItems: 'center', justifyContent: 'center'}}
-                            count={Math.ceil(serviceCount / servicesPerPage)}
+                            count={Math.ceil(serviceCount / servicesPerPage) || 1}
                             shape={"rounded"}
+                            disabled={!isReady || services.length <= 0}
                         />
                     </Box>
                 </Grid>
@@ -130,6 +132,7 @@ const ItemGrid: React.FC<{
                                 onChange={(event) => {
                                     setServicesPerPage(event.target.value as number);
                                 }}
+                                disabled={!isReady || services.length <= 0}
                             >
                                 <MenuItem value={6}>6</MenuItem>
                                 <MenuItem value={15}>15</MenuItem>
@@ -155,8 +158,9 @@ const ItemGrid: React.FC<{
                                 setPagePipeline(page);
                             }}
                             sx={{alignItems: 'center', justifyContent: 'center'}}
-                            count={Math.ceil(pipelineCount / pipelinesPerPage)}
+                            count={Math.ceil(pipelineCount / pipelinesPerPage) || 1}
                             shape={"rounded"}
+                            disabled={!isReady || pipelines.length <= 0}
                         />
                     </Box>
                 </Grid>
@@ -172,6 +176,7 @@ const ItemGrid: React.FC<{
                                 onChange={(event) => {
                                     setPipelinesPerPage(event.target.value as number);
                                 }}
+                                disabled={!isReady || pipelines.length <= 0}
                             >
                                 <MenuItem value={6}>6</MenuItem>
                                 <MenuItem value={15}>15</MenuItem>
@@ -212,13 +217,9 @@ const ItemGrid: React.FC<{
             <Typography gutterBottom variant={"h4"} component={"h2"}>
                 Services
             </Typography>
-            {isReady && services.length > 0 ?
-                servicePagination() : <></>
-            }
+            {(isReady && services.length > 0) || !isReady ? servicePagination() : <></>}
             {!isReady ?
-                <Grid xs={12} md={8} sx={{textAlign: 'center'}}>
-                    <CircularProgress/>
-                </Grid>
+                <LoadingGrid/>
                 :
                 <Grid container spacing={4}>
                     {services.length === 0 ? (
@@ -279,22 +280,16 @@ const ItemGrid: React.FC<{
                         }))}
                 </Grid>
             }
-            {isReady && services.length > 0 ?
-                servicePagination() : <></>
-            }
+            {(isReady && services.length > 0) || !isReady ? servicePagination() : <></>}
             <Divider sx={{mt: 2, mb: 2}}>
                 ○
             </Divider>
             <Typography gutterBottom variant={"h4"} component={"h2"}>
                 Pipelines
             </Typography>
-            {isReady && pipelines.length > 0 ?
-                pipelinePagination() : <></>
-            }
+            {(isReady && pipelines.length > 0) || !isReady ? pipelinePagination() : <></>}
             {!isReady ?
-                <Grid xs={12} md={8} sx={{textAlign: 'center'}}>
-                    <CircularProgress/>
-                </Grid>
+                <LoadingGrid/>
                 :
                 <Grid container spacing={4}>
                     {pipelines.length === 0 ? (
@@ -353,9 +348,7 @@ const ItemGrid: React.FC<{
                         }))}
                 </Grid>
             }
-            {isReady && pipelines.length > 0 ?
-                pipelinePagination() : <></>
-            }
+            {(isReady && pipelines.length > 0) || !isReady ? pipelinePagination() : <></>}
         </>
     );
 }
