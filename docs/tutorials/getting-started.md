@@ -49,11 +49,11 @@ kubectl get pods --all-namespaces
 
 ## Start the Engine
 
-_Follow the instructions described in the [Engine documentation - Run locally using Kubernetes (with minikube) and official Docker images](../reference/index.md#engine)._
+_Follow the instructions described in the [Engine documentation - Run locally using Kubernetes (with minikube) and official Docker images](../reference/engine.md)._
 
 ## Start the Webapp
 
-_Follow the instructions described in the [Webapp documentation - Run locally using Kubernetes (with minikube) and a local Docker image](../reference/index.md#webapp)._
+_Follow the instructions described in the [Webapp documentation - Run locally using Kubernetes (with minikube) and a local Docker image](../reference/webapp.md)._
 
 ## Start a machine learning service
 
