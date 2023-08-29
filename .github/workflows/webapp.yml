@@ -36,6 +36,7 @@ jobs:
         working-directory: webapp
         env:
           REACT_APP_ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
+          REACT_APP_ENGINE_WS_URL: wss://engine-csia-pme.kube.isc.heia-fr.ch
           # So it does not treat warnings as errors
           CI: false
         run: npm run build
@@ -47,6 +48,7 @@ jobs:
         env:
           # TODO: Change this to the prod engine URL
           REACT_APP_ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
+          REACT_APP_ENGINE_WS_URL: wss://engine-csia-pme.kube.isc.heia-fr.ch
           # So it does not treat warnings as errors
           CI: false
         run: npm run build
