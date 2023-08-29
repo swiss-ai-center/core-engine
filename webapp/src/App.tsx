@@ -9,7 +9,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import {
     Menu as MenuIcon,
     MenuOpen as CloseIcon,
-    LightModeTwoTone, DarkModeTwoTone, QueryStatsTwoTone, DescriptionTwoTone
+    LightModeTwoTone, DarkModeTwoTone, QueryStatsTwoTone
 } from '@mui/icons-material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { EngineStats } from './components/EngineStats/EngineStats';
@@ -17,6 +17,7 @@ import { grey } from '@mui/material/colors';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleColorMode } from './utils/reducers/colorModeSlice';
 import "typeface-inter";
+
 
 function App() {
     const dispatch = useDispatch();
@@ -140,7 +141,9 @@ function App() {
                 <Routes>
                     <Route path={"/showcase/:type/:id"}
                            element={<Showcase mobileOpen={mobileOpen}/>}/>
-                    <Route path={"*"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
+                    <Route path={"*"} element={<Home mobileOpen={mobileOpen}
+                                                     handleOpen={handleDrawerToggle}
+                    />}/>
                 </Routes>
             </Router>
             {/* End Main content */}

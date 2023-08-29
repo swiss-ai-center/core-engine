@@ -15,15 +15,21 @@ import { TagObjects } from '../../enums/tagEnums';
 import ScrollToTop from 'react-scroll-to-top';
 import { ArrowUpward } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
+import { useFileArray } from '../../utils/hooks/fileArray';
 
 
-const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = ({mobileOpen, handleOpen}) => {
+const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
+    {
+        mobileOpen,
+        handleOpen,
+    }) => {
     const colorMode = useSelector((state: any) => state.colorMode.value);
     // this is the list of order by options, the first one is the default
     const orderByList = [
         {value: 'name-asc', label: 'Name (A-Z)'},
         {value: 'name-desc', label: 'Name (Z-A)'},
     ];
+    const {setFileArray} = useFileArray();
     const [search, setSearch] = React.useState('');
     const [orderBy, setOrderBy] = React.useState(orderByList[0].value);
     const [tags, setTags] = React.useState<Tag[]>([]);
@@ -73,6 +79,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = ({mobileOpen, h
     }
 
     React.useEffect(() => {
+        setFileArray([]);
         setSearch(searchParams.get('filter') || '');
         const query_tags = searchParams.getAll('tags');
         setTags(query_tags.map((tag) => TagObjects.filter((tagObject) => tagObject.acronym === tag)[0]));

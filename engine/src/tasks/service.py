@@ -1,8 +1,11 @@
+import asyncio
 import json
 import re
 from fastapi import Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select, desc
+from connection_manager.connection_manager import ConnectionManager, get_connection_manager
+from connection_manager.models import Message, MessageType, MessageSubject
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from uuid import UUID
@@ -17,6 +20,30 @@ from pipelines.models import Pipeline
 from services.models import Service, ServiceTask
 from config import Settings, get_settings
 from httpx import HTTPError
+
+
+def create_message(task: Task):
+    if task.status == TaskStatus.SCHEDULED or \
+            task.status == TaskStatus.PENDING or \
+            task.status == TaskStatus.SKIPPED or \
+            task.status == TaskStatus.ARCHIVED or \
+            task.status == TaskStatus.FETCHING or \
+            task.status == TaskStatus.SAVING:
+        message_type = MessageType.INFO
+    elif task.status == TaskStatus.PROCESSING or \
+            task.status == TaskStatus.FINISHED:
+        message_type = MessageType.SUCCESS
+    elif task.status == TaskStatus.ERROR:
+        message_type = MessageType.ERROR
+    else:
+        message_type = MessageType.WARNING
+    return Message(
+        message={
+            "text": "Task updated",
+            "data": task.dict(),
+        },
+        type=message_type, subject=MessageSubject.EXECUTION
+    )
 
 
 def end_pipeline_execution(pipeline_execution: PipelineExecution):
@@ -75,6 +102,7 @@ class TasksService:
             pipeline_executions_service: PipelineExecutionsService = Depends(),
             settings: Settings = Depends(get_settings),
             storage_service: StorageService = Depends(),
+            connection_manager: ConnectionManager = Depends(get_connection_manager),
     ):
         self.logger = logger
         self.logger.set_source(__name__)
@@ -83,6 +111,7 @@ class TasksService:
         self.pipeline_executions_service = pipeline_executions_service
         self.settings = settings
         self.storage_service = storage_service
+        self.connection_manager = connection_manager
 
     def find_many(self, skip: int = 0, limit: int = 100, order_by: str = "updated_at", order: str = "desc"):
         """
@@ -163,6 +192,15 @@ class TasksService:
         self.session.commit()
         self.session.refresh(current_task)
         self.logger.debug(f"Updated task with id {current_task.id}")
+
+        if not current_task.pipeline_execution_id:
+            self.logger.debug(f"Sending task {current_task} to client")
+            try:
+                message = create_message(current_task)
+                asyncio.ensure_future(self.connection_manager.send_json(message, task_id))
+            except Exception as e:
+                self.logger.error(f"Could not send task {current_task} to client: {e}")
+
         return current_task
 
     def delete(self, task_id: UUID):
@@ -361,6 +399,13 @@ class TasksService:
 
                     if res.status_code != 200:
                         raise HTTPException(status_code=res.status_code, detail=res.text)
+
+                    self.logger.debug(f"Sending task {task} to client")
+                    try:
+                        message = create_message(task)
+                        asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+                    except Exception as e:
+                        self.logger.error(f"Could not send task {task} to client: {e}")
 
                     self.logger.debug(f"Launched next step in pipeline with id {pipeline_execution.id}")
 
