@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  # This name uniquely identifies the stateful set
+  name: postgres-stateful
+  labels:
+    app: postgres
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: postgres-pv-claim
+      containers:
+      - name: postgres
+        # Pulls the MinIO image from Docker Hub
+        image: postgres:15.4
+        envFrom:
+          - configMapRef:
+              name: postgres-config
+        ports:
+        - name: postgres
+          containerPort: 5432
+        volumeMounts:
+          - name: storage
+            mountPath: "/var/lib/postgres/data"

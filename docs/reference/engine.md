@@ -105,14 +105,14 @@ Start the Engine with the following commands. This will start the Engine with th
 In the `engine` directory, start the Engine with the following commands.
 
 ```sh
-# Start MinIO - TODO
+# Start MinIO
 kubectl apply \
     -f kubernetes/minio.pvc.yml \
     -f kubernetes/minio.config-map.yml \
     -f kubernetes/minio.stateful.yml \
     -f kubernetes/minio.service.yml
 
-# Start PostgreSQL - TODO
+# Start PostgreSQL
 kubectl apply \
     -f kubernetes/postgres.pvc.yml \
     -f kubernetes/postgres.config-map.yml \
@@ -165,14 +165,14 @@ eval $(minikube docker-env -u)
 In the [engine](../../engine) directory, start the Engine with the following commands.
 
 ```sh
-# Start MinIO - TODO
+# Start MinIO
 kubectl apply \
     -f kubernetes/minio.pvc.yml \
     -f kubernetes/minio.config-map.yml \
     -f kubernetes/minio.stateful.yml \
     -f kubernetes/minio.service.yml
 
-# Start PostgreSQL - TODO
+# Start PostgreSQL
 kubectl apply \
     -f kubernetes/postgres.pvc.yml \
     -f kubernetes/postgres.config-map.yml \
