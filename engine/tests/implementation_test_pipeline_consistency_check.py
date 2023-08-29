@@ -96,8 +96,8 @@ correct_pipeline_convert_image = {
 correct_pipeline_simple = {
     "name": "Face Blur",
     "slug": "face-blur",
-    "summary": "Face Blur",
-    "description": "Face Blur",
+    "summary": "Blur the faces in an image",
+    "description": "Use Face Detection service to locate the faces in the image and send the bounding boxes to the Image Blur service to get the final result",
     "data_in_fields": [
         {
             "name": "image",
@@ -116,18 +116,35 @@ correct_pipeline_simple = {
             ]
         }
     ],
+    "tags": [
+        {
+            "name": "Image Recognition",
+            "acronym": "IR"
+        },
+        {
+            "name": "Image Processing",
+            "acronym": "IP"
+        }
+    ],
     "steps": [
         {
             "identifier": "face-detection",
             "needs": [],
-            "inputs": ["pipeline.image"],
+            "inputs": [
+                "pipeline.image"
+            ],
             "service_slug": "face-detection"
         },
         {
             "identifier": "image-blur",
-            "needs": ["face-detection"],
+            "needs": [
+                "face-detection"
+            ],
             "condition": "len(face-detection.result['areas']) > 0",
-            "inputs": ["pipeline.image", "face-detection.result"],
+            "inputs": [
+                "pipeline.image",
+                "face-detection.result"
+            ],
             "service_slug": "image-blur"
         }
     ]

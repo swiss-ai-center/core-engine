@@ -309,7 +309,7 @@ const ItemGrid: React.FC<{
                                             <Typography gutterBottom variant="h5" component="h2">
                                                 {item.name}
                                             </Typography>
-                                            <Grid container spacing={1} sx={{mb: 2}}>
+                                            <Grid container spacing={1} sx={{p: 0, mb: 2}}>
                                                 {item.tags ? item.tags.map((tag: any, index: number) => {
                                                     return (
                                                         <Grid key={`pipeline-tag-${index}`}>
