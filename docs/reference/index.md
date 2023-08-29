@@ -26,6 +26,8 @@
 | [image-resize](./image-resize.md){ style="color: inherit;" }          | <https://github.com/csia-pme/csia-pme/tree/main/services/image-resize>      | <http://localhost:9292/docs>          | <https://image-resize-csia-pme.kube.isc.heia-fr.ch/docs>    |
 | [image-rotate](./image-rotate.md){ style="color: inherit;" }          | <https://github.com/csia-pme/csia-pme/tree/main/services/image-rotate>      | <http://localhost:9393/docs>          | <https://image-rotate-csia-pme.kube.isc.heia-fr.ch/docs>    |
 | [image-sam](./image-sam.md){ style="color: inherit;" }          | <https://github.com/csia-pme/csia-pme/tree/main/services/image-sam>      | <http://localhost:9494/docs>          | <https://image-sam-csia-pme.kube.isc.heia-fr.ch/docs>    |
+| [doodle](./doodle.md){ style="color: inherit;" }          | <https://github.com/csia-pme/doodle>      | <http://localhost:9595/docs>          | <https://doodle-csia-pme.kube.isc.heia-fr.ch/docs>    |
+| [yolov8](./yolov8.md){ style="color: inherit;" }          | <https://github.com/csia-pme/yolov8>      | <http://localhost:9595/docs>          | <https://yolov8-csia-pme.kube.isc.heia-fr.ch/docs>    |
 
 ## [Pipelines](./pipeline.md)
 
