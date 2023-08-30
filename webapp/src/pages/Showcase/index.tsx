@@ -38,7 +38,12 @@ const Showcase: React.FC<{ mobileOpen: boolean}> = ({mobileOpen}) => {
                 desc = await getPipelineDescription(id);
             }
             if (desc) {
-                setDescription(desc);
+                if ((desc as any).status === 'available') {
+                    setDescription(desc);
+                } else {
+                    toast("This service or pipeline is actually not available", {type: "warning"});
+                    navigateBack();
+                }
             } else {
                 toast("No description found with this id", {type: "warning"});
                 navigateBack();
