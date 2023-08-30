@@ -474,7 +474,11 @@ class ServicesService:
         self.logger.info(f"Disabling service {service.name}")
 
         # Set the service as unavailable
-        updated_service = self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.UNAVAILABLE))
+        if service.status == ExecutionUnitStatus.DISABLED:
+            self.logger.debug(f"Service {service.name} is already disabled")
+            updated_service = service
+        else:
+            updated_service = self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.UNAVAILABLE))
 
         self.logger.debug(f"Service {service.name} status set to {updated_service.status.value}")
 
@@ -511,6 +515,9 @@ class ServicesService:
             self.logger.info("No services in database.")
         else:
             for service in services:
+                if service.status == ExecutionUnitStatus.DISABLED:
+                    self.logger.info(f"Service {service.name} ({service.slug}) is disabled, skipping...")
+                    continue
                 try:
                     await self.check_if_service_is_reachable_and_ok(service)
                 except HTTPException as e:
