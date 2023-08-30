@@ -97,7 +97,8 @@ correct_pipeline_simple = {
     "name": "Face Blur",
     "slug": "face-blur",
     "summary": "Blur the faces in an image",
-    "description": "Use Face Detection service to locate the faces in the image and send the bounding boxes to the Image Blur service to get the final result", # noqa E501
+    "description": "Use Face Detection service to locate the faces in the image and send the bounding boxes to the "
+                   "Image Blur service to get the final result",
     "data_in_fields": [
         {
             "name": "image",

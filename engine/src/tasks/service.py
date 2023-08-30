@@ -272,6 +272,14 @@ class TasksService:
         # Check if current pipeline step is the last one
         if current_pipeline_step == pipeline.steps[-1]:
             end_pipeline_execution(pipeline_execution)
+
+            # send message to client
+            self.logger.debug(f"Sending task {task} to client")
+            try:
+                message = create_message(task)
+                asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+            except Exception as e:
+                self.logger.error(f"Could not send task {task} to client: {e}")
         else:
             should_post_task = True
             next_pipeline_step_id = pipeline.steps[pipeline.steps.index(current_pipeline_step) + 1].id
@@ -364,7 +372,15 @@ class TasksService:
                                      f"Skipping the end of pipeline.")
                     # Set the current task as SKIPPED
                     task.status = TaskStatus.SKIPPED
+                    # Update the task
                     self.session.add(task)
+                    # Send message to client
+                    self.logger.debug(f"Sending task {task} to client")
+                    try:
+                        message = create_message(task)
+                        asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+                    except Exception as e:
+                        self.logger.error(f"Could not send task {task} to client: {e}")
                     # Set remaining tasks as SKIPPED
                     # TODO: Check if this is the right behavior
                     skip_remaining_tasks(pipeline_execution)
@@ -421,6 +437,14 @@ class TasksService:
                     # End the pipeline execution
                     end_pipeline_execution(pipeline_execution)
 
+                    # Send message to client
+                    self.logger.debug(f"Sending task {task} to client")
+                    try:
+                        message = create_message(task)
+                        asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+                    except Exception as e:
+                        self.logger.error(f"Could not send task {task} to client: {e}")
+
                 except HTTPError as e:
                     self.logger.error(f"Sending request to the service {next_service.name} failed: {str(e)}")
 
@@ -432,6 +456,14 @@ class TasksService:
 
                     # End the pipeline execution
                     end_pipeline_execution(pipeline_execution)
+
+                    # Send message to client
+                    self.logger.debug(f"Sending task {task} to client")
+                    try:
+                        message = create_message(task)
+                        asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+                    except Exception as e:
+                        self.logger.error(f"Could not send task {task} to client: {e}")
 
         self.session.add(pipeline_execution)
         self.session.commit()
