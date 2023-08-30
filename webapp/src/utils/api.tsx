@@ -185,20 +185,7 @@ export const postToEngine = async (serviceSlug: string, parts: FieldDescriptionW
         });
 
         if (response.status === 200) {
-            const result = await response.json();
-            if (result.tasks) {
-                // this means that this is a Pipeline
-                // get the pipeline info
-                const pipeline = await getPipelineDescription(result.pipeline_id);
-                // get the last step's service id
-                const serviceId = pipeline.steps[pipeline.steps.length - 1].service_id;
-                // filter result tasks with the last step's service id
-                const task = result.tasks.filter((task: any) => task.service_id === serviceId);
-                return task[0];
-            } else {
-                // this means that this is a Service
-                return result;
-            }
+            return await response.json();
         }
         return {error: `${response.status} ${response.statusText}`};
     } catch (error: any) {
