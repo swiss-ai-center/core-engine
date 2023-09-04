@@ -84,6 +84,7 @@ This service rotates an image by 90, 180 or 270 degrees clockwise.
 ```
 
 !!! note
+
     If the service is part of the CSIA-PME GitHub organization also add a link to the [Service](../reference/service.md)'s [Reference](../reference) page in the repository README.md file.
 
     ```md
@@ -92,10 +93,10 @@ This service rotates an image by 90, 180 or 270 degrees clockwise.
     This service rotates an image by 90, 180 or 270 degrees clockwise.
 
     _Check the [related documentation](https://csia-pme.github.io/csia-pme/reference/image-rotate) for more information._
-
     ```
 
 ##### 1.4.2 Update the service pyproject title
+
 ```toml hl_lines="3"
 [project]
 # TODO: 1. CHANGE THE NAME OF THE PROJECT (1)!
@@ -783,6 +784,7 @@ This service detects anomalies in a time series.
 ```
 
 !!! note
+
     If the service is part of the CSIA-PME GitHub organization also add a link to the [Service](../reference/service.md)'s [Reference](../reference) page in the repository README.md file.
 
     ```md
@@ -791,10 +793,10 @@ This service detects anomalies in a time series.
     This service detects anomalies in a time series.
 
     _Check the [related documentation](https://csia-pme.github.io/csia-pme/reference/ae-ano-detection) for more information._
-
     ```
 
 ##### 2.4.2 Update the service pyproject title
+
 ```toml hl_lines="3"
 [project]
 # TODO: 1. CHANGE THE NAME OF THE PROJECT (1)!
@@ -1272,17 +1274,14 @@ jobs:
 !!! success "Congratulations!"
     You have successfully created a [Service](../reference/service.md) locally. Now, you can push the [Service](../reference/service.md) to GitHub and deploy it on the engine using the workflow created in the previous section.
 
-### (Optional) Update the documentation
+### Update the documentation (optional)
 
 If the [Service](../reference/service.md) is part of the CSIA-PME GitHub Organization. There is some documentation to update.
 
 1. First add the [Service](../reference/service.md) to the list of references with its URL and GitHub repository URL.
 
-2. Then create it's own section with all information on how to run the [Service](../reference/service.md) with the following content:
+2. Then create it's own section with all information on how to run the [Service](../reference/service.md) with the same content as the other services
 
-```md
-
-```
 
 Then update the nav section in the `mkdocs.yml` file with the new [Service](../reference/service.md) reference page.
 
