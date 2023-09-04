@@ -67,6 +67,7 @@ export const FilterDrawer: React.FC<{
                         options={TagObjects}
                         disableCloseOnSelect
                         getOptionLabel={(option) => option.name}
+                        isOptionEqualToValue={(option, value) => option.acronym === value.acronym}
                         renderOption={(props, option, {selected}) => (
                             <li {...props}>
                                 <Checkbox

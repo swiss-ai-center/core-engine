@@ -33,8 +33,8 @@ const minWidth = (window.innerWidth < 600) ? '100%' : (window.innerWidth < 900) 
 const align = (window.innerWidth < 600) ? 'center' : 'left';
 
 const ItemGrid: React.FC<{
-    filter: string, orderBy: string, tags: Tag[]
-}> = ({filter, orderBy, tags}) => {
+    filter: string, orderBy: string, tags: Tag[], handleTags: any
+}> = ({filter, orderBy, tags, handleTags}) => {
     const dispatch = useDispatch();
     const servicesPerPage = useSelector((state: any) => state.perPage.value.services);
     const pipelinesPerPage = useSelector((state: any) => state.perPage.value.pipelines);
@@ -251,8 +251,11 @@ const ItemGrid: React.FC<{
                                                                         Tags.filter((t) =>
                                                                             t.acronym === tag.acronym)[0].colors
                                                                     }
-                                                                    variant="outlined"
+                                                                    variant={"outlined"}
                                                                     size={"small"}
+                                                                    onClick={() => {
+                                                                        handleTags(null, [...tags, tag]);
+                                                                    }}
                                                                 />
                                                             </Tooltip>
                                                         </Grid>
@@ -321,8 +324,11 @@ const ItemGrid: React.FC<{
                                                                         Tags.filter((t) =>
                                                                             t.acronym === tag.acronym)[0].colors
                                                                     }
-                                                                    variant="outlined"
+                                                                    variant={"outlined"}
                                                                     size={"small"}
+                                                                    onClick={() => {
+                                                                        handleTags(null, [...tags, tag]);
+                                                                    }}
                                                                 />
                                                             </Tooltip>
                                                         </Grid>
