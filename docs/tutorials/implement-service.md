@@ -66,7 +66,7 @@ pip install --requirement requirements.txt
 Create a freeze file to list the dependencies with their versions.
 
 ```sh
-pip freeze --local --all > requirements-freeze.txt
+pip freeze --local --all > requirements-all.txt
 ```
 
 This will install the default [Service](../reference/service.md) dependencies and the ones we just added. The freeze file will be used to ensure all the developers have the same dependencies.
@@ -83,7 +83,33 @@ Open the `README.md` file and update the title and the description of the [Servi
 This service rotates an image by 90, 180 or 270 degrees clockwise.
 ```
 
-##### 1.4.2 Update the service kubernetes configuration
+!!! note
+
+    If the service is part of the CSIA-PME GitHub organization also add a link to the [Service](../reference/service.md)'s [Reference](../reference) page in the repository README.md file.
+
+    ```md
+    # Image Rotate
+
+    This service rotates an image by 90, 180 or 270 degrees clockwise.
+
+    _Check the [related documentation](https://csia-pme.github.io/csia-pme/reference/image-rotate) for more information._
+    ```
+
+##### 1.4.2 Update the service pyproject title
+
+```toml hl_lines="3"
+[project]
+# TODO: 1. CHANGE THE NAME OF THE PROJECT (1)!
+name = "image-rotate"
+
+[tool.pytest.ini_options]
+pythonpath = [".", "src"]
+addopts = "--cov-config=.coveragerc --cov-report xml --cov-report term-missing --cov=./src"
+```
+
+1. Change the name of the project to `image-rotate`.
+
+##### 1.4.3 Update the service kubernetes configuration
 
 In the `kubernetes` folder, you will find the configuration files for the [Service](../reference/service.md).
 
@@ -248,7 +274,7 @@ spec:
 !!! warning "TODOs"
     When you are done, you need to remove all the TODOs from the files.
 
-##### 1.4.3 Update the service code
+##### 1.4.4 Update the service code
 
 First open the `.env` file and update the `SERVICE_URL` variable to `http://localhost:8001`. The port must be the same as in the `image-rotate.config-map.yaml` file.
 
@@ -409,7 +435,7 @@ app = FastAPI(
 6. Change the API description and summary.
 7. Change the API title, version, contact and license.
 
-##### 1.4.4 Dockerfile
+##### 1.4.5 Dockerfile
 
 The Dockerfile is used to build the Docker image of the [Service](../reference/service.md). We need to add some packages in order to use the OpenCV library.
 
@@ -740,7 +766,7 @@ pip install --requirement requirements.txt
 Create a freeze file to list the dependencies with their versions.
 
 ```sh
-pip freeze --local --all > requirements-freeze.txt
+pip freeze --local --all > requirements-all.txt
 ```
 
 This will install the default [Service](../reference/service.md) dependencies and the ones we just added. The freeze file will be used to ensure all the developers have the same dependencies.
@@ -757,7 +783,33 @@ Open the `README.md` file and update the title and the description of the [Servi
 This service detects anomalies in a time series.
 ```
 
-##### 2.4.2 Update the service kubernetes configuration
+!!! note
+
+    If the service is part of the CSIA-PME GitHub organization also add a link to the [Service](../reference/service.md)'s [Reference](../reference) page in the repository README.md file.
+
+    ```md
+    # Anomaly detection
+
+    This service detects anomalies in a time series.
+
+    _Check the [related documentation](https://csia-pme.github.io/csia-pme/reference/ae-ano-detection) for more information._
+    ```
+
+##### 2.4.2 Update the service pyproject title
+
+```toml hl_lines="3"
+[project]
+# TODO: 1. CHANGE THE NAME OF THE PROJECT (1)!
+name = "ano-detection"
+
+[tool.pytest.ini_options]
+pythonpath = [".", "src"]
+addopts = "--cov-config=.coveragerc --cov-report xml --cov-report term-missing --cov=./src"
+```
+
+1. Change the name of the project to `ano-detection`.
+
+##### 2.4.3 Update the service kubernetes configuration
 
 In the `kubernetes` folder, you will find the configuration files for the [Service](../reference/service.md).
 
@@ -922,7 +974,7 @@ spec:
 !!! warning "TODOs"
     When you are done, you need to remove all the TODOs from the files.
 
-##### 2.4.3 Update the service code
+##### 2.4.4 Update the service code
 
 First open the `.env` file and update the `SERVICE_URL` variable to `http://localhost:8001`. The port must be the same as in the `ano-detection.config-map.yaml` file.
 
@@ -1084,7 +1136,7 @@ app = FastAPI(
 6. Change the API description and summary.
 7. Change the API title, version, contact and license.
 
-##### 2.4.4 Dockerfile
+##### 2.4.5 Dockerfile
 
 The Dockerfile is used to build the Docker image of the [Service](../reference/service.md). We need to copy the model in the docker.
 
@@ -1221,3 +1273,45 @@ jobs:
 
 !!! success "Congratulations!"
     You have successfully created a [Service](../reference/service.md) locally. Now, you can push the [Service](../reference/service.md) to GitHub and deploy it on the engine using the workflow created in the previous section.
+
+### Update the documentation (optional)
+
+If the [Service](../reference/service.md) is part of the CSIA-PME GitHub Organization. There is some documentation to update.
+
+1. First add the [Service](../reference/service.md) to the list of references with its URL and GitHub repository URL.
+
+2. Then create it's own section with all information on how to run the [Service](../reference/service.md) with the same content as the other services
+
+
+Then update the nav section in the `mkdocs.yml` file with the new [Service](../reference/service.md) reference page.
+
+```yaml hl_lines="25"
+...
+nav:
+  ...
+  - Reference:
+      - reference/index.md
+      - Team: reference/team.md
+      - Engine: reference/engine.md
+      - Service: reference/service.md
+      - Pipeline: reference/pipeline.md
+      - Webapp: reference/webapp.md
+      - Authentication: reference/auth.md
+      - ae-ano-detection service: reference/ae-ano-detection.md
+      - average-shade service: reference/average-shade.md
+      - digit-recognition service: reference/digit-recognition.md
+      - face-analyzer service: reference/face-analyzer.md
+      - face-detection service: reference/face-detection.md
+      - image-analyzer service: reference/image-analyzer.md
+      - image-blur service: reference/image-blur.md
+      - image-convert service: reference/image-convert.md
+      - image-crop service: reference/image-crop.md
+      - image-greyscale service: reference/image-greyscale.md
+      - image-resize service: reference/image-resize.md
+      - image-rotate service: reference/image-rotate.md
+      - image-sam service: reference/image-sam.md
+      - sample-service service: reference/sample-service.md
+  ...
+```
+
+![reference-page](../assets/screenshots/reference-page.png)
