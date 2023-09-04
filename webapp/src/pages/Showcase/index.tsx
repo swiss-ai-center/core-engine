@@ -10,6 +10,9 @@ import Copyright from '../../components/Copyright/Copyright';
 import { DescriptionDrawer } from '../../components/DescriptionDrawer/DescriptionDrawer';
 import { toast } from 'react-toastify';
 
+const isSmartphone = (): boolean => {
+    return window.innerWidth < 600;
+}
 
 const Showcase: React.FC<{ mobileOpen: boolean}> = ({mobileOpen}) => {
     const params = useParams();
@@ -95,7 +98,8 @@ const Showcase: React.FC<{ mobileOpen: boolean}> = ({mobileOpen}) => {
                             </Container>
                         </Box>
                         <Container sx={{py: 2}} maxWidth={"lg"}>
-                            <Button sx={{mb: 2}} color={"secondary"} variant={"outlined"}
+                            <Button sx={{mb: 2, visibility: isSmartphone() ? "hidden" : "inherit"}}
+                                    color={"secondary"} variant={"outlined"}
                                     onClick={handle.enter} startIcon={<Fullscreen/>}>
                                 Go Fullscreen
                             </Button>

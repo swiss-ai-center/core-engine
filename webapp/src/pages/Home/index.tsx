@@ -124,7 +124,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                     </Typography>
                 </Container>
                 <Container sx={{py: 4}} maxWidth="lg">
-                    <ItemGrid filter={search} orderBy={orderBy} tags={tags}/>
+                    <ItemGrid filter={search} orderBy={orderBy} tags={tags} handleTags={handleTags}/>
                 </Container>
                 <Container maxWidth="lg" sx={{pb: 0}}>
                     <Copyright/>
