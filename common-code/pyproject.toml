@@ -1,6 +1,6 @@
 [project]
 name = "common_code"
-version = "0.0.10"
+version = "0.0.11"
 description = "Common code used by the CSIA-PME services"
 requires-python = ">=3.10"
 license = {text = "AGPL-3.0"}
