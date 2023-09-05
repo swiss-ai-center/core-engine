@@ -69,7 +69,7 @@ class ServiceService:
             self.logger.info("Gracefully shutting down service")
             self.logger.info("Stopping tasks service")
             service_id = await self.get_service_id(my_service.slug, engine_url)
-            service_json = jsonable_encoder({"status": ServiceStatus.UNAVAILABLE})
+            service_json = jsonable_encoder({"status": ServiceStatus.DISABLED})
             res_update = await self.http_client.patch(f"{engine_url}/services/{service_id}",
                                                       json=service_json)
             if res_update.status_code != 200:

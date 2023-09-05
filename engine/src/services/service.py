@@ -523,4 +523,5 @@ class ServicesService:
                     self.disable_service(app, service)
                 else:
                     self.logger.info(f"Service {service.name} ({service.slug}) reachable and OK")
-                    self.enable_service(app, service)
+                    updated_service = self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.AVAILABLE))
+                    self.enable_service(app, updated_service)
