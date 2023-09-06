@@ -60,8 +60,7 @@ export default function DrawGraph(
 const generateNode = (slug: string) => {
     return {
         id: slug,
-        type: "customNode",
-        next: slug + "-exit",
+        type: "progressNode",
         data: {
             label: slug,
         }
@@ -75,8 +74,7 @@ const generateEntryNode = (
 ) => {
     return {
         id: slug + "-entry",
-        type: "customNode",
-        next: slug,
+        type: "entryNode",
         data: {
             label: slug + "-entry",
             executionType: executionType,
@@ -89,8 +87,7 @@ const generateEntryNode = (
 const generateExitNode = (slug: string, data_out_fields: FieldDescription[]) => {
     return {
         id: slug + "-exit",
-        type: "customNode",
-        next: [],
+        type: "exitNode",
         data: {
             label: slug + "-exit",
             data_out_fields: data_out_fields,

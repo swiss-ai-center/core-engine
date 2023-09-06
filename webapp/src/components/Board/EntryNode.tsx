@@ -1,20 +1,21 @@
 import React from "react";
 import { Handle, Position } from "react-flow-renderer";
 import {
-    Box, Button, Card, CardActions, CardContent, CircularProgress, Divider, Input, Tooltip, Typography
+    Box, Button, Card, CardActions, CardContent, Divider, Input, LinearProgress, Tooltip, Typography
 } from '@mui/material';
-import { Download, PlayArrow } from '@mui/icons-material';
+import { PlayCircleTwoTone, UploadFileTwoTone } from '@mui/icons-material';
 import {
     RunState,
     setRunState,
     setResultIdList,
 } from '../../utils/reducers/runStateSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { getResult, postToEngine } from '../../utils/api';
+import { postToEngine } from '../../utils/api';
 import { FieldDescription, FieldDescriptionWithSetAndValue } from '../../models/ExecutionUnit';
 import { useFileArray } from '../../utils/hooks/fileArray';
 import { useWebSocketConnection } from '../../utils/useWebSocketConnection';
 import { toast } from 'react-toastify';
+import { grey } from '@mui/material/colors';
 
 function createAllowedTypesString(allowedTypes: string[]) {
     return allowedTypes.join(', ');
@@ -26,11 +27,12 @@ function addIsSetToFields(fields: FieldDescription[]): FieldDescriptionWithSetAn
     });
 }
 
-const CustomNode = ({data, styles}: any) => {
+
+const EntryNode = ({data}: any) => {
+    const lightgrey = grey[400];
     const dispatch = useDispatch();
     const {fileArray, setFileArray} = useFileArray();
     const run = useSelector((state: any) => state.runState.value);
-    const resultIdList = useSelector((state: any) => state.runState.resultIdList);
     const {sendJsonMessage} = useWebSocketConnection();
 
     const [areItemsUploaded, setAreItemsUploaded] = React.useState(false);
@@ -63,21 +65,6 @@ const CustomNode = ({data, styles}: any) => {
         checkIfAllItemsAreUploaded();
     }
 
-    const downloadResult = async () => {
-        for (const id of resultIdList) {
-            const file: any = await getResult(id);
-            if (file.file) {
-                const link = document.createElement('a');
-                link.href = window.URL.createObjectURL(file.file);
-                link.setAttribute('download', 'result.' + id.split('.')[1]);
-                document.body.appendChild(link);
-                link.click();
-            } else {
-                toast(`Error downloading file ${id}: ${file.error}`, {type: "error"});
-            }
-        }
-    }
-
     const launchExecution = async (serviceSlug: string) => {
         const response = await postToEngine(serviceSlug, fileArray);
         if (response.id) {
@@ -93,23 +80,27 @@ const CustomNode = ({data, styles}: any) => {
     }
 
     const actionContent = () => {
-        return <Box sx={{display: "flex", width: "100%"}}>
-            <Button
-                disabled={!areItemsUploaded || isExecuting()}
-                sx={{flexGrow: 1}}
-                variant={"contained"}
-                color={"success"}
-                size={"small"}
-                endIcon={<PlayArrow sx={{color: (isExecuting()) ? "transparent" : "inherit"}}/>}
-                onClick={() => launchExecution(data.label.replace("-entry", ""))}>
-                {isExecuting() ? (
-                    <CircularProgress
-                        size={24}
-                        color={"primary"}
-                        sx={{position: "absolute", alignSelf: "center",}}
-                    />
-                ) : (<>Run</>)}
-            </Button>
+        return <Box
+            sx={{display: "flex", width: "100%", minHeight: 32, flexDirection: "column", justifyContent: "center"}}
+        >
+            {isExecuting() ? (
+                <LinearProgress
+                    sx={{borderRadius: 1, mb: 1, mx: 1}}
+                    color={"primary"}
+                />
+            ) : (
+                <Button
+                    disabled={!areItemsUploaded || isExecuting()}
+                    sx={{flexGrow: 1}}
+                    variant={"contained"}
+                    color={"primary"}
+                    size={"small"}
+                    endIcon={<PlayCircleTwoTone sx={{color: (isExecuting()) ? "transparent" : "inherit"}}/>}
+                    onClick={() => launchExecution(data.label.replace("-entry", ""))}
+                >
+                    Run
+                </Button>
+            )}
         </Box>
     }
 
@@ -129,10 +120,21 @@ const CustomNode = ({data, styles}: any) => {
     return (
         <>
             <Card
-                sx={{height: "100%", display: "flex", flexDirection: "column"}}
+                sx={{
+                    height: "100%", display: "flex", flexDirection: "column",
+                    borderColor: areItemsUploaded ? "success.main" : lightgrey,
+                    borderWidth: 2,
+                    borderStyle: "solid",
+                    borderRadius: 2,
+                    boxShadow: "none",
+                }}
             >
-                <CardContent sx={{flexGrow: 1}}>
-                    <Typography variant={"subtitle1"} color={"primary"}>{data.label}</Typography>
+                <CardContent sx={{flexGrow: 1, mb: -1}}>
+                    <Typography variant={"subtitle1"} color={"primary"}
+                                sx={{justifyContent: "center", display: "flex"}}
+                    >
+                        {data.label}
+                    </Typography>
                     {(data.data_in_fields) ?
                         fileArray.map((item: any, index: number) => {
                             return (
@@ -148,8 +150,9 @@ const CustomNode = ({data, styles}: any) => {
                                                     variant={"outlined"}
                                                     component={"label"}
                                                     size={"small"}
-                                                    sx={{mb: 1, mt: 1}}
+                                                    sx={{mb: (index !== fileArray.length - 1) ? 1 : 0, mt: 1}}
                                                     color={item.isSet ? "success" : "secondary"}
+                                                    endIcon={<UploadFileTwoTone/>}
                                             >
                                                 Upload
                                                 <input
@@ -162,7 +165,7 @@ const CustomNode = ({data, styles}: any) => {
                                                 />
                                             </Button>
                                         </Tooltip>)}
-                                    <Divider/>
+                                    {(index !== fileArray.length - 1) ? <Divider/> : null}
                                 </div>
                             );
                         })
@@ -170,40 +173,14 @@ const CustomNode = ({data, styles}: any) => {
                         <Typography/>
                     }
                 </CardContent>
-                {(data.label.includes("entry")) ? (<CardActions>{actionContent()}</CardActions>) : (<></>)}
-                {(data.label.includes("exit")) ?
-                    (
-                        <CardActions>
-                            <Button
-                                disabled={!(run === RunState.FINISHED)}
-                                sx={{flexGrow: 1}}
-                                variant={"contained"}
-                                color={"info"}
-                                size={"small"}
-                                endIcon={<Download/>}
-                                onClick={downloadResult}
-                            >
-                                Download
-                            </Button>
-                        </CardActions>
-                    ) : (<></>)
-                }
+                <CardActions>{actionContent()}</CardActions>
             </Card>
-
-            {(data.label && !data.label.includes("entry")) ?
-                <Handle
-                    type={"target"}
-                    position={Position.Left}
-                /> : <></>
-            }
-            {(data.label && !data.label.includes("exit")) ?
-                <Handle
-                    type={"source"}
-                    position={Position.Right}
-                /> : <></>
-            }
+            <Handle
+                type={"source"}
+                position={Position.Right}
+            />
         </>
     );
 };
 
-export default CustomNode;
+export default EntryNode;

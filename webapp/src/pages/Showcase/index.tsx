@@ -108,7 +108,7 @@ const Showcase: React.FC<{ mobileOpen: boolean}> = ({mobileOpen}) => {
                                     {
                                         height: 500,
                                         width: "100%",
-                                        border: 1,
+                                        border: 2,
                                         borderRadius: "5px",
                                         borderColor: "primary.main"
                                     }}>

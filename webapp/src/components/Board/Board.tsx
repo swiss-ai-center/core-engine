@@ -2,7 +2,9 @@ import React from 'react';
 import ReactFlow, {
     addEdge, ReactFlowProvider, Background, Controls, useNodesState, useEdgesState, MiniMap
 } from 'react-flow-renderer';
-import SelectorNode from './CustomNode';
+import EntryNode from './EntryNode';
+import ExitNode from './ExitNode';
+import ProgressNode from './ProgressNode';
 import { ControlButton } from 'reactflow';
 import { FullscreenExit } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,7 +20,9 @@ import { RunState, setResultIdList, setRunState } from '../../utils/reducers/run
 
 const Board: React.FC<{ description: any, fullscreen: boolean }> = ({description, fullscreen}) => {
     const dispatch = useDispatch();
-    const nodeTypes = React.useMemo(() => ({customNode: SelectorNode}), []);
+    const nodeTypes = React.useMemo(() => ({
+        entryNode: EntryNode, progressNode: ProgressNode, exitNode: ExitNode
+    }), []);
     const colorMode = useSelector((state: any) => state.colorMode.value);
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
