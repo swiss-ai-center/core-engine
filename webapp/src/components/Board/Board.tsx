@@ -119,6 +119,7 @@ const Board: React.FC<{ description: any, fullscreen: boolean }> = ({description
                 nodeTypes={nodeTypes}
                 fitView
                 nodesDraggable={false}
+                nodesConnectable={false}
                 about={colorMode}
                 style={{
                     backgroundColor: colorMode === 'dark' ? '#121212' : '#fff',

@@ -122,9 +122,9 @@ const ItemGrid: React.FC<{
                 <Grid xs={12} md={6} lg={4} mdOffset={"auto"} alignItems={"right"} justifyContent={"right"}>
                     <Box sx={{display: 'flex', alignItems: 'right', justifyContent: 'right'}}>
                         <FormControl sx={{minWidth: minWidth}}>
-                            <InputLabel id={"services-per-page-label"}>Per page</InputLabel>
+                            <InputLabel id={"services-per-page-label"} htmlFor={"services-per-page"}>Per page</InputLabel>
                             <Select
-                                labelId={"services-per-page"}
+                                labelId={"services-per-page-label"}
                                 id={"services-per-page"}
                                 value={servicesPerPage}
                                 label={"Per page"}
@@ -166,7 +166,7 @@ const ItemGrid: React.FC<{
                 <Grid xs={12} md={6} lg={4} mdOffset={"auto"} alignItems={"right"} justifyContent={"right"}>
                     <Box sx={{display: 'flex', alignItems: 'right', justifyContent: 'right'}}>
                         <FormControl sx={{minWidth: minWidth}}>
-                            <InputLabel id={"pipelines-per-page-label"}>Per page</InputLabel>
+                            <InputLabel id={"pipelines-per-page-label"} htmlFor={"pipelines-per-page"}>Per page</InputLabel>
                             <Select
                                 labelId={"pipelines-per-page"}
                                 id={"pipelines-per-page"}

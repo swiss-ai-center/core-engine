@@ -1,7 +1,7 @@
 import React from "react";
 import { Handle, Position } from "react-flow-renderer";
 import {
-    Button, Card, CardActions, CardContent, Typography
+    Button, Card, CardActions, CardContent, Tooltip, Typography
 } from '@mui/material';
 import { DownloadForOfflineTwoTone } from '@mui/icons-material';
 import {
@@ -15,6 +15,8 @@ import { grey } from '@mui/material/colors';
 
 const ExitNode = ({data}: any) => {
     const lightgrey = grey[400];
+    const darkgrey = grey[800];
+    const colorMode = useSelector((state: any) => state.colorMode.value);
     const run = useSelector((state: any) => state.runState.value);
     const resultIdList = useSelector((state: any) => state.runState.resultIdList);
 
@@ -39,7 +41,7 @@ const ExitNode = ({data}: any) => {
                 sx={{
                     height: "100%", display: "flex", flexDirection: "column",
                     borderColor: run === RunState.FINISHED ? "success.main" :
-                        run === RunState.ERROR ? "error.main" : lightgrey,
+                        run === RunState.ERROR ? "error.main" : (colorMode === "light" ? lightgrey : darkgrey),
                     borderWidth: 2,
                     borderStyle: "solid",
                     borderRadius: 2,
@@ -54,21 +56,25 @@ const ExitNode = ({data}: any) => {
                     </Typography>
                 </CardContent>
                 <CardActions>
-                    <Button
-                        disabled={!(run === RunState.FINISHED)}
-                        sx={{
-                            display: "flex",
-                            width: "100%",
-                            minHeight: 32,
-                        }}
-                        variant={"contained"}
-                        color={"success"}
-                        size={"small"}
-                        endIcon={<DownloadForOfflineTwoTone/>}
-                        onClick={downloadResult}
-                    >
-                        Download
-                    </Button>
+                    <Tooltip title={"Download final result"} placement={"left"}>
+                        <span style={{display: "flex", width: "100%"}}>
+                            <Button
+                                disabled={!(run === RunState.FINISHED)}
+                                sx={{
+                                    display: "flex",
+                                    width: "100%",
+                                    minHeight: 32,
+                                }}
+                                variant={"contained"}
+                                color={"success"}
+                                size={"small"}
+                                endIcon={<DownloadForOfflineTwoTone/>}
+                                onClick={downloadResult}
+                            >
+                                Download
+                            </Button>
+                        </span>
+                    </Tooltip>
                 </CardActions>
             </Card>
             <Handle

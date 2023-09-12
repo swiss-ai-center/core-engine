@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 export enum RunState {
+    IDLE = "idle",
     PENDING = "pending",
     FETCHING = "fetching",
     PROCESSING = "processing",
@@ -16,7 +17,7 @@ export enum RunState {
 export const runStateSlice = createSlice({
     name: 'runState',
     initialState: {
-        value: RunState.PENDING,
+        value: RunState.IDLE,
         taskId: '',
         resultIdList: []
     },

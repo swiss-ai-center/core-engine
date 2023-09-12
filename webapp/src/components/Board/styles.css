@@ -24,6 +24,10 @@
     background-color: #d41367 !important;
 }
 
+.react-flow__edge-path {
+    stroke: #d41367 !important;
+}
+
 #board[about='light'] > div.react-flow__controls > button {
     border: 1px solid lightgrey !important;
     border-radius: 5px !important;
@@ -103,7 +107,7 @@
         z-index: -1;
         width: calc(100% - 4px);
         height: calc(100% - 4px);
-        background: white;
+        background: inherit;
         border: 0.05em solid #0088d1;
         border-radius: 6px;
     }

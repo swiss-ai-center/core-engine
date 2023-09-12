@@ -4,11 +4,7 @@ import {
     Box, Button, Card, CardActions, CardContent, Divider, Input, LinearProgress, Tooltip, Typography
 } from '@mui/material';
 import { PlayCircleTwoTone, UploadFileTwoTone } from '@mui/icons-material';
-import {
-    RunState,
-    setRunState,
-    setResultIdList,
-} from '../../utils/reducers/runStateSlice';
+import { RunState, setRunState, setResultIdList } from '../../utils/reducers/runStateSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { postToEngine } from '../../utils/api';
 import { FieldDescription, FieldDescriptionWithSetAndValue } from '../../models/ExecutionUnit';
@@ -30,6 +26,8 @@ function addIsSetToFields(fields: FieldDescription[]): FieldDescriptionWithSetAn
 
 const EntryNode = ({data}: any) => {
     const lightgrey = grey[400];
+    const darkgrey = grey[800];
+    const colorMode = useSelector((state: any) => state.colorMode.value);
     const dispatch = useDispatch();
     const {fileArray, setFileArray} = useFileArray();
     const run = useSelector((state: any) => state.runState.value);
@@ -49,6 +47,7 @@ const EntryNode = ({data}: any) => {
 
     const isExecuting = () => {
         return (
+            run === RunState.PENDING ||
             run === RunState.PROCESSING ||
             run === RunState.SAVING ||
             run === RunState.FETCHING ||
@@ -69,7 +68,7 @@ const EntryNode = ({data}: any) => {
         const response = await postToEngine(serviceSlug, fileArray);
         if (response.id) {
             dispatch(setRunState(RunState.PROCESSING));
-            toast(`Execution started`, {type: "success"});
+            toast("Execution started", {type: "success"});
             sendJsonMessage({
                 linked_id: response.id,
                 execution_type: data.executionType,
@@ -105,7 +104,7 @@ const EntryNode = ({data}: any) => {
     }
 
     React.useEffect(() => {
-        dispatch(setRunState(RunState.PENDING));
+        dispatch(setRunState(RunState.IDLE));
         dispatch(setResultIdList([]));
         if (data.data_in_fields) {
             setFileArray(addIsSetToFields(data.data_in_fields));
@@ -122,7 +121,7 @@ const EntryNode = ({data}: any) => {
             <Card
                 sx={{
                     height: "100%", display: "flex", flexDirection: "column",
-                    borderColor: areItemsUploaded ? "success.main" : lightgrey,
+                    borderColor: areItemsUploaded ? "success.main" : (colorMode === "light" ? lightgrey : darkgrey),
                     borderWidth: 2,
                     borderStyle: "solid",
                     borderRadius: 2,
@@ -155,7 +154,9 @@ const EntryNode = ({data}: any) => {
                                                     endIcon={<UploadFileTwoTone/>}
                                             >
                                                 Upload
+                                                <label htmlFor={"upload-file-input-" + index}/>
                                                 <input
+                                                    id={"upload-file-input-" + index}
                                                     accept={createAllowedTypesString(item.type)}
                                                     type={"file"}
                                                     hidden

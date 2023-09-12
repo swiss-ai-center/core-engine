@@ -30,16 +30,23 @@ def create_message(task: Task):
             task.status == TaskStatus.FETCHING or \
             task.status == TaskStatus.SAVING:
         message_type = MessageType.INFO
+        message_text = f"Task for {task.service.slug} created"
     elif task.status == TaskStatus.PROCESSING or \
             task.status == TaskStatus.FINISHED:
         message_type = MessageType.SUCCESS
+        if task.status == TaskStatus.PROCESSING:
+            message_text = f"Task for {task.service.slug} processing"
+        else:
+            message_text = f"Task for {task.service.slug} finished"
     elif task.status == TaskStatus.ERROR:
         message_type = MessageType.ERROR
+        message_text = f"Task for {task.service.slug} failed"
     else:
         message_type = MessageType.WARNING
+        message_text = f"Task for {task.service.slug} unknown status"
     return Message(
         message={
-            "text": "Task updated",
+            "text": message_text,
             "data": task.dict(),
         },
         type=message_type, subject=MessageSubject.EXECUTION
@@ -193,13 +200,12 @@ class TasksService:
         self.session.refresh(current_task)
         self.logger.debug(f"Updated task with id {current_task.id}")
 
-        if not current_task.pipeline_execution_id:
-            self.logger.debug(f"Sending task {current_task} to client")
-            try:
-                message = create_message(current_task)
-                asyncio.ensure_future(self.connection_manager.send_json(message, task_id))
-            except Exception as e:
-                self.logger.error(f"Could not send task {current_task} to client: {e}")
+        self.logger.debug(f"Sending task {current_task} to client")
+        try:
+            message = create_message(current_task)
+            asyncio.ensure_future(self.connection_manager.send_json(message, task_id))
+        except Exception as e:
+            self.logger.error(f"Could not send task {current_task} to client: {e}")
 
         return current_task
 
