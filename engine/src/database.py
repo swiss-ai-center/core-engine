@@ -18,4 +18,5 @@ def initialize_db(settings: Settings = Depends(get_settings)):
 def get_session(engine=Depends(initialize_db)):
     """Get a database session."""
     with Session(engine) as session:
+        session.expire_on_commit = False
         yield session

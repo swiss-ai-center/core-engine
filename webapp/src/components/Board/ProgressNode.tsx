@@ -13,23 +13,31 @@ const ProgressNode = ({data}: any) => {
     const lightgrey = grey[400];
     const darkgrey = grey[800];
     const colorMode = useSelector((state: any) => state.colorMode.value);
-    const successColor = (colorMode === "light" ? "#2f7c31" : "#66bb69");
-    const errorColor = (colorMode === "light" ? "#d32f2f" : "#f44336");
-    const run = useSelector((state: any) => state.runState.value);
-    const resultIdList = useSelector((state: any) => state.runState.resultIdList);
+    const currentTask = useSelector((state: any) => state.runState.task);
+    const taskArray = useSelector((state: any) => state.runState.taskArray);
+
+    const getStatus = () => {
+        if (currentTask && currentTask.service_id === data.service_id) {
+            return currentTask.status;
+        } else {
+            const tasks = taskArray.filter((task: any) => task.service_id === data.service_id);
+            if (tasks.length > 0) {
+                return tasks[0].status;
+            }
+            return RunState.IDLE;
+        }
+    }
 
     const isExecuting = () => {
-        return (
-            run === RunState.PENDING ||
-            run === RunState.PROCESSING ||
-            run === RunState.SAVING ||
-            run === RunState.FETCHING ||
-            run === RunState.SCHEDULED);
+        return (getStatus() === RunState.PENDING ||
+            getStatus() === RunState.PROCESSING ||
+            getStatus() === RunState.SAVING ||
+            getStatus() === RunState.FETCHING);
     }
 
     const downloadIntermediateResult = async () => {
-        // TODO: implement
-        /* for (const id of resultIdList) {
+        const resultIdList = taskArray.filter((task: any) => task.service_id === data.service_id)[0].data_out;
+        for (const id of resultIdList) {
             const file: any = await getResult(id);
             if (file.file) {
                 const link = document.createElement('a');
@@ -40,7 +48,7 @@ const ProgressNode = ({data}: any) => {
             } else {
                 toast(`Error downloading file ${id}: ${file.error}`, {type: "error"});
             }
-        } */
+        }
     }
 
     return (
@@ -48,8 +56,9 @@ const ProgressNode = ({data}: any) => {
             <Card
                 sx={{
                     height: "100%", display: "flex", flexDirection: "column",
-                    border: !isExecuting() ? ("2px solid " + (run === RunState.FINISHED ? successColor :
-                        run === RunState.ERROR ? "#d32f2f" : (colorMode === "light" ? lightgrey : darkgrey))) : "none",
+                    border: !isExecuting() ? ("2px solid") : "none",
+                    borderColor: !isExecuting() ? (getStatus() === RunState.FINISHED ? "success.main" :
+                        getStatus() === RunState.ERROR ? "error.main" : (colorMode === "light" ? lightgrey : darkgrey)) : "none",
                     borderRadius: 2,
                     boxShadow: "none",
                 }}
@@ -57,21 +66,21 @@ const ProgressNode = ({data}: any) => {
             >
                 <CardContent sx={{flexGrow: 1}}>
                     {data.type === "pipeline" ? (
-                    <URLLink href={`/showcase/service/${data.service_id}`} sx={{textDecoration: "none"}}>
-                        <Tooltip title={"Service's page"} placement={"top"}>
-                            <Typography variant={"subtitle1"} color={"primary"}
-                                        sx={{justifyContent: "center", display: "flex"}}
-                            >
-                                {data.label}
-                            </Typography>
-                        </Tooltip>
-                    </URLLink>
+                        <URLLink href={`/showcase/service/${data.service_id}`} sx={{textDecoration: "none"}}>
+                            <Tooltip title={"Service's page"} placement={"top"}>
+                                <Typography variant={"subtitle1"} color={"primary"}
+                                            sx={{justifyContent: "center", display: "flex"}}
+                                >
+                                    {data.label}
+                                </Typography>
+                            </Tooltip>
+                        </URLLink>
                     ) : (
-                    <Typography variant={"subtitle1"} color={"primary"}
-                                sx={{justifyContent: "center", display: "flex"}}
-                    >
-                        {data.label}
-                    </Typography>
+                        <Typography variant={"subtitle1"} color={"primary"}
+                                    sx={{justifyContent: "center", display: "flex"}}
+                        >
+                            {data.label}
+                        </Typography>
                     )}
                 </CardContent>
                 <CardActions
@@ -81,7 +90,7 @@ const ProgressNode = ({data}: any) => {
                     <Tooltip title={"Download intermediate result"} placement={"bottom"}>
                         <span>
                             <Button
-                                disabled={!(run === RunState.FINISHED)}
+                                disabled={getStatus() !== RunState.FINISHED}
                                 sx={{
                                     display: "flex",
                                     width: "100%",

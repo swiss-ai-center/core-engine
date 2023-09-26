@@ -17,7 +17,7 @@ const ExitNode = ({data}: any) => {
     const lightgrey = grey[400];
     const darkgrey = grey[800];
     const colorMode = useSelector((state: any) => state.colorMode.value);
-    const run = useSelector((state: any) => state.runState.value);
+    const generalStatus = useSelector((state: any) => state.runState.generalStatus);
     const resultIdList = useSelector((state: any) => state.runState.resultIdList);
 
     const downloadResult = async () => {
@@ -40,8 +40,8 @@ const ExitNode = ({data}: any) => {
             <Card
                 sx={{
                     height: "100%", display: "flex", flexDirection: "column",
-                    borderColor: run === RunState.FINISHED ? "success.main" :
-                        run === RunState.ERROR ? "error.main" : (colorMode === "light" ? lightgrey : darkgrey),
+                    borderColor: generalStatus === RunState.FINISHED ? "success.main" :
+                        generalStatus === RunState.ERROR ? "error.main" : (colorMode === "light" ? lightgrey : darkgrey),
                     borderWidth: 2,
                     borderStyle: "solid",
                     borderRadius: 2,
@@ -59,7 +59,7 @@ const ExitNode = ({data}: any) => {
                     <Tooltip title={"Download final result"} placement={"left"}>
                         <span style={{display: "flex", width: "100%"}}>
                             <Button
-                                disabled={!(run === RunState.FINISHED)}
+                                disabled={!(generalStatus === RunState.FINISHED)}
                                 sx={{
                                     display: "flex",
                                     width: "100%",

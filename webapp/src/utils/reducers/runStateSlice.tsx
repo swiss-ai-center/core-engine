@@ -17,24 +17,36 @@ export enum RunState {
 export const runStateSlice = createSlice({
     name: 'runState',
     initialState: {
-        value: RunState.IDLE,
-        taskId: '',
-        resultIdList: []
+        task: null,
+        taskArray: [],
+        resultIdList: [],
+        generalStatus: RunState.IDLE,
     },
     reducers: {
-        setRunState: (state, action) => {
-            state.value = action.payload;
+        setCurrentTask: (state, action) => {
+            state.task = action.payload;
         },
-        setTaskId: (state, action) => {
-            state.taskId = action.payload;
+        setTaskArray: (state, action) => {
+            state.taskArray = action.payload;
         },
         setResultIdList: (state, action) => {
             state.resultIdList = action.payload;
+        },
+        setGeneralStatus: (state, action) => {
+            state.generalStatus = action.payload;
+        },
+        resetRunState: (state) => {
+            state.task = null;
+            state.taskArray = [];
+            state.resultIdList = [];
+            state.generalStatus = RunState.IDLE;
         }
     }
 })
 
 // Action creators are generated for each case reducer function
-export const { setRunState, setTaskId, setResultIdList } = runStateSlice.actions
+export const {
+    setCurrentTask, setTaskArray, setResultIdList, setGeneralStatus, resetRunState
+} = runStateSlice.actions;
 
-export default runStateSlice.reducer
+export default runStateSlice.reducer;

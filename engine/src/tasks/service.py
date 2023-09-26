@@ -5,14 +5,14 @@ from fastapi import Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select, desc
 from connection_manager.connection_manager import ConnectionManager, get_connection_manager
-from connection_manager.models import Message, MessageType, MessageSubject
+from connection_manager.models import Message, MessageType, MessageSubject, MessageToSend
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from uuid import UUID
 from http_client import HttpClient
 from storage.service import StorageService
 from tasks.models import Task, TaskUpdate, TaskStatus
-from common.exceptions import NotFoundException
+from common.exceptions import NotFoundException, CouldNotSendJsonException
 from pipeline_executions.service import PipelineExecutionsService
 from pipeline_executions.models import PipelineExecution, FileKeyReference
 from pipeline_steps.models import PipelineStep
@@ -22,7 +22,12 @@ from config import Settings, get_settings
 from httpx import HTTPError
 
 
-def create_message(task: Task):
+def create_message(task: Task) -> Message:
+    """
+    Create a message from a task
+    :param task: The task to create the message from
+    :return: The message
+    """
     if task.status == TaskStatus.SCHEDULED or \
             task.status == TaskStatus.PENDING or \
             task.status == TaskStatus.SKIPPED or \
@@ -178,7 +183,7 @@ class TasksService:
 
         return task
 
-    def update(self, task_id: UUID, task: TaskUpdate):
+    async def update(self, task_id: UUID, task: TaskUpdate):
         """
         Update task
         :param task_id: id of task to update
@@ -201,11 +206,22 @@ class TasksService:
         self.logger.debug(f"Updated task with id {current_task.id}")
 
         self.logger.debug(f"Sending task {current_task} to client")
-        try:
-            message = create_message(current_task)
-            asyncio.ensure_future(self.connection_manager.send_json(message, task_id))
-        except Exception as e:
-            self.logger.error(f"Could not send task {current_task} to client: {e}")
+        message = create_message(current_task)
+        if current_task.pipeline_execution_id:
+            try:
+                await asyncio.ensure_future(
+                    self.connection_manager.send_json(message, current_task.pipeline_execution_id))
+            except CouldNotSendJsonException as e:
+                self.logger.error(f"Could not send task {current_task} to client: {e}")
+                self.connection_manager.message_queue.add(
+                    MessageToSend(message=message, linked_id=current_task.pipeline_execution_id))
+        else:
+            try:
+                await asyncio.ensure_future(self.connection_manager.send_json(message, task_id))
+            except CouldNotSendJsonException as e:
+                self.logger.error(f"Could not send task {current_task} to client: {e}")
+                self.connection_manager.message_queue.add(
+                    MessageToSend(message=message, linked_id=task_id))
 
         return current_task
 
@@ -277,15 +293,21 @@ class TasksService:
 
         # Check if current pipeline step is the last one
         if current_pipeline_step == pipeline.steps[-1]:
-            end_pipeline_execution(pipeline_execution)
-
             # send message to client
             self.logger.debug(f"Sending task {task} to client")
+            message = create_message(task)
+            # change message text to "Execution finished"
+            message.message.text = f"Execution finished"
+            # add a general_status field to the message with running status
+            message.message.data["general_status"] = TaskStatus.FINISHED
             try:
-                message = create_message(task)
-                asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
-            except Exception as e:
+                await asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+            except CouldNotSendJsonException as e:
                 self.logger.error(f"Could not send task {task} to client: {e}")
+                self.connection_manager.message_queue.add(
+                    MessageToSend(message=message, linked_id=pipeline_execution.id))
+
+            end_pipeline_execution(pipeline_execution)
         else:
             should_post_task = True
             next_pipeline_step_id = pipeline.steps[pipeline.steps.index(current_pipeline_step) + 1].id
@@ -382,11 +404,13 @@ class TasksService:
                     self.session.add(task)
                     # Send message to client
                     self.logger.debug(f"Sending task {task} to client")
+                    message = create_message(task)
                     try:
-                        message = create_message(task)
-                        asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
-                    except Exception as e:
+                        await asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+                    except CouldNotSendJsonException as e:
                         self.logger.error(f"Could not send task {task} to client: {e}")
+                        self.connection_manager.message_queue.add(
+                            MessageToSend(message=message, linked_id=pipeline_execution.id))
                     # Set remaining tasks as SKIPPED
                     # TODO: Check if this is the right behavior
                     skip_remaining_tasks(pipeline_execution)
@@ -423,11 +447,13 @@ class TasksService:
                         raise HTTPException(status_code=res.status_code, detail=res.text)
 
                     self.logger.debug(f"Sending task {task} to client")
+                    message = create_message(task)
                     try:
-                        message = create_message(task)
-                        asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
-                    except Exception as e:
+                        await asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+                    except CouldNotSendJsonException as e:
                         self.logger.error(f"Could not send task {task} to client: {e}")
+                        self.connection_manager.message_queue.add(
+                            MessageToSend(message=message, linked_id=pipeline_execution.id))
 
                     self.logger.debug(f"Launched next step in pipeline with id {pipeline_execution.id}")
 
@@ -445,11 +471,15 @@ class TasksService:
 
                     # Send message to client
                     self.logger.debug(f"Sending task {task} to client")
+                    message = create_message(task)
+                    # add a general_status field to the message with running status
+                    message.message.data["general_status"] = TaskStatus.ERROR
                     try:
-                        message = create_message(task)
-                        asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
-                    except Exception as e:
+                        await asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+                    except CouldNotSendJsonException as e:
                         self.logger.error(f"Could not send task {task} to client: {e}")
+                        self.connection_manager.message_queue.add(
+                            MessageToSend(message=message, linked_id=pipeline_execution.id))
 
                 except HTTPError as e:
                     self.logger.error(f"Sending request to the service {next_service.name} failed: {str(e)}")
@@ -465,11 +495,15 @@ class TasksService:
 
                     # Send message to client
                     self.logger.debug(f"Sending task {task} to client")
+                    message = create_message(task)
+                    # add a general_status field to the message with running status
+                    message.message.data["general_status"] = TaskStatus.ERROR
                     try:
-                        message = create_message(task)
-                        asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
-                    except Exception as e:
+                        await asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+                    except CouldNotSendJsonException as e:
                         self.logger.error(f"Could not send task {task} to client: {e}")
+                        self.connection_manager.message_queue.add(
+                            MessageToSend(message=message, linked_id=pipeline_execution.id))
 
         self.session.add(pipeline_execution)
         self.session.commit()

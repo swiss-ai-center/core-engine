@@ -44,3 +44,13 @@ class InconsistentPipelineException(Exception):
     def __init__(self, message):
         self.message = message
         super().__init__(self.message)
+
+
+class CouldNotSendJsonException(Exception):
+    """Exception raised when a message could not be sent to the client."""
+
+    def __init__(self, message, message_to_send, linked_id):
+        self.message = message
+        self.message_to_send = message_to_send
+        self.linked_id = linked_id
+        super().__init__(self.message)

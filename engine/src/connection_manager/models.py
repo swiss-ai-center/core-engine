@@ -69,3 +69,14 @@ class Message(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+
+class MessageToSend(BaseModel):
+    """
+    MessageToSend is used to store the message and the linked_id in a queue to retry sending the message.
+    """
+    message: Message
+    linked_id: UUID
+
+    class Config:
+        arbitrary_types_allowed = True

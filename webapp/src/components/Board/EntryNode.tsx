@@ -4,7 +4,12 @@ import {
     Box, Button, Card, CardActions, CardContent, Divider, Input, LinearProgress, Tooltip, Typography
 } from '@mui/material';
 import { PlayCircleTwoTone, UploadFileTwoTone } from '@mui/icons-material';
-import { RunState, setRunState, setResultIdList } from '../../utils/reducers/runStateSlice';
+import {
+    resetRunState,
+    RunState, setCurrentTask,
+    setGeneralStatus,
+    setTaskArray
+} from '../../utils/reducers/runStateSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { postToEngine } from '../../utils/api';
 import { FieldDescription, FieldDescriptionWithSetAndValue } from '../../models/ExecutionUnit';
@@ -30,7 +35,7 @@ const EntryNode = ({data}: any) => {
     const colorMode = useSelector((state: any) => state.colorMode.value);
     const dispatch = useDispatch();
     const {fileArray, setFileArray} = useFileArray();
-    const run = useSelector((state: any) => state.runState.value);
+    const generalStatus = useSelector((state: any) => state.runState.generalStatus);
     const {sendJsonMessage} = useWebSocketConnection();
 
     const [areItemsUploaded, setAreItemsUploaded] = React.useState(false);
@@ -45,15 +50,6 @@ const EntryNode = ({data}: any) => {
         setAreItemsUploaded(allItemsAreUploaded);
     }, [fileArray]);
 
-    const isExecuting = () => {
-        return (
-            run === RunState.PENDING ||
-            run === RunState.PROCESSING ||
-            run === RunState.SAVING ||
-            run === RunState.FETCHING ||
-            run === RunState.SCHEDULED);
-    }
-
     const handleUpload = (field: string, value: any) => {
         setFileArray((prevState: any[]) => prevState.map(item => {
             if (item.name === field) {
@@ -64,10 +60,24 @@ const EntryNode = ({data}: any) => {
         checkIfAllItemsAreUploaded();
     }
 
+    const isIdle = () => {
+        return generalStatus === RunState.IDLE ||
+            generalStatus === RunState.FINISHED ||
+            generalStatus === RunState.ERROR;
+    }
+
     const launchExecution = async (serviceSlug: string) => {
         const response = await postToEngine(serviceSlug, fileArray);
         if (response.id) {
-            dispatch(setRunState(RunState.PROCESSING));
+            if (response.tasks) {
+                dispatch(setTaskArray(response.tasks));
+                dispatch(setGeneralStatus(response.tasks[0].status));
+                dispatch(setCurrentTask(response.tasks[0]));
+            } else {
+                dispatch(setTaskArray([response]));
+                dispatch(setGeneralStatus(response.status));
+                dispatch(setCurrentTask(response));
+            }
             toast("Execution started", {type: "success"});
             sendJsonMessage({
                 linked_id: response.id,
@@ -82,19 +92,19 @@ const EntryNode = ({data}: any) => {
         return <Box
             sx={{display: "flex", width: "100%", minHeight: 32, flexDirection: "column", justifyContent: "center"}}
         >
-            {isExecuting() ? (
+            {!isIdle() ? (
                 <LinearProgress
                     sx={{borderRadius: 1, mb: 1, mx: 1}}
                     color={"primary"}
                 />
             ) : (
                 <Button
-                    disabled={!areItemsUploaded || isExecuting()}
+                    disabled={!areItemsUploaded || !isIdle()}
                     sx={{flexGrow: 1}}
                     variant={"contained"}
                     color={"primary"}
                     size={"small"}
-                    endIcon={<PlayCircleTwoTone sx={{color: (isExecuting()) ? "transparent" : "inherit"}}/>}
+                    endIcon={<PlayCircleTwoTone sx={{color: (!isIdle()) ? "transparent" : "inherit"}}/>}
                     onClick={() => launchExecution(data.label.replace("-entry", ""))}
                 >
                     Run
@@ -104,8 +114,7 @@ const EntryNode = ({data}: any) => {
     }
 
     React.useEffect(() => {
-        dispatch(setRunState(RunState.IDLE));
-        dispatch(setResultIdList([]));
+        dispatch(resetRunState());
         if (data.data_in_fields) {
             setFileArray(addIsSetToFields(data.data_in_fields));
         }
