@@ -51,9 +51,9 @@ sequenceDiagram
 
 ## Environment variables
 
-All environment variables are described in the [`.env`](https://github.com/csia-pme/csia-pme/blob/main/engine/.env) file.
+All environment variables are described in the [`.env`](https://github.com/swiss-ai-center/core-engine/blob/main/engine/.env) file.
 
-The environment variables can be overwritten during the CI/CD pipeline described in the [`engine.yml`](https://github.com/csia-pme/csia-pme/blob/main/.github/workflows/engine.yml) GitHub workflow file.
+The environment variables can be overwritten during the CI/CD pipeline described in the [`engine.yml`](https://github.com/swiss-ai-center/core-engine/blob/main/.github/workflows/engine.yml) GitHub workflow file.
 
 ## Start the service locally with Python
 
@@ -146,7 +146,7 @@ In the `engine` directory, build the Docker image with the following commands.
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/csia-pme/csia-pme-engine:latest .
+docker build -t ghcr.io/swiss-ai-center/core-engine-engine:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

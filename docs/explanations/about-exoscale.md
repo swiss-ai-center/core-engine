@@ -74,10 +74,10 @@ exo compute security-group rule add sks-security-group \
 
 ```sh
 # Initialize the Kubernetes cluster
-exo compute sks create csia-pme-prod \
+exo compute sks create swiss-ai-center-prod \
     --zone ch-gva-2 \
     --service-level starter \
-    --nodepool-name csia-pme-prod-nodepool \
+    --nodepool-name swiss-ai-center-prod-nodepool \
     --nodepool-size 1 \
     --nodepool-instance-type small \
     --nodepool-disk-size 20 \
@@ -90,10 +90,10 @@ exo compute sks create csia-pme-prod \
 
     ```sh
     # Delete the Kubernetes cluster nodepool
-    exo compute sks nodepool delete csia-pme-prod csia-pme-prod-nodepool
+    exo compute sks nodepool delete swiss-ai-center-prod swiss-ai-center-prod-nodepool
 
     # Delete the Kubernetes cluster itself
-    exo compute sks delete csia-pme-prod
+    exo compute sks delete swiss-ai-center-prod
     ```
 
 ### Generate the kubeconfig file
@@ -101,9 +101,9 @@ exo compute sks create csia-pme-prod \
 Generate the Kubernetes configuration file to use with [kubectl]().
 
 ```sh
-exo compute sks kubeconfig csia-pme-prod kube-admin \
+exo compute sks kubeconfig swiss-ai-center-prod kube-admin \
     --zone ch-gva-2 \
-    --group system:masters > csia-pme-prod.kubeconfig
+    --group system:masters > swiss-ai-center-prod.kubeconfig
 ```
 
 ### Access the Kubernetes cluster with the kubectl file
@@ -112,7 +112,7 @@ To validate kubectl can access the Kubernetes cluster, you can check if it can g
 
 ```sh
 # Get the nodes
-kubectl --kubeconfig csia-pme-prod.kubeconfig get node
+kubectl --kubeconfig swiss-ai-center-prod.kubeconfig get node
 ```
 
 The output should be similar to this.
@@ -131,7 +131,7 @@ It will be used as a reverse proxy to redirect the traffic to the correct Kubern
 ```sh
 # Install the ingress-nginx for Exoscale
 kubectl apply \
-    --kubeconfig csia-pme-prod.kubeconfig  \
+    --kubeconfig swiss-ai-center-prod.kubeconfig  \
     --filename https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/exoscale/deploy.yaml
 ```
 

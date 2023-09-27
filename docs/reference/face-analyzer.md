@@ -8,9 +8,9 @@ This simple service only has one route `/compute` that takes an image as input, 
 
 ## Environment variables
 
-All environment variables are described in the [`.env`](https://github.com/csia-pme/csia-pme/blob/main/services/face-analyzer/.env) file.
+All environment variables are described in the [`.env`](https://github.com/swiss-ai-center/core-engine/blob/main/services/face-analyzer/.env) file.
 
-The environment variables can be overwritten during the CI/CD pipeline described in the [`face-analyzer.yml`](https://github.com/csia-pme/csia-pme/blob/main/.github/workflows/face-analyzer.yml) GitHub workflow file.
+The environment variables can be overwritten during the CI/CD pipeline described in the [`face-analyzer.yml`](https://github.com/swiss-ai-center/core-engine/blob/main/.github/workflows/face-analyzer.yml) GitHub workflow file.
 
 ## Start the service locally with Python
 
@@ -87,7 +87,7 @@ In the `face-analyzer` directory, build the Docker image with the following comm
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/csia-pme/csia-pme-face-analyzer:latest .
+docker build -t ghcr.io/swiss-ai-center/core-engine-face-analyzer:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

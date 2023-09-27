@@ -1,5 +1,5 @@
 aiofile==3.8.7
-common-code[test] @ git+https://github.com/csia-pme/csia-pme.git@main#subdirectory=common-code
+common-code[test] @ git+https://github.com/swiss-ai-center/core-engine.git@main#subdirectory=common-code
 flake8==5.0.4
 makefun==1.15.0
 pytest==7.2.0

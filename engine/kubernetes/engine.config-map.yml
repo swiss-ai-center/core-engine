@@ -8,7 +8,7 @@ data:
   HOST: http://localhost:8080
   ENVIRONMENT: development
   LOG_LEVEL: debug
-  DATABASE_URL: postgresql://csia-pme:csia-pme@postgres-service:5432/csia-pme
+  DATABASE_URL: postgresql://swiss-ai-center:swiss-ai-center@postgres-service:5432/swiss-ai-center
   DATABASE_CONNECT_ARGS: "{}"
   S3_ACCESS_KEY_ID: minio
   S3_SECRET_ACCESS_KEY: minio123

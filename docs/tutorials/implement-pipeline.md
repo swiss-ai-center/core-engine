@@ -1,7 +1,7 @@
 # Implement a pipeline
 
-This tutorial shows how to implement a [Pipeline](/csia-pme/reference/pipeline) in the CSIA-PME project step by step.
-It will guide you through the process of creating a [Pipeline](/csia-pme/reference/pipeline) to detect faces in an image and blur them.
+This tutorial shows how to implement a [Pipeline](/swiss-ai-center/reference/pipeline) in the Swiss AI Center project step by step.
+It will guide you through the process of creating a [Pipeline](/swiss-ai-center/reference/pipeline) to detect faces in an image and blur them.
 
 ## Tutorial
 
@@ -14,28 +14,28 @@ To follow this tutorial, you need to have the following tools installed:
 
 ### Prepare the engine
 
-To implement a [Pipeline](/csia-pme/reference/pipeline), you need to have a running [Engine](/csia-pme/reference/engine). If you don't have one, you can follow the [Engine](/csia-pme/reference/engine) documentation.
+To implement a [Pipeline](/swiss-ai-center/reference/pipeline), you need to have a running [Engine](/swiss-ai-center/reference/engine). If you don't have one, you can follow the [Engine](/swiss-ai-center/reference/engine) documentation.
 
 !!! optional "Run the Webapp"
-    For a better experience you can run the webapp by following the [webapp reference](/csia-pme/reference/webapp/) documentation.
+    For a better experience you can run the webapp by following the [webapp reference](/swiss-ai-center/reference/webapp/) documentation.
 
 ### Prepare the services
 
-The first step is to prepare the services that will be used in the [Pipeline](/csia-pme/reference/pipeline). In this tutorial, we will use the following services:
+The first step is to prepare the services that will be used in the [Pipeline](/swiss-ai-center/reference/pipeline). In this tutorial, we will use the following services:
 
-- [Face detection](https://face-detection-csia-pme.kube.isc.heia-fr.ch/docs)
-- [Image blur](https://image-blur-csia-pme.kube.isc.heia-fr.ch/docs)
+- [Face detection](https://face-detection-swiss-ai-center.kube.isc.heia-fr.ch/docs)
+- [Image blur](https://image-blur-swiss-ai-center.kube.isc.heia-fr.ch/docs)
 
 #### Launch the services
 
 If the services are not running you can follow the explanations in the reference documentation to start them.
 
-- [Face detection](/csia-pme/reference/face-detection/)
-- [Image blur](/csia-pme/reference/image-blur/)
+- [Face detection](/swiss-ai-center/reference/face-detection/)
+- [Image blur](/swiss-ai-center/reference/image-blur/)
 
 ### Create the pipeline
 
-The [Pipeline](/csia-pme/reference/pipeline) is created by posting a JSON object to the `/pipelines` endpoint of the [Engine](/csia-pme/reference/engine). Create a file named `face-blur-pipeline.json` in your IDE with the following code:
+The [Pipeline](/swiss-ai-center/reference/pipeline) is created by posting a JSON object to the `/pipelines` endpoint of the [Engine](/swiss-ai-center/reference/engine). Create a file named `face-blur-pipeline.json` in your IDE with the following code:
 
 ``` json hl_lines="29 36"
 {
@@ -80,7 +80,7 @@ The [Pipeline](/csia-pme/reference/pipeline) is created by posting a JSON object
 ```
 
 !!! note
-    You can find the slug of your services by going to the FastAPI documentation of the running [Engine](/csia-pme/reference/engine) and use the `/services` endpoint.
+    You can find the slug of your services by going to the FastAPI documentation of the running [Engine](/swiss-ai-center/reference/engine) and use the `/services` endpoint.
     You will find the slug of your services in the response.
     <!-- markdownlint-disable MD046 MD038 -->
     ``` json hl_lines="6 12"
@@ -101,30 +101,30 @@ The [Pipeline](/csia-pme/reference/pipeline) is created by posting a JSON object
     ```
     <!-- markdownlint-enable MD046 MD038 -->
 
-What we just did is to create a [Pipeline](/csia-pme/reference/pipeline) with two steps. The first step is the face detection service and the second step is the image blur service. The second step will only be executed if the first step detects at least one face. The [Pipeline](/csia-pme/reference/pipeline) will take an image as input and return an image as output.
+What we just did is to create a [Pipeline](/swiss-ai-center/reference/pipeline) with two steps. The first step is the face detection service and the second step is the image blur service. The second step will only be executed if the first step detects at least one face. The [Pipeline](/swiss-ai-center/reference/pipeline) will take an image as input and return an image as output.
 
-The inputs of each step are the outputs of the previous steps. The first step takes the pipeline's image as input and the second step takes the [Pipeline](/csia-pme/reference/pipeline)'s image and the result of the face detection as input.
+The inputs of each step are the outputs of the previous steps. The first step takes the pipeline's image as input and the second step takes the [Pipeline](/swiss-ai-center/reference/pipeline)'s image and the result of the face detection as input.
 
 !!! note
-    The `identifier` field of each step is the name of the step in the [Pipeline](/csia-pme/reference/pipeline). It is used to reference the step in the `needs` and `inputs` fields.
+    The `identifier` field of each step is the name of the step in the [Pipeline](/swiss-ai-center/reference/pipeline). It is used to reference the step in the `needs` and `inputs` fields.
 
 ### Post the pipeline
 
-Now that we have our [Pipeline](/csia-pme/reference/pipeline), we can post it to the [Engine](/csia-pme/reference/engine). To do so, go to the FastAPI documentation of the running [Engine](/csia-pme/reference/engine) and use the `/pipelines` endpoint to post the [Pipeline](/csia-pme/reference/pipeline) by clicking on the `Try it out` button
+Now that we have our [Pipeline](/swiss-ai-center/reference/pipeline), we can post it to the [Engine](/swiss-ai-center/reference/engine). To do so, go to the FastAPI documentation of the running [Engine](/swiss-ai-center/reference/engine) and use the `/pipelines` endpoint to post the [Pipeline](/swiss-ai-center/reference/pipeline) by clicking on the `Try it out` button
 
 Simply copy the content of the `face-blur-pipeline.json` file and paste it in the `body` field of the `/pipelines` endpoint and click on the `Execute` button.
 
 ![Post pipeline](../assets/screenshots/post-pipeline.png)
 
-You should receive a `200` response with the [Pipeline](/csia-pme/reference/pipeline)ine you just posted.
+You should receive a `200` response with the [Pipeline](/swiss-ai-center/reference/pipeline)ine you just posted.
 
 ### Run the pipeline
 
-You can run the pipeline using the FastAPI Swagger interface or by using the [Webapp](/csia-pme/reference/webapp/).
+You can run the pipeline using the FastAPI Swagger interface or by using the [Webapp](/swiss-ai-center/reference/webapp/).
 
 #### Using the FastAPI Swagger interface
 
-Now that we have our [Pipeline](/csia-pme/reference/pipeline), we can run it. To do so, go to the FastAPI documentation of the running [Engine](/csia-pme/reference/engine) and you should see the [Pipeline](/csia-pme/reference/pipeline) you just posted in the `Registered pipelines` endpoint with the slug `/face-blur`.
+Now that we have our [Pipeline](/swiss-ai-center/reference/pipeline), we can run it. To do so, go to the FastAPI documentation of the running [Engine](/swiss-ai-center/reference/engine) and you should see the [Pipeline](/swiss-ai-center/reference/pipeline) you just posted in the `Registered pipelines` endpoint with the slug `/face-blur`.
 
 ![Registered pipelines](../assets/screenshots/registered-pipeline.png)
 
@@ -162,7 +162,7 @@ You should receive a `200` response with a `Pipeline Execution` object in the re
 }
 ```
 
-You can check the status of the execution by checking the status of the last task with the `/tasks/{task_id}` endpoint. You can find the id of the last task in the `tasks` array of the [Pipeline](/csia-pme/reference/pipeline) execution object.
+You can check the status of the execution by checking the status of the last task with the `/tasks/{task_id}` endpoint. You can find the id of the last task in the `tasks` array of the [Pipeline](/swiss-ai-center/reference/pipeline) execution object.
 
 ``` json hl_lines="9 14"
  {
@@ -199,19 +199,19 @@ If the picture you provided had a face, the result should be blurred.
 
 #### Using the Webapp
 
-You can also run the [Pipeline](/csia-pme/reference/pipeline) using the [Webapp](/csia-pme/reference/webapp). To do so, go to the Webapp in your browser and find the [Pipeline](/csia-pme/reference/pipeline) you just posted in the `Pipelines` section.
+You can also run the [Pipeline](/swiss-ai-center/reference/pipeline) using the [Webapp](/swiss-ai-center/reference/webapp). To do so, go to the Webapp in your browser and find the [Pipeline](/swiss-ai-center/reference/pipeline) you just posted in the `Pipelines` section.
 
 ![Pipelines](../assets/screenshots/pipelines.png)
 
-Click on the `VIEW` button and you should see the [Pipeline](/csia-pme/reference/pipeline) as a Flow.
+Click on the `VIEW` button and you should see the [Pipeline](/swiss-ai-center/reference/pipeline) as a Flow.
 
 ![Pipeline flow](../assets/screenshots/pipeline-flow.png)
 
-Click on the `UPLOAD` button and upload an image. Now you can click on the `RUN` button and the [Pipeline](/csia-pme/reference/pipeline) will be executed. When the [Pipeline](/csia-pme/reference/pipeline) is finished, you can download the result by clicking on the `DOWNLOAD` button that will be enabled.
+Click on the `UPLOAD` button and upload an image. Now you can click on the `RUN` button and the [Pipeline](/swiss-ai-center/reference/pipeline) will be executed. When the [Pipeline](/swiss-ai-center/reference/pipeline) is finished, you can download the result by clicking on the `DOWNLOAD` button that will be enabled.
 
 ![Pipeline result](../assets/screenshots/pipeline-result-webapp.png)
 
 If the picture you provided had a face, the result should be blurred.
 
 !!! success "Congratulations!"
-    You have successfully created a [Pipeline](/csia-pme/reference/pipeline) locally. Now, you can use the same process to create a [Pipeline](/csia-pme/reference/pipeline) on the [Engine](/csia-pme/reference/engine) deployed on the cloud.
+    You have successfully created a [Pipeline](/swiss-ai-center/reference/pipeline) locally. Now, you can use the same process to create a [Pipeline](/swiss-ai-center/reference/pipeline) on the [Engine](/swiss-ai-center/reference/engine) deployed on the cloud.

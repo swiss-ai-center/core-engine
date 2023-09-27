@@ -71,9 +71,9 @@ cp ../model-creation/mnist_model.h5 .
 
 ## Environment variables
 
-All environment variables are described in the [`.env`](https://github.com/csia-pme/csia-pme/blob/main/services/digit-recognition/model-serving/.env) file.
+All environment variables are described in the [`.env`](https://github.com/swiss-ai-center/core-engine/blob/main/services/digit-recognition/model-serving/.env) file.
 
-The environment variables can be overwritten during the CI/CD pipeline described in the [`digit-recognition.yml`](https://github.com/csia-pme/csia-pme/blob/main/.github/workflows/digit-recognition.yml) GitHub workflow file.
+The environment variables can be overwritten during the CI/CD pipeline described in the [`digit-recognition.yml`](https://github.com/swiss-ai-center/core-engine/blob/main/.github/workflows/digit-recognition.yml) GitHub workflow file.
 
 ## Start the service locally with Python
 
@@ -150,7 +150,7 @@ In the `digit-recognition/model-serving` directory, build the Docker image with 
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/csia-pme/csia-pme-digit-recognition:latest .
+docker build -t ghcr.io/swiss-ai-center/core-engine-digit-recognition:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

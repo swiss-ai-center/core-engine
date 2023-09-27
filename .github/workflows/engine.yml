@@ -92,7 +92,7 @@ jobs:
         shell: bash
         working-directory: engine/kubernetes
         env:
-          HOST: https://engine-csia-pme.kube.isc.heia-fr.ch
+          HOST: https://engine-swiss-ai-center.kube.isc.heia-fr.ch
           ENVIRONMENT: production
           LOG_LEVEL: info
           DATABASE_URL: ${{ secrets.ENGINE_DEV_DATABASE_URL }}
@@ -119,7 +119,7 @@ jobs:
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
           kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
-          kube-namespace: csia-pme-dev
+          kube-namespace: swiss-ai-center-dev
           kubectl-context: ./engine/kubernetes
           kubectl-args: |
             apply \

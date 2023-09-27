@@ -5,6 +5,6 @@ metadata:
   labels:
     app: postgres
 data:
-  POSTGRES_DB: csia-pme
-  POSTGRES_USER: csia-pme
-  POSTGRES_PASSWORD: csia-pme
+  POSTGRES_DB: swiss-ai-center
+  POSTGRES_USER: swiss-ai-center
+  POSTGRES_PASSWORD: swiss-ai-center

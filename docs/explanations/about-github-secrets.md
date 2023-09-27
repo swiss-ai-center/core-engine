@@ -12,7 +12,7 @@ We use GitHub Secrets to store confidential variables that can be used in [GitHu
 
 ## Access GitHub Secrets
 
-Access [GitHub Actions Secrets](https://github.com/csia-pme/csia-pme/settings/secrets/actions) page to have an overview of the available secrets.
+Access [GitHub Actions Secrets](https://github.com/swiss-ai-center/core-engine/settings/secrets/actions) page to have an overview of the available secrets.
 
 ## Configuration
 
@@ -22,7 +22,7 @@ _None._
 
 ### Create a GitHub Secret
 
-Add a secret by selecting **New repository secret** in the [GitHub Actions Secrets](https://github.com/csia-pme/csia-pme/settings/secrets/actions) page.
+Add a secret by selecting **New repository secret** in the [GitHub Actions Secrets](https://github.com/swiss-ai-center/core-engine/settings/secrets/actions) page.
 
 **Note**: A secret can only be updated, not viewed. Please be careful to have a copy of the secrets you store on GitHub Secrets.
 

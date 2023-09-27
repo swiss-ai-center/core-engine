@@ -111,9 +111,9 @@ cp ../model-creation/model/ae_model.h5 ./model/ae_model.h5
 
 ## Environment variables
 
-All environment variables are described in the [`.env`](https://github.com/csia-pme/csia-pme/blob/main/services/ae-ano-detection/model-serving/.env) file.
+All environment variables are described in the [`.env`](https://github.com/swiss-ai-center/core-engine/blob/main/services/ae-ano-detection/model-serving/.env) file.
 
-The environment variables can be overwritten during the CI/CD pipeline described in the [`ae-ano-detection.yml`](https://github.com/csia-pme/csia-pme/blob/main/.github/workflows/ae-ano-detection.yml) GitHub workflow file.
+The environment variables can be overwritten during the CI/CD pipeline described in the [`ae-ano-detection.yml`](https://github.com/swiss-ai-center/core-engine/blob/main/.github/workflows/ae-ano-detection.yml) GitHub workflow file.
 
 ## Start the service locally with Python
 
@@ -175,7 +175,7 @@ In the `ae-ano-detection/model-serving` directory, build the Docker image with t
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/csia-pme/csia-pme-ae-ano-detection:latest .
+docker build -t ghcr.io/swiss-ai-center/core-engine-ae-ano-detection:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

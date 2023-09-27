@@ -23,7 +23,7 @@ function Copyright() {
                     </Link>
                 </Tooltip>
                 <Tooltip title={"Documentation"}>
-                    <Link color={"inherit"} href={"https://csia-pme.github.io/csia-pme/"}
+                    <Link color={"inherit"} href={"https://swiss-ai-center.github.io/swiss-ai-center/"}
                           underline={"none"} target={"_blank"}>
                         <IconButton sx={{marginLeft: "auto"}} color={"primary"} size={"large"}>
                             <DescriptionTwoTone/>
@@ -31,7 +31,7 @@ function Copyright() {
                     </Link>
                 </Tooltip>
                 <Tooltip title={"GitHub"}>
-                    <Link color={"inherit"} href={"https://github.com/csia-pme/csia-pme/"}
+                    <Link color={"inherit"} href={"https://github.com/swiss-ai-center/core-engine/"}
                           underline={"none"} target={"_blank"}>
                         <IconButton sx={{marginLeft: "auto"}} color={"primary"} size={"large"}>
                             <GitHub/>

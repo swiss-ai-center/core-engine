@@ -6,9 +6,9 @@ It is built using React and TypeScript.
 
 ## Environment variables
 
-All environment variables are described in the [`.env`](https://github.com/csia-pme/csia-pme/blob/main/webapp/.env) file.
+All environment variables are described in the [`.env`](https://github.com/swiss-ai-center/core-engine/blob/main/webapp/.env) file.
 
-The environment variables can be overwritten during the CI/CD pipeline described in the [`webapp.yml`](https://github.com/csia-pme/csia-pme/blob/main/.github/workflows/webapp.yml) GitHub workflow file.
+The environment variables can be overwritten during the CI/CD pipeline described in the [`webapp.yml`](https://github.com/swiss-ai-center/core-engine/blob/main/.github/workflows/webapp.yml) GitHub workflow file.
 
 ## Start the service locally with Node
 
@@ -49,10 +49,10 @@ In order to build the Docker image, the application must be [built](#build-the-a
 
 ```sh
 # Build the Docker image with a tag
-docker build -t csia-pme/webapp .
+docker build -t swiss-ai-center/webapp .
 
 # Run the Docker image
-docker run -p 8181:80 csia-pme/webapp
+docker run -p 8181:80 swiss-ai-center/webapp
 ```
 
 The Webapp is available on <http://localhost:8181>.
@@ -105,7 +105,7 @@ npm run build
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/csia-pme/csia-pme-webapp:latest .
+docker build -t ghcr.io/swiss-ai-center/core-engine-webapp:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

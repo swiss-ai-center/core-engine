@@ -1,4 +1,4 @@
-common-code[test] @ git+https://github.com/csia-pme/csia-pme.git@main#subdirectory=common-code
+common-code[test] @ git+https://github.com/swiss-ai-center/core-engine.git@main#subdirectory=common-code
 dvc[s3]==2.10.2
 flake8==5.0.4
 matplotlib==3.6.3

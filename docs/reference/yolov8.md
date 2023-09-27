@@ -13,9 +13,9 @@ This simple service only has one route `/compute` that takes an image and the mo
 
 ## Environment variables
 
-All environment variables are described in the [`.env`](https://github.com/csia-pme/yolov8/blob/main/.venv) file.
+All environment variables are described in the [`.env`](https://github.com/swiss-ai-center/yolov8/blob/main/.venv) file.
 
-The environment variables can be overwritten during the CI/CD pipeline described in the [`yolov8.yml`](https://github.com/csia-pme/yolov8/blob/main/.github/workflows/yolov8.yml) GitHub workflow file.
+The environment variables can be overwritten during the CI/CD pipeline described in the [`yolov8.yml`](https://github.com/swiss-ai-center/yolov8/blob/main/.github/workflows/yolov8.yml) GitHub workflow file.
 
 ## Start the service locally with Python
 
@@ -92,7 +92,7 @@ In the `yolov8` directory, build the Docker image with the following commands.
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/csia-pme/csia-pme-yolov8:latest .
+docker build -t ghcr.io/swiss-ai-center/core-engine-yolov8:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

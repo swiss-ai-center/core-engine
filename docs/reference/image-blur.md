@@ -8,9 +8,9 @@ This simple service only has one route `/compute` that takes an image and a json
 
 ## Environment variables
 
-All environment variables are described in the [`.env`](https://github.com/csia-pme/csia-pme/blob/main/services/image-blur/.env) file.
+All environment variables are described in the [`.env`](https://github.com/swiss-ai-center/core-engine/blob/main/services/image-blur/.env) file.
 
-The environment variables can be overwritten during the CI/CD pipeline described in the [`image-blur.yml`](https://github.com/csia-pme/csia-pme/blob/main/.github/workflows/image-blur.yml) GitHub workflow file.
+The environment variables can be overwritten during the CI/CD pipeline described in the [`image-blur.yml`](https://github.com/swiss-ai-center/core-engine/blob/main/.github/workflows/image-blur.yml) GitHub workflow file.
 
 ## Start the service locally with Python
 
@@ -87,7 +87,7 @@ In the `image-blur` directory, build the Docker image with the following command
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/csia-pme/csia-pme-image-blur:latest .
+docker build -t ghcr.io/swiss-ai-center/core-engine-image-blur:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)
