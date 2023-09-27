@@ -175,7 +175,7 @@ In the `ae-ano-detection/model-serving` directory, build the Docker image with t
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/swiss-ai-center/core-engine-ae-ano-detection:latest .
+docker build -t ghcr.io/swiss-ai-center/ae-ano-detection:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

@@ -105,7 +105,7 @@ npm run build
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/swiss-ai-center/core-engine-webapp:latest .
+docker build -t ghcr.io/swiss-ai-center/webapp:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

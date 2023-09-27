@@ -87,7 +87,7 @@ In the `image-analyzer` directory, build the Docker image with the following com
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/swiss-ai-center/core-engine-image-analyzer:latest .
+docker build -t ghcr.io/swiss-ai-center/image-analyzer:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

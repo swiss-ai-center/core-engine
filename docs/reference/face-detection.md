@@ -87,7 +87,7 @@ In the `face-detection` directory, build the Docker image with the following com
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/swiss-ai-center/core-engine-face-detection:latest .
+docker build -t ghcr.io/swiss-ai-center/face-detection:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

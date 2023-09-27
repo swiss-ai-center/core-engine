@@ -150,7 +150,7 @@ In the `digit-recognition/model-serving` directory, build the Docker image with 
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/swiss-ai-center/core-engine-digit-recognition:latest .
+docker build -t ghcr.io/swiss-ai-center/digit-recognition:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

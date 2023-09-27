@@ -243,7 +243,7 @@ spec:
       # TODO: 6. CHANGE THE NAME OF THE CONTAINER (6)!
       - name: sample-service
         # TODO: 7. CHANGE THE IMAGE NAME (7)!
-        image: ghcr.io/swiss-ai-center/core-engine-sample-service:latest
+        image: ghcr.io/swiss-ai-center/sample-service:latest
         # If you build the image locally, change the next line to `imagePullPolicy: Never` - there is no need to pull the image
         imagePullPolicy: Always
         ports:
@@ -268,7 +268,7 @@ spec:
 4. Change the app label to `image-rotate`
 5. Change the app label to `image-rotate`
 6. Change the name of the container to `image-rotate`
-7. Change the image name to `ghcr.io/swiss-ai-center/core-engine-image-rotate-service:latest`
+7. Change the image name to `ghcr.io/swiss-ai-center/image-rotate-service:latest`
 8. Change the name of the config map to `image-rotate-config`
 
 !!! warning "TODOs"
@@ -511,7 +511,7 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           # TODO: 7. CHANGE THE DOCKER IMAGE NAME (7)!
-          docker-image-name: ${{ github.repository }}-image-rotate
+          docker-image-name: image-rotate
           # TODO: 8. CHANGE THE PATH TO THE DOCKER IMAGE CONTEXT (8)!
           docker-image-context: ./services/image-rotate
 
@@ -943,7 +943,7 @@ spec:
       # TODO: 6. CHANGE THE NAME OF THE CONTAINER (6)!
       - name: sample-service
         # TODO: 7. CHANGE THE IMAGE NAME (7)!
-        image: ghcr.io/swiss-ai-center/core-engine-sample-service:latest
+        image: ghcr.io/swiss-ai-center/sample-service:latest
         # If you build the image locally, change the next line to `imagePullPolicy: Never` - there is no need to pull the image
         imagePullPolicy: Always
         ports:
@@ -968,7 +968,7 @@ spec:
 4. Change the app label to `ano-detection`
 5. Change the app label to `ano-detection`
 6. Change the name of the container to `ano-detection`
-7. Change the image name to `ghcr.io/swiss-ai-center/core-engine-ano-detection-service:latest`
+7. Change the image name to `ghcr.io/swiss-ai-center/ano-detection-service:latest`
 8. Change the name of the config map to `ano-detection-config`
 
 !!! warning "TODOs"
@@ -1208,7 +1208,7 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           # TODO: 7. CHANGE THE DOCKER IMAGE NAME (7)!
-          docker-image-name: ${{ github.repository }}-ano-detection
+          docker-image-name: ano-detection
           # TODO: 8. CHANGE THE PATH TO THE DOCKER IMAGE CONTEXT (8)!
           docker-image-context: ./services/ano-detection
 

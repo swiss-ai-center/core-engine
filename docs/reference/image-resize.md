@@ -87,7 +87,7 @@ In the `image-resize` directory, build the Docker image with the following comma
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/swiss-ai-center/core-engine-image-resize:latest .
+docker build -t ghcr.io/swiss-ai-center/image-resize:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

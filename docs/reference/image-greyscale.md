@@ -87,7 +87,7 @@ In the `image-greyscale` directory, build the Docker image with the following co
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/swiss-ai-center/core-engine-image-greyscale:latest .
+docker build -t ghcr.io/swiss-ai-center/image-greyscale:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

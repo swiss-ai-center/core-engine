@@ -74,7 +74,7 @@ jobs:
         with:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          docker-image-name: ${{ github.repository }}-image-crop
+          docker-image-name: image-crop
           docker-image-context: ./services/image-crop
     outputs:
       docker-image-tags: ${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}

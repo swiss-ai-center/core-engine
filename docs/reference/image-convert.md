@@ -87,7 +87,7 @@ In the `image-convert` directory, build the Docker image with the following comm
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/swiss-ai-center/core-engine-image-convert:latest .
+docker build -t ghcr.io/swiss-ai-center/image-convert:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

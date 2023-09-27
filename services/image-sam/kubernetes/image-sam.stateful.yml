@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: image-sam
-          image: ghcr.io/swiss-ai-center/core-engine-image-sam:latest
+          image: ghcr.io/swiss-ai-center/image-sam:latest
           # If you build the image locally, change the next line to `imagePullPolicy: Never` - there is no need to pull the image
           imagePullPolicy: Always
           resources:

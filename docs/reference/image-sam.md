@@ -89,7 +89,7 @@ In the `image-sam` directory, build the Docker image with the following commands
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/swiss-ai-center/core-engine-image-sam:latest .
+docker build -t ghcr.io/swiss-ai-center/image-sam:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

@@ -87,7 +87,7 @@ In the `image-rotate` directory, build the Docker image with the following comma
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/swiss-ai-center/core-engine-image-rotate:latest .
+docker build -t ghcr.io/swiss-ai-center/image-rotate:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

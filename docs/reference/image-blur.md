@@ -87,7 +87,7 @@ In the `image-blur` directory, build the Docker image with the following command
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/swiss-ai-center/core-engine-image-blur:latest .
+docker build -t ghcr.io/swiss-ai-center/image-blur:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)

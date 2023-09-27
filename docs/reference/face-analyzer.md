@@ -87,7 +87,7 @@ In the `face-analyzer` directory, build the Docker image with the following comm
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/swiss-ai-center/core-engine-face-analyzer:latest .
+docker build -t ghcr.io/swiss-ai-center/face-analyzer:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)
