@@ -46,7 +46,8 @@ const ProgressNode = ({data}: any) => {
                     height: "100%", display: "flex", flexDirection: "column",
                     border: !isExecuting() ? ("2px solid") : "none",
                     borderColor: !isExecuting() ? (getStatus() === RunState.FINISHED ? "success.main" :
-                        getStatus() === RunState.ERROR ? "error.main" : (colorMode === "light" ? lightgrey : darkgrey)) : "none",
+                        getStatus() === RunState.ERROR ? "error.main" :
+                            (colorMode === "light" ? lightgrey : darkgrey)) : "none",
                     borderRadius: 2,
                     boxShadow: "none",
                 }}

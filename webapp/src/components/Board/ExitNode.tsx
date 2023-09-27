@@ -29,7 +29,8 @@ const ExitNode = ({data}: any) => {
                 sx={{
                     height: "100%", display: "flex", flexDirection: "column",
                     borderColor: generalStatus === RunState.FINISHED ? "success.main" :
-                        generalStatus === RunState.ERROR ? "error.main" : (colorMode === "light" ? lightgrey : darkgrey),
+                        generalStatus === RunState.ERROR ? "error.main" :
+                            (colorMode === "light" ? lightgrey : darkgrey),
                     borderWidth: 2,
                     borderStyle: "solid",
                     borderRadius: 2,
