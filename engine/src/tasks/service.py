@@ -297,7 +297,7 @@ class TasksService:
             self.logger.debug(f"Sending task {task} to client")
             message = create_message(task)
             # change message text to "Execution finished"
-            message.message.text = f"Execution finished"
+            message.message.text = "Execution finished"
             # add a general_status field to the message with running status
             message.message.data["general_status"] = TaskStatus.FINISHED
             try:
