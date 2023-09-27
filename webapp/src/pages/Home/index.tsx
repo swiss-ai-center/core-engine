@@ -118,8 +118,8 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                         Swiss AI Center
                     </Typography>
                     <Typography variant="h5" align="justify" color="text.secondary" paragraph>
-                        Swiss AI Center is a project of the Swiss AI Center created by the University of Applied Sciences
-                        Western Switzerland (HES-SO). The objective is to provide a platform for the development of
+                        The Swiss AI Center is a project created by the University of Applied Sciences
+                        Western Switzerland (HES-SO). The objective is to provide a platform to develop
                         AI applications for SMEs to accelerate its adoption in Switzerland.
                     </Typography>
                 </Container>
