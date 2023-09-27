@@ -4,9 +4,8 @@ import { Button, Card, CardActions, CardContent, Link as URLLink, Tooltip, Typog
 import { DownloadForOfflineTwoTone } from '@mui/icons-material';
 import { RunState } from '../../utils/reducers/runStateSlice';
 import { useSelector } from 'react-redux';
-import { getResult } from '../../utils/api';
-import { toast } from 'react-toastify';
 import { grey } from '@mui/material/colors';
+import { download } from '../../utils/functions';
 
 
 const ProgressNode = ({data}: any) => {
@@ -37,18 +36,7 @@ const ProgressNode = ({data}: any) => {
 
     const downloadIntermediateResult = async () => {
         const resultIdList = taskArray.filter((task: any) => task.service_id === data.service_id)[0].data_out;
-        for (const id of resultIdList) {
-            const file: any = await getResult(id);
-            if (file.file) {
-                const link = document.createElement('a');
-                link.href = window.URL.createObjectURL(file.file);
-                link.setAttribute('download', 'result.' + id.split('.')[1]);
-                document.body.appendChild(link);
-                link.click();
-            } else {
-                toast(`Error downloading file ${id}: ${file.error}`, {type: "error"});
-            }
-        }
+        await download(resultIdList);
     }
 
     return (

@@ -68,6 +68,7 @@ const EntryNode = ({data}: any) => {
 
     const launchExecution = async (serviceSlug: string) => {
         const response = await postToEngine(serviceSlug, fileArray);
+        console.log("response", response);
         if (response.id) {
             if (response.tasks) {
                 dispatch(setTaskArray(response.tasks));
