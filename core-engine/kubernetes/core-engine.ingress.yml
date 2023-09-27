@@ -1,22 +1,22 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: engine-ingress
+  name: core-engine-ingress
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "16m"
     nginx.org/client-max-body-size: "16m"
 spec:
   rules:
-    - host: engine-csia-pme.kube.isc.heia-fr.ch
+    - host: core-engine-swiss-ai-center.kube.isc.heia-fr.ch
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: engine-service
+                name: core-engine-service
                 port:
                   number: 80
   tls:
     - hosts:
-        - engine-csia-pme.kube.isc.heia-fr.ch
+        - core-engine-swiss-ai-center.kube.isc.heia-fr.ch

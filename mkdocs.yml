@@ -1,11 +1,11 @@
-repo_url: https://github.com/csia-pme/csia-pme
-repo_name: csia-pme/csia-pme
-site_name: CSIA-PME
-site_author: CSIA-PME contributors
-site_url: https://csia-pme.github.io/csia-pme/
+repo_url: https://github.com/swiss-ai-center/core-engine
+repo_name: swiss-ai-center/core-engine
+site_name: Swiss AI Center
+site_author: Swiss AI Center contributors
+site_url: https://swiss-ai-center.github.io/swiss-ai-center/
 site_description: >-
-  Documentation website for the CSIA-PME project.
-copyright: Copyright &copy; 2022 - 2023 CSIA-PME
+  Documentation website for the Swiss AI Center project.
+copyright: Copyright &copy; 2022 - 2023 Swiss AI Center
 nav:
   - Home:
       - index.md
@@ -24,7 +24,7 @@ nav:
   - Reference:
       - reference/index.md
       - Team: reference/team.md
-      - Engine: reference/engine.md
+      - Core Engine: reference/core-engine.md
       - Service: reference/service.md
       - Pipeline: reference/pipeline.md
       - Webapp: reference/webapp.md
@@ -114,8 +114,8 @@ extra:
       link: https://swiss-ai-center.ch
       name: Swiss AI Center
     - icon: material/github
-      link: https://github.com/csia-pme/csia-pme
-      name: CSIA-PME on GitHub
+      link: https://github.com/swiss-ai-center/core-engine
+      name: Swiss AI Center on GitHub
 markdown_extensions:
   - abbr
   - admonition

@@ -47,9 +47,9 @@ Validate minikube has successfully started with the following command.
 kubectl get pods --all-namespaces
 ```
 
-## Start the Engine
+## Start the Core Engine
 
-_Follow the instructions described in the [Engine documentation - Run locally using Kubernetes (with minikube) and official Docker images](../reference/engine.md)._
+_Follow the instructions described in the [Core Engine documentation - Run locally using Kubernetes (with minikube) and official Docker images](../reference/core-engine.md)._
 
 ## Start the Webapp
 
@@ -57,6 +57,6 @@ _Follow the instructions described in the [Webapp documentation - Run locally us
 
 ## Start a machine learning service
 
-A machine learning service is a service that will register to the Engine in order to accept tasks to execute.
+A machine learning service is a service that will register to the Core Engine in order to accept tasks to execute.
 
 Refer to the [Services](../reference/index.md#services) documentation for all the available machine learning backend services.

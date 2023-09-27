@@ -30,7 +30,7 @@ RUN python3 -m venv $POETRY_VENV \
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
 
 # Install Python dependencies
-WORKDIR /workspaces/csia-pme
+WORKDIR /workspaces/swiss-ai-center
 COPY poetry.lock .
 COPY pyproject.toml .
 

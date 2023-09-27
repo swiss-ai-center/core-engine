@@ -1,7 +1,7 @@
 [project]
 name = "common_code"
 version = "0.0.11"
-description = "Common code used by the CSIA-PME services"
+description = "Common code used by the Swiss AI Center services"
 requires-python = ">=3.10"
 license = {text = "AGPL-3.0"}
 authors = [
@@ -43,10 +43,10 @@ test = [
 ]
 
 [project.urls]
-"Homepage" = "https://csia-pme.github.io/csia-pme/"
-"Bug Reports" = "https://github.com/csia-pme/csia-pme/issues"
-"Demo" = "https://swiss-ai-center.ch/engine"
-"Source" = "https://github.com/csia-pme/csia-pme"
+"Homepage" = "https://swiss-ai-center.github.io/core-engine/"
+"Bug Reports" = "https://github.com/swiss-ai-center/core-engine/issues"
+"Demo" = "https://webapp-swiss-ai-center.kube.isc.heia-fr.ch"
+"Source" = "https://github.com/swiss-ai-center/core-engine"
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]

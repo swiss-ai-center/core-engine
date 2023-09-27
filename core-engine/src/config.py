@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     host: str = "http://localhost:8080"
     environment: Environment = Environment.PRODUCTION
     log_level: LogLevel = LogLevel.INFO
-    database_url: str = "sqlite:///../engine.db"
+    database_url: str = "sqlite:///../core-engine.db"
     database_connect_args: dict[str, bool | str | int] = {"check_same_thread": False}
     s3_access_key_id: str
     s3_secret_access_key: str

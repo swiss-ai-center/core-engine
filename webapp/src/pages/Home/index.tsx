@@ -115,10 +115,10 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                         color="text.primary"
                         gutterBottom
                     >
-                        CSIA-PME
+                        Swiss AI Center
                     </Typography>
                     <Typography variant="h5" align="justify" color="text.secondary" paragraph>
-                        CSIA-PME is a project of the Swiss AI Center created by the University of Applied Sciences
+                        Swiss AI Center is a project of the Swiss AI Center created by the University of Applied Sciences
                         Western Switzerland (HES-SO). The objective is to provide a platform for the development of
                         AI applications for SMEs to accelerate its adoption in Switzerland.
                     </Typography>

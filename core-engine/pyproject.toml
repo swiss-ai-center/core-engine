@@ -1,5 +1,5 @@
 [project]
-name = "engine"
+name = "core-engine"
 
 [tool.pytest.ini_options]
 pythonpath = [".", "src"]

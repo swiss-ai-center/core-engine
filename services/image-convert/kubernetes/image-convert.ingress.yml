@@ -7,7 +7,7 @@ metadata:
     nginx.org/client-max-body-size: "16m"
 spec:
   rules:
-    - host: image-convert-csia-pme.kube.isc.heia-fr.ch
+    - host: image-convert-swiss-ai-center.kube.isc.heia-fr.ch
       http:
         paths:
           - path: /
@@ -19,4 +19,4 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - image-convert-csia-pme.kube.isc.heia-fr.ch
+        - image-convert-swiss-ai-center.kube.isc.heia-fr.ch

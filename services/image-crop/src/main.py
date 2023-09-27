@@ -90,7 +90,7 @@ app = FastAPI(
     description=api_description,
     version="0.0.1",
     contact={
-        "name": "CSIA-PME",
+        "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
         "email": "info@swiss-ai-center.ch",
     },

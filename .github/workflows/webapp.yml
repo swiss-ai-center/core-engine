@@ -35,8 +35,8 @@ jobs:
         if: github.ref == 'refs/heads/main'
         working-directory: webapp
         env:
-          REACT_APP_ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
-          REACT_APP_ENGINE_WS_URL: wss://engine-csia-pme.kube.isc.heia-fr.ch
+          REACT_APP_ENGINE_URL: https://core-engine-swiss-ai-center.kube.isc.heia-fr.ch
+          REACT_APP_ENGINE_WS_URL: wss://core-engine-swiss-ai-center.kube.isc.heia-fr.ch
           # So it does not treat warnings as errors
           CI: false
         run: npm run build
@@ -47,8 +47,8 @@ jobs:
         working-directory: webapp
         env:
           # TODO: Change this to the prod engine URL
-          REACT_APP_ENGINE_URL: https://engine-csia-pme.kube.isc.heia-fr.ch
-          REACT_APP_ENGINE_WS_URL: wss://engine-csia-pme.kube.isc.heia-fr.ch
+          REACT_APP_ENGINE_URL: https://core-engine-swiss-ai-center.kube.isc.heia-fr.ch
+          REACT_APP_ENGINE_WS_URL: wss://core-engine-swiss-ai-center.kube.isc.heia-fr.ch
           # So it does not treat warnings as errors
           CI: false
         run: npm run build
@@ -61,7 +61,7 @@ jobs:
         with:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          docker-image-name: ${{ github.repository }}-webapp
+          docker-image-name: webapp
           docker-image-context: ./webapp
 
       - name: Prepare configuration files
@@ -81,7 +81,7 @@ jobs:
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
           kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
-          kube-namespace: csia-pme-dev
+          kube-namespace: swiss-ai-center-dev
           kubectl-context: ./webapp/kubernetes
           kubectl-args: |
             apply \
@@ -95,7 +95,7 @@ jobs:
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
           kube-config: ${{ secrets.KUBE_CONFIG_PROD }}
-          kube-namespace: csia-pme-prod
+          kube-namespace: swiss-ai-center-prod
           kubectl-context: ./webapp/kubernetes
           kubectl-args: |
             apply \

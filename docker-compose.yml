@@ -8,5 +8,5 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - .:/workspaces/csia-pme
+      - .:/workspaces/swiss-ai-center
     command: poetry run mkdocs serve --dev-addr 0.0.0.0:8000

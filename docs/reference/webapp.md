@@ -1,14 +1,14 @@
 # Webapp
 
-This service allows to visualize services and pipelines from the [Engine](./engine.md). This service was built and tested with React.
+This service allows to visualize services and pipelines from the [Core Engine](./core-engine.md). This service was built and tested with React.
 
 It is built using React and TypeScript.
 
 ## Environment variables
 
-All environment variables are described in the [`.env`](https://github.com/csia-pme/csia-pme/blob/main/webapp/.env) file.
+All environment variables are described in the [`.env`](https://github.com/swiss-ai-center/core-engine/blob/main/webapp/.env) file.
 
-The environment variables can be overwritten during the CI/CD pipeline described in the [`webapp.yml`](https://github.com/csia-pme/csia-pme/blob/main/.github/workflows/webapp.yml) GitHub workflow file.
+The environment variables can be overwritten during the CI/CD pipeline described in the [`webapp.yml`](https://github.com/swiss-ai-center/core-engine/blob/main/.github/workflows/webapp.yml) GitHub workflow file.
 
 ## Start the service locally with Node
 
@@ -18,14 +18,14 @@ In the `webapp` directory, start the Webapp with the following commands.
 # Install the dependencies
 npm ci --legacy-peer-deps
 
-# Optional: Edit the environment variables to change the Engine URL
+# Optional: Edit the environment variables to change the Core Engine URL
 vim .env
 
 # Start the Webapp
 npm run start
 ```
 
-A browser should open on <http://localhost:3000> with the Webapp running and querying the Engine.
+A browser should open on <http://localhost:3000> with the Webapp running and querying the Core Engine.
 
 ## Build the application
 
@@ -49,10 +49,10 @@ In order to build the Docker image, the application must be [built](#build-the-a
 
 ```sh
 # Build the Docker image with a tag
-docker build -t csia-pme/webapp .
+docker build -t swiss-ai-center/webapp .
 
 # Run the Docker image
-docker run -p 8181:80 csia-pme/webapp
+docker run -p 8181:80 swiss-ai-center/webapp
 ```
 
 The Webapp is available on <http://localhost:8181>.
@@ -65,7 +65,7 @@ The Webapp is available on <http://localhost:8181>.
 
 Start the Webapp with the following commands. This will start the Webapp with the official Docker images that are hosted on GitHub.
 
-In the [webapp](../../webapp) directory, start the Webapp with the following commands.
+In the `webapp` directory, start the Webapp with the following commands.
 
 ```sh
 # Start the webapp
@@ -89,13 +89,13 @@ Access the Webapp on <http://localhost:8686>.
 
 Start the service with the following commands. This will start the service with the a local Docker image for the service.
 
-In the [webapp](../../services/webapp) directory, build the Docker image with the following commands.
+In the `webapp` directory, build the Docker image with the following commands.
 
 ```sh
 # Install Node dependencies
 npm ci --legacy-peer-deps
 
-# Optional: Edit the environment variables to change the Engine URL
+# Optional: Edit the environment variables to change the Core Engine URL
 vim .env
 
 # Build the Webapp
@@ -105,7 +105,7 @@ npm run build
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/csia-pme/csia-pme-webapp:latest .
+docker build -t ghcr.io/swiss-ai-center/webapp:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)
@@ -121,7 +121,7 @@ eval $(minikube docker-env -u)
 #        imagePullPolicy: Never
 ```
 
-In the [webapp](../../services/webapp) directory, start the service with the following commands.
+In the `webapp` directory, start the service with the following commands.
 
 ```sh
 # Start the webapp backend

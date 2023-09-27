@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Welcome to the CSIA-PME Documentation website!
+Welcome to the Swiss AI Center Documentation website!
 
 This documentation is based on the [Diátaxis Documentation Framework](./explanations/about-this-documentation.md).
 
@@ -17,6 +17,6 @@ The documentation is separated in the following axes:
 
 Don't know where to start? Check these first!
 
-- About CSIA-PME - TODO
+- About Swiss AI Center - TODO
 - [Getting started](./tutorials/getting-started.md)
 - [About this documentation](./explanations/about-this-documentation.md)
