@@ -74,7 +74,7 @@ jobs:
         with:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          docker-image-name: image-rotate
+          docker-image-name: swiss-ai-center/image-rotate
           docker-image-context: ./services/image-rotate
     outputs:
       docker-image-tags: ${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}

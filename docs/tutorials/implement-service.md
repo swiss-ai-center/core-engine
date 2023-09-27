@@ -511,7 +511,7 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           # TODO: 7. CHANGE THE DOCKER IMAGE NAME (7)!
-          docker-image-name: image-rotate
+          docker-image-name: swiss-ai-center/image-rotate
           # TODO: 8. CHANGE THE PATH TO THE DOCKER IMAGE CONTEXT (8)!
           docker-image-context: ./services/image-rotate
 
@@ -1208,7 +1208,7 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           # TODO: 7. CHANGE THE DOCKER IMAGE NAME (7)!
-          docker-image-name: ano-detection
+          docker-image-name: swiss-ai-center/ano-detection
           # TODO: 8. CHANGE THE PATH TO THE DOCKER IMAGE CONTEXT (8)!
           docker-image-context: ./services/ano-detection
 

@@ -7,7 +7,7 @@ def test_config_from_env_file():
     assert settings.host == "http://localhost:8080"
     assert settings.environment == Environment.DEVELOPMENT
     assert settings.log_level == LogLevel.DEBUG
-    assert settings.database_url == "sqlite:///../engine.db"
+    assert settings.database_url == "sqlite:///../core-engine.db"
     assert settings.database_connect_args == {"check_same_thread": False}
     assert settings.s3_access_key_id == "minio"
     assert settings.s3_secret_access_key == "minio123"
