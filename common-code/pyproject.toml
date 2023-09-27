@@ -45,7 +45,7 @@ test = [
 [project.urls]
 "Homepage" = "https://swiss-ai-center.github.io/swiss-ai-center/"
 "Bug Reports" = "https://github.com/swiss-ai-center/core-engine/issues"
-"Demo" = "https://swiss-ai-center.ch/engine"
+"Demo" = "https://swiss-ai-center.ch/core-engine"
 "Source" = "https://github.com/swiss-ai-center/core-engine"
 
 [build-system]

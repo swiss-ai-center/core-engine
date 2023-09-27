@@ -1,6 +1,6 @@
 # Webapp
 
-This service allows to visualize services and pipelines from the [Engine](./engine.md). This service was built and tested with React.
+This service allows to visualize services and pipelines from the [Core Engine](./core-engine.md). This service was built and tested with React.
 
 It is built using React and TypeScript.
 

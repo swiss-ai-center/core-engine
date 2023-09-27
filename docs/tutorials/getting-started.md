@@ -47,9 +47,9 @@ Validate minikube has successfully started with the following command.
 kubectl get pods --all-namespaces
 ```
 
-## Start the Engine
+## Start the Core Engine
 
-_Follow the instructions described in the [Engine documentation - Run locally using Kubernetes (with minikube) and official Docker images](../reference/engine.md)._
+_Follow the instructions described in the [Engine documentation - Run locally using Kubernetes (with minikube) and official Docker images](../reference/core-engine.md)._
 
 ## Start the Webapp
 

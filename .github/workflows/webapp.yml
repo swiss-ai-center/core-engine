@@ -35,8 +35,8 @@ jobs:
         if: github.ref == 'refs/heads/main'
         working-directory: webapp
         env:
-          REACT_APP_ENGINE_URL: https://engine-swiss-ai-center.kube.isc.heia-fr.ch
-          REACT_APP_ENGINE_WS_URL: wss://engine-swiss-ai-center.kube.isc.heia-fr.ch
+          REACT_APP_ENGINE_URL: https://core-engine-swiss-ai-center.kube.isc.heia-fr.ch
+          REACT_APP_ENGINE_WS_URL: wss://core-engine-swiss-ai-center.kube.isc.heia-fr.ch
           # So it does not treat warnings as errors
           CI: false
         run: npm run build
@@ -47,8 +47,8 @@ jobs:
         working-directory: webapp
         env:
           # TODO: Change this to the prod engine URL
-          REACT_APP_ENGINE_URL: https://engine-swiss-ai-center.kube.isc.heia-fr.ch
-          REACT_APP_ENGINE_WS_URL: wss://engine-swiss-ai-center.kube.isc.heia-fr.ch
+          REACT_APP_ENGINE_URL: https://core-engine-swiss-ai-center.kube.isc.heia-fr.ch
+          REACT_APP_ENGINE_WS_URL: wss://core-engine-swiss-ai-center.kube.isc.heia-fr.ch
           # So it does not treat warnings as errors
           CI: false
         run: npm run build

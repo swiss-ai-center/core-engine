@@ -1,10 +1,10 @@
 # Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
-name: engine-workflow
-run-name: engine workflow
+name: core-engine-workflow
+run-name: core engine workflow
 
 # Allow one concurrent deployment
 concurrency:
-  group: "engine"
+  group: "core-engine"
   cancel-in-progress: true
 
 on:
@@ -17,9 +17,9 @@ on:
       - .github/actions/execute-command-on-kubernetes-cluster/action.yml
       - .github/actions/lint-python-app/action.yml
       - .github/actions/test-python-app/action.yml
-      - .github/workflows/engine.yml
+      - .github/workflows/core-engine.yml
       - common-code/**/*
-      - engine/**/*
+      - core-engine/**/*
 
   pull_request:
     paths:
@@ -27,9 +27,9 @@ on:
       - .github/actions/execute-command-on-kubernetes-cluster/action.yml
       - .github/actions/lint-python-app/action.yml
       - .github/actions/test-python-app/action.yml
-      - .github/workflows/engine.yml
+      - .github/workflows/core-engine.yml
       - common-code/**/*
-      - engine/**/*
+      - core-engine/**/*
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -44,7 +44,7 @@ jobs:
       - name: Lint Python app
         uses: ./.github/actions/lint-python-app
         with:
-          python-app-path: ./engine
+          python-app-path: ./core-engine
 
   test:
     needs: review
@@ -56,7 +56,7 @@ jobs:
       - name: Test Python app
         uses: ./.github/actions/test-python-app
         with:
-          python-app-path: ./engine
+          python-app-path: ./core-engine
           token: ${{ secrets.GITHUB_TOKEN }}
 
   release:
@@ -74,8 +74,8 @@ jobs:
         with:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          docker-image-name: ${{ github.repository }}-engine
-          docker-image-context: ./engine
+          docker-image-name: ${{ github.repository }}-core-engine
+          docker-image-context: ./core-engine
     outputs:
       docker-image-tags: ${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}
 
@@ -90,9 +90,9 @@ jobs:
 
       - name: Prepare configuration files
         shell: bash
-        working-directory: engine/kubernetes
+        working-directory: core-engine/kubernetes
         env:
-          HOST: https://engine-swiss-ai-center.kube.isc.heia-fr.ch
+          HOST: https://core-engine-swiss-ai-center.kube.isc.heia-fr.ch
           ENVIRONMENT: production
           LOG_LEVEL: info
           DATABASE_URL: ${{ secrets.ENGINE_DEV_DATABASE_URL }}
@@ -106,24 +106,24 @@ jobs:
           # Set Engine version
           docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
-          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" engine.stateful.yml > new-engine.stateful.yml && mv new-engine.stateful.yml engine.stateful.yml
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" core-engine.stateful.yml > new-core-engine.stateful.yml && mv new-core-engine.stateful.yml core-engine.stateful.yml
 
           # Set Engine configuration (ConfigMap)
-          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' engine.config-map.yml | envsubst > new-engine.config-map.yml && mv new-engine.config-map.yml engine.config-map.yml
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' core-engine.config-map.yml | envsubst > new-core-engine.config-map.yml && mv new-core-engine.config-map.yml core-engine.config-map.yml
 
           # Set Engine configuration (Ingress)
-          yq ".spec.rules[0].host = \"${HOST#*://}\"" engine.ingress.yml > new-engine.ingress.yml && mv new-engine.ingress.yml engine.ingress.yml
-          yq ".spec.tls[0].hosts[0] = \"${HOST#*://}\"" engine.ingress.yml > new-engine.ingress.yml && mv new-engine.ingress.yml engine.ingress.yml
+          yq ".spec.rules[0].host = \"${HOST#*://}\"" core-engine.ingress.yml > new-core-engine.ingress.yml && mv new-core-engine.ingress.yml core-engine.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${HOST#*://}\"" core-engine.ingress.yml > new-core-engine.ingress.yml && mv new-core-engine.ingress.yml core-engine.ingress.yml
 
       - name: Deploy Engine on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
           kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
           kube-namespace: swiss-ai-center-dev
-          kubectl-context: ./engine/kubernetes
+          kubectl-context: ./core-engine/kubernetes
           kubectl-args: |
             apply \
-              -f engine.config-map.yml \
-              -f engine.stateful.yml \
-              -f engine.service.yml \
-              -f engine.ingress.yml
+              -f core-engine.config-map.yml \
+              -f core-engine.stateful.yml \
+              -f core-engine.service.yml \
+              -f core-engine.ingress.yml

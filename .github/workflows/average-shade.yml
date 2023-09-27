@@ -94,7 +94,7 @@ jobs:
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
-          ENGINE_URLS: "'[\"https://engine-swiss-ai-center.kube.isc.heia-fr.ch\"]'"
+          ENGINE_URLS: "'[\"https://core-engine-swiss-ai-center.kube.isc.heia-fr.ch\"]'"
           SERVICE_URL: https://average-shade-swiss-ai-center.kube.isc.heia-fr.ch
         run: |
           # Set average-shade version
@@ -137,7 +137,7 @@ jobs:
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
-          ENGINE_URLS: "'[\"https://engine-swiss-ai-center.kube.isc.heia-fr.ch\"]'"
+          ENGINE_URLS: "'[\"https://core-engine-swiss-ai-center.kube.isc.heia-fr.ch\"]'"
           SERVICE_URL: https://average-shade-swiss-ai-center.kube.isc.heia-fr.ch
         run: |
           # Set average-shade version

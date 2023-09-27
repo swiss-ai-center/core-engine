@@ -12,9 +12,9 @@ To follow this tutorial, you need to have the following tools installed:
 - [Python 3.10](https://www.python.org/downloads/)
 - An IDE (e.g. [Visual Studio Code](https://code.visualstudio.com/))
 
-### Prepare the engine
+### Prepare the Core Engine
 
-To implement a [Pipeline](/swiss-ai-center/reference/pipeline), you need to have a running [Engine](/swiss-ai-center/reference/engine). If you don't have one, you can follow the [Engine](/swiss-ai-center/reference/engine) documentation.
+To implement a [Pipeline](/swiss-ai-center/reference/pipeline), you need to have a running [Engine](/swiss-ai-center/reference/core-engine). If you don't have one, you can follow the [Engine](/swiss-ai-center/reference/core-engine) documentation.
 
 !!! optional "Run the Webapp"
     For a better experience you can run the webapp by following the [webapp reference](/swiss-ai-center/reference/webapp/) documentation.
@@ -35,7 +35,7 @@ If the services are not running you can follow the explanations in the reference
 
 ### Create the pipeline
 
-The [Pipeline](/swiss-ai-center/reference/pipeline) is created by posting a JSON object to the `/pipelines` endpoint of the [Engine](/swiss-ai-center/reference/engine). Create a file named `face-blur-pipeline.json` in your IDE with the following code:
+The [Pipeline](/swiss-ai-center/reference/pipeline) is created by posting a JSON object to the `/pipelines` endpoint of the [Engine](/swiss-ai-center/reference/core-engine). Create a file named `face-blur-pipeline.json` in your IDE with the following code:
 
 ``` json hl_lines="29 36"
 {
@@ -80,7 +80,7 @@ The [Pipeline](/swiss-ai-center/reference/pipeline) is created by posting a JSON
 ```
 
 !!! note
-    You can find the slug of your services by going to the FastAPI documentation of the running [Engine](/swiss-ai-center/reference/engine) and use the `/services` endpoint.
+    You can find the slug of your services by going to the FastAPI documentation of the running [Engine](/swiss-ai-center/reference/core-engine) and use the `/services` endpoint.
     You will find the slug of your services in the response.
     <!-- markdownlint-disable MD046 MD038 -->
     ``` json hl_lines="6 12"
@@ -110,7 +110,7 @@ The inputs of each step are the outputs of the previous steps. The first step ta
 
 ### Post the pipeline
 
-Now that we have our [Pipeline](/swiss-ai-center/reference/pipeline), we can post it to the [Engine](/swiss-ai-center/reference/engine). To do so, go to the FastAPI documentation of the running [Engine](/swiss-ai-center/reference/engine) and use the `/pipelines` endpoint to post the [Pipeline](/swiss-ai-center/reference/pipeline) by clicking on the `Try it out` button
+Now that we have our [Pipeline](/swiss-ai-center/reference/pipeline), we can post it to the [Engine](/swiss-ai-center/reference/core-engine). To do so, go to the FastAPI documentation of the running [Engine](/swiss-ai-center/reference/core-engine) and use the `/pipelines` endpoint to post the [Pipeline](/swiss-ai-center/reference/pipeline) by clicking on the `Try it out` button
 
 Simply copy the content of the `face-blur-pipeline.json` file and paste it in the `body` field of the `/pipelines` endpoint and click on the `Execute` button.
 
@@ -124,7 +124,7 @@ You can run the pipeline using the FastAPI Swagger interface or by using the [We
 
 #### Using the FastAPI Swagger interface
 
-Now that we have our [Pipeline](/swiss-ai-center/reference/pipeline), we can run it. To do so, go to the FastAPI documentation of the running [Engine](/swiss-ai-center/reference/engine) and you should see the [Pipeline](/swiss-ai-center/reference/pipeline) you just posted in the `Registered pipelines` endpoint with the slug `/face-blur`.
+Now that we have our [Pipeline](/swiss-ai-center/reference/pipeline), we can run it. To do so, go to the FastAPI documentation of the running [Engine](/swiss-ai-center/reference/core-engine) and you should see the [Pipeline](/swiss-ai-center/reference/pipeline) you just posted in the `Registered pipelines` endpoint with the slug `/face-blur`.
 
 ![Registered pipelines](../assets/screenshots/registered-pipeline.png)
 
@@ -214,4 +214,4 @@ Click on the `UPLOAD` button and upload an image. Now you can click on the `RUN`
 If the picture you provided had a face, the result should be blurred.
 
 !!! success "Congratulations!"
-    You have successfully created a [Pipeline](/swiss-ai-center/reference/pipeline) locally. Now, you can use the same process to create a [Pipeline](/swiss-ai-center/reference/pipeline) on the [Engine](/swiss-ai-center/reference/engine) deployed on the cloud.
+    You have successfully created a [Pipeline](/swiss-ai-center/reference/pipeline) locally. Now, you can use the same process to create a [Pipeline](/swiss-ai-center/reference/pipeline) on the [Engine](/swiss-ai-center/reference/core-engine) deployed on the cloud.

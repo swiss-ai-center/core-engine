@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: engine-config
+  name: core-engine-config
   labels:
-    app: engine
+    app: core-engine
 data:
   HOST: http://localhost:8080
   ENVIRONMENT: development
@@ -14,4 +14,4 @@ data:
   S3_SECRET_ACCESS_KEY: minio123
   S3_REGION: eu-central-2
   S3_HOST: http://minio-service:9000
-  S3_BUCKET: engine
+  S3_BUCKET: core-engine

@@ -18,7 +18,7 @@ A normal sequence of events when launching a request to a service is represented
 
 ```mermaid
 sequenceDiagram
-    participant E as e - Engine 
+    participant E as e - Core Engine 
     participant S as s - Service
     participant C as c - Client
     participant S3 as s3 - Storage
@@ -51,9 +51,13 @@ sequenceDiagram
 
 ## Environment variables
 
-All environment variables are described in the [`.env`](https://github.com/swiss-ai-center/core-engine/blob/main/engine/.env) file.
+All environment variables are described in the [`.env`](https://github.com/swiss-ai-center/core-engine/blob/main/core-engine/.env) file.
 
+<<<<<<< HEAD:docs/reference/core-engine.md
 The environment variables can be overwritten during the CI/CD pipeline described in the [`core-engine.yml`](https://github.com/swiss-ai-center/core-engine/blob/main/.github/workflows/engine.yml) GitHub workflow file.
+=======
+The environment variables can be overwritten during the CI/CD pipeline described in the [`core-engine.yml`](https://github.com/swiss-ai-center/core-engine/blob/main/.github/workflows/core-engine.yml) GitHub workflow file.
+>>>>>>> 9a35681 (Rename engine to core-engine):docs/reference/engine.md
 
 ## Start the service locally with Python
 
@@ -146,12 +150,12 @@ In the `core-engine` directory, build the Docker image with the following comman
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/swiss-ai-center/core-engine-engine:latest .
+docker build -t ghcr.io/swiss-ai-center/core-engine:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)
 
-# Edit the `kubernetes/engine.stateful.yml` file to use the local image by uncommented the line `imagePullPolicy`
+# Edit the `kubernetes/core-engine.stateful.yml` file to use the local image by uncommented the line `imagePullPolicy`
 #
 # From
 #

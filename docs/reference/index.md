@@ -1,10 +1,10 @@
 # Reference
 
-## [Engine](engine.md) and [Webapp](webapp.md)
+## [Core Engine](core-engine.md) and [Webapp](webapp.md)
 
 | Service                                           | Code                                                      | URL when run locally with minikube    | URL when deployed on Fribourg's Kubernetes            |
 | ------------------------------------------------- | --------------------------------------------------------- | ------------------------------------- | ----------------------------------------------------- |
-| [Engine](./engine.md){ style="color: inherit;" }  | <https://github.com/swiss-ai-center/core-engine/tree/main/engine>   | <http://localhost:8080/docs>          | <https://engine-swiss-ai-center.kube.isc.heia-fr.ch/docs>    |
+| [Core Engine](./core-engine.md){ style="color: inherit;" }  | <https://github.com/swiss-ai-center/core-engine/tree/main/core-engine>   | <http://localhost:8080/docs>          | <https://engine-swiss-ai-center.kube.isc.heia-fr.ch/docs>    |
 | [Webapp](./webapp.md){ style="color: inherit;" }  | <https://github.com/swiss-ai-center/core-engine/tree/main/webapp>   | <http://localhost:8181/docs>          | <https://webapp-swiss-ai-center.kube.isc.heia-fr.ch/docs>    |
 
 ## [Authentication](./auth.md)

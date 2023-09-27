@@ -7,7 +7,7 @@ It does not rely on a Pod or a Docker image since it is a group of services. It 
 
 ## Architecture
 
-To see the general architecture of the project, see the global [UML Diagram](/swiss-ai-center/reference/engine/#uml-diagram).
+To see the general architecture of the project, see the global [UML Diagram](/swiss-ai-center/reference/core-engine/#uml-diagram).
 
 This sequence diagram illustrates the interaction between an user and a pipeline.
 
@@ -54,7 +54,7 @@ sequenceDiagram
 
 ## Specifications
 
-Any service can be part of a pipeline. It must be registered to the engine.
+Any service can be part of a pipeline. It must be registered to the Core Engine.
 
 ### Endpoints
 
@@ -191,7 +191,7 @@ After the pipeline is registered, it will be available on the Engine's `/pipelin
 
 ## Execution
 
-When launching a pipeline, the engine will create a task for each step of the pipeline. The tasks will be executed in order. The engine will wait for the previous task to be finished before launching the next one. All the tasks will be executed linked to an element called PipelineExecution. This element will be used to store the inputs and outputs of the pipeline execution.
+When launching a pipeline, the Core Engine will create a task for each step of the pipeline. The tasks will be executed in order. The Core Engine will wait for the previous task to be finished before launching the next one. All the tasks will be executed linked to an element called PipelineExecution. This element will be used to store the inputs and outputs of the pipeline execution.
 
 ### PipelineExecution
 

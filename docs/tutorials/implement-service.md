@@ -139,7 +139,7 @@ metadata:
 data:
   ENVIRONMENT: development
   LOG_LEVEL: debug
-  ENGINE_URLS: '["http://engine-service:8080"]'
+  ENGINE_URLS: '["http://core-engine-service:8080"]'
   # TODO: 3. CHANGE THE SERVICE URL (3)!
   # (the port must be the same as in the sample-service.service.yml and unused by other services)
   SERVICE_URL: http://image-rotate-service:8001
@@ -429,7 +429,7 @@ app = FastAPI(
 
 1. Import the OpenCV library and the get_extension function from the tasks service. This function is used to guess the extension of the image based on the input type.
 2. Change the description of the service.
-3. Change the name and the slug of the service. This is used to identify the service in the engine.
+3. Change the name and the slug of the service. This is used to identify the service in the Core Engine.
 4. Change the input/output fields of the service. The name of the field is the key of the dictionary that will be used in the process function. The type of the field is the type of the data that will be sent to the service. They are defined in the FieldDescriptionType enum.
 5. Change the process function. This is the core of the service. The data is a dictionary with the keys being the field names set in the data_in_fields. The result must be a dictionary with the keys being the field names set in the data_out_fields.
 6. Change the API description and summary.
@@ -524,7 +524,7 @@ jobs:
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
-          ENGINE_URLS: "'[\"https://engine-swiss-ai-center.kube.isc.heia-fr.ch\"]'"
+          ENGINE_URLS: "'[\"https://core-engine-swiss-ai-center.kube.isc.heia-fr.ch\"]'"
           # TODO: 10. CHANGE THE URL OF THE SAMPLE SERVICE (10)!
           SERVICE_URL: https://image-rotate-swiss-ai-center.kube.isc.heia-fr.ch
         # TODO: 11. CHANGE THE NAME OF THE CONFIGURATION FILES (11)!
@@ -606,15 +606,15 @@ TOTAL                         188     23    88%
 ========================= 5 passed in 29.12s =========================
 ```
 
-In order to test the [Service](../reference/service.md), you need to have a running engine. To do so, follow the instructions in the [Engine](/swiss-ai-center/reference/engine/#start-the-service-locally-with-minikube-and-the-docker-image-hosted-on-github) reference.
+In order to test the [Service](../reference/service.md), you need to have a running Core Engine. To do so, follow the instructions in the [Core Engine](/swiss-ai-center/reference/core-engine/#start-the-service-locally-with-minikube-and-the-docker-image-hosted-on-github) reference.
 
-Once the engine is running, you can start the [Service](../reference/service.md) by running the following command:
+Once the Core Engine is running, you can start the [Service](../reference/service.md) by running the following command:
 
 ```bash
 uvicorn main:app --reload --host localhost --port 8001 # (1)!
 ```
 
-1. The port must be the same as the one defined in the `.env` file and different from the one used by the engine.
+1. The port must be the same as the one defined in the `.env` file and different from the one used by the Core Engine.
 
 The output should be similar to the following:
 
@@ -631,7 +631,7 @@ INFO:     [2023-03-01 11:14:18,005]   127.0.0.1:54863 - "GET /status HTTP/1.1" 2
 INFO:     [2023-03-01 11:14:18,023]  [common_code.service.service]: Successfully announced to the engine
 ```
 
-Now, you can test the [Service](../reference/service.md) by sending a request to the engine. To do so, open your browser and navigate to the following URL: `http://localhost:8080/`. You should see the following page:
+Now, you can test the [Service](../reference/service.md) by sending a request to the Core Engine. To do so, open your browser and navigate to the following URL: `http://localhost:8080/`. You should see the following page:
 
 ![image-rotate](../assets/screenshots/image-rotate.png)
 
@@ -708,7 +708,7 @@ Now, copy the id of the task and unfold the GET `/tasks/{task_id}` endpoint unde
 The image should be rotated by 90 degrees.
 
 !!! success "Congratulations!"
-    You have successfully created a [Service](../reference/service.md) and tested it locally. Now, you can push the [Service](../reference/service.md) to GitHub and deploy it on the engine using the workflow created in the previous section.
+    You have successfully created a [Service](../reference/service.md) and tested it locally. Now, you can push the [Service](../reference/service.md) to GitHub and deploy it on the Core Engine using the workflow created in the previous section.
 
 ### 2. Service with a model
 
@@ -839,7 +839,7 @@ metadata:
 data:
   ENVIRONMENT: development
   LOG_LEVEL: debug
-  ENGINE_URLS: '["http://engine-service:8080"]'
+  ENGINE_URLS: '["http://core-engine-service:8080"]'
   # TODO: 3. CHANGE THE SERVICE URL (3)!
   # (the port must be the same as in the sample-service.service.yml and unused by other services)
   SERVICE_URL: http://ano-detection-service:8001
@@ -1130,7 +1130,7 @@ app = FastAPI(
 
 1. Import the library.
 2. Change the description of the service.
-3. Change the name and the slug of the service. This is used to identify the service in the engine.
+3. Change the name and the slug of the service. This is used to identify the service in the Core Engine.
 4. Change the input/output fields of the service. The name of the field is the key of the dictionary that will be used in the process function. The type of the field is the type of the data that will be sent to the service. They are defined in the FieldDescriptionType enum.
 5. Change the process function. This is the core of the service. The data is a dictionary with the keys being the field names set in the data_in_fields. The result must be a dictionary with the keys being the field names set in the data_out_fields.
 6. Change the API description and summary.
@@ -1221,7 +1221,7 @@ jobs:
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
-          ENGINE_URLS: "'[\"https://engine-swiss-ai-center.kube.isc.heia-fr.ch\"]'"
+          ENGINE_URLS: "'[\"https://core-engine-swiss-ai-center.kube.isc.heia-fr.ch\"]'"
           # TODO: 10. CHANGE THE URL OF THE SAMPLE SERVICE (10)!
           SERVICE_URL: https://ano-detection-swiss-ai-center.kube.isc.heia-fr.ch
         # TODO: 11. CHANGE THE NAME OF THE CONFIGURATION FILES (11)!
@@ -1272,7 +1272,7 @@ jobs:
     The host can be changed to your own domain name if the [Service](../reference/service.md) is deployed on another Kubernetes cluster.
 
 !!! success "Congratulations!"
-    You have successfully created a [Service](../reference/service.md) locally. Now, you can push the [Service](../reference/service.md) to GitHub and deploy it on the engine using the workflow created in the previous section.
+    You have successfully created a [Service](../reference/service.md) locally. Now, you can push the [Service](../reference/service.md) to GitHub and deploy it on the Core Engine using the workflow created in the previous section.
 
 ### Update the documentation (optional)
 
@@ -1292,7 +1292,7 @@ nav:
   - Reference:
       - reference/index.md
       - Team: reference/team.md
-      - Engine: reference/engine.md
+      - Core Engine: reference/core-engine.md
       - Service: reference/service.md
       - Pipeline: reference/pipeline.md
       - Webapp: reference/webapp.md

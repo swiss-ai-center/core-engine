@@ -6,9 +6,9 @@ The service is a [FastAPI](https://fastapi.tiangolo.com/) application that is de
 
 ## Architecture
 
-To see the general architecture of the project, see the global [UML Diagram](/swiss-ai-center/reference/engine/#uml-diagram).
+To see the general architecture of the project, see the global [UML Diagram](/swiss-ai-center/reference/core-engine/#uml-diagram).
 
-This sequence diagram illustrates the interaction between an user and a service, without using the Engine.
+This sequence diagram illustrates the interaction between an user and a service, without using the Core Engine.
 
 ```mermaid
 sequenceDiagram
