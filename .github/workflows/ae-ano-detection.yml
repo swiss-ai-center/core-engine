@@ -45,7 +45,7 @@ jobs:
       - name: Lint Python app
         uses: ./.github/actions/lint-python-app
         with:
-          python-app-path: ./core-engine
+          python-app-path: ./services/ae-ano-detection
 
   train:
     needs: review
