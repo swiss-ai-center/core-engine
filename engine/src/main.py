@@ -26,12 +26,12 @@ connection_manager: ConnectionManager = get_connection_manager()
 
 
 api_description = """
-Swiss AI Center API - The **best** API in the world.
+Swiss AI Center's Core Engine API - The **best** API in the world.
 """
 
 # Define the FastAPI application with information
 app = FastAPI(
-    title="Swiss AI Center API",
+    title="Core Engine API",
     description=api_description,
     version="0.0.1",
     contact={
