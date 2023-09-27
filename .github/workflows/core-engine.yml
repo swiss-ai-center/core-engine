@@ -103,19 +103,19 @@ jobs:
           S3_REGION: eu-central-2
           S3_BUCKET: engine
         run: |
-          # Set Engine version
+          # Set Core Engine version
           docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" core-engine.stateful.yml > new-core-engine.stateful.yml && mv new-core-engine.stateful.yml core-engine.stateful.yml
 
-          # Set Engine configuration (ConfigMap)
+          # Set Core Engine configuration (ConfigMap)
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' core-engine.config-map.yml | envsubst > new-core-engine.config-map.yml && mv new-core-engine.config-map.yml core-engine.config-map.yml
 
-          # Set Engine configuration (Ingress)
+          # Set Core Engine configuration (Ingress)
           yq ".spec.rules[0].host = \"${HOST#*://}\"" core-engine.ingress.yml > new-core-engine.ingress.yml && mv new-core-engine.ingress.yml core-engine.ingress.yml
           yq ".spec.tls[0].hosts[0] = \"${HOST#*://}\"" core-engine.ingress.yml > new-core-engine.ingress.yml && mv new-core-engine.ingress.yml core-engine.ingress.yml
 
-      - name: Deploy Engine on the Kubernetes cluster
+      - name: Deploy Core Engine on the Kubernetes cluster
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
           kube-config: ${{ secrets.KUBE_CONFIG_DEV }}

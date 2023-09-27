@@ -18,14 +18,14 @@ In the `webapp` directory, start the Webapp with the following commands.
 # Install the dependencies
 npm ci --legacy-peer-deps
 
-# Optional: Edit the environment variables to change the Engine URL
+# Optional: Edit the environment variables to change the Core Engine URL
 vim .env
 
 # Start the Webapp
 npm run start
 ```
 
-A browser should open on <http://localhost:3000> with the Webapp running and querying the Engine.
+A browser should open on <http://localhost:3000> with the Webapp running and querying the Core Engine.
 
 ## Build the application
 
@@ -65,7 +65,7 @@ The Webapp is available on <http://localhost:8181>.
 
 Start the Webapp with the following commands. This will start the Webapp with the official Docker images that are hosted on GitHub.
 
-In the [webapp](../../webapp) directory, start the Webapp with the following commands.
+In the `webapp` directory, start the Webapp with the following commands.
 
 ```sh
 # Start the webapp
@@ -89,13 +89,13 @@ Access the Webapp on <http://localhost:8686>.
 
 Start the service with the following commands. This will start the service with the a local Docker image for the service.
 
-In the [webapp](../../services/webapp) directory, build the Docker image with the following commands.
+In the `webapp` directory, build the Docker image with the following commands.
 
 ```sh
 # Install Node dependencies
 npm ci --legacy-peer-deps
 
-# Optional: Edit the environment variables to change the Engine URL
+# Optional: Edit the environment variables to change the Core Engine URL
 vim .env
 
 # Build the Webapp
@@ -121,7 +121,7 @@ eval $(minikube docker-env -u)
 #        imagePullPolicy: Never
 ```
 
-In the [webapp](../../services/webapp) directory, start the service with the following commands.
+In the `webapp` directory, start the service with the following commands.
 
 ```sh
 # Start the webapp backend

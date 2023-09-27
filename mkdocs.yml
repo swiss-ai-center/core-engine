@@ -24,7 +24,7 @@ nav:
   - Reference:
       - reference/index.md
       - Team: reference/team.md
-      - Core engine: reference/core-engine.md
+      - Core Engine: reference/core-engine.md
       - Service: reference/service.md
       - Pipeline: reference/pipeline.md
       - Webapp: reference/webapp.md

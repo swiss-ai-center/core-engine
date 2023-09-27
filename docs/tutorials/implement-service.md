@@ -85,7 +85,7 @@ This service rotates an image by 90, 180 or 270 degrees clockwise.
 
 !!! note
 
-    If the service is part of the Swiss AI Center GitHub organization also add a link to the [Service](../reference/service.md)'s [Reference](../reference) page in the repository README.md file.
+    If the service is part of the Swiss AI Center GitHub organization also add a link to the [Service](../reference/service.md)'s [Reference](../reference/service.md) page in the repository README.md file.
 
     ```md
     # Image Rotate
@@ -285,7 +285,7 @@ LOG_LEVEL=debug
 # Environment
 ENVIRONMENT=development
 
-# The Engine URL
+# The engine URLs
 ENGINE_URLS=["http://localhost:8080"]
 
 # The Service URL
@@ -295,7 +295,7 @@ SERVICE_URL="http://localhost:8001"
 # The maximum of tasks the service can process
 MAX_TASKS=50
 
-# The number of times the service tries to announce itself to the Engine
+# The number of times the service tries to announce itself to the engines
 ENGINE_ANNOUNCE_RETRIES=5
 
 # The number of seconds between each retry
@@ -606,7 +606,7 @@ TOTAL                         188     23    88%
 ========================= 5 passed in 29.12s =========================
 ```
 
-In order to test the [Service](../reference/service.md), you need to have a running Core Engine. To do so, follow the instructions in the [Core Engine](/swiss-ai-center/reference/core-engine/#start-the-service-locally-with-minikube-and-the-docker-image-hosted-on-github) reference.
+In order to test the [Service](../reference/service.md), you need to have a running Core Engine. To do so, follow the instructions in the [Core Engine](../reference/core-engine.md#start-the-service-locally-with-minikube-and-the-docker-image-hosted-on-github) reference.
 
 Once the Core Engine is running, you can start the [Service](../reference/service.md) by running the following command:
 
@@ -785,7 +785,7 @@ This service detects anomalies in a time series.
 
 !!! note
 
-    If the service is part of the Swiss AI Center GitHub organization also add a link to the [Service](../reference/service.md)'s [Reference](../reference) page in the repository README.md file.
+    If the service is part of the Swiss AI Center GitHub organization also add a link to the [Service](../reference/service.md)'s [Reference](../reference/index.md) page in the repository README.md file.
 
     ```md
     # Anomaly detection
@@ -985,7 +985,7 @@ LOG_LEVEL=debug
 # Environment
 ENVIRONMENT=development
 
-# The Engine URL
+# The engines URL
 ENGINE_URLS=["http://localhost:8080"]
 
 # The Service URL
@@ -995,7 +995,7 @@ SERVICE_URL="http://localhost:8001"
 # The maximum of tasks the service can process
 MAX_TASKS=50
 
-# The number of times the service tries to announce itself to the Engine
+# The number of times the service tries to announce itself to the engines
 ENGINE_ANNOUNCE_RETRIES=5
 
 # The number of seconds between each retry
@@ -1150,7 +1150,7 @@ COPY ae_model.h5 .
 
 #### 2.5 Create the Workflow for GitHub Actions
 
-First, if you don't have the file already, download the `sample-service-without-model.yml` file from the [GitHub repository](/swiss-ai-center/services-templates/workflows) and rename it to `ano-detection.yml` in the `.github/workflows` folder.
+First, if you don't have the file already, download the `sample-service-without-model.yml` file from the [GitHub repository](https://github.com/swiss-ai-center/services-templates/tree/main/.github/workflows) and rename it to `ano-detection.yml` in the `.github/workflows` folder.
 
 Open it with your IDE and modify the `sample-service` texts with `ano-detection`
 

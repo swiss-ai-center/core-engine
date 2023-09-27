@@ -1,7 +1,7 @@
 # Implement a pipeline
 
-This tutorial shows how to implement a [Pipeline](/swiss-ai-center/reference/pipeline) in the Swiss AI Center project step by step.
-It will guide you through the process of creating a [Pipeline](/swiss-ai-center/reference/pipeline) to detect faces in an image and blur them.
+This tutorial shows how to implement a [Pipeline](../reference/pipeline.md) in the Swiss AI Center project step by step.
+It will guide you through the process of creating a [Pipeline](../reference/pipeline.md) to detect faces in an image and blur them.
 
 ## Tutorial
 
@@ -14,14 +14,14 @@ To follow this tutorial, you need to have the following tools installed:
 
 ### Prepare the Core Engine
 
-To implement a [Pipeline](/swiss-ai-center/reference/pipeline), you need to have a running [Engine](/swiss-ai-center/reference/core-engine). If you don't have one, you can follow the [Engine](/swiss-ai-center/reference/core-engine) documentation.
+To implement a [Pipeline](../reference/pipeline.md), you need to have a running [Core Engine](../reference/core-engine.md). If you don't have one, you can follow the [Core Engine](../reference/core-engine.md) documentation.
 
 !!! optional "Run the Webapp"
-    For a better experience you can run the webapp by following the [webapp reference](/swiss-ai-center/reference/webapp/) documentation.
+    For a better experience you can run the webapp by following the [webapp reference](../reference/webapp.md) documentation.
 
 ### Prepare the services
 
-The first step is to prepare the services that will be used in the [Pipeline](/swiss-ai-center/reference/pipeline). In this tutorial, we will use the following services:
+The first step is to prepare the services that will be used in the [Pipeline](../reference/pipeline.md). In this tutorial, we will use the following services:
 
 - [Face detection](https://face-detection-swiss-ai-center.kube.isc.heia-fr.ch/docs)
 - [Image blur](https://image-blur-swiss-ai-center.kube.isc.heia-fr.ch/docs)
@@ -30,12 +30,12 @@ The first step is to prepare the services that will be used in the [Pipeline](/s
 
 If the services are not running you can follow the explanations in the reference documentation to start them.
 
-- [Face detection](/swiss-ai-center/reference/face-detection/)
-- [Image blur](/swiss-ai-center/reference/image-blur/)
+- [Face detection](../reference/face-detection.md)
+- [Image blur](../reference/image-blur.md)
 
 ### Create the pipeline
 
-The [Pipeline](/swiss-ai-center/reference/pipeline) is created by posting a JSON object to the `/pipelines` endpoint of the [Engine](/swiss-ai-center/reference/core-engine). Create a file named `face-blur-pipeline.json` in your IDE with the following code:
+The [Pipeline](../reference/pipeline.md) is created by posting a JSON object to the `/pipelines` endpoint of the [Core Engine](../reference/core-engine.md). Create a file named `face-blur-pipeline.json` in your IDE with the following code:
 
 ``` json hl_lines="29 36"
 {
@@ -80,7 +80,7 @@ The [Pipeline](/swiss-ai-center/reference/pipeline) is created by posting a JSON
 ```
 
 !!! note
-    You can find the slug of your services by going to the FastAPI documentation of the running [Engine](/swiss-ai-center/reference/core-engine) and use the `/services` endpoint.
+    You can find the slug of your services by going to the FastAPI documentation of the running [Core Engine](../reference/core-engine.md) and use the `/services` endpoint.
     You will find the slug of your services in the response.
     <!-- markdownlint-disable MD046 MD038 -->
     ``` json hl_lines="6 12"
@@ -101,30 +101,30 @@ The [Pipeline](/swiss-ai-center/reference/pipeline) is created by posting a JSON
     ```
     <!-- markdownlint-enable MD046 MD038 -->
 
-What we just did is to create a [Pipeline](/swiss-ai-center/reference/pipeline) with two steps. The first step is the face detection service and the second step is the image blur service. The second step will only be executed if the first step detects at least one face. The [Pipeline](/swiss-ai-center/reference/pipeline) will take an image as input and return an image as output.
+What we just did is to create a [Pipeline](../reference/pipeline.md) with two steps. The first step is the face detection service and the second step is the image blur service. The second step will only be executed if the first step detects at least one face. The [Pipeline](../reference/pipeline.md) will take an image as input and return an image as output.
 
-The inputs of each step are the outputs of the previous steps. The first step takes the pipeline's image as input and the second step takes the [Pipeline](/swiss-ai-center/reference/pipeline)'s image and the result of the face detection as input.
+The inputs of each step are the outputs of the previous steps. The first step takes the pipeline's image as input and the second step takes the [Pipeline](../reference/pipeline.md)'s image and the result of the face detection as input.
 
 !!! note
-    The `identifier` field of each step is the name of the step in the [Pipeline](/swiss-ai-center/reference/pipeline). It is used to reference the step in the `needs` and `inputs` fields.
+    The `identifier` field of each step is the name of the step in the [Pipeline](../reference/pipeline.md). It is used to reference the step in the `needs` and `inputs` fields.
 
 ### Post the pipeline
 
-Now that we have our [Pipeline](/swiss-ai-center/reference/pipeline), we can post it to the [Engine](/swiss-ai-center/reference/core-engine). To do so, go to the FastAPI documentation of the running [Engine](/swiss-ai-center/reference/core-engine) and use the `/pipelines` endpoint to post the [Pipeline](/swiss-ai-center/reference/pipeline) by clicking on the `Try it out` button
+Now that we have our [Pipeline](../reference/pipeline.md), we can post it to the [Core Engine](../reference/core-engine.md). To do so, go to the FastAPI documentation of the running [Core Engine](../reference/core-engine.md) and use the `/pipelines` endpoint to post the [Pipeline](../reference/pipeline.md) by clicking on the `Try it out` button
 
 Simply copy the content of the `face-blur-pipeline.json` file and paste it in the `body` field of the `/pipelines` endpoint and click on the `Execute` button.
 
 ![Post pipeline](../assets/screenshots/post-pipeline.png)
 
-You should receive a `200` response with the [Pipeline](/swiss-ai-center/reference/pipeline)ine you just posted.
+You should receive a `200` response with the [Pipeline](../reference/pipeline.md)ine you just posted.
 
 ### Run the pipeline
 
-You can run the pipeline using the FastAPI Swagger interface or by using the [Webapp](/swiss-ai-center/reference/webapp/).
+You can run the pipeline using the FastAPI Swagger interface or by using the [Webapp](../reference/webapp.md).
 
 #### Using the FastAPI Swagger interface
 
-Now that we have our [Pipeline](/swiss-ai-center/reference/pipeline), we can run it. To do so, go to the FastAPI documentation of the running [Engine](/swiss-ai-center/reference/core-engine) and you should see the [Pipeline](/swiss-ai-center/reference/pipeline) you just posted in the `Registered pipelines` endpoint with the slug `/face-blur`.
+Now that we have our [Pipeline](../reference/pipeline.md), we can run it. To do so, go to the FastAPI documentation of the running [Core Engine](../reference/core-engine.md) and you should see the [Pipeline](../reference/pipeline.md) you just posted in the `Registered pipelines` endpoint with the slug `/face-blur`.
 
 ![Registered pipelines](../assets/screenshots/registered-pipeline.png)
 
@@ -162,7 +162,7 @@ You should receive a `200` response with a `Pipeline Execution` object in the re
 }
 ```
 
-You can check the status of the execution by checking the status of the last task with the `/tasks/{task_id}` endpoint. You can find the id of the last task in the `tasks` array of the [Pipeline](/swiss-ai-center/reference/pipeline) execution object.
+You can check the status of the execution by checking the status of the last task with the `/tasks/{task_id}` endpoint. You can find the id of the last task in the `tasks` array of the [Pipeline](../reference/pipeline.md) execution object.
 
 ``` json hl_lines="9 14"
  {
@@ -199,19 +199,19 @@ If the picture you provided had a face, the result should be blurred.
 
 #### Using the Webapp
 
-You can also run the [Pipeline](/swiss-ai-center/reference/pipeline) using the [Webapp](/swiss-ai-center/reference/webapp). To do so, go to the Webapp in your browser and find the [Pipeline](/swiss-ai-center/reference/pipeline) you just posted in the `Pipelines` section.
+You can also run the [Pipeline](../reference/pipeline.md) using the [Webapp](../reference/webapp.md). To do so, go to the Webapp in your browser and find the [Pipeline](../reference/pipeline.md) you just posted in the `Pipelines` section.
 
 ![Pipelines](../assets/screenshots/pipelines.png)
 
-Click on the `VIEW` button and you should see the [Pipeline](/swiss-ai-center/reference/pipeline) as a Flow.
+Click on the `VIEW` button and you should see the [Pipeline](../reference/pipeline.md) as a Flow.
 
 ![Pipeline flow](../assets/screenshots/pipeline-flow.png)
 
-Click on the `UPLOAD` button and upload an image. Now you can click on the `RUN` button and the [Pipeline](/swiss-ai-center/reference/pipeline) will be executed. When the [Pipeline](/swiss-ai-center/reference/pipeline) is finished, you can download the result by clicking on the `DOWNLOAD` button that will be enabled.
+Click on the `UPLOAD` button and upload an image. Now you can click on the `RUN` button and the [Pipeline](../reference/pipeline.md) will be executed. When the [Pipeline](../reference/pipeline.md) is finished, you can download the result by clicking on the `DOWNLOAD` button that will be enabled.
 
 ![Pipeline result](../assets/screenshots/pipeline-result-webapp.png)
 
 If the picture you provided had a face, the result should be blurred.
 
 !!! success "Congratulations!"
-    You have successfully created a [Pipeline](/swiss-ai-center/reference/pipeline) locally. Now, you can use the same process to create a [Pipeline](/swiss-ai-center/reference/pipeline) on the [Engine](/swiss-ai-center/reference/core-engine) deployed on the cloud.
+    You have successfully created a [Pipeline](../reference/pipeline.md) locally. Now, you can use the same process to create a [Pipeline](../reference/pipeline.md) on the [Core Engine](../reference/core-engine.md) deployed on the cloud.

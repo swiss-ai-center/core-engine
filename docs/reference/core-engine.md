@@ -1,6 +1,6 @@
-# Engine
+# Core Engine
 
-The Engine allows to create and manage pipelines of microservices.
+The Core Engine allows to create and manage pipelines of microservices.
 
 It is built using Python 3.10, FastAPI, SQLModel and Domain-driven design.
 
@@ -53,15 +53,11 @@ sequenceDiagram
 
 All environment variables are described in the [`.env`](https://github.com/swiss-ai-center/core-engine/blob/main/core-engine/.env) file.
 
-<<<<<<< HEAD:docs/reference/core-engine.md
 The environment variables can be overwritten during the CI/CD pipeline described in the [`core-engine.yml`](https://github.com/swiss-ai-center/core-engine/blob/main/.github/workflows/engine.yml) GitHub workflow file.
-=======
-The environment variables can be overwritten during the CI/CD pipeline described in the [`core-engine.yml`](https://github.com/swiss-ai-center/core-engine/blob/main/.github/workflows/core-engine.yml) GitHub workflow file.
->>>>>>> 9a35681 (Rename engine to core-engine):docs/reference/engine.md
 
 ## Start the service locally with Python
 
-In the `core-engine` directory, start the Engine with the following commands.
+In the `core-engine` directory, start the Core Engine with the following commands.
 
 ```sh
 # Generate the virtual environment
@@ -92,7 +88,7 @@ cd src
 uvicorn --reload --port 8080 main:app
 ```
 
-Access the Engine documentation on <http://localhost:8080/docs>.
+Access the Core Engine documentation on <http://localhost:8080/docs>.
 
 ## Run the tests with Python
 
@@ -104,9 +100,9 @@ pytest --cov-report term:skip-covered --cov-report term-missing --cov=. -s --cov
 
 ## Start the service locally with minikube and the Docker image hosted on GitHub
 
-Start the Engine with the following commands. This will start the Engine with the official Docker images that are hosted on GitHub.
+Start the Core Engine with the following commands. This will start the Core Engine with the official Docker images that are hosted on GitHub.
 
-In the `core-engine` directory, start the Engine with the following commands.
+In the `core-engine` directory, start the Core Engine with the following commands.
 
 ```sh
 # Start MinIO
@@ -137,11 +133,11 @@ Create a tunnel to access the Kubernetes cluster from the local machine. The ter
 minikube tunnel --bind-address 127.0.0.1
 ```
 
-Access the Engine documentation on <http://localhost:8080/docs>.
+Access the Core Engine documentation on <http://localhost:8080/docs>.
 
 ## Start the service locally with minikube and a local Docker image
 
-**Note**: The Engine StatefulSet (`core-engine.stateful.yml` file) must be deleted and recreated every time a new Docker image is created.
+**Note**: The Core Engine StatefulSet (`core-engine.stateful.yml` file) must be deleted and recreated every time a new Docker image is created.
 
 In the `core-engine` directory, build the Docker image with the following commands.
 
@@ -166,7 +162,7 @@ eval $(minikube docker-env -u)
 #        imagePullPolicy: Never
 ```
 
-In the [core-engine](../../core-engine) directory, start the Engine with the following commands.
+In the `core-engine` directory, start the Core Engine with the following commands.
 
 ```sh
 # Start MinIO
@@ -197,4 +193,4 @@ Create a tunnel to access the Kubernetes cluster from the local machine. The ter
 minikube tunnel --bind-address 127.0.0.1
 ```
 
-Access the Engine documentation on <http://localhost:8080/docs>.
+Access the Core Engine documentation on <http://localhost:8080/docs>.
