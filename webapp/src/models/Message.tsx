@@ -1,4 +1,4 @@
-export enum MessageType {
+enum MessageType {
     SUCCESS = 'success',
     ERROR = 'error',
     WARNING = 'warning',
@@ -10,7 +10,7 @@ export enum MessageSubject {
     EXECUTION = 'execution',
 }
 
-export class MessageData {
+class MessageData {
     text: string;
     data: object;
 }

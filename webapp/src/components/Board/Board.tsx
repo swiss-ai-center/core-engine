@@ -2,7 +2,9 @@ import React from 'react';
 import ReactFlow, {
     addEdge, ReactFlowProvider, Background, Controls, useNodesState, useEdgesState, MiniMap
 } from 'react-flow-renderer';
-import SelectorNode from './CustomNode';
+import EntryNode from './EntryNode';
+import ExitNode from './ExitNode';
+import ProgressNode from './ProgressNode';
 import { ControlButton } from 'reactflow';
 import { FullscreenExit } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,12 +16,23 @@ import { useWebSocketConnection } from '../../utils/useWebSocketConnection';
 import "./styles.css";
 import { toast } from 'react-toastify';
 import { Message, MessageSubject } from '../../models/Message';
-import { RunState, setResultIdList, setRunState } from '../../utils/reducers/runStateSlice';
+import {
+    RunState,
+    setCurrentTask,
+    setGeneralStatus,
+    setResultIdList,
+    setTaskArray
+} from '../../utils/reducers/runStateSlice';
+import { Task } from '../../models/Task';
+import { ConnectionData } from '../../models/ConnectionData';
 
 const Board: React.FC<{ description: any, fullscreen: boolean }> = ({description, fullscreen}) => {
     const dispatch = useDispatch();
-    const nodeTypes = React.useMemo(() => ({customNode: SelectorNode}), []);
+    const nodeTypes = React.useMemo(() => ({
+        entryNode: EntryNode, progressNode: ProgressNode, exitNode: ExitNode
+    }), []);
     const colorMode = useSelector((state: any) => state.colorMode.value);
+    const taskArray = useSelector((state: any) => state.runState.taskArray);
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const lightgrey = grey[300];
@@ -43,20 +56,77 @@ const Board: React.FC<{ description: any, fullscreen: boolean }> = ({description
         );
     }
 
+    const isExecuting = (task: any) => {
+        return task && (task.status === RunState.PENDING ||
+            task.status === RunState.PROCESSING ||
+            task.status === RunState.SAVING ||
+            task.status === RunState.FETCHING);
+    }
+
+    const isFinished = (task: any) => {
+        return task.status === RunState.IDLE ||
+            task.status === RunState.FINISHED ||
+            task.status === RunState.ERROR;
+    }
+
     const handleMessage = (message: Message) => {
+        // extract data, type and subject from message
         const {message: messageData, type, subject} = message;
+        // check if message is valid
         if (messageData) {
+            // extract text and data from messageData
             const {text, data} = messageData;
+            // check if text and data are valid
             if (text && data) {
-                const dataObject = data as any;
+                // check if subject is execution
                 if (subject === MessageSubject.EXECUTION) {
-                    const str = `${text}, status: ${dataObject.status}`;
-                    dispatch(setRunState(dataObject.status));
-                    toast(str, {type: type});
-                    if (dataObject.status === RunState.FINISHED) {
+                    // cast data to Task to be able to access properties
+                    const dataObject = data as Task;
+                    let str;
+                    // check if general_status is set. In this case, the execution is finished
+                    if (dataObject.general_status) {
                         dispatch(setResultIdList(dataObject.data_out));
+                        dispatch(setGeneralStatus(dataObject.general_status));
+                        dispatch(setCurrentTask(null));
+                        str = `${text}`;
+                    // check if pipeline_execution_id is not set. In this case, the execution is finished but
+                    // for a task
+                    } else if (!dataObject.pipeline_execution_id) {
+                        dispatch(setResultIdList(dataObject.data_out));
+                        dispatch(setGeneralStatus(dataObject.status));
+                        dispatch(setCurrentTask(null));
+                        str = `${text}, status: ${dataObject.status}`;
+                    } else {
+                        str = `${text}, status: ${dataObject.status}`;
                     }
+                    // display message in a toast
+                    toast(str, {type: type});
+
+                    // update taskArray and currentTask according to the message
+                    if (taskArray) {
+                        let oldTask;
+                        // create the new taskArray by mapping over the old one. If the old one is already finished,
+                        // do not update it. It means a message was received after the execution was finished.
+                        const newTaskArray = taskArray.map((task: any) => {
+                            if (task.id === dataObject.id) {
+                                oldTask = task;
+                                if (!isFinished(task)) {
+                                    return dataObject;
+                                }
+                            }
+                            return task;
+                        });
+                        // update taskArray
+                        dispatch(setTaskArray(newTaskArray));
+                        // update currentTask if it is executing
+                        if (isExecuting(dataObject) && (oldTask && !isFinished(oldTask))) {
+                            dispatch(setCurrentTask(dataObject));
+                        }
+                    }
+                    // check if subject is connection
                 } else if (subject === MessageSubject.CONNECTION) {
+                    // cast data to ConnectionData to be able to access properties
+                    const dataObject = data as ConnectionData;
                     let str = text;
                     if (dataObject.linked_id) {
                         str += `, linked_id: ${dataObject.linked_id}`;
@@ -64,13 +134,15 @@ const Board: React.FC<{ description: any, fullscreen: boolean }> = ({description
                     if (dataObject.execution_type) {
                         str += `, execution_type: ${dataObject.execution_type}`;
                     }
-                    toast(str, {type: type, theme: colorMode === 'light' ? 'dark' : 'light'});
+                    // uncomment to show message in a toast (not enabled by default)
+                    // toast(str, {type: type, theme: colorMode === 'light' ? 'dark' : 'light'});
+                    console.log(str)
                 }
             } else {
-                toast("Message is not valid", {type: "warning"});
+                console.log("Message is not valid");
             }
         } else {
-            toast("Message is empty", {type: "warning"});
+            console.log("Message is not valid");
         }
     }
 
@@ -115,6 +187,7 @@ const Board: React.FC<{ description: any, fullscreen: boolean }> = ({description
                 nodeTypes={nodeTypes}
                 fitView
                 nodesDraggable={false}
+                nodesConnectable={false}
                 about={colorMode}
                 style={{
                     backgroundColor: colorMode === 'dark' ? '#121212' : '#fff',

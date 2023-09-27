@@ -9,7 +9,7 @@ export class FieldDescriptionWithSetAndValue extends FieldDescription {
 }
 
 export class ExecutionUnit {
-    id: number;
+    id: string;
     name: string;
     slug: string;
     summary: string;

@@ -613,7 +613,7 @@ class PipelinesService:
                     task.data_in = data_in
                     task.data_out = None
 
-                    task = self.tasks_service.update(task.id, task)
+                    task = await self.tasks_service.update(task.id, task)
 
                     # Create the service task
                     service_task = ServiceTask(

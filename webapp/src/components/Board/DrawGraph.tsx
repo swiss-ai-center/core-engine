@@ -17,7 +17,7 @@ export default function DrawGraph(
 
     if (entity && entity instanceof Service) {
         const entryNode = generateEntryNode("service", entity.slug, entity.data_in_fields);
-        const serviceNode = generateNode(entity.slug);
+        const serviceNode = generateNode(entity.slug, "service", entity.id);
         const exitNode = generateExitNode(entity.slug, entity.data_out_fields);
         nodes = [entryNode, serviceNode, exitNode];
         edges = [
@@ -32,7 +32,7 @@ export default function DrawGraph(
         nodes.push(entryNode);
 
         for (let i = 0; i < entity.steps.length; i++) {
-            const serviceNode = generateNode(entity.steps[i].identifier);
+            const serviceNode = generateNode(entity.steps[i].identifier, "pipeline", entity.steps[i].service_id);
             nodes.push(serviceNode);
         }
 
@@ -57,13 +57,14 @@ export default function DrawGraph(
 
 }
 
-const generateNode = (slug: string) => {
+const generateNode = (slug: string, type: string, service_id: string) => {
     return {
         id: slug,
-        type: "customNode",
-        next: slug + "-exit",
+        type: "progressNode",
         data: {
             label: slug,
+            type: type,
+            service_id: service_id,
         }
     }
 }
@@ -75,8 +76,7 @@ const generateEntryNode = (
 ) => {
     return {
         id: slug + "-entry",
-        type: "customNode",
-        next: slug,
+        type: "entryNode",
         data: {
             label: slug + "-entry",
             executionType: executionType,
@@ -89,8 +89,7 @@ const generateEntryNode = (
 const generateExitNode = (slug: string, data_out_fields: FieldDescription[]) => {
     return {
         id: slug + "-exit",
-        type: "customNode",
-        next: [],
+        type: "exitNode",
         data: {
             label: slug + "-exit",
             data_out_fields: data_out_fields,

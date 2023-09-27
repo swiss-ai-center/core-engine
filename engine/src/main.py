@@ -79,7 +79,7 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_json()
-            connection = connection_manager.set_linked_id(websocket, data["linked_id"])
+            connection_manager.set_linked_id(websocket, data["linked_id"])
             connection = connection_manager.set_execution_type(websocket, data["execution_type"])
             connection_data = ConnectionData(linked_id=connection.linked_id, execution_type=connection.execution_type)
             message = Message(
@@ -161,7 +161,15 @@ async def startup_event():
 
     check_services_timer.start()
 
+    retry_send_message_timer = Timer(
+        timeout=5,
+        callback=connection_manager.retry_send_message,
+    )
+
+    retry_send_message_timer.start()
+
     timers.append(check_services_timer)
+    timers.append(retry_send_message_timer)
 
 
 @app.on_event("shutdown")

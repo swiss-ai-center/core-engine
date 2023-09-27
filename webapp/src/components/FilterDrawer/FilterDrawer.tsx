@@ -13,8 +13,8 @@ import {
 import { TagObjects } from '../../enums/tagEnums';
 import { Tag } from '../../models/Tag';
 
-const icon = <CheckBoxOutlineBlankIcon fontSize="small"/>;
-const checkedIcon = <CheckBoxIcon fontSize="small"/>;
+const icon = <CheckBoxOutlineBlankIcon fontSize={"small"}/>;
+const checkedIcon = <CheckBoxIcon fontSize={"small"}/>;
 const isSmartphone = (): boolean => {
     return window.innerWidth < 600;
 }
@@ -50,11 +50,11 @@ export const FilterDrawer: React.FC<{
                     <h3>Filters</h3>
                 </Box>
                 <Box sx={{mx: 3, pb: 2}}>
-                    <TextField sx={{mb: 2}} name={'search'} label={'Search'}
+                    <TextField sx={{mb: 2}} name={"search-field"} label={"Search"}
                                value={search} onChange={handleSearch} fullWidth
                                InputProps={{
                                    endAdornment: search ? (
-                                       <IconButton size="small" onClick={() => handleSearch({target: {value: ''}})}>
+                                       <IconButton size={"small"} onClick={() => handleSearch({target: {value: ''}})}>
                                            <ClearIcon/>
                                        </IconButton>
                                    ) : undefined
@@ -63,7 +63,6 @@ export const FilterDrawer: React.FC<{
                     <Autocomplete
                         multiple
                         sx={{mb: 2}}
-                        id="tags-filter"
                         options={TagObjects}
                         disableCloseOnSelect
                         getOptionLabel={(option) => option.name}
@@ -74,7 +73,7 @@ export const FilterDrawer: React.FC<{
                                     icon={icon}
                                     checkedIcon={checkedIcon}
                                     style={{marginRight: 8}}
-                                    color={'primary'}
+                                    color={"primary"}
                                     value={option.acronym}
                                     checked={selected}
                                 />
@@ -83,17 +82,17 @@ export const FilterDrawer: React.FC<{
                         )}
                         onChange={handleTags}
                         renderInput={(params) => (
-                            <TextField {...params} label="Tags" placeholder="Tags"/>
+                            <TextField {...params} label={"Tags"} placeholder={"Tags"}/>
                         )}
                         value={tags}
                     />
                     <FormControl fullWidth sx={{mb: 2}}>
-                        <InputLabel id="demo-simple-select-label">Order by</InputLabel>
+                        <InputLabel id={"order-by-label"} htmlFor={"order-by-select"}>Order by</InputLabel>
                         <Select
-                            labelId="demo-simple-select-label"
-                            id="demo-simple-select"
+                            labelId={"order-by-label"}
+                            id={"order-by-select"}
                             value={orderBy}
-                            label="Order by"
+                            label={"Order by"}
                             onChange={handleOrder}
                         >
                             {orderByList.map((item) => (
@@ -102,6 +101,7 @@ export const FilterDrawer: React.FC<{
                         </Select>
                     </FormControl>
                     <Button
+                        id={"reset-filters-button"}
                         variant={"contained"}
                         color={"secondary"}
                         fullWidth
@@ -123,12 +123,12 @@ export const FilterDrawer: React.FC<{
 
     return (
         <Box
-            component="nav"
+            component={"nav"}
             sx={{width: {md: drawerWidth}, flexShrink: {md: 0}}}
         >
             {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
             <Drawer
-                variant="temporary"
+                variant={"temporary"}
                 open={mobileOpen}
                 ModalProps={{
                     keepMounted: true, // Better open performance on mobile.
@@ -141,7 +141,7 @@ export const FilterDrawer: React.FC<{
                 {drawer}
             </Drawer>
             <Drawer
-                variant="permanent"
+                variant={"permanent"}
                 sx={{
                     display: {xs: 'none', md: 'block'},
                     '& .MuiDrawer-paper': {boxSizing: 'border-box', width: drawerWidth},
