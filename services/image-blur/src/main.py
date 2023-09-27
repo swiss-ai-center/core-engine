@@ -106,7 +106,7 @@ api_summary = "Blurs the image in the given areas."
 app = FastAPI(
     title="Image Blur API.",
     description=api_description,
-    version="0.0.1",
+    version="1.0.0",
     contact={
         "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",

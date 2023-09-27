@@ -99,7 +99,7 @@ Recognizes a digit in an image using mnist trained model
 app = FastAPI(
     title="Digit Recognition API.",
     description=api_description,
-    version="0.0.1",
+    version="1.0.0",
     contact={
         "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",

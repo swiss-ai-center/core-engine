@@ -409,7 +409,7 @@ Rotate an image by 90 degrees clockwise.
 app = FastAPI(
     title="Image Rotate API.",
     description=api_description,
-    version="0.0.1",
+    version="1.0.0",
     contact={
         "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
@@ -1110,7 +1110,7 @@ Anomaly detection of a time series with an autoencoder
 app = FastAPI(
     title="Anomaly Detection API.",
     description=api_description,
-    version="0.0.1",
+    version="1.0.0",
     contact={
         "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",

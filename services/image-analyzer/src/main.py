@@ -100,7 +100,7 @@ Analyze images. Return information about the image
 app = FastAPI(
     title="Image Analyzer API.",
     description=api_description,
-    version="0.0.1",
+    version="1.0.0",
     contact={
         "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",

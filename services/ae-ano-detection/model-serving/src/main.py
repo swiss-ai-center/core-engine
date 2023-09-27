@@ -101,7 +101,7 @@ Anomaly detection of a time series with an autoencoder
 app = FastAPI(
     title="Autoencoder Anomaly Detection",
     description=api_description,
-    version="0.0.1",
+    version="1.0.0",
     contact={
         "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
