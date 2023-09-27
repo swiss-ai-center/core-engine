@@ -74,7 +74,7 @@ minikube tunnel --bind-address 127.0.0.1
 
 Access the `image-sam` documentation on <http://localhost:9494/docs>.
 
-Access the Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Engine.
+Access the Core Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Core Engine.
 
 ## Start the service locally with minikube and a local Docker image
 
@@ -124,4 +124,4 @@ minikube tunnel --bind-address 127.0.0.1
 
 Access the `image-sam` documentation on <http://localhost:9494/docs>.
 
-Access the Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Engine.
+Access the Core Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Core Engine.
