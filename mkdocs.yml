@@ -42,6 +42,7 @@ nav:
       - image-resize service: reference/image-resize.md
       - image-rotate service: reference/image-rotate.md
       - image-sam service: reference/image-sam.md
+      - integrity-checker service: reference/integrity-checker.md
       - doodle service: reference/doodle.md
       - yolov8 service: reference/yolov8.md
   - Explanations:
