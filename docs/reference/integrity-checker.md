@@ -1,4 +1,4 @@
-# doodle
+# integrity-checker
 
 This service uses a config file to analyse a dataset and provide a report about the dataset integrity. 
 
