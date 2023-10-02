@@ -26,6 +26,7 @@
 | [image-resize](./image-resize.md){ style="color: inherit;" }          | <https://github.com/swiss-ai-center/core-engine/tree/main/services/image-resize>      | <http://localhost:9292/docs>          | <https://image-resize-swiss-ai-center.kube.isc.heia-fr.ch/docs>    |
 | [image-rotate](./image-rotate.md){ style="color: inherit;" }          | <https://github.com/swiss-ai-center/core-engine/tree/main/services/image-rotate>      | <http://localhost:9393/docs>          | <https://image-rotate-swiss-ai-center.kube.isc.heia-fr.ch/docs>    |
 | [image-sam](./image-sam.md){ style="color: inherit;" }          | <https://github.com/swiss-ai-center/core-engine/tree/main/services/image-sam>      | <http://localhost:9494/docs>          | <https://image-sam-swiss-ai-center.kube.isc.heia-fr.ch/docs>    |
+| [integrity-checker](./integrity-checker.md){ style="color: inherit;" }          | <https://github.com/swiss-ai-center/core-engine/tree/main/services/integrity-checker>      | <http://localhost:9595/docs>          | <https://intergrity-checker-swiss-ai-center.kube.isc.heia-fr.ch/docs>    |
 | [doodle](./doodle.md){ style="color: inherit;" }          | <https://github.com/swiss-ai-center/doodle>      | <http://localhost:9595/docs>          | <https://doodle-swiss-ai-center.kube.isc.heia-fr.ch/docs>    |
 | [yolov8](./yolov8.md){ style="color: inherit;" }          | <https://github.com/swiss-ai-center/yolov8>      | <http://localhost:9595/docs>          | <https://yolov8-swiss-ai-center.kube.isc.heia-fr.ch/docs>    |
 
