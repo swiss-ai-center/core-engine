@@ -139,6 +139,7 @@ export const FilterDrawer: React.FC<{
                             handleSearch({target: {value: ''}});
                             handleTags(null, []);
                             handleOrder({target: {value: orderByList[0].value}});
+                            handleAIToggle({target: {checked: false}});
                             handleOpen();
                         }}
                     >

@@ -242,11 +242,11 @@ const ItemGrid: React.FC<{
                                             <Grid container>
                                                 {item.has_ai ? (
                                                     <>
-                                                        <Grid xs={10} sm={8} padding={0}>
+                                                        <Grid xs={11} sm={10} padding={0}>
                                                             <Typography variant="h5" component="h2" gutterBottom>
                                                                 {item.name}
                                                             </Typography>
-                                                        </Grid><Grid xs={2} sm={4}
+                                                        </Grid><Grid xs={1} sm={2}
                                                                      sx={{display: 'flex', justifyContent: 'flex-end'}}
                                                                      padding={0}>
                                                         <Tooltip title={"AI Service"}>

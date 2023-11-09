@@ -1,5 +1,14 @@
 import React from 'react';
-import { Box, Button, Container, Typography, CircularProgress, Toolbar, Link as URLLink } from '@mui/material';
+import {
+    Box,
+    Button,
+    Container,
+    Typography,
+    CircularProgress,
+    Toolbar,
+    Link as URLLink,
+    TextField
+} from '@mui/material';
 import { useParams } from 'react-router-dom';
 import Board from '../../components/Board/Board';
 import { getPipelineDescription, getServiceDescription } from '../../utils/api';
@@ -14,7 +23,7 @@ const isSmartphone = (): boolean => {
     return window.innerWidth < 600;
 }
 
-const Showcase: React.FC<{ mobileOpen: boolean}> = ({mobileOpen}) => {
+const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
     const params = useParams();
     const navigate = useNavigate();
     const [isReady, setIsReady] = React.useState(false);
@@ -89,12 +98,16 @@ const Showcase: React.FC<{ mobileOpen: boolean}> = ({mobileOpen}) => {
                                 >
                                     {description ? description.name : ''}
                                 </Typography>
-                                <Typography variant={"h5"} align={"center"}
-                                            color={"text.secondary"} whiteSpace={"pre-line"}
-                                            paragraph
-                                >
-                                    {description ? description.description : ''}
-                                </Typography>
+                                <TextField
+                                    id={"description-textfield"}
+                                    label={"Description"}
+                                    multiline
+                                    rows={10}
+                                    fullWidth
+                                    value={description ? description.description : ''}
+                                    variant={"outlined"}
+                                    disabled
+                                />
                             </Container>
                         </Box>
                         <Container sx={{py: 2}} maxWidth={"lg"}>
@@ -117,14 +130,14 @@ const Showcase: React.FC<{ mobileOpen: boolean}> = ({mobileOpen}) => {
                             </FullScreen>
                         </Container>
                         {params.type as string === "service" ? (
-                        <Container sx={{pb: 2}} maxWidth={"lg"}>
-                            <URLLink href={description.url}>
-                                <Button sx={{mb: 2}} color={"secondary"} variant={"outlined"}
-                                        startIcon={<OpenInNew/>}>
-                                    OpenAPI Specification
-                                </Button>
-                            </URLLink>
-                        </Container>) : <></>}
+                            <Container sx={{pb: 2}} maxWidth={"lg"}>
+                                <URLLink href={description.url}>
+                                    <Button sx={{mb: 2}} color={"secondary"} variant={"outlined"}
+                                            startIcon={<OpenInNew/>}>
+                                        OpenAPI Specification
+                                    </Button>
+                                </URLLink>
+                            </Container>) : <></>}
                         <Container maxWidth={"lg"}>
                             <Copyright/>
                         </Container>
