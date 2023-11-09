@@ -5,7 +5,15 @@ const HEADERS = {
     'Access-Control-Allow-Origin': '*',
 }
 
-const createQuery = (unit: string, filter: string, skip: number, limit: number, orderBy: string, tags: string[]) => {
+const createQuery = (
+    unit: string,
+    filter: string,
+    skip: number,
+    limit: number,
+    orderBy: string,
+    tags: string[],
+    ai?: boolean
+) => {
     /*
      * Function to create the query string for the engine
      * unit: string - the unit to query (services or pipelines)
@@ -14,6 +22,7 @@ const createQuery = (unit: string, filter: string, skip: number, limit: number, 
      * limit: number - the number of items to return
      * orderBy: string - the order by string
      * tags: string[] - the tags to filter by
+     * ai: boolean - whether to filter by AI or not
      */
     const infos = orderBy.split('-');
     const prop = infos[0];
@@ -36,11 +45,14 @@ const createQuery = (unit: string, filter: string, skip: number, limit: number, 
     if (limit !== 0) {
         query += `&limit=${limit}`;
     }
+    if (ai) {
+        query += `&ai=${ai}`;
+    }
 
     return query + '&with_count=True&status=AVAILABLE';
 }
 
-export const getServices = async (filter: string, skip: number, limit: number, orderBy: string, tags: string[]) => {
+export const getServices = async (filter: string, skip: number, limit: number, orderBy: string, tags: string[], ai: boolean) => {
     /*
      * Function to fetch services from the engine
      * filter: string - the search string
@@ -48,9 +60,10 @@ export const getServices = async (filter: string, skip: number, limit: number, o
      * limit: number - the number of items to return
      * orderBy: string - the order by string
      * tags: string[] - the tags to filter by
+     * ai: boolean - whether to filter by AI or not
      */
     try {
-        const query = createQuery('services', filter, skip, limit, orderBy, tags);
+        const query = createQuery('services', filter, skip, limit, orderBy, tags, ai);
 
         const response = await fetch(query, {headers: HEADERS});
         if (response.status === 200) {

@@ -55,7 +55,8 @@ class MyService(Service):
                     name=ExecutionUnitTagName.IMAGE_RECOGNITION,
                     acronym=ExecutionUnitTagAcronym.IMAGE_RECOGNITION
                 ),
-            ]
+            ],
+            has_ai=True
         )
 
     def process(self, data):
@@ -80,7 +81,7 @@ class MyService(Service):
 
 
 api_description = """
-Analyze faces in images. Returns a JSON object with the following fields:
+Analyse faces in images. Returns a JSON object with the following fields:
 - age (Age of the person in the image),
 - region (Region of the person in the image),
 - gender (Gender of the person in the image),
@@ -90,7 +91,7 @@ Analyze faces in images. Returns a JSON object with the following fields:
 - dominant_emotion (The dominant emotion of the person in the image)
 """
 api_summary = """
-Analyze faces in images
+Analyzes the faces in images.
 """
 
 # Define the FastAPI application with information
@@ -101,7 +102,7 @@ app = FastAPI(
     contact={
         "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
-        "email": "info@swiss-ai-center.ch",
+        "email": "ia.recherche@hes-so.ch",
     },
     swagger_ui_parameters={
         "tagsSorter": "alpha",

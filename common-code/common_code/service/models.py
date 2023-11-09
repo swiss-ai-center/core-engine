@@ -20,6 +20,7 @@ class Service(BaseModel, metaclass=ABCMeta):
     data_in_fields: List[FieldDescription] | None
     data_out_fields: List[FieldDescription] | None
     tags: List[ExecutionUnitTag] | None
+    has_ai: bool | None
 
     def get_data_in_fields(self):
         """

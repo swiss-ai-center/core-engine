@@ -25,6 +25,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setServicePerPage, setPipelinePerPage } from '../../utils/reducers/perPageSlice';
 import { toast } from 'react-toastify';
 import LoadingGrid from '../LoadingGrid/LoadingGrid';
+import { Psychology } from '@mui/icons-material';
 
 // min width is 100% for mobile, 50% for tablet, 33% for desktop
 const minWidth = (window.innerWidth < 600) ? '100%' : (window.innerWidth < 900) ? '50%' : '33%';
@@ -33,8 +34,8 @@ const minWidth = (window.innerWidth < 600) ? '100%' : (window.innerWidth < 900) 
 const align = (window.innerWidth < 600) ? 'center' : 'left';
 
 const ItemGrid: React.FC<{
-    filter: string, orderBy: string, tags: Tag[], handleTags: any
-}> = ({filter, orderBy, tags, handleTags}) => {
+    filter: string, orderBy: string, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any
+}> = ({filter, orderBy, tags, handleTags, ai, handleAIToggle}) => {
     const dispatch = useDispatch();
     const servicesPerPage = useSelector((state: any) => state.perPage.value.services);
     const pipelinesPerPage = useSelector((state: any) => state.perPage.value.pipelines);
@@ -59,7 +60,7 @@ const ItemGrid: React.FC<{
 
     const listServices = async (filter: string, orderBy: string, tags: string[]) => {
         const skip = (pageService - 1) * servicesPerPage;
-        const servicesList = await getServices(filter, skip, servicesPerPage, orderBy, tags);
+        const servicesList = await getServices(filter, skip, servicesPerPage, orderBy, tags, ai);
         if (servicesList.services) {
             if (servicesList.services.length === 0) {
                 setServices([]);
@@ -122,7 +123,8 @@ const ItemGrid: React.FC<{
                 <Grid xs={12} md={6} lg={4} mdOffset={"auto"} alignItems={"right"} justifyContent={"right"}>
                     <Box sx={{display: 'flex', alignItems: 'right', justifyContent: 'right'}}>
                         <FormControl sx={{minWidth: minWidth}}>
-                            <InputLabel id={"services-per-page-label"} htmlFor={"services-per-page"}>Per page</InputLabel>
+                            <InputLabel id={"services-per-page-label"} htmlFor={"services-per-page"}>Per
+                                page</InputLabel>
                             <Select
                                 labelId={"services-per-page-label"}
                                 id={"services-per-page"}
@@ -166,7 +168,8 @@ const ItemGrid: React.FC<{
                 <Grid xs={12} md={6} lg={4} mdOffset={"auto"} alignItems={"right"} justifyContent={"right"}>
                     <Box sx={{display: 'flex', alignItems: 'right', justifyContent: 'right'}}>
                         <FormControl sx={{minWidth: minWidth}}>
-                            <InputLabel id={"pipelines-per-page-label"} htmlFor={"pipelines-per-page"}>Per page</InputLabel>
+                            <InputLabel id={"pipelines-per-page-label"} htmlFor={"pipelines-per-page"}>Per
+                                page</InputLabel>
                             <Select
                                 labelId={"pipelines-per-page"}
                                 id={"pipelines-per-page"}
@@ -209,7 +212,7 @@ const ItemGrid: React.FC<{
         }, 300);
         return () => clearTimeout(timeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filter, pageService, pagePipeline, orderBy, tags, servicesPerPage, pipelinesPerPage]);
+    }, [filter, pageService, pagePipeline, orderBy, tags, ai, servicesPerPage, pipelinesPerPage]);
 
     return (
         <>
@@ -236,9 +239,34 @@ const ItemGrid: React.FC<{
                                         sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
                                     >
                                         <CardContent sx={{flexGrow: 1}}>
-                                            <Typography variant="h5" component="h2" gutterBottom>
-                                                {item.name}
-                                            </Typography>
+                                            <Grid container>
+                                                {item.has_ai ? (
+                                                    <>
+                                                        <Grid xs={10} sm={8} padding={0}>
+                                                            <Typography variant="h5" component="h2" gutterBottom>
+                                                                {item.name}
+                                                            </Typography>
+                                                        </Grid><Grid xs={2} sm={4}
+                                                                     sx={{display: 'flex', justifyContent: 'flex-end'}}
+                                                                     padding={0}>
+                                                        <Tooltip title={"AI Service"}>
+                                                            <Psychology sx={{color: "primary.main", fontSize: "1.5rem"}}
+                                                                        onClick={() => {
+                                                                            handleAIToggle({
+                                                                                target: {
+                                                                                    checked: true
+                                                                                }
+                                                                            });
+                                                                        }}/>
+                                                        </Tooltip>
+                                                    </Grid>
+                                                    </>
+                                                ) : (
+                                                    <Typography variant="h5" component="h2" gutterBottom>
+                                                        {item.name}
+                                                    </Typography>
+                                                )}
+                                            </Grid>
                                             <Grid container spacing={1} sx={{p: 0, mb: 2}}>
                                                 {item.tags ? item.tags.map((tag: any, index: number) => {
                                                     return (
@@ -278,7 +306,8 @@ const ItemGrid: React.FC<{
                                         </CardActions>
                                     </Card>
                                 </Grid>
-                            );
+                            )
+                                ;
                         }))}
                 </Grid>
             }

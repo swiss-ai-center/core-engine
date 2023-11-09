@@ -1,14 +1,14 @@
 import {
     Autocomplete,
     Box, Button, Checkbox,
-    Drawer, FormControl, IconButton, InputLabel, MenuItem, Select, TextField,
-    Toolbar,
+    Drawer, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, Stack, Switch, TextField,
+    Toolbar, Typography,
 } from '@mui/material';
 import React from 'react';
 import {
     CheckBox as CheckBoxIcon,
     CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
-    Clear as ClearIcon,
+    Clear as ClearIcon, Psychology,
 } from '@mui/icons-material';
 import { TagObjects } from '../../enums/tagEnums';
 import { Tag } from '../../models/Tag';
@@ -30,6 +30,8 @@ export const FilterDrawer: React.FC<{
     orderByList: any[]
     tags: Tag[],
     handleTags: any,
+    ai: boolean,
+    handleAIToggle: any,
 }> = ({
           mobileOpen,
           handleOpen,
@@ -40,6 +42,8 @@ export const FilterDrawer: React.FC<{
           orderByList,
           tags,
           handleTags,
+          ai,
+          handleAIToggle,
       }) => {
 
     const drawer = (
@@ -99,6 +103,31 @@ export const FilterDrawer: React.FC<{
                                 <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>
                             ))}
                         </Select>
+                    </FormControl>
+                    <FormControl fullWidth sx={{mb: 2}}>
+                        <Grid component={"label"} container alignItems={"center"} spacing={1}>
+                            <Grid item sx={{mt: 2}}>
+                                <Typography component={Stack} direction={"row"} alignItems={"center"} paragraph>
+                                    <Psychology sx={{fontSize: "1.6rem", marginRight: "0.5rem"}} />
+                                    All Services
+                                </Typography>
+                            </Grid>
+                            <Grid item>
+                                <Switch
+                                    checked={ai}
+                                    onChange={() => {
+                                        handleAIToggle({target: {checked: !ai}});
+                                    }}
+                                    value={ai}
+                                />
+                            </Grid>
+                            <Grid item sx={{mt: 2}}>
+                                <Typography component={Stack} direction={"row"} alignItems={"center"} paragraph>
+                                    AI Services Only
+                                    <Psychology sx={{fontSize: "1.6rem", marginLeft: "0.5rem"}} color={"primary"}/>
+                                </Typography>
+                            </Grid>
+                        </Grid>
                     </FormControl>
                     <Button
                         id={"reset-filters-button"}

@@ -33,6 +33,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     const [search, setSearch] = React.useState('');
     const [orderBy, setOrderBy] = React.useState(orderByList[0].value);
     const [tags, setTags] = React.useState<Tag[]>([]);
+    const [ai, setAI] = React.useState(false);
     const [searchParams] = useSearchParams();
     const history = window.history;
 
@@ -78,11 +79,23 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         handleNoFilter();
     }
 
+    const handleAIToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setAI(event.target.checked);
+        if (event.target.checked) {
+            searchParams.set('ai', 'true');
+        } else {
+            searchParams.delete('ai');
+        }
+        history.pushState({}, '', `?${searchParams.toString()}`);
+        handleNoFilter();
+    }
+
     React.useEffect(() => {
         setFileArray([]);
         setSearch(searchParams.get('filter') || '');
         const query_tags = searchParams.getAll('tags');
         setTags(query_tags.map((tag) => TagObjects.filter((tagObject) => tagObject.acronym === tag)[0]));
+        setAI(searchParams.get('ai') === 'true');
         const order = searchParams.get('orderBy');
         if (orderByList.map((item) => item.value).includes(order || '')) {
             setOrderBy(order || orderByList[0].value);
@@ -104,6 +117,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                 orderBy={orderBy} handleOrder={handleOrder} orderByList={orderByList}
                 search={search} handleSearch={handleSearch}
                 tags={tags} handleTags={handleTags}
+                ai={ai} handleAIToggle={handleAIToggle}
             />
             <Box component="main" sx={{flexGrow: 1, p: 2, pt: 4, pb: 3}}>
                 <Toolbar/>
@@ -124,7 +138,8 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                     </Typography>
                 </Container>
                 <Container sx={{py: 4}} maxWidth="lg">
-                    <ItemGrid filter={search} orderBy={orderBy} tags={tags} handleTags={handleTags}/>
+                    <ItemGrid filter={search} orderBy={orderBy} tags={tags} handleTags={handleTags}
+                              ai={ai} handleAIToggle={handleAIToggle}/>
                 </Container>
                 <Container maxWidth="lg" sx={{pb: 0}}>
                     <Copyright/>
