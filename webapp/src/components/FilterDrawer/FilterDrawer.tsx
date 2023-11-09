@@ -107,7 +107,9 @@ export const FilterDrawer: React.FC<{
                     <FormControl fullWidth sx={{mb: 2}}>
                         <Grid component={"label"} container alignItems={"center"} spacing={1}>
                             <Grid item sx={{mt: 2}}>
-                                <Typography component={Stack} direction={"row"} alignItems={"center"} paragraph>
+                                <Typography component={Stack} direction={"row"} alignItems={"center"} paragraph
+                                            sx={{fontSize: "0.9rem"}}
+                                >
                                     <Psychology sx={{fontSize: "1.6rem", marginRight: "0.5rem"}} />
                                     All Services
                                 </Typography>
@@ -122,7 +124,9 @@ export const FilterDrawer: React.FC<{
                                 />
                             </Grid>
                             <Grid item sx={{mt: 2}}>
-                                <Typography component={Stack} direction={"row"} alignItems={"center"} paragraph>
+                                <Typography component={Stack} direction={"row"} alignItems={"center"} paragraph
+                                            sx={{fontSize: "0.9rem"}}
+                                >
                                     AI Services Only
                                     <Psychology sx={{fontSize: "1.6rem", marginLeft: "0.5rem"}} color={"primary"}/>
                                 </Typography>
@@ -140,7 +144,7 @@ export const FilterDrawer: React.FC<{
                             handleTags(null, []);
                             handleOrder({target: {value: orderByList[0].value}});
                             handleAIToggle({target: {checked: false}});
-                            handleOpen();
+                            if (isSmartphone()) handleOpen();
                         }}
                     >
                         Reset filters
