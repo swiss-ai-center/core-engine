@@ -355,14 +355,21 @@ class MyService(Service):
             summary=api_summary,
             description=api_description,
             status=ServiceStatus.AVAILABLE,
-            # TODO: 4. CHANGE THE INPUT AND OUTPUT FIELDS (4)!
+            # TODO: 4. CHANGE THE INPUT AND OUTPUT FIELDS, THE TAGS AND THE HAS_AI VARIABLE (4)!
             data_in_fields=[
                 FieldDescription(name="image", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
                 FieldDescription(name="rotation", type=[FieldDescriptionType.TEXT_PLAIN]),
             ],
             data_out_fields=[
                 FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
-            ]
+            ],
+            tags=[
+                ExecutionUnitTag(
+                    name=ExecutionUnitTagName.IMAGE_PROCESSING,
+                    acronym=ExecutionUnitTagAcronym.IMAGE_PROCESSING
+                ),
+            ],
+            has_ai=False
         )
 
     # TODO: 5. CHANGE THE PROCESS METHOD (CORE OF THE SERVICE) (5)!
@@ -413,7 +420,7 @@ app = FastAPI(
     contact={
         "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
-        "email": "info@swiss-ai-center.ch",
+        "email": "ia.recherche@hes-so.ch",
     },
     swagger_ui_parameters={
         "tagsSorter": "alpha",
@@ -430,7 +437,7 @@ app = FastAPI(
 1. Import the OpenCV library and the get_extension function from the tasks service. This function is used to guess the extension of the image based on the input type.
 2. Change the description of the service.
 3. Change the name and the slug of the service. This is used to identify the service in the Core Engine.
-4. Change the input/output fields of the service. The name of the field is the key of the dictionary that will be used in the process function. The type of the field is the type of the data that will be sent to the service. They are defined in the FieldDescriptionType enum.
+4. Change the input/output fields of the service. The name of the field is the key of the dictionary that will be used in the process function. The type of the field is the type of the data that will be sent to the service. They are defined in the FieldDescriptionType enum. The tags are used to identify the service in the Core Engine. The `has_ai` variable is used to identify if the service is an AI service.
 5. Change the process function. This is the core of the service. The data is a dictionary with the keys being the field names set in the data_in_fields. The result must be a dictionary with the keys being the field names set in the data_out_fields.
 6. Change the API description and summary.
 7. Change the API title, version, contact and license.
@@ -1055,13 +1062,24 @@ class MyService(Service):
             summary=api_summary,
             description=api_description,
             status=ServiceStatus.AVAILABLE,
-            # TODO: 4. CHANGE THE INPUT AND OUTPUT FIELDS (4)!
+            # TODO: 4. CHANGE THE INPUT AND OUTPUT FIELDS, THE TAGS AND THE HAS_AI VARIABLE (4)!
             data_in_fields=[
                 FieldDescription(name="text", type=[FieldDescriptionType.TEXT_CSV, FieldDescriptionType.TEXT_PLAIN]),
             ],
             data_out_fields=[
                 FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_PNG]),
-            ]
+            ],
+            tags=[
+                ExecutionUnitTag(
+                    name=ExecutionUnitTagName.ANOMALY_DETECTION,
+                    acronym=ExecutionUnitTagAcronym.ANOMALY_DETECTION
+                ),
+                ExecutionUnitTag(
+                    name=ExecutionUnitTagName.TIME_SERIES,
+                    acronym=ExecutionUnitTagAcronym.TIME_SERIES
+                ),
+            ],
+            has_ai=True,
         )
         self.model = tf.keras.models.load_model("../model/ae_model.h5")
 
@@ -1114,7 +1132,7 @@ app = FastAPI(
     contact={
         "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
-        "email": "info@swiss-ai-center.ch",
+        "email": "ia.recherche@hes-so.ch",
     },
     swagger_ui_parameters={
         "tagsSorter": "alpha",
@@ -1131,7 +1149,7 @@ app = FastAPI(
 1. Import the library.
 2. Change the description of the service.
 3. Change the name and the slug of the service. This is used to identify the service in the Core Engine.
-4. Change the input/output fields of the service. The name of the field is the key of the dictionary that will be used in the process function. The type of the field is the type of the data that will be sent to the service. They are defined in the FieldDescriptionType enum.
+4. Change the input/output fields of the service. The name of the field is the key of the dictionary that will be used in the process function. The type of the field is the type of the data that will be sent to the service. They are defined in the FieldDescriptionType enum. The tags are used to identify the service in the Core Engine. The `has_ai` variable is used to identify if the service is an AI service.
 5. Change the process function. This is the core of the service. The data is a dictionary with the keys being the field names set in the data_in_fields. The result must be a dictionary with the keys being the field names set in the data_out_fields.
 6. Change the API description and summary.
 7. Change the API title, version, contact and license.

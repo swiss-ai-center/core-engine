@@ -57,6 +57,7 @@ class ServicesService:
             order_by: str | None,
             order: str | None,
             tags: str | None,
+            ai: bool | None,
             status: str = None,
     ) -> select:
         """
@@ -65,6 +66,7 @@ class ServicesService:
         :param order_by: The field to order by.
         :param order: The order direction.
         :param tags: The tags to filter by.
+        :param ai: Only return services with AI.
         :param status: The status to filter by.
         :return: The statement.
         """
@@ -76,6 +78,9 @@ class ServicesService:
 
         if status:
             filter_statement = Service.status == status
+
+        if ai:
+            filter_statement = and_(filter_statement, Service.has_ai == ai)
 
         if search:
             filter_statement = and_(
@@ -132,6 +137,7 @@ class ServicesService:
             order_by: str = "name",
             order: str = "asc",
             tags: str = None,
+            ai: bool = False,
             status: str = None,
     ):
         """
@@ -142,12 +148,13 @@ class ServicesService:
         :param order_by: The field to order by.
         :param order: The order (asc or desc).
         :param tags: The tags to filter by.
+        :param ai: Only return services with AI.
         :param status: The status to filter by.
         :return: The list of filtered services and the total count.
         """
         self.logger.debug("Find many services with total count.")
 
-        statement = self.create_statement(search, order_by, order, tags, status)
+        statement = self.create_statement(search, order_by, order, tags, ai, status)
 
         statement_to_count = statement
 
@@ -167,6 +174,7 @@ class ServicesService:
             order_by: str = "name",
             order: str = "asc",
             tags: str = None,
+            ai: bool = False,
             status: str = None,
     ):
         """
@@ -177,12 +185,13 @@ class ServicesService:
         :param order_by: The field to order by.
         :param order: The order (asc or desc).
         :param tags: The tags to filter by.
+        :param ai: Only return services with AI.
         :param status: The status to filter by.
         :return: The list of services.
         """
         self.logger.debug("Find many services")
 
-        statement = self.create_statement(search, order_by, order, tags, status)
+        statement = self.create_statement(search, order_by, order, tags, ai, status)
 
         statement = statement.offset(skip).limit(limit)
 

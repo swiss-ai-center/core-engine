@@ -39,7 +39,7 @@ class MyService(Service):
 
     def __init__(self):
         super().__init__(
-            name="Autoencoder anomaly detection",
+            name="Autoencoder Anomaly Detection",
             slug="ae-anomaly-detection",
             url=settings.service_url,
             summary=api_summary,
@@ -56,7 +56,12 @@ class MyService(Service):
                     name=ExecutionUnitTagName.ANOMALY_DETECTION,
                     acronym=ExecutionUnitTagAcronym.ANOMALY_DETECTION
                 ),
-            ]
+                ExecutionUnitTag(
+                    name=ExecutionUnitTagName.TIME_SERIES,
+                    acronym=ExecutionUnitTagAcronym.TIME_SERIES
+                ),
+            ],
+            has_ai=True
         )
         self.model = tf.keras.models.load_model(os.path.join(os.path.dirname(__file__), "..", "ae_model.h5"))
 
@@ -91,10 +96,10 @@ class MyService(Service):
 
 
 api_description = """
-Anomaly detection of a time series with an autoencoder
+Anomaly detection of a time series with an autoencoder.
 """
 api_summary = """
-Anomaly detection of a time series with an autoencoder
+Anomaly detection of a time series with an autoencoder.
 """
 
 # Define the FastAPI application with information
@@ -105,7 +110,7 @@ app = FastAPI(
     contact={
         "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
-        "email": "info@swiss-ai-center.ch",
+        "email": "ia.recherche@hes-so.ch",
     },
     swagger_ui_parameters={
         "tagsSorter": "alpha",

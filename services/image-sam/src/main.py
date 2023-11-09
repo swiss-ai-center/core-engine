@@ -68,6 +68,7 @@ class MyService(Service):
                     acronym=ExecutionUnitTagAcronym.IMAGE_RECOGNITION,
                 ),
             ],
+            has_ai=True,
         )
         sam = sam_model_registry["vit_b"](checkpoint="../model/sam_vit_b_01ec64.pth")
         self.model = SamAutomaticMaskGenerator(sam)
@@ -109,7 +110,7 @@ class MyService(Service):
 
 
 api_description = """
-This service segments an image.
+This service segments an image using the SAM model.
 """
 api_summary = """
 Segments anything in an image.
@@ -123,7 +124,7 @@ app = FastAPI(
     contact={
         "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
-        "email": "info@swiss-ai-center.ch",
+        "email": "ia.recherche@hes-so.ch",
     },
     swagger_ui_parameters={
         "tagsSorter": "alpha",

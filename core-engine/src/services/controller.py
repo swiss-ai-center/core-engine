@@ -53,6 +53,7 @@ def get_many_services(
                 query_parameters.order_by,
                 query_parameters.order,
                 query_parameters.tags,
+                query_parameters.ai,
                 query_parameters.status
             )
             return ServicesWithCount(count=count, services=services)
@@ -64,6 +65,7 @@ def get_many_services(
                 query_parameters.order_by,
                 query_parameters.order,
                 query_parameters.tags,
+                query_parameters.ai,
                 query_parameters.status
             )
             return services
@@ -125,6 +127,7 @@ def update(
 @router.delete(
     "/services/{service_id}",
     summary="Delete a service",
+    description="Delete a service and all its tasks",
     responses={
         204: {"detail": "Service Removed"},
         404: {"detail": "Service Not Found"},

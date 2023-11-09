@@ -7,7 +7,8 @@ class QueryParameters:
             order_by: str = None,
             order: str = None,
             status: str = None,
-            tags: str = None
+            tags: str = None,
+            ai: bool = None
     ):
         self.search = search
         self.skip = skip
@@ -16,3 +17,4 @@ class QueryParameters:
         self.order = order
         self.status = status
         self.tags = tags
+        self.ai = ai

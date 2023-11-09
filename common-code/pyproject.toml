@@ -1,6 +1,6 @@
 [project]
 name = "common_code"
-version = "1.0.0"
+version = "1.0.1"
 description = "Common code used by the Swiss AI Center services"
 requires-python = ">=3.10"
 license = {text = "AGPL-3.0"}

@@ -13,6 +13,7 @@ class ServiceBase(ExecutionUnitBase):
     This model is used in subclasses
     """
     url: AnyHttpUrl = Field(nullable=False)
+    has_ai: bool | None = Field(default=False, nullable=True)
 
 
 class Service(ServiceBase, table=True):
@@ -65,6 +66,7 @@ class ServiceUpdate(SQLModel):
     data_in_fields: List[FieldDescription] | None
     data_out_fields: List[FieldDescription] | None
     tags: List[ExecutionUnitTag] | None
+    has_ai: bool | None
 
 
 class ServiceTaskBase(BaseModel):

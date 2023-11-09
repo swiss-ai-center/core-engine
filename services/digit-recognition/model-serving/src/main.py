@@ -54,7 +54,8 @@ class MyService(Service):
                     name=ExecutionUnitTagName.IMAGE_RECOGNITION,
                     acronym=ExecutionUnitTagAcronym.IMAGE_RECOGNITION
                 ),
-            ]
+            ],
+            has_ai=True
         )
 
         self.model = models.load_model(os.path.join(os.path.dirname(__file__), "..", "mnist_model.h5"))
@@ -89,10 +90,10 @@ class MyService(Service):
 
 
 api_description = """
-Recognizes a digit in an image using mnist trained model
+Recognizes a digit in an image using mnist trained model.
 """
 api_summary = """
-Recognizes a digit in an image using mnist trained model
+Recognizes a digit in an image using mnist trained model.
 """
 
 # Define the FastAPI application with information
@@ -103,7 +104,7 @@ app = FastAPI(
     contact={
         "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
-        "email": "info@swiss-ai-center.ch",
+        "email": "ia.recherche@hes-so.ch",
     },
     swagger_ui_parameters={
         "tagsSorter": "alpha",
