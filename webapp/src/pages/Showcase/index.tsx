@@ -23,6 +23,13 @@ const isSmartphone = (): boolean => {
     return window.innerWidth < 600;
 }
 
+const removeInitialLineBreak = (text: string) => {
+    if (text.startsWith('\n')) {
+        return text.substring(1);
+    }
+    return text;
+}
+
 const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
     const params = useParams();
     const navigate = useNavigate();
@@ -104,7 +111,7 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
                                     multiline
                                     rows={10}
                                     fullWidth
-                                    value={description ? description.description : ''}
+                                    value={description ? removeInitialLineBreak(description.description) : ''}
                                     variant={"outlined"}
                                     disabled
                                 />

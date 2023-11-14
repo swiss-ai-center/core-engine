@@ -44,7 +44,7 @@ const ProgressNode = ({data}: any) => {
             <Card
                 sx={{
                     height: "100%", display: "flex", flexDirection: "column",
-                    border: !isExecuting() ? ("2px solid") : "none",
+                    border: !isExecuting() ? ("2px solid") : "none", alignItems: "center",
                     borderColor: !isExecuting() ? (getStatus() === RunState.FINISHED ? "success.main" :
                         getStatus() === RunState.ERROR ? "error.main" :
                             (colorMode === "light" ? lightgrey : darkgrey)) : "none",
