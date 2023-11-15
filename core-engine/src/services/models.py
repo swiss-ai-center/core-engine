@@ -24,7 +24,10 @@ class Service(ServiceBase, table=True):
     __tablename__ = "services"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    tasks: List["Task"] = Relationship(back_populates="service")  # noqa F821
+    tasks: List["Task"] = Relationship(
+        sa_relationship_kwargs={"cascade": "delete"},
+        back_populates="service"
+    )  # noqa F821
     pipeline_steps: List["PipelineStep"] = Relationship(back_populates="service")  # noqa F821
 
 
