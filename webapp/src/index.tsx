@@ -25,7 +25,7 @@ root.render(
             <FileArrayProvider>
                 <App/>
                 <ToastContainer
-                    position="bottom-left"
+                    position={"bottom-left"}
                     theme={"colored"}
                     transition={fadeIn}
                     autoClose={3000}

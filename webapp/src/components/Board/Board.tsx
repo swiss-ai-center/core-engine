@@ -26,7 +26,7 @@ import {
 import { Task } from '../../models/Task';
 import { ConnectionData } from '../../models/ConnectionData';
 
-const Board: React.FC<{ description: any, fullscreen: boolean }> = ({description, fullscreen}) => {
+const Board: React.FC<{ description: any }> = ({description}) => {
     const dispatch = useDispatch();
     const nodeTypes = React.useMemo(() => ({
         entryNode: EntryNode, progressNode: ProgressNode, exitNode: ExitNode
@@ -191,7 +191,7 @@ const Board: React.FC<{ description: any, fullscreen: boolean }> = ({description
                 about={colorMode}
                 style={{
                     backgroundColor: colorMode === 'dark' ? '#121212' : '#fff',
-                    borderRadius: fullscreen ? 0 : 5,
+                    borderRadius: 5,
                 }}
             >
                 <CustomControls/>

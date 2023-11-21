@@ -12,12 +12,10 @@ import {
 } from '@mui/icons-material';
 import { TagObjects } from '../../enums/tagEnums';
 import { Tag } from '../../models/Tag';
+import { isSmartphone } from '../../utils/functions';
 
 const icon = <CheckBoxOutlineBlankIcon fontSize={"small"}/>;
 const checkedIcon = <CheckBoxIcon fontSize={"small"}/>;
-const isSmartphone = (): boolean => {
-    return window.innerWidth < 600;
-}
 const drawerWidth = isSmartphone() ? '100%' : 500;
 
 export const FilterDrawer: React.FC<{

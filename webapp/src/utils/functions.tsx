@@ -15,3 +15,7 @@ export async function download(resultIdList: string[]) {
         }
     }
 }
+
+export const isSmartphone = (): boolean => {
+    return window.innerWidth < 600;
+}
