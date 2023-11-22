@@ -119,29 +119,29 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                 tags={tags} handleTags={handleTags}
                 ai={ai} handleAIToggle={handleAIToggle}
             />
-            <Box component="main" sx={{flexGrow: 1, p: 2, pt: 4, pb: 3}}>
+            <Box component={"main"} sx={{flexGrow: 1, py: 4}}>
                 <Toolbar/>
-                <Container maxWidth="lg">
+                <Container maxWidth={false} sx={{mb: 4}}>
                     <Typography
-                        component="h1"
-                        variant="h2"
-                        align="center"
-                        color="text.primary"
+                        component={"h1"}
+                        variant={"h2"}
+                        align={"center"}
+                        color={"text.primary"}
                         gutterBottom
                     >
                         Swiss AI Center
                     </Typography>
-                    <Typography variant="h5" align="justify" color="text.secondary" paragraph>
+                    <Typography variant={"h5"} align={"justify"} color={"text.secondary"} paragraph>
                         The Swiss AI Center is a project created by the University of Applied Sciences
                         Western Switzerland (HES-SO). The objective is to provide a platform to develop
                         AI applications for SMEs to accelerate its adoption in Switzerland.
                     </Typography>
                 </Container>
-                <Container sx={{py: 4}} maxWidth="lg">
+                <Container maxWidth={false}>
                     <ItemGrid filter={search} orderBy={orderBy} tags={tags} handleTags={handleTags}
                               ai={ai} handleAIToggle={handleAIToggle}/>
                 </Container>
-                <Container maxWidth="lg" sx={{pb: 0}}>
+                <Container maxWidth={false}>
                     <Copyright/>
                 </Container>
             </Box>
