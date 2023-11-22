@@ -26,12 +26,13 @@ import { setServicePerPage, setPipelinePerPage } from '../../utils/reducers/perP
 import { toast } from 'react-toastify';
 import LoadingGrid from '../LoadingGrid/LoadingGrid';
 import { Psychology } from '@mui/icons-material';
+import { isSmartphone } from '../../utils/functions';
 
 // min width is 100% for mobile, 50% for tablet, 33% for desktop
-const minWidth = (window.innerWidth < 600) ? '100%' : (window.innerWidth < 900) ? '50%' : '33%';
+const minWidth = isSmartphone() ? '100%' : (window.innerWidth < 900) ? '50%' : '33%';
 
 // align center for mobile, left for tablet and desktop
-const align = (window.innerWidth < 600) ? 'center' : 'left';
+const align = isSmartphone() ? 'center' : 'left';
 
 const ItemGrid: React.FC<{
     filter: string, orderBy: string, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any
@@ -104,7 +105,7 @@ const ItemGrid: React.FC<{
 
     const servicePagination = () => {
         return (
-            <Grid container sx={{pt: 2}} spacing={4} alignItems={"center"} justifyContent={"center"}>
+            <Grid container sx={{py: 1}} spacing={4} alignItems={"center"} justifyContent={"center"}>
                 <Grid xs={12} md={6} lg={4} alignItems={"left"} justifyContent={"left"}>
                     <Box sx={{display: 'flex', alignItems: align, justifyContent: align}}>
                         <Pagination
@@ -149,7 +150,7 @@ const ItemGrid: React.FC<{
 
     const pipelinePagination = () => {
         return (
-            <Grid container sx={{pt: 2}} spacing={4} alignItems={"center"} justifyContent={"center"}>
+            <Grid container sx={{py: 1}} spacing={4} alignItems={"center"} justifyContent={"center"}>
                 <Grid xs={12} md={6} lg={4} alignItems={"left"} justifyContent={"left"}>
                     <Box sx={{display: 'flex', alignItems: align, justifyContent: align}}>
                         <Pagination
@@ -223,7 +224,7 @@ const ItemGrid: React.FC<{
             {!isReady ?
                 <LoadingGrid/>
                 :
-                <Grid container spacing={4}>
+                <Grid container spacing={isSmartphone() ? 2 : 3}>
                     {services.length === 0 ? (
                         <Grid xs={6} md={8}>
                             <Typography gutterBottom variant={"h6"} component={"h2"}>
@@ -243,7 +244,7 @@ const ItemGrid: React.FC<{
                                                 {item.has_ai ? (
                                                     <>
                                                         <Grid xs={11} sm={10} padding={0}>
-                                                            <Typography variant="h5" component="h2" gutterBottom>
+                                                            <Typography variant={"h5"} component={"h2"} gutterBottom>
                                                                 {item.name}
                                                             </Typography>
                                                         </Grid><Grid xs={1} sm={2}
@@ -262,7 +263,7 @@ const ItemGrid: React.FC<{
                                                     </Grid>
                                                     </>
                                                 ) : (
-                                                    <Typography variant="h5" component="h2" gutterBottom>
+                                                    <Typography variant={"h5"} component={"h2"} gutterBottom>
                                                         {item.name}
                                                     </Typography>
                                                 )}
@@ -322,7 +323,7 @@ const ItemGrid: React.FC<{
             {!isReady ?
                 <LoadingGrid/>
                 :
-                <Grid container spacing={4}>
+                <Grid container spacing={3}>
                     {pipelines.length === 0 ? (
                         <Grid xs={6} md={8}>
                             <Typography gutterBottom variant={"h6"} component={"h2"}>
@@ -338,7 +339,7 @@ const ItemGrid: React.FC<{
                                         sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
                                     >
                                         <CardContent sx={{flexGrow: 1}}>
-                                            <Typography gutterBottom variant="h5" component="h2">
+                                            <Typography gutterBottom variant={"h5"} component={"h2"}>
                                                 {item.name}
                                             </Typography>
                                             <Grid container spacing={1} sx={{p: 0, mb: 2}}>
