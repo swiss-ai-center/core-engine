@@ -1,4 +1,5 @@
 from inspect import Parameter, Signature
+from sqlalchemy.exc import IntegrityError
 from common_code.common.models import ExecutionUnitTag
 from common_code.common.enums import ExecutionUnitTagName, ExecutionUnitTagAcronym
 from fastapi import FastAPI, UploadFile, Depends, HTTPException
@@ -15,7 +16,7 @@ from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from config import Settings, get_settings
 from services.models import Service, ServiceUpdate, ServiceTask
-from common.exceptions import NotFoundException, ConflictException, UnreachableException
+from common.exceptions import NotFoundException, ConflictException, UnreachableException, ConstraintException
 from http_client import HttpClient
 from fastapi.encoders import jsonable_encoder
 from httpx import HTTPError
@@ -292,9 +293,13 @@ class ServicesService:
         current_service = self.session.get(Service, service_id)
         if not current_service:
             raise NotFoundException("Service Not Found")
-        self.session.delete(current_service)
-        self.remove_route(app, current_service.slug)
-        self.session.commit()
+        try:
+            self.session.delete(current_service)
+            self.remove_route(app, current_service.slug)
+            self.session.commit()
+        except IntegrityError:
+            raise ConstraintException(
+                "Service is linked to a pipeline, please update the related step in the pipeline first.")
         self.logger.debug(f"Deleted service with id {current_service.id}")
 
     def remove_route(self, app: FastAPI, slug: str):

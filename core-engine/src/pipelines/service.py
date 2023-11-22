@@ -308,7 +308,7 @@ class PipelinesService:
                 needs=pipeline_step.needs,
                 condition=pipeline_step.condition,
                 inputs=pipeline_step.inputs,
-                service_id=pipeline_step.service.id,
+                service_id=service.id,
             )
             pipeline_step_create = PipelineStep.from_orm(new_pipeline_step)
             self.session.add(new_pipeline_step)

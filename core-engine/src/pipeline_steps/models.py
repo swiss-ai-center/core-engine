@@ -41,6 +41,7 @@ class PipelineStep(
     pipeline_id: UUID | None = Field(foreign_key="pipelines.id")
     pipeline: "Pipeline" = Relationship(back_populates="steps") # noqa F821
     pipeline_executions: List["PipelineExecution"] = Relationship(
+        sa_relationship_kwargs={"cascade": "delete"},
         back_populates="current_pipeline_step"
     )  # noqa F821
     service_id: UUID = Field(nullable=False, foreign_key="services.id")
