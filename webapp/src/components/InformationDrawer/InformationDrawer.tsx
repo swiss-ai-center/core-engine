@@ -68,12 +68,12 @@ export const InformationDrawer: React.FC<{
                     >
                         {description ? description.name : ''}
                     </Typography>
-                    <Grid container sx={{mb: 4}}>
-                        <Grid item xs={11} sm={10}>
+                    <Grid container mb={3}>
+                        <Grid item xs={description.has_ai ? 11 : 12} sm={description.has_ai ? 10 : 12}>
                             <Grid container>
                                 {description.tags ? description.tags.map((tag: any, index: number) => {
                                     return (
-                                        <Grid key={`service-tag-${index}`} pr={1}>
+                                        <Grid key={`service-tag-${index}`} pr={1} pb={1}>
                                             <Tooltip title={tag.name}>
                                                 <Chip
                                                     className={"acronym-chip"}
