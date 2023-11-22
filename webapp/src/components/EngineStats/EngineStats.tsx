@@ -98,7 +98,7 @@ export const EngineStats: React.FC<{
 
     const loadStats = async () => {
         const stats = await getStats();
-        if (stats.total) {
+        if (stats.hasOwnProperty("total")) {
             setStats(stats);
         } else {
             toast(`Error loading engine stats: ${stats.error}`, {type: "error"});
