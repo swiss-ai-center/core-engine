@@ -1,6 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request
-from common.exceptions import NotFoundException, ConflictException
+from common.exceptions import NotFoundException, ConflictException, ConstraintException
 from execution_units.enums import ExecutionUnitStatus
 from services.service import ServicesService
 from common.query_parameters import QueryParameters
@@ -144,3 +144,5 @@ def delete(
         services_service.delete(service_id, request.app)
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ConstraintException as e:
+        raise HTTPException(status_code=409, detail=str(e))

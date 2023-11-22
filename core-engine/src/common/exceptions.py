@@ -54,3 +54,11 @@ class CouldNotSendJsonException(Exception):
         self.message_to_send = message_to_send
         self.linked_id = linked_id
         super().__init__(self.message)
+
+
+class ConstraintException(Exception):
+    """Exception raised when a constraint is not respected."""
+
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)

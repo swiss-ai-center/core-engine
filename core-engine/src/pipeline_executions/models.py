@@ -37,6 +37,7 @@ class PipelineExecution(PipelineExecutionBase, table=True):
     pipeline: "Pipeline" = Relationship(back_populates="pipeline_executions")
     current_pipeline_step: Union["PipelineStep", None] = Relationship(back_populates="pipeline_executions")
     tasks: List[Task] = Relationship(
+        sa_relationship_kwargs={"cascade": "delete"},
         back_populates="pipeline_execution",
     )
     files: List[FileKeyReference] | None = Field(sa_column=Column(JSON), default=None, nullable=True)
