@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: webapp
-        run: npm ci --legacy-peer-deps
+        run: npm ci
 
       - name: Build app for dev
         # Only run on main
