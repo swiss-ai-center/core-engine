@@ -234,8 +234,8 @@ const ItemGrid: React.FC<{
                     ) : (
                         services.map((item: any, index: number) => {
                             return (
-                                <Grid xs={12} sm={6} xl={4} key={index}
-                                      sx={{height: 'auto', minHeight: '200px'}}>
+                                <Grid xs={12} sm={6} lg={4} xl={3} key={index}
+                                      sx={{height: 'auto', minHeight: '250px'}}>
                                     <Card
                                         sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
                                     >
@@ -307,8 +307,7 @@ const ItemGrid: React.FC<{
                                         </CardActions>
                                     </Card>
                                 </Grid>
-                            )
-                                ;
+                            );
                         }))}
                 </Grid>
             }
@@ -323,7 +322,7 @@ const ItemGrid: React.FC<{
             {!isReady ?
                 <LoadingGrid/>
                 :
-                <Grid container spacing={3}>
+                <Grid container spacing={isSmartphone() ? 2 : 3}>
                     {pipelines.length === 0 ? (
                         <Grid xs={6} md={8}>
                             <Typography gutterBottom variant={"h6"} component={"h2"}>
@@ -333,8 +332,8 @@ const ItemGrid: React.FC<{
                     ) : (
                         pipelines.map((item: any, index: number) => {
                             return (
-                                <Grid xs={12} sm={6} xl={4} key={index}
-                                      sx={{height: 'auto', minHeight: '200px'}}>
+                                <Grid xs={12} sm={6} lg={4} xl={3} key={index}
+                                      sx={{height: 'auto', minHeight: '250px'}}>
                                     <Card
                                         sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
                                     >
