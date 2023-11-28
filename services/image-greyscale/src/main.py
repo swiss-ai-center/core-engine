@@ -52,7 +52,8 @@ class MyService(Service):
                     name=ExecutionUnitTagName.IMAGE_PROCESSING,
                     acronym=ExecutionUnitTagAcronym.IMAGE_PROCESSING
                 ),
-            ]
+            ],
+            has_ai=False
         )
 
     def process(self, data):
@@ -84,11 +85,11 @@ Converts an image to greyscale.
 app = FastAPI(
     title="Image Greyscale API.",
     description=api_description,
-    version="0.0.1",
+    version="1.0.0",
     contact={
-        "name": "CSIA-PME",
+        "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
-        "email": "info@swiss-ai-center.ch",
+        "email": "ia.recherche@hes-so.ch",
     },
     swagger_ui_parameters={
         "tagsSorter": "alpha",

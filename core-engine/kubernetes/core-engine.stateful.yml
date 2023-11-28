@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  # This name uniquely identifies the stateful set
+  name: core-engine-stateful
+  labels:
+    app: core-engine
+spec:
+  serviceName: core-engine
+  replicas: 1
+  selector:
+    matchLabels:
+      app: core-engine
+  template:
+    metadata:
+      labels:
+        app: core-engine
+    spec:
+      containers:
+        - name: core-engine
+          image: ghcr.io/swiss-ai-center/core-engine:latest
+          # If you build the image locally, change the next line to `imagePullPolicy: Never` - there is no need to pull the image
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: CHECK_SERVICES_AVAILABILITY_INTERVAL
+              value: "30"
+          envFrom:
+            - configMapRef:
+                name: core-engine-config

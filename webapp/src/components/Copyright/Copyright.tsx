@@ -1,10 +1,7 @@
 import { Grid, IconButton, Link, Tooltip, Typography } from '@mui/material';
 import React from 'react';
 import { DescriptionTwoTone, GitHub, PublicTwoTone } from '@mui/icons-material';
-
-const isSmartphone = (): boolean => {
-    return window.innerWidth < 600;
-}
+import { isSmartphone } from '../../utils/functions';
 
 const chooseJustify = (isMobile: boolean): string => {
     return isMobile ? "center" : "space-between";
@@ -12,7 +9,8 @@ const chooseJustify = (isMobile: boolean): string => {
 
 function Copyright() {
     return (
-        <Grid container justifyContent={() => chooseJustify(isSmartphone())} alignContent={"center"}>
+        <Grid container justifyContent={() => chooseJustify(isSmartphone())} alignContent={"center"}
+              my={isSmartphone() ? 4 : 0}>
             <Grid item alignItems={"center"} justifyContent={"left"} display={"flex"}>
                 <Tooltip title={"Website"}>
                     <Link color={"inherit"} href={"https://swiss-ai-center.ch"}
@@ -23,7 +21,7 @@ function Copyright() {
                     </Link>
                 </Tooltip>
                 <Tooltip title={"Documentation"}>
-                    <Link color={"inherit"} href={"https://csia-pme.github.io/csia-pme/"}
+                    <Link color={"inherit"} href={"https://swiss-ai-center.github.io/core-engine/"}
                           underline={"none"} target={"_blank"}>
                         <IconButton sx={{marginLeft: "auto"}} color={"primary"} size={"large"}>
                             <DescriptionTwoTone/>
@@ -31,7 +29,7 @@ function Copyright() {
                     </Link>
                 </Tooltip>
                 <Tooltip title={"GitHub"}>
-                    <Link color={"inherit"} href={"https://github.com/csia-pme/csia-pme/"}
+                    <Link color={"inherit"} href={"https://github.com/swiss-ai-center/core-engine/"}
                           underline={"none"} target={"_blank"}>
                         <IconButton sx={{marginLeft: "auto"}} color={"primary"} size={"large"}>
                             <GitHub/>

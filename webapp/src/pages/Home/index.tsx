@@ -33,6 +33,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     const [search, setSearch] = React.useState('');
     const [orderBy, setOrderBy] = React.useState(orderByList[0].value);
     const [tags, setTags] = React.useState<Tag[]>([]);
+    const [ai, setAI] = React.useState(false);
     const [searchParams] = useSearchParams();
     const history = window.history;
 
@@ -78,11 +79,23 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         handleNoFilter();
     }
 
+    const handleAIToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setAI(event.target.checked);
+        if (event.target.checked) {
+            searchParams.set('ai', 'true');
+        } else {
+            searchParams.delete('ai');
+        }
+        history.pushState({}, '', `?${searchParams.toString()}`);
+        handleNoFilter();
+    }
+
     React.useEffect(() => {
         setFileArray([]);
         setSearch(searchParams.get('filter') || '');
         const query_tags = searchParams.getAll('tags');
         setTags(query_tags.map((tag) => TagObjects.filter((tagObject) => tagObject.acronym === tag)[0]));
+        setAI(searchParams.get('ai') === 'true');
         const order = searchParams.get('orderBy');
         if (orderByList.map((item) => item.value).includes(order || '')) {
             setOrderBy(order || orderByList[0].value);
@@ -104,29 +117,31 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                 orderBy={orderBy} handleOrder={handleOrder} orderByList={orderByList}
                 search={search} handleSearch={handleSearch}
                 tags={tags} handleTags={handleTags}
+                ai={ai} handleAIToggle={handleAIToggle}
             />
-            <Box component="main" sx={{flexGrow: 1, p: 2, pt: 4, pb: 3}}>
+            <Box component={"main"} sx={{flexGrow: 1, py: 4}}>
                 <Toolbar/>
-                <Container maxWidth="lg">
+                <Container maxWidth={false} sx={{mb: 4}}>
                     <Typography
-                        component="h1"
-                        variant="h2"
-                        align="center"
-                        color="text.primary"
+                        component={"h1"}
+                        variant={"h2"}
+                        align={"center"}
+                        color={"text.primary"}
                         gutterBottom
                     >
-                        CSIA-PME
+                        Swiss AI Center
                     </Typography>
-                    <Typography variant="h5" align="justify" color="text.secondary" paragraph>
-                        CSIA-PME is a project of the Swiss AI Center created by the University of Applied Sciences
-                        Western Switzerland (HES-SO). The objective is to provide a platform for the development of
+                    <Typography variant={"h5"} align={"justify"} color={"text.secondary"} paragraph>
+                        The Swiss AI Center is a project created by the University of Applied Sciences
+                        Western Switzerland (HES-SO). The objective is to provide a platform to develop
                         AI applications for SMEs to accelerate its adoption in Switzerland.
                     </Typography>
                 </Container>
-                <Container sx={{py: 4}} maxWidth="lg">
-                    <ItemGrid filter={search} orderBy={orderBy} tags={tags} handleTags={handleTags}/>
+                <Container maxWidth={false}>
+                    <ItemGrid filter={search} orderBy={orderBy} tags={tags} handleTags={handleTags}
+                              ai={ai} handleAIToggle={handleAIToggle}/>
                 </Container>
-                <Container maxWidth="lg" sx={{pb: 0}}>
+                <Container maxWidth={false}>
                     <Copyright/>
                 </Container>
             </Box>

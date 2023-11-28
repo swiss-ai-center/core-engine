@@ -12,11 +12,11 @@ We use GitHub Actions for CI/CD integrations. The CI/CD pipelines are defined us
 
 ## Access GitHub Actions
 
-Access the CSIA-PME's GitHub Action at <https://github.com/csia-pme/csia-pme/settings/actions>.
+Access the Swiss AI Center's GitHub Action at <https://github.com/swiss-ai-center/core-engine/settings/actions>.
 
 ## Configuration
 
-Access [GitHub Actions](https://github.com/csia-pme/csia-pme/settings/actions) page for configuration.
+Access [GitHub Actions](https://github.com/swiss-ai-center/core-engine/settings/actions) page for configuration.
 
 ## Resources and alternatives
 

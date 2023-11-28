@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: digit-recognition
-        image: ghcr.io/csia-pme/csia-pme-digit-recognition:latest
+        image: ghcr.io/swiss-ai-center/digit-recognition:latest
         # If you build the image locally, change the next line to `imagePullPolicy: Never` - there is no need to pull the image
         imagePullPolicy: Always
         ports:

@@ -6,9 +6,9 @@ The service is a [FastAPI](https://fastapi.tiangolo.com/) application that is de
 
 ## Architecture
 
-To see the general architecture of the project, see the global [UML Diagram](/csia-pme/reference/engine/#uml-diagram).
+To see the general architecture of the project, see the global [UML Diagram](../reference/core-engine.md#uml-diagram).
 
-This sequence diagram illustrates the interaction between an user and a service, without using the Engine.
+This sequence diagram illustrates the interaction between an user and a service, without using the Core Engine.
 
 ```mermaid
 sequenceDiagram
@@ -162,9 +162,9 @@ A JSON representation would look like this:
 }
 ```
 
-### Register to the Engine
+### Register to the Core Engine
 
-To register the service to the Engine, the service must send a POST request to the Engine `/services` endpoint with the following model:
+To register the service to the Core Engine, the service must send a POST request to the Core Engine `/services` endpoint with the following model:
 
 ```python
 class ExecutionUnitBase(CoreModel):
@@ -265,4 +265,4 @@ A JSON representation would look like this:
 }
 ```
 
-After the service is registered, it will be available on the Engine's `/service-slug` endpoint.
+After the service is registered, it will be available on the Core Engine's `/service-slug` endpoint.

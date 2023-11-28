@@ -71,9 +71,9 @@ cp ../model-creation/mnist_model.h5 .
 
 ## Environment variables
 
-All environment variables are described in the [`.env`](https://github.com/csia-pme/csia-pme/blob/main/services/digit-recognition/model-serving/.env) file.
+All environment variables are described in the [`.env`](https://github.com/swiss-ai-center/core-engine/blob/main/services/digit-recognition/model-serving/.env) file.
 
-The environment variables can be overwritten during the CI/CD pipeline described in the [`digit-recognition.yml`](https://github.com/csia-pme/csia-pme/blob/main/.github/workflows/digit-recognition.yml) GitHub workflow file.
+The environment variables can be overwritten during the CI/CD pipeline described in the [`digit-recognition.yml`](https://github.com/swiss-ai-center/core-engine/blob/main/.github/workflows/digit-recognition.yml) GitHub workflow file.
 
 ## Start the service locally with Python
 
@@ -135,7 +135,7 @@ minikube tunnel --bind-address 127.0.0.1
 
 Access the `digit-recognition` documentation on <http://localhost:8484/docs>.
 
-Access the Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Engine.
+Access the Core Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Core Engine.
 
 ## Start the service locally with minikube and a local Docker image
 
@@ -150,7 +150,7 @@ In the `digit-recognition/model-serving` directory, build the Docker image with 
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/csia-pme/csia-pme-digit-recognition:latest .
+docker build -t ghcr.io/swiss-ai-center/digit-recognition:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)
@@ -185,4 +185,4 @@ minikube tunnel --bind-address 127.0.0.1
 
 Access the `digit-recognition` documentation on <http://localhost:8484/docs>.
 
-Access the Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Engine.
+Access the Core Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Core Engine.

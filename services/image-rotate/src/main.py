@@ -42,7 +42,6 @@ class MyService(Service):
             summary=api_summary,
             description=api_description,
             status=ServiceStatus.AVAILABLE,
-
             data_in_fields=[
                 FieldDescription(name="image", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
                 FieldDescription(name="rotation", type=[FieldDescriptionType.TEXT_PLAIN]),
@@ -55,7 +54,8 @@ class MyService(Service):
                     name=ExecutionUnitTagName.IMAGE_PROCESSING,
                     acronym=ExecutionUnitTagAcronym.IMAGE_PROCESSING
                 ),
-            ]
+            ],
+            has_ai=False
         )
 
     def process(self, data):
@@ -100,11 +100,11 @@ Rotate an image by 90 degrees clockwise.
 app = FastAPI(
     title="Image Rotate API.",
     description=api_description,
-    version="0.0.1",
+    version="1.0.0",
     contact={
-        "name": "CSIA-PME",
+        "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
-        "email": "info@swiss-ai-center.ch",
+        "email": "ia.recherche@hes-so.ch",
     },
     swagger_ui_parameters={
         "tagsSorter": "alpha",

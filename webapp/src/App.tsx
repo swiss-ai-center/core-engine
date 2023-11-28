@@ -7,9 +7,11 @@ import Showcase from './pages/Showcase';
 import Home from './pages/Home';
 import CssBaseline from '@mui/material/CssBaseline';
 import {
-    Menu as MenuIcon,
-    MenuOpen as CloseIcon,
-    LightModeTwoTone, DarkModeTwoTone, QueryStatsTwoTone
+    MenuRounded as MenuIcon,
+    MenuOpenRounded as CloseIcon,
+    LightModeTwoTone,
+    DarkModeTwoTone,
+    QueryStatsTwoTone
 } from '@mui/icons-material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { EngineStats } from './components/EngineStats/EngineStats';
@@ -94,15 +96,12 @@ function App() {
             {/* End CssBaseline */}
 
             {/* Header navbar */}
-            <AppBar position="fixed"
-                    elevation={1}
-                    sx={{zIndex: (theme) => theme.zIndex.drawer + 1}}
-            >
+            <AppBar position={"fixed"} elevation={1} sx={{zIndex: (theme) => theme.zIndex.drawer + 1}}>
                 <Toolbar>
                     <IconButton
-                        color="inherit"
-                        aria-label="open drawer"
-                        edge="start"
+                        color={"inherit"}
+                        aria-label={"open drawer"}
+                        edge={"start"}
                         onClick={handleDrawerToggle}
                         sx={{mr: 2, display: {md: 'none'}}}
                     >
@@ -139,11 +138,8 @@ function App() {
             <EngineStats trigger={open} onClose={handleCloseStats}/>
             <Router>
                 <Routes>
-                    <Route path={"/showcase/:type/:id"}
-                           element={<Showcase mobileOpen={mobileOpen}/>}/>
-                    <Route path={"*"} element={<Home mobileOpen={mobileOpen}
-                                                     handleOpen={handleDrawerToggle}
-                    />}/>
+                    <Route path={"/showcase/:type/:id"} element={<Showcase mobileOpen={mobileOpen}/>}/>
+                    <Route path={"*"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
                 </Routes>
             </Router>
             {/* End Main content */}

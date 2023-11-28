@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: image-resize
-        image: ghcr.io/csia-pme/csia-pme-image-resize:latest
+        image: ghcr.io/swiss-ai-center/image-resize:latest
         # If you build the image locally, change the next line to `imagePullPolicy: Never` - there is no need to pull the image
         imagePullPolicy: Always
         ports:

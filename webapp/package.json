@@ -1,6 +1,6 @@
 {
-  "name": "frontend",
-  "version": "0.1.0",
+  "name": "swiss-ai-center-webapp",
+  "version": "1.0.0",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.10.4",
@@ -22,9 +22,6 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-flow-renderer": "^10.3.17",
-    "react-full-screen": "^1.1.1",
-    "react-fullscreen-crossbrowser": "^1.1.0",
-    "react-json-view": "^1.21.3",
     "react-redux": "^8.0.4",
     "react-router-dom": "^6.4.2",
     "react-scripts": "5.0.1",

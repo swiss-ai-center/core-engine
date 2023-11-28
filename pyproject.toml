@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "csia-pme"
+name = "swiss-ai-center"
 version = "0.1.0"
-description = "The main repository for the CSIA-PME project"
+description = "The main repository for the Swiss AI Center project"
 authors = []
 readme = "README.md"
 packages = []

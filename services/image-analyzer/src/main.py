@@ -54,7 +54,8 @@ class MyService(Service):
                     name=ExecutionUnitTagName.IMAGE_PROCESSING,
                     acronym=ExecutionUnitTagAcronym.IMAGE_PROCESSING
                 ),
-            ]
+            ],
+            has_ai=False
         )
 
     def process(self, data):
@@ -93,18 +94,18 @@ This service analyzes images. It returns the following information:
 - Y resolution (e.g. 118.1102)
 """
 api_summary = """
-Analyze images. Return information about the image
+Analyze images. Returns metadata information about the image.
 """
 
 # Define the FastAPI application with information
 app = FastAPI(
     title="Image Analyzer API.",
     description=api_description,
-    version="0.0.1",
+    version="1.0.0",
     contact={
-        "name": "CSIA-PME",
+        "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
-        "email": "info@swiss-ai-center.ch",
+        "email": "ia.recherche@hes-so.ch",
     },
     swagger_ui_parameters={
         "tagsSorter": "alpha",

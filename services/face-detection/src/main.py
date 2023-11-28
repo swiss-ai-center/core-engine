@@ -55,7 +55,8 @@ class MyService(Service):
                     name=ExecutionUnitTagName.IMAGE_RECOGNITION,
                     acronym=ExecutionUnitTagAcronym.IMAGE_RECOGNITION
                 ),
-            ]
+            ],
+            has_ai=True
         )
 
     def process(self, data):
@@ -107,11 +108,11 @@ Detects faces in images and returns the coordinates of the bounding boxes.
 app = FastAPI(
     title="Face Detection API.",
     description=api_description,
-    version="0.0.1",
+    version="1.0.0",
     contact={
-        "name": "CSIA-PME",
+        "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
-        "email": "info@swiss-ai-center.ch",
+        "email": "ia.recherche@hes-so.ch",
     },
     swagger_ui_parameters={
         "tagsSorter": "alpha",

@@ -1,10 +1,10 @@
 # Implement a service
 
-This tutorial shows how to implement a [Service](../reference/service.md) in the CSIA-PME project step by step.
+This tutorial shows how to implement a [Service](../reference/service.md) in the Swiss AI Center project step by step.
 It will guide you through the process of creating a [Service](../reference/service.md) with or without a model.
 
 !!! Info
-    Note that a [Service](../reference/service.md) can be implemented in any programming language as long as it follows the [specifications](../reference/service.md/#specifications) of the CSIA-PME project. This tutorial is using Python 3.10.
+    Note that a [Service](../reference/service.md) can be implemented in any programming language as long as it follows the [specifications](../reference/service.md/#specifications) of the Swiss AI Center project. This tutorial is using Python 3.10.
 
 ## Tutorial
 
@@ -19,7 +19,7 @@ To follow this tutorial, you need to have the following tools installed:
 
 #### 1.1 Get the source code
 
-First, you can download or clone the source code from the [CSIA-PME service templates repository](https://github.com/csia-pme/services-templates).
+First, you can download or clone the source code from the [Swiss AI Center service templates repository](https://github.com/swiss-ai-center/services-templates).
 
 In this tutorial, we will implement a [Service](../reference/service.md) that does not require a model, so we will use the `sample-service-without-model` template.
 
@@ -52,7 +52,7 @@ For the [Service](../reference/service.md) to work we will need to install numpy
 So edit the `requirements.txt` file and add the following lines:
 
 ```txt hl_lines="2 3"
-common-code[test] @ git+https://github.com/csia-pme/csia-pme.git@main#subdirectory=common-code
+common-code[test] @ git+https://github.com/swiss-ai-center/core-engine.git@main#subdirectory=common-code
 numpy==1.24.1
 opencv-python==4.7.0.72
 ```
@@ -85,14 +85,14 @@ This service rotates an image by 90, 180 or 270 degrees clockwise.
 
 !!! note
 
-    If the service is part of the CSIA-PME GitHub organization also add a link to the [Service](../reference/service.md)'s [Reference](../reference) page in the repository README.md file.
+    If the service is part of the Swiss AI Center GitHub organization also add a link to the [Service](../reference/service.md)'s [Reference](../reference/service.md) page in the repository README.md file.
 
     ```md
     # Image Rotate
 
     This service rotates an image by 90, 180 or 270 degrees clockwise.
 
-    _Check the [related documentation](https://csia-pme.github.io/csia-pme/reference/image-rotate) for more information._
+    _Check the [related documentation](https://swiss-ai-center.github.io/swiss-ai-center/reference/image-rotate) for more information._
     ```
 
 ##### 1.4.2 Update the service pyproject title
@@ -139,7 +139,7 @@ metadata:
 data:
   ENVIRONMENT: development
   LOG_LEVEL: debug
-  ENGINE_URLS: '["http://engine-service:8080"]'
+  ENGINE_URLS: '["http://core-engine-service:8080"]'
   # TODO: 3. CHANGE THE SERVICE URL (3)!
   # (the port must be the same as in the sample-service.service.yml and unused by other services)
   SERVICE_URL: http://image-rotate-service:8001
@@ -163,7 +163,7 @@ metadata:
 spec:
   rules:
   # TODO: 2. CHANGE THE HOST (2)!
-  - host: image-rotate-csia-pme.kube.isc.heia-fr.ch
+  - host: image-rotate-swiss-ai-center.kube.isc.heia-fr.ch
     http:
       paths:
       - path: /
@@ -177,13 +177,13 @@ spec:
   tls:
     - hosts:
         # TODO: 4. CHANGE THE HOST (4)!
-        - image-rotate-csia-pme.kube.isc.heia-fr.ch
+        - image-rotate-swiss-ai-center.kube.isc.heia-fr.ch
 ```
 
 1. Change the name of the ingress to `image-rotate-ingress`
-2. Change the host to `image-rotate-csia-pme.kube.isc.heia-fr.ch`
+2. Change the host to `image-rotate-swiss-ai-center.kube.isc.heia-fr.ch`
 3. Change the name of the service to `image-rotate-service`
-4. Change the host to `image-rotate-csia-pme.kube.isc.heia-fr.ch`
+4. Change the host to `image-rotate-swiss-ai-center.kube.isc.heia-fr.ch`
 
 !!! info "Note"
     The host can be changed to your own domain name if the [Service](../reference/service.md) is deployed on another Kubernetes cluster.
@@ -243,7 +243,7 @@ spec:
       # TODO: 6. CHANGE THE NAME OF THE CONTAINER (6)!
       - name: sample-service
         # TODO: 7. CHANGE THE IMAGE NAME (7)!
-        image: ghcr.io/csia-pme/csia-pme-sample-service:latest
+        image: ghcr.io/swiss-ai-center/sample-service:latest
         # If you build the image locally, change the next line to `imagePullPolicy: Never` - there is no need to pull the image
         imagePullPolicy: Always
         ports:
@@ -268,7 +268,7 @@ spec:
 4. Change the app label to `image-rotate`
 5. Change the app label to `image-rotate`
 6. Change the name of the container to `image-rotate`
-7. Change the image name to `ghcr.io/csia-pme/csia-pme-image-rotate-service:latest`
+7. Change the image name to `ghcr.io/swiss-ai-center/image-rotate-service:latest`
 8. Change the name of the config map to `image-rotate-config`
 
 !!! warning "TODOs"
@@ -285,7 +285,7 @@ LOG_LEVEL=debug
 # Environment
 ENVIRONMENT=development
 
-# The Engine URL
+# The engine URLs
 ENGINE_URLS=["http://localhost:8080"]
 
 # The Service URL
@@ -295,7 +295,7 @@ SERVICE_URL="http://localhost:8001"
 # The maximum of tasks the service can process
 MAX_TASKS=50
 
-# The number of times the service tries to announce itself to the Engine
+# The number of times the service tries to announce itself to the engines
 ENGINE_ANNOUNCE_RETRIES=5
 
 # The number of seconds between each retry
@@ -355,14 +355,21 @@ class MyService(Service):
             summary=api_summary,
             description=api_description,
             status=ServiceStatus.AVAILABLE,
-            # TODO: 4. CHANGE THE INPUT AND OUTPUT FIELDS (4)!
+            # TODO: 4. CHANGE THE INPUT AND OUTPUT FIELDS, THE TAGS AND THE HAS_AI VARIABLE (4)!
             data_in_fields=[
                 FieldDescription(name="image", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
                 FieldDescription(name="rotation", type=[FieldDescriptionType.TEXT_PLAIN]),
             ],
             data_out_fields=[
                 FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_PNG, FieldDescriptionType.IMAGE_JPEG]),
-            ]
+            ],
+            tags=[
+                ExecutionUnitTag(
+                    name=ExecutionUnitTagName.IMAGE_PROCESSING,
+                    acronym=ExecutionUnitTagAcronym.IMAGE_PROCESSING
+                ),
+            ],
+            has_ai=False
         )
 
     # TODO: 5. CHANGE THE PROCESS METHOD (CORE OF THE SERVICE) (5)!
@@ -409,11 +416,11 @@ Rotate an image by 90 degrees clockwise.
 app = FastAPI(
     title="Image Rotate API.",
     description=api_description,
-    version="0.0.1",
+    version="1.0.0",
     contact={
-        "name": "CSIA-PME",
+        "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
-        "email": "info@swiss-ai-center.ch",
+        "email": "ia.recherche@hes-so.ch",
     },
     swagger_ui_parameters={
         "tagsSorter": "alpha",
@@ -429,8 +436,8 @@ app = FastAPI(
 
 1. Import the OpenCV library and the get_extension function from the tasks service. This function is used to guess the extension of the image based on the input type.
 2. Change the description of the service.
-3. Change the name and the slug of the service. This is used to identify the service in the engine.
-4. Change the input/output fields of the service. The name of the field is the key of the dictionary that will be used in the process function. The type of the field is the type of the data that will be sent to the service. They are defined in the FieldDescriptionType enum.
+3. Change the name and the slug of the service. This is used to identify the service in the Core Engine.
+4. Change the input/output fields of the service. The name of the field is the key of the dictionary that will be used in the process function. The type of the field is the type of the data that will be sent to the service. They are defined in the FieldDescriptionType enum. The tags are used to identify the service in the Core Engine. The `has_ai` variable is used to identify if the service is an AI service.
 5. Change the process function. This is the core of the service. The data is a dictionary with the keys being the field names set in the data_in_fields. The result must be a dictionary with the keys being the field names set in the data_out_fields.
 6. Change the API description and summary.
 7. Change the API title, version, contact and license.
@@ -453,7 +460,7 @@ RUN apt update && apt install --yes ffmpeg libsm6 libxext6
 
 #### 1.5 Create the Workflow for GitHub Actions
 
-First, if you don't have the file already, download the `sample-service-without-model.yml` file from the [GitHub repository](https://github.com/csia-pme/services-templates/workflows) and rename it to `image-rotate.yml` in the `.github/workflows` folder.
+First, if you don't have the file already, download the `sample-service-without-model.yml` file from the [GitHub repository](https://github.com/swiss-ai-center/services-templates/workflows) and rename it to `image-rotate.yml` in the `.github/workflows` folder.
 
 Open it with your IDE and modify the `sample-service` texts with `image-rotate`
 
@@ -511,7 +518,7 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           # TODO: 7. CHANGE THE DOCKER IMAGE NAME (7)!
-          docker-image-name: ${{ github.repository }}-image-rotate
+          docker-image-name: swiss-ai-center/image-rotate
           # TODO: 8. CHANGE THE PATH TO THE DOCKER IMAGE CONTEXT (8)!
           docker-image-context: ./services/image-rotate
 
@@ -524,9 +531,9 @@ jobs:
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
-          ENGINE_URLS: "'[\"https://engine-csia-pme.kube.isc.heia-fr.ch\"]'"
+          ENGINE_URLS: "'[\"https://core-engine-swiss-ai-center.kube.isc.heia-fr.ch\"]'"
           # TODO: 10. CHANGE THE URL OF THE SAMPLE SERVICE (10)!
-          SERVICE_URL: https://image-rotate-csia-pme.kube.isc.heia-fr.ch
+          SERVICE_URL: https://image-rotate-swiss-ai-center.kube.isc.heia-fr.ch
         # TODO: 11. CHANGE THE NAME OF THE CONFIGURATION FILES (11)!
         run: |
           # Set image-rotate version
@@ -548,7 +555,7 @@ jobs:
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
           kube-config: ${{ secrets.KUBE_CONFIG }}
-          kube-namespace: csia-pme-prod
+          kube-namespace: swiss-ai-center-prod
           # TODO: 13. CHANGE THE KUBERNETES CONTEXT (13)!
           kubectl-context: ./services/image-rotate/kubernetes
           # TODO: 14. CHANGE THE PATH TO THE KUBERNETES CONFIGURATION FILES (14)!
@@ -606,20 +613,20 @@ TOTAL                         188     23    88%
 ========================= 5 passed in 29.12s =========================
 ```
 
-In order to test the [Service](../reference/service.md), you need to have a running engine. To do so, follow the instructions in the [Engine](/csia-pme/reference/engine/#start-the-service-locally-with-minikube-and-the-docker-image-hosted-on-github) reference.
+In order to test the [Service](../reference/service.md), you need to have a running Core Engine. To do so, follow the instructions in the [Core Engine](../reference/core-engine.md#start-the-service-locally-with-minikube-and-the-docker-image-hosted-on-github) reference.
 
-Once the engine is running, you can start the [Service](../reference/service.md) by running the following command:
+Once the Core Engine is running, you can start the [Service](../reference/service.md) by running the following command:
 
 ```bash
 uvicorn main:app --reload --host localhost --port 8001 # (1)!
 ```
 
-1. The port must be the same as the one defined in the `.env` file and different from the one used by the engine.
+1. The port must be the same as the one defined in the `.env` file and different from the one used by the Core Engine.
 
 The output should be similar to the following:
 
 ```bash
-INFO:     Will watch for changes in these directories: ['/Users/andrea/Git/iCoSys/csia-pme/services/image-rotate/src']
+INFO:     Will watch for changes in these directories: ['/Users/andrea/Git/iCoSys/swiss-ai-center/services/image-rotate/src']
 INFO:     Uvicorn running on http://localhost:9393 (Press CTRL+C to quit)
 INFO:     Started reloader process [22602] using StatReload
 INFO:     Started server process [22604]
@@ -631,7 +638,7 @@ INFO:     [2023-03-01 11:14:18,005]   127.0.0.1:54863 - "GET /status HTTP/1.1" 2
 INFO:     [2023-03-01 11:14:18,023]  [common_code.service.service]: Successfully announced to the engine
 ```
 
-Now, you can test the [Service](../reference/service.md) by sending a request to the engine. To do so, open your browser and navigate to the following URL: `http://localhost:8080/`. You should see the following page:
+Now, you can test the [Service](../reference/service.md) by sending a request to the Core Engine. To do so, open your browser and navigate to the following URL: `http://localhost:8080/`. You should see the following page:
 
 ![image-rotate](../assets/screenshots/image-rotate.png)
 
@@ -708,7 +715,7 @@ Now, copy the id of the task and unfold the GET `/tasks/{task_id}` endpoint unde
 The image should be rotated by 90 degrees.
 
 !!! success "Congratulations!"
-    You have successfully created a [Service](../reference/service.md) and tested it locally. Now, you can push the [Service](../reference/service.md) to GitHub and deploy it on the engine using the workflow created in the previous section.
+    You have successfully created a [Service](../reference/service.md) and tested it locally. Now, you can push the [Service](../reference/service.md) to GitHub and deploy it on the Core Engine using the workflow created in the previous section.
 
 ### 2. Service with a model
 
@@ -716,7 +723,7 @@ In this section, you will create a service that uses a model.
 
 #### 2.1 Get the source code
 
-First, you can download or clone the source code from the [CSIA-PME service templates repository](https://github.com/csia-pme/services-templates).
+First, you can download or clone the source code from the [Swiss AI Center service templates repository](https://github.com/swiss-ai-center/services-templates).
 
 In this tutorial, we will implement a [Service](../reference/service.md) that does require a model, so we will use the `sample-service-with-model` template.
 
@@ -749,7 +756,7 @@ For the service to work we will need to install some dependencies of the templat
 So edit the `requirements.txt` file and add the following lines:
 
 ```txt hl_lines="2 3"
-common-code[test] @ git+https://github.com/csia-pme/csia-pme.git@main#subdirectory=common-code
+common-code[test] @ git+https://github.com/swiss-ai-center/core-engine.git@main#subdirectory=common-code
 matplotlib==3.6.3
 numpy==1.24.2
 pandas==1.5.3
@@ -785,14 +792,14 @@ This service detects anomalies in a time series.
 
 !!! note
 
-    If the service is part of the CSIA-PME GitHub organization also add a link to the [Service](../reference/service.md)'s [Reference](../reference) page in the repository README.md file.
+    If the service is part of the Swiss AI Center GitHub organization also add a link to the [Service](../reference/service.md)'s [Reference](../reference/index.md) page in the repository README.md file.
 
     ```md
     # Anomaly detection
 
     This service detects anomalies in a time series.
 
-    _Check the [related documentation](https://csia-pme.github.io/csia-pme/reference/ae-ano-detection) for more information._
+    _Check the [related documentation](https://swiss-ai-center.github.io/swiss-ai-center/reference/ae-ano-detection) for more information._
     ```
 
 ##### 2.4.2 Update the service pyproject title
@@ -839,7 +846,7 @@ metadata:
 data:
   ENVIRONMENT: development
   LOG_LEVEL: debug
-  ENGINE_URLS: '["http://engine-service:8080"]'
+  ENGINE_URLS: '["http://core-engine-service:8080"]'
   # TODO: 3. CHANGE THE SERVICE URL (3)!
   # (the port must be the same as in the sample-service.service.yml and unused by other services)
   SERVICE_URL: http://ano-detection-service:8001
@@ -863,7 +870,7 @@ metadata:
 spec:
   rules:
   # TODO: 2. CHANGE THE HOST (2)!
-  - host: ano-detection-csia-pme.kube.isc.heia-fr.ch
+  - host: ano-detection-swiss-ai-center.kube.isc.heia-fr.ch
     http:
       paths:
       - path: /
@@ -877,13 +884,13 @@ spec:
   tls:
     - hosts:
         # TODO: 4. CHANGE THE HOST (4)!
-        - ano-detection-csia-pme.kube.isc.heia-fr.ch
+        - ano-detection-swiss-ai-center.kube.isc.heia-fr.ch
 ```
 
 1. Change the name of the ingress to `ano-detection-ingress`
-2. Change the host to `ano-detection-csia-pme.kube.isc.heia-fr.ch`
+2. Change the host to `ano-detection-swiss-ai-center.kube.isc.heia-fr.ch`
 3. Change the name of the service to `ano-detection-service`
-4. Change the host to `ano-detection-csia-pme.kube.isc.heia-fr.ch`
+4. Change the host to `ano-detection-swiss-ai-center.kube.isc.heia-fr.ch`
 
 !!! info "Note"
     The host can be changed to your own domain name if the [Service](../reference/service.md) is deployed on another Kubernetes cluster.
@@ -943,7 +950,7 @@ spec:
       # TODO: 6. CHANGE THE NAME OF THE CONTAINER (6)!
       - name: sample-service
         # TODO: 7. CHANGE THE IMAGE NAME (7)!
-        image: ghcr.io/csia-pme/csia-pme-sample-service:latest
+        image: ghcr.io/swiss-ai-center/sample-service:latest
         # If you build the image locally, change the next line to `imagePullPolicy: Never` - there is no need to pull the image
         imagePullPolicy: Always
         ports:
@@ -968,7 +975,7 @@ spec:
 4. Change the app label to `ano-detection`
 5. Change the app label to `ano-detection`
 6. Change the name of the container to `ano-detection`
-7. Change the image name to `ghcr.io/csia-pme/csia-pme-ano-detection-service:latest`
+7. Change the image name to `ghcr.io/swiss-ai-center/ano-detection-service:latest`
 8. Change the name of the config map to `ano-detection-config`
 
 !!! warning "TODOs"
@@ -985,7 +992,7 @@ LOG_LEVEL=debug
 # Environment
 ENVIRONMENT=development
 
-# The Engine URL
+# The engines URL
 ENGINE_URLS=["http://localhost:8080"]
 
 # The Service URL
@@ -995,7 +1002,7 @@ SERVICE_URL="http://localhost:8001"
 # The maximum of tasks the service can process
 MAX_TASKS=50
 
-# The number of times the service tries to announce itself to the Engine
+# The number of times the service tries to announce itself to the engines
 ENGINE_ANNOUNCE_RETRIES=5
 
 # The number of seconds between each retry
@@ -1055,13 +1062,24 @@ class MyService(Service):
             summary=api_summary,
             description=api_description,
             status=ServiceStatus.AVAILABLE,
-            # TODO: 4. CHANGE THE INPUT AND OUTPUT FIELDS (4)!
+            # TODO: 4. CHANGE THE INPUT AND OUTPUT FIELDS, THE TAGS AND THE HAS_AI VARIABLE (4)!
             data_in_fields=[
                 FieldDescription(name="text", type=[FieldDescriptionType.TEXT_CSV, FieldDescriptionType.TEXT_PLAIN]),
             ],
             data_out_fields=[
                 FieldDescription(name="result", type=[FieldDescriptionType.IMAGE_PNG]),
-            ]
+            ],
+            tags=[
+                ExecutionUnitTag(
+                    name=ExecutionUnitTagName.ANOMALY_DETECTION,
+                    acronym=ExecutionUnitTagAcronym.ANOMALY_DETECTION
+                ),
+                ExecutionUnitTag(
+                    name=ExecutionUnitTagName.TIME_SERIES,
+                    acronym=ExecutionUnitTagAcronym.TIME_SERIES
+                ),
+            ],
+            has_ai=True,
         )
         self.model = tf.keras.models.load_model("../model/ae_model.h5")
 
@@ -1110,11 +1128,11 @@ Anomaly detection of a time series with an autoencoder
 app = FastAPI(
     title="Anomaly Detection API.",
     description=api_description,
-    version="0.0.1",
+    version="1.0.0",
     contact={
-        "name": "CSIA-PME",
+        "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
-        "email": "info@swiss-ai-center.ch",
+        "email": "ia.recherche@hes-so.ch",
     },
     swagger_ui_parameters={
         "tagsSorter": "alpha",
@@ -1130,8 +1148,8 @@ app = FastAPI(
 
 1. Import the library.
 2. Change the description of the service.
-3. Change the name and the slug of the service. This is used to identify the service in the engine.
-4. Change the input/output fields of the service. The name of the field is the key of the dictionary that will be used in the process function. The type of the field is the type of the data that will be sent to the service. They are defined in the FieldDescriptionType enum.
+3. Change the name and the slug of the service. This is used to identify the service in the Core Engine.
+4. Change the input/output fields of the service. The name of the field is the key of the dictionary that will be used in the process function. The type of the field is the type of the data that will be sent to the service. They are defined in the FieldDescriptionType enum. The tags are used to identify the service in the Core Engine. The `has_ai` variable is used to identify if the service is an AI service.
 5. Change the process function. This is the core of the service. The data is a dictionary with the keys being the field names set in the data_in_fields. The result must be a dictionary with the keys being the field names set in the data_out_fields.
 6. Change the API description and summary.
 7. Change the API title, version, contact and license.
@@ -1150,7 +1168,7 @@ COPY ae_model.h5 .
 
 #### 2.5 Create the Workflow for GitHub Actions
 
-First, if you don't have the file already, download the `sample-service-without-model.yml` file from the [GitHub repository](/csia-pme/services-templates/workflows) and rename it to `ano-detection.yml` in the `.github/workflows` folder.
+First, if you don't have the file already, download the `sample-service-without-model.yml` file from the [GitHub repository](https://github.com/swiss-ai-center/services-templates/tree/main/.github/workflows) and rename it to `ano-detection.yml` in the `.github/workflows` folder.
 
 Open it with your IDE and modify the `sample-service` texts with `ano-detection`
 
@@ -1208,7 +1226,7 @@ jobs:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           # TODO: 7. CHANGE THE DOCKER IMAGE NAME (7)!
-          docker-image-name: ${{ github.repository }}-ano-detection
+          docker-image-name: swiss-ai-center/ano-detection
           # TODO: 8. CHANGE THE PATH TO THE DOCKER IMAGE CONTEXT (8)!
           docker-image-context: ./services/ano-detection
 
@@ -1221,9 +1239,9 @@ jobs:
         env:
           ENVIRONMENT: production
           LOG_LEVEL: info
-          ENGINE_URLS: "'[\"https://engine-csia-pme.kube.isc.heia-fr.ch\"]'"
+          ENGINE_URLS: "'[\"https://core-engine-swiss-ai-center.kube.isc.heia-fr.ch\"]'"
           # TODO: 10. CHANGE THE URL OF THE SAMPLE SERVICE (10)!
-          SERVICE_URL: https://ano-detection-csia-pme.kube.isc.heia-fr.ch
+          SERVICE_URL: https://ano-detection-swiss-ai-center.kube.isc.heia-fr.ch
         # TODO: 11. CHANGE THE NAME OF THE CONFIGURATION FILES (11)!
         run: |
           # Set ano-detection version
@@ -1241,7 +1259,7 @@ jobs:
         uses: ./.github/actions/execute-command-on-kubernetes-cluster
         with:
           kube-config: ${{ secrets.KUBE_CONFIG }}
-          kube-namespace: csia-pme-prod
+          kube-namespace: swiss-ai-center-prod
           # TODO: 13. CHANGE THE KUBERNETES CONTEXT (13)!
           kubectl-context: ./services/ano-detection/kubernetes
           # TODO: 14. CHANGE THE PATH TO THE KUBERNETES CONFIGURATION FILES (14)!
@@ -1272,11 +1290,11 @@ jobs:
     The host can be changed to your own domain name if the [Service](../reference/service.md) is deployed on another Kubernetes cluster.
 
 !!! success "Congratulations!"
-    You have successfully created a [Service](../reference/service.md) locally. Now, you can push the [Service](../reference/service.md) to GitHub and deploy it on the engine using the workflow created in the previous section.
+    You have successfully created a [Service](../reference/service.md) locally. Now, you can push the [Service](../reference/service.md) to GitHub and deploy it on the Core Engine using the workflow created in the previous section.
 
 ### Update the documentation (optional)
 
-If the [Service](../reference/service.md) is part of the CSIA-PME GitHub Organization. There is some documentation to update.
+If the [Service](../reference/service.md) is part of the Swiss AI Center GitHub Organization. There is some documentation to update.
 
 1. First add the [Service](../reference/service.md) to the list of references with its URL and GitHub repository URL.
 
@@ -1292,7 +1310,7 @@ nav:
   - Reference:
       - reference/index.md
       - Team: reference/team.md
-      - Engine: reference/engine.md
+      - Core Engine: reference/core-engine.md
       - Service: reference/service.md
       - Pipeline: reference/pipeline.md
       - Webapp: reference/webapp.md

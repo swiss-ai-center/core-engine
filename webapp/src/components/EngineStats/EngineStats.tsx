@@ -98,7 +98,7 @@ export const EngineStats: React.FC<{
 
     const loadStats = async () => {
         const stats = await getStats();
-        if (stats.total) {
+        if (stats.hasOwnProperty("total")) {
             setStats(stats);
         } else {
             toast(`Error loading engine stats: ${stats.error}`, {type: "error"});
@@ -117,11 +117,11 @@ export const EngineStats: React.FC<{
     return (
         <Modal open={trigger} onClose={onClose}>
             <Box sx={style}>
-                <Typography id="modal-modal-title" variant="h4" component="h2">
+                <Typography id={"modal-modal-title"} variant={"h4"} component={"h2"}>
                     Engine stats
                 </Typography>
                 <IconButton
-                    aria-label="close"
+                    aria-label={"close"}
                     onClick={onClose}
                     sx={{
                         position: 'absolute',
@@ -166,7 +166,8 @@ export const EngineStats: React.FC<{
                                             return (
                                                 <Grid item xs={12} md={6} lg={4} key={index}>
                                                     <Box sx={{height: 250, width: 'auto'}}>
-                                                        <Typography id="modal-modal-title" variant="h6" component="h4">
+                                                        <Typography id={"modal-modal-title"} variant={"h6"}
+                                                                    component={"h4"}>
                                                             {service.service_name} (Total tasks: {service.total})
                                                         </Typography>
                                                         <StripedDataGrid
@@ -201,7 +202,8 @@ export const EngineStats: React.FC<{
                                             return (
                                                 <Grid item xs={12} md={6} lg={4} key={index}>
                                                     <Box sx={{height: 250, width: 'auto'}}>
-                                                        <Typography id="modal-modal-title" variant="h6" component="h4">
+                                                        <Typography id={"modal-modal-title"} variant={"h6"}
+                                                                    component={"h4"}>
                                                             {pipeline.pipeline_name}
                                                         </Typography>
                                                         <StripedDataGrid

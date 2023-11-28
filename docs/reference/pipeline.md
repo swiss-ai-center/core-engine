@@ -7,7 +7,7 @@ It does not rely on a Pod or a Docker image since it is a group of services. It 
 
 ## Architecture
 
-To see the general architecture of the project, see the global [UML Diagram](/csia-pme/reference/engine/#uml-diagram).
+To see the general architecture of the project, see the global [UML Diagram](../reference/core-engine.md#uml-diagram).
 
 This sequence diagram illustrates the interaction between an user and a pipeline.
 
@@ -17,7 +17,7 @@ sequenceDiagram
     participant S2 as s2 - Service 2
     participant C as c - Client
     participant S3 as s3 - Storage
-    participant E as e - Engine
+    participant E as e - Core Engine
     C->>+E: POST(p.slug, data)
     E->>+S3: file_keys = for file in data: upload(file)
     S3-->>-E: return(200, file_key)
@@ -54,11 +54,11 @@ sequenceDiagram
 
 ## Specifications
 
-Any service can be part of a pipeline. It must be registered to the engine.
+Any service can be part of a pipeline. It must be registered to the Core Engine.
 
 ### Endpoints
 
-A pipeline will be registered on the Engine URL with its slug. For example, if the pipeline slug is `my-pipeline`, the endpoints will be:
+A pipeline will be registered on the Core Engine URL with its slug. For example, if the pipeline slug is `my-pipeline`, the endpoints will be:
 
 - `POST /my-pipeline`: Add a task to the pipeline
 
@@ -187,11 +187,11 @@ To access the inputs of the pipeline, the input should be `pipeline.<input_name>
 
 On POST, the pipeline will be validated and the steps will be added to the Database.
 
-After the pipeline is registered, it will be available on the Engine's `/pipeline-slug` endpoint.
+After the pipeline is registered, it will be available on the Core Engine's `/pipeline-slug` endpoint.
 
 ## Execution
 
-When launching a pipeline, the engine will create a task for each step of the pipeline. The tasks will be executed in order. The engine will wait for the previous task to be finished before launching the next one. All the tasks will be executed linked to an element called PipelineExecution. This element will be used to store the inputs and outputs of the pipeline execution.
+When launching a pipeline, the Core Engine will create a task for each step of the pipeline. The tasks will be executed in order. The Core Engine will wait for the previous task to be finished before launching the next one. All the tasks will be executed linked to an element called PipelineExecution. This element will be used to store the inputs and outputs of the pipeline execution.
 
 ### PipelineExecution
 

@@ -7,7 +7,7 @@ metadata:
     nginx.org/client-max-body-size: "16m"
 spec:
   rules:
-  - host: webapp-csia-pme.kube.isc.heia-fr.ch
+  - host: webapp-swiss-ai-center.kube.isc.heia-fr.ch
     http:
       paths:
       - path: /
@@ -19,4 +19,4 @@ spec:
               number: 80
   tls:
     - hosts:
-        - webapp-csia-pme.kube.isc.heia-fr.ch
+        - webapp-swiss-ai-center.kube.isc.heia-fr.ch

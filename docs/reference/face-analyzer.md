@@ -8,9 +8,9 @@ This simple service only has one route `/compute` that takes an image as input, 
 
 ## Environment variables
 
-All environment variables are described in the [`.env`](https://github.com/csia-pme/csia-pme/blob/main/services/face-analyzer/.env) file.
+All environment variables are described in the [`.env`](https://github.com/swiss-ai-center/core-engine/blob/main/services/face-analyzer/.env) file.
 
-The environment variables can be overwritten during the CI/CD pipeline described in the [`face-analyzer.yml`](https://github.com/csia-pme/csia-pme/blob/main/.github/workflows/face-analyzer.yml) GitHub workflow file.
+The environment variables can be overwritten during the CI/CD pipeline described in the [`face-analyzer.yml`](https://github.com/swiss-ai-center/core-engine/blob/main/.github/workflows/face-analyzer.yml) GitHub workflow file.
 
 ## Start the service locally with Python
 
@@ -72,7 +72,7 @@ minikube tunnel --bind-address 127.0.0.1
 
 Access the `face-analyzer` documentation on <http://localhost:8585/docs>.
 
-Access the Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Engine.
+Access the Core Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Core Engine.
 
 ## Start the service locally with minikube and a local Docker image
 
@@ -87,7 +87,7 @@ In the `face-analyzer` directory, build the Docker image with the following comm
 eval $(minikube docker-env)
 
 # Build the Docker image
-docker build -t ghcr.io/csia-pme/csia-pme-face-analyzer:latest .
+docker build -t ghcr.io/swiss-ai-center/face-analyzer:latest .
 
 # Exit the Minikube's Docker environment
 eval $(minikube docker-env -u)
@@ -122,4 +122,4 @@ minikube tunnel --bind-address 127.0.0.1
 
 Access the `face-analyzer` documentation on <http://localhost:8585/docs>.
 
-Access the Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Engine.
+Access the Core Engine documentation on <http://localhost:8080/docs> to validate the backend has been successfully registered to the Core Engine.

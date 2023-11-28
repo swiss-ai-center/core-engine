@@ -53,7 +53,8 @@ class MyService(Service):
                     name=ExecutionUnitTagName.IMAGE_PROCESSING,
                     acronym=ExecutionUnitTagAcronym.IMAGE_PROCESSING
                 ),
-            ]
+            ],
+            has_ai=False
         )
 
     def get_output_types(self):
@@ -98,18 +99,18 @@ This service converts images from different formats to different formats.
 Acceptable formats are: image/png, image/jpeg.
 """
 api_summary = """
-Converts image.
+Converts image between image/png and image/jpeg formats.
 """
 
 # Define the FastAPI application with information
 app = FastAPI(
     title="Image Convert API.",
     description=api_description,
-    version="0.0.1",
+    version="1.0.0",
     contact={
-        "name": "CSIA-PME",
+        "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
-        "email": "info@swiss-ai-center.ch",
+        "email": "ia.recherche@hes-so.ch",
     },
     swagger_ui_parameters={
         "tagsSorter": "alpha",
