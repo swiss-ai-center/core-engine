@@ -102,6 +102,7 @@ jobs:
           S3_HOST: ${{ secrets.ENGINE_DEV_S3_HOST }}
           S3_REGION: eu-central-2
           S3_BUCKET: engine
+          SENTRY_DSN: ${{ secrets.GLITCHTIP_SENTRY_DSN }}
         run: |
           # Set Core Engine version
           docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})

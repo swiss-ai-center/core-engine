@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     s3_host: str
     s3_bucket: str
     check_services_availability_interval: int = 30
+    sentry_dsn: str
 
     class Config:
         env_file = ".env", "../.env"

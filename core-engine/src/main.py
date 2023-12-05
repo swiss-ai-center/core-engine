@@ -20,20 +20,33 @@ from config import get_settings
 from database import initialize_db
 from timer import Timer
 from http_client import HttpClient
+from sentry_sdk import init as sentry_init
+
+
+settings = get_settings()
 
 timers = []
 connection_manager: ConnectionManager = get_connection_manager()
 
-
 api_description = """
 Swiss AI Center's Core Engine API - The **best** API in the world.
 """
+VERSION = "1.0.0"
+
+if settings.sentry_dsn:
+    sentry_init(
+        dsn=settings.sentry_dsn,
+        release=f"core-engine@{VERSION}",
+        environment=settings.environment.name,
+        traces_sample_rate=1.0,
+        profiles_sample_rate=1.0,
+    )
 
 # Define the FastAPI application with information
 app = FastAPI(
     title="Core Engine API",
     description=api_description,
-    version="1.0.0",
+    version=VERSION,
     contact={
         "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
@@ -101,7 +114,6 @@ async def startup_event():
     # Manual instances because startup events doesn't support Dependency Injection
     # https://github.com/tiangolo/fastapi/issues/2057
     # https://github.com/tiangolo/fastapi/issues/425
-    settings = get_settings()
     engine = initialize_db(settings=settings)
     session_generator = get_session(engine)
     session = next(session_generator)

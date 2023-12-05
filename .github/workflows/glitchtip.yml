@@ -1,0 +1,80 @@
+# Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
+name: glitchtip-workflow
+run-name: glitchtip workflow
+
+# Allow one concurrent deployment
+concurrency:
+  group: "glitchtip"
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - main
+      - prod
+    paths:
+      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
+      - .github/workflows/glitchtip.yml
+      - core-engine/kubernetes/glitchtip.config-map.yml
+      - core-engine/kubernetes/glitchtip.deployment.yml
+      - core-engine/kubernetes/glitchtip.ingress.yml
+      - core-engine/kubernetes/glitchtip.service.yml
+      - core-engine/kubernetes/glitchtip.pvc.yml
+
+  pull_request:
+    paths:
+      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
+      - .github/workflows/glitchtip.yml
+      - core-engine/kubernetes/glitchtip.config-map.yml
+      - core-engine/kubernetes/glitchtip.deployment.yml
+      - core-engine/kubernetes/glitchtip.ingress.yml
+      - core-engine/kubernetes/glitchtip.service.yml
+      - core-engine/kubernetes/glitchtip.pvc.yml
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Only run on main
+    if: success() && github.ref == 'refs/heads/main'
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Prepare configuration files
+        shell: bash
+        working-directory: glitchtip/kubernetes
+        env:
+          HOST: https://monitor-swiss-ai-center.kube.isc.heia-fr.ch
+          ENABLE_USER_REGISTRATION: False
+          DATABASE_URL: ${{ secrets.GLITCHTIP_DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.GLITCHTIP_SECRET_KEY }}
+          PORT: "8000"
+          EMAIL_URL: ${{ secrets.GLITCHTIP_SMTP_CONFIG }}
+          GLITCHTIP_DOMAIN: https://monitor-swiss-ai-center.kube.isc.heia-fr.ch
+          DEFAULT_FROM_EMAIL: "monitor@swiss-ai-center.ch"
+          CELERY_WORKER_AUTOSCALE: "1,3"
+          CELERY_WORKER_MAX_TASKS_PER_CHILD: "10000"
+        run: |
+          # Set Glitchtip configuration (ConfigMap)
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' glitchtip.config-map.yml | envsubst > new-glitchtip.config-map.yml && mv new-glitchtip.config-map.yml glitchtip.config-map.yml
+
+          # Set Glitchtip configuration (Ingress)
+          yq ".spec.rules[0].host = \"${HOST#*://}\"" glitchtip.ingress.yml > new-glitchtip.ingress.yml && mv new-glitchtip.ingress.yml glitchtip.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${HOST#*://}\"" glitchtip.ingress.yml > new-glitchtip.ingress.yml && mv new-glitchtip.ingress.yml glitchtip.ingress.yml
+
+      - name: Deploy Glitchtip on the Kubernetes cluster
+        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        with:
+          kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
+          kube-namespace: swiss-ai-center-dev
+          kubectl-context: ./glitchtip/kubernetes
+          kubectl-args: |
+            apply \
+              -f glitchtip.config-map.yml \
+              -f glitchtip.pvc.yml \
+              -f glitchtip.deployment.yml \
+              -f glitchtip.service.yml \
+              -f glitchtip.ingress.yml
