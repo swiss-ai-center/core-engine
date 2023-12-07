@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glitchtip
+  labels:
+    app: glitchtip
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: glitchtip
+  template:
+    metadata:
+      labels:
+        app: glitchtip
+    spec:
+      containers:
+        - name: glitchtip
+          image: glitchtip/glitchtip
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: glitchtip-config
+          volumeMounts:
+            - name: uploads
+              mountPath: /code/uploads
+        - name: glitchtip-worker
+          image: glitchtip/glitchtip
+          command: ./bin/run-celery-with-beat.sh
+          envFrom:
+            - configMapRef:
+                name: glitchtip-config
+          volumeMounts:
+            - name: uploads
+              mountPath: /code/uploads
+        - name: glitchtip-migrate
+          image: glitchtip/glitchtip
+          command: ./manage.py migrate
+          envFrom:
+            - configMapRef:
+                name: glitchtip-config
+          volumeMounts:
+            - name: uploads
+              mountPath: /code/uploads
+        - name: redis
+          image: redis
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: uploads-pvc
+
