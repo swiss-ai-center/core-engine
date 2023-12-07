@@ -15,7 +15,7 @@ spec:
         app: glitchtip
     spec:
       containers:
-        - name: glitchtip
+        - name: web
           image: glitchtip/glitchtip
           ports:
             - containerPort: 8000
@@ -25,18 +25,9 @@ spec:
           volumeMounts:
             - name: uploads
               mountPath: /code/uploads
-        - name: glitchtip-worker
+        - name: worker
           image: glitchtip/glitchtip
-          command: ./bin/run-celery-with-beat.sh
-          envFrom:
-            - configMapRef:
-                name: glitchtip-config
-          volumeMounts:
-            - name: uploads
-              mountPath: /code/uploads
-        - name: glitchtip-migrate
-          image: glitchtip/glitchtip
-          command: ./manage.py migrate
+          command: [./bin/run-celery-with-beat.sh]
           envFrom:
             - configMapRef:
                 name: glitchtip-config
@@ -45,6 +36,14 @@ spec:
               mountPath: /code/uploads
         - name: redis
           image: redis
+      initContainers:
+        - name: migrate
+          image: glitchtip/glitchtip
+          command: [./manage.py]
+          args: ["migrate"]
+          envFrom:
+            - configMapRef:
+                name: glitchtip-config
       volumes:
         - name: uploads
           persistentVolumeClaim:

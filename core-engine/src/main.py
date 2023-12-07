@@ -22,7 +22,6 @@ from timer import Timer
 from http_client import HttpClient
 from sentry_sdk import init as sentry_init
 
-
 settings = get_settings()
 
 timers = []
@@ -118,17 +117,18 @@ async def startup_event():
     session_generator = get_session(engine)
     session = next(session_generator)
     http_client = HttpClient()
+    logger = get_logger(settings)
 
     storage_service = StorageService(
-        logger=get_logger(settings),
+        logger=logger,
         settings=settings,
     )
     pipeline_executions_service = PipelineExecutionsService(
-        logger=get_logger(settings),
+        logger=logger,
         session=session,
     )
     tasks_service = TasksService(
-        logger=get_logger(settings),
+        logger=logger,
         session=session,
         http_client=http_client,
         pipeline_executions_service=pipeline_executions_service,
@@ -137,7 +137,7 @@ async def startup_event():
         connection_manager=connection_manager,
     )
     services_service = ServicesService(
-        logger=get_logger(settings),
+        logger=logger,
         storage_service=storage_service,
         tasks_service=tasks_service,
         settings=settings,
@@ -145,7 +145,7 @@ async def startup_event():
         http_client=http_client,
     )
     pipelines_service = PipelinesService(
-        logger=get_logger(settings),
+        logger=logger,
         storage_service=storage_service,
         session=session,
         pipeline_executions_service=pipeline_executions_service,

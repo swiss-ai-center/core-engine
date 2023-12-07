@@ -45,22 +45,22 @@ jobs:
 
       - name: Prepare configuration files
         shell: bash
-        working-directory: glitchtip/kubernetes
+        working-directory: core-engine/kubernetes
         env:
-          HOST: https://monitor-swiss-ai-center.kube.isc.heia-fr.ch
-          ENABLE_USER_REGISTRATION: False
-          DATABASE_URL: ${{ secrets.GLITCHTIP_DATABASE_URL }}
-          SECRET_KEY: ${{ secrets.GLITCHTIP_SECRET_KEY }}
-          PORT: "8000"
-          EMAIL_URL: ${{ secrets.GLITCHTIP_SMTP_CONFIG }}
-          GLITCHTIP_DOMAIN: https://monitor-swiss-ai-center.kube.isc.heia-fr.ch
-          DEFAULT_FROM_EMAIL: "monitor@swiss-ai-center.ch"
-          CELERY_WORKER_AUTOSCALE: "1,3"
-          CELERY_WORKER_MAX_TASKS_PER_CHILD: "10000"
+          HOST: "https://monitor-swiss-ai-center.kube.isc.heia-fr.ch"
+          ENABLE_USER_REGISTRATION: '"False"'
+          DATABASE_URL: '"${{ secrets.GLITCHTIP_DATABASE_URL }}"'
+          SECRET_KEY: '"${{ secrets.GLITCHTIP_SECRET_KEY }}"'
+          PORT: '"8000"'
+          EMAIL_URL: '"${{ secrets.GLITCHTIP_SMTP_CONFIG }}"'
+          GLITCHTIP_DOMAIN: '"https://monitor-swiss-ai-center.kube.isc.heia-fr.ch"'
+          DEFAULT_FROM_EMAIL: '"info@swiss-ai-center.ch"'
+          CELERY_WORKER_AUTOSCALE: '"1,10"'
+          CELERY_WORKER_MAX_TASKS_PER_CHILD: '"10000"'
         run: |
           # Set Glitchtip configuration (ConfigMap)
           yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' glitchtip.config-map.yml | envsubst > new-glitchtip.config-map.yml && mv new-glitchtip.config-map.yml glitchtip.config-map.yml
-
+          
           # Set Glitchtip configuration (Ingress)
           yq ".spec.rules[0].host = \"${HOST#*://}\"" glitchtip.ingress.yml > new-glitchtip.ingress.yml && mv new-glitchtip.ingress.yml glitchtip.ingress.yml
           yq ".spec.tls[0].hosts[0] = \"${HOST#*://}\"" glitchtip.ingress.yml > new-glitchtip.ingress.yml && mv new-glitchtip.ingress.yml glitchtip.ingress.yml
@@ -70,7 +70,7 @@ jobs:
         with:
           kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
           kube-namespace: swiss-ai-center-dev
-          kubectl-context: ./glitchtip/kubernetes
+          kubectl-context: ./core-engine/kubernetes
           kubectl-args: |
             apply \
               -f glitchtip.config-map.yml \

@@ -2,7 +2,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: glitchtip-ingress
-  namespace: pet-via-adv-da-ba23
 spec:
   rules:
     - host: monitor-swiss-ai-center.kube.isc.heia-fr.ch
