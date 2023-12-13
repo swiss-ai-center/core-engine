@@ -64,7 +64,7 @@ class ConnectionManager:
         connection_data = ConnectionData(linked_id=connection.linked_id, execution_type=connection.execution_type)
         message = Message(
             message={
-                "text": "Connected to the Core Engine's WebSocket",
+                "text": "Connected to the backend's WebSocket",
                 "data": connection_data.dict(),
             },
             type=MessageType.SUCCESS, subject=MessageSubject.CONNECTION

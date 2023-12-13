@@ -1,22 +1,22 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: webapp-ingress
+  name: frontend-ingress
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "16m"
     nginx.org/client-max-body-size: "16m"
 spec:
   rules:
-  - host: webapp-swiss-ai-center.kube.isc.heia-fr.ch
+  - host: frontend-core-engine-swiss-ai-center.kube.isc.heia-fr.ch
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: webapp-service
+            name: frontend-service
             port:
               number: 80
   tls:
     - hosts:
-        - webapp-swiss-ai-center.kube.isc.heia-fr.ch
+        - frontend-core-engine-swiss-ai-center.kube.isc.heia-fr.ch

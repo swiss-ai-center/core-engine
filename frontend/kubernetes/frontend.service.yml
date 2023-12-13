@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: webapp-service
+  name: frontend-service
 spec:
   type: LoadBalancer
   ports:
@@ -10,4 +10,4 @@ spec:
       targetPort: 80
       protocol: TCP
   selector:
-    app: webapp
+    app: frontend

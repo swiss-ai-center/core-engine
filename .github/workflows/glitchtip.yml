@@ -15,21 +15,21 @@ on:
     paths:
       - .github/actions/execute-command-on-kubernetes-cluster/action.yml
       - .github/workflows/glitchtip.yml
-      - core-engine/kubernetes/glitchtip.config-map.yml
-      - core-engine/kubernetes/glitchtip.deployment.yml
-      - core-engine/kubernetes/glitchtip.ingress.yml
-      - core-engine/kubernetes/glitchtip.service.yml
-      - core-engine/kubernetes/glitchtip.pvc.yml
+      - backend/kubernetes/glitchtip.config-map.yml
+      - backend/kubernetes/glitchtip.deployment.yml
+      - backend/kubernetes/glitchtip.ingress.yml
+      - backend/kubernetes/glitchtip.service.yml
+      - backend/kubernetes/glitchtip.pvc.yml
 
   pull_request:
     paths:
       - .github/actions/execute-command-on-kubernetes-cluster/action.yml
       - .github/workflows/glitchtip.yml
-      - core-engine/kubernetes/glitchtip.config-map.yml
-      - core-engine/kubernetes/glitchtip.deployment.yml
-      - core-engine/kubernetes/glitchtip.ingress.yml
-      - core-engine/kubernetes/glitchtip.service.yml
-      - core-engine/kubernetes/glitchtip.pvc.yml
+      - backend/kubernetes/glitchtip.config-map.yml
+      - backend/kubernetes/glitchtip.deployment.yml
+      - backend/kubernetes/glitchtip.ingress.yml
+      - backend/kubernetes/glitchtip.service.yml
+      - backend/kubernetes/glitchtip.pvc.yml
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -45,7 +45,7 @@ jobs:
 
       - name: Prepare configuration files
         shell: bash
-        working-directory: core-engine/kubernetes
+        working-directory: backend/kubernetes
         env:
           HOST: "https://monitor-swiss-ai-center.kube.isc.heia-fr.ch"
           ENABLE_USER_REGISTRATION: '"False"'
@@ -70,7 +70,7 @@ jobs:
         with:
           kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
           kube-namespace: swiss-ai-center-dev
-          kubectl-context: ./core-engine/kubernetes
+          kubectl-context: ./backend/kubernetes
           kubectl-args: |
             apply \
               -f glitchtip.config-map.yml \
