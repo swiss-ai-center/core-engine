@@ -2,23 +2,23 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   # This name uniquely identifies the stateful set
-  name: core-engine-stateful
+  name: backend-stateful
   labels:
-    app: core-engine
+    app: backend
 spec:
-  serviceName: core-engine
+  serviceName: backend
   replicas: 1
   selector:
     matchLabels:
-      app: core-engine
+      app: backend
   template:
     metadata:
       labels:
-        app: core-engine
+        app: backend
     spec:
       containers:
-        - name: core-engine
-          image: ghcr.io/swiss-ai-center/core-engine:latest
+        - name: backend
+          image: ghcr.io/swiss-ai-center/backend:latest
           # If you build the image locally, change the next line to `imagePullPolicy: Never` - there is no need to pull the image
           imagePullPolicy: Always
           ports:
@@ -29,4 +29,4 @@ spec:
               value: "30"
           envFrom:
             - configMapRef:
-                name: core-engine-config
+                name: backend-config

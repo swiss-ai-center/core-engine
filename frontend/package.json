@@ -1,5 +1,5 @@
 {
-  "name": "swiss-ai-center-webapp",
+  "name": "swiss-ai-center-frontend",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
