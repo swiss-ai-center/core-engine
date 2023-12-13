@@ -20,7 +20,7 @@ runs:
     - name: Install app dependencies
       shell: bash
       working-directory: ${{ inputs.python-app-path }}
-      run: pip3 install -r requirements.txt -r requirements-all.txt
+      run: pip3 install flake8
 
     - name: Lint Python code
       shell: bash
