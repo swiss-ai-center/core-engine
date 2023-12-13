@@ -1,6 +1,0 @@
-[project]
-name = "face-analyzer"
-
-[tool.pytest.ini_options]
-pythonpath = [".", "src"]
-addopts = "--cov-config=.coveragerc --cov-report xml --cov-report term-missing --cov=./src"
