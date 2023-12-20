@@ -5,7 +5,7 @@ metadata:
   labels:
     app: minio
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     - name: api
       port: 9000

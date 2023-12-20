@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: backend-service
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     - name: http
       port: 8080

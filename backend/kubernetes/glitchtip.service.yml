@@ -5,6 +5,7 @@ metadata:
 spec:
   selector:
     app: glitchtip
+  type: ClusterIP
   ports:
     - protocol: TCP
       port: 80
@@ -17,6 +18,7 @@ metadata:
 spec:
   selector:
     app: glitchtip
+  type: ClusterIP
   ports:
     - protocol: TCP
       port: 6379

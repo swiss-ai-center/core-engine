@@ -5,7 +5,7 @@ metadata:
   labels:
     app: postgres
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     - name: postgres
       port: 5432
