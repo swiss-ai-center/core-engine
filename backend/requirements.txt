@@ -1,5 +1,5 @@
 aiofile==3.8.7
-common-code[test] @ git+https://github.com/swiss-ai-center/common-code.git@main
+../../common-code
 flake8==5.0.4
 makefun==1.15.0
 pytest==7.2.0
@@ -9,7 +9,7 @@ pytest-httpserver==1.0.6
 psycopg2-binary==2.9.5
 python-multipart==0.0.5
 sentry-sdk[fastapi]==1.37.1
-sqlmodel==0.0.8
+sqlmodel==0.0.14
 testcontainers-core==0.0.1rc1
 testcontainers-minio==0.0.1rc1
 testcontainers-postgres==0.0.1rc1
