@@ -209,15 +209,40 @@ class TasksService:
         message = create_message(current_task)
         if current_task.pipeline_execution_id:
             try:
-                await asyncio.ensure_future(
-                    self.connection_manager.send_json(message, current_task.pipeline_execution_id))
+                connection = self.connection_manager.find_by_linked_id(current_task.pipeline_execution_id)
+                if connection:
+                    if connection.websocket:
+                        await asyncio.ensure_future(
+                            self.connection_manager.send_json(message, current_task.pipeline_execution_id))
+                    else:
+                        self.logger.debug(
+                            f"Pipeline execution {current_task.pipeline_execution_id} has no client to send message "
+                            f"to. Probably using API.")
+                else:
+                    self.logger.debug(
+                        f"Pipeline execution {current_task.pipeline_execution_id} has no client to send message to. "
+                        f"Probably using API.")
             except CouldNotSendJsonException as e:
                 self.logger.error(f"Could not send task {current_task} to client: {e}")
                 self.connection_manager.message_queue.add(
                     MessageToSend(message=message, linked_id=current_task.pipeline_execution_id))
         else:
             try:
-                await asyncio.ensure_future(self.connection_manager.send_json(message, task_id))
+                connection = self.connection_manager.find_by_linked_id(task_id)
+                if connection:
+                    if connection.websocket:
+                        await asyncio.ensure_future(
+                            self.connection_manager.send_json(message, task_id))
+                    else:
+                        self.logger.debug(
+                            f"Task {task_id} has no client to send message to. Probably using API.")
+                else:
+                    self.logger.debug(
+                        f"Task {task_id} has no client to send message to. Probably using API.")
+                if self.connection_manager.find_by_linked_id(task_id):
+                    await asyncio.ensure_future(self.connection_manager.send_json(message, task_id))
+                else:
+                    self.logger.debug(f"Task {task_id} has no client to send message to. Probably using API.")
             except CouldNotSendJsonException as e:
                 self.logger.error(f"Could not send task {current_task} to client: {e}")
                 self.connection_manager.message_queue.add(
@@ -301,7 +326,19 @@ class TasksService:
             # add a general_status field to the message with running status
             message.message.data["general_status"] = TaskStatus.FINISHED
             try:
-                await asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+                connection = self.connection_manager.find_by_linked_id(pipeline_execution.id)
+                if connection:
+                    if connection.websocket:
+                        await asyncio.ensure_future(
+                            self.connection_manager.send_json(message, pipeline_execution.id))
+                    else:
+                        self.logger.debug(
+                            f"Pipeline execution {pipeline_execution.id} has no client to send message "
+                            f"to. Probably using API.")
+                else:
+                    self.logger.debug(
+                        f"Pipeline execution {pipeline_execution.id} has no client to send message to. "
+                        f"Probably using API.")
             except CouldNotSendJsonException as e:
                 self.logger.error(f"Could not send task {task} to client: {e}")
                 self.connection_manager.message_queue.add(
@@ -406,7 +443,19 @@ class TasksService:
                     self.logger.debug(f"Sending task {task} to client")
                     message = create_message(task)
                     try:
-                        await asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+                        connection = self.connection_manager.find_by_linked_id(pipeline_execution.id)
+                        if connection:
+                            if connection.websocket:
+                                await asyncio.ensure_future(
+                                    self.connection_manager.send_json(message, pipeline_execution.id))
+                            else:
+                                self.logger.debug(
+                                    f"Pipeline execution {pipeline_execution.id} has no client to send message "
+                                    f"to. Probably using API.")
+                        else:
+                            self.logger.debug(
+                                f"Pipeline execution {pipeline_execution.id} has no client to send message to. "
+                                f"Probably using API.")
                     except CouldNotSendJsonException as e:
                         self.logger.error(f"Could not send task {task} to client: {e}")
                         self.connection_manager.message_queue.add(
@@ -449,7 +498,19 @@ class TasksService:
                     self.logger.debug(f"Sending task {task} to client")
                     message = create_message(task)
                     try:
-                        await asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+                        connection = self.connection_manager.find_by_linked_id(pipeline_execution.id)
+                        if connection:
+                            if connection.websocket:
+                                await asyncio.ensure_future(
+                                    self.connection_manager.send_json(message, pipeline_execution.id))
+                            else:
+                                self.logger.debug(
+                                    f"Pipeline execution {pipeline_execution.id} has no client to send message "
+                                    f"to. Probably using API.")
+                        else:
+                            self.logger.debug(
+                                f"Pipeline execution {pipeline_execution.id} has no client to send message to. "
+                                f"Probably using API.")
                     except CouldNotSendJsonException as e:
                         self.logger.error(f"Could not send task {task} to client: {e}")
                         self.connection_manager.message_queue.add(
@@ -475,7 +536,19 @@ class TasksService:
                     # add a general_status field to the message with running status
                     message.message.data["general_status"] = TaskStatus.ERROR
                     try:
-                        await asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+                        connection = self.connection_manager.find_by_linked_id(pipeline_execution.id)
+                        if connection:
+                            if connection.websocket:
+                                await asyncio.ensure_future(
+                                    self.connection_manager.send_json(message, pipeline_execution.id))
+                            else:
+                                self.logger.debug(
+                                    f"Pipeline execution {pipeline_execution.id} has no client to send message "
+                                    f"to. Probably using API.")
+                        else:
+                            self.logger.debug(
+                                f"Pipeline execution {pipeline_execution.id} has no client to send message to. "
+                                f"Probably using API.")
                     except CouldNotSendJsonException as e:
                         self.logger.error(f"Could not send task {task} to client: {e}")
                         self.connection_manager.message_queue.add(
@@ -499,7 +572,19 @@ class TasksService:
                     # add a general_status field to the message with running status
                     message.message.data["general_status"] = TaskStatus.ERROR
                     try:
-                        await asyncio.ensure_future(self.connection_manager.send_json(message, pipeline_execution.id))
+                        connection = self.connection_manager.find_by_linked_id(pipeline_execution.id)
+                        if connection:
+                            if connection.websocket:
+                                await asyncio.ensure_future(
+                                    self.connection_manager.send_json(message, pipeline_execution.id))
+                            else:
+                                self.logger.debug(
+                                    f"Pipeline execution {pipeline_execution.id} has no client to send message "
+                                    f"to. Probably using API.")
+                        else:
+                            self.logger.debug(
+                                f"Pipeline execution {pipeline_execution.id} has no client to send message to. "
+                                f"Probably using API.")
                     except CouldNotSendJsonException as e:
                         self.logger.error(f"Could not send task {task} to client: {e}")
                         self.connection_manager.message_queue.add(
