@@ -1,7 +1,7 @@
 from typing import List
 from uuid import UUID, uuid4
 from pydantic import BaseModel, AnyHttpUrl
-from sqlmodel import Field, Column, SQLModel, Relationship, String
+from sqlmodel import SQLModel, Relationship, Field, Column, JSON, String
 from common_code.common.models import FieldDescription, ExecutionUnitTag
 from execution_units.enums import ExecutionUnitStatus
 from execution_units.models import ExecutionUnitBase
@@ -12,9 +12,26 @@ class ServiceBase(ExecutionUnitBase):
     Base class for a Service
     This model is used in subclasses
     """
-
+    name: str = Field(nullable=False)
+    slug: str = Field(nullable=False, unique=True)
+    summary: str = Field(nullable=False)
+    description: str | None = Field(default=None, nullable=True)
+    status: ExecutionUnitStatus = Field(
+        default=ExecutionUnitStatus.AVAILABLE, nullable=False
+    )
+    data_in_fields: List[FieldDescription] | None = Field(
+        sa_column=Column(JSON), default=None
+    )
+    data_out_fields: List[FieldDescription] | None = Field(
+        sa_column=Column(JSON), default=None
+    )
+    tags: List[ExecutionUnitTag] | None = Field(sa_column=Column(JSON), default=None)
     url: AnyHttpUrl = Field(sa_column=Column(String))
     has_ai: bool | None = Field(default=False, nullable=True)
+
+    # Needed for Column(JSON) to work
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class Service(ServiceBase, table=True):
@@ -118,5 +135,5 @@ from tasks.models import Task, TaskRead  # noqa E402
 
 Service.update_forward_refs()
 ServiceTask.update_forward_refs()
-ServiceTaskBase.update_forward_refs(task=TaskRead)
-ServiceReadWithTasks.update_forward_refs(tasks=List[TaskRead])
+ServiceTaskBase.update_forward_refs()
+ServiceReadWithTasks.update_forward_refs()

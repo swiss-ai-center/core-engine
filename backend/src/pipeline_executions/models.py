@@ -95,4 +95,4 @@ from pipeline_steps.models import PipelineStep  # noqa F401
 from pipelines.models import Pipeline  # noqa F401
 
 PipelineExecution.update_forward_refs()
-PipelineExecutionReadWithPipelineAndTasks.update_forward_refs(pipeline=Pipeline)
+PipelineExecutionReadWithPipelineAndTasks.update_forward_refs()
