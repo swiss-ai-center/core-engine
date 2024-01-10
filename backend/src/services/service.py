@@ -238,6 +238,9 @@ class ServicesService:
 
         is_service_response_ok = True
 
+        # stringify the url and remove the trailing slash
+        service.url = str(service.url).rstrip("/")
+
         try:
             await self.check_if_service_is_reachable_and_ok(service)
         except UnreachableException as e:
@@ -276,6 +279,9 @@ class ServicesService:
         service_data = service.dict(exclude_unset=True)
         self.logger.debug(f"Updating service {service_id} with data: {service_data}")
         for key, value in service_data.items():
+            if key == "url":
+                # stringify the url and remove the trailing slash
+                value = str(value).rstrip("/")
             setattr(current_service, key, value)
         self.session.add(current_service)
         self.session.commit()

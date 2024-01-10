@@ -16,9 +16,9 @@ class Connection(BaseModel):
     """
     Connection is used to store the WebSocket connection, the linked_id and the execution_type.
     """
-    websocket: WebSocket | None
-    linked_id: UUID | None
-    execution_type: ExecutionType | None
+    websocket: WebSocket | None = None
+    linked_id: UUID | None = None
+    execution_type: ExecutionType | None = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -28,8 +28,8 @@ class ConnectionData(BaseModel):
     """
     ConnectionData is used to store the linked_id and the execution_type when sending a message to the client.
     """
-    linked_id: UUID | None
-    execution_type: ExecutionType | None
+    linked_id: UUID | None = None
+    execution_type: ExecutionType | None = None
 
 
 class MessageType(str, Enum):

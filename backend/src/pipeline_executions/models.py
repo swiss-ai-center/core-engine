@@ -87,12 +87,12 @@ class PipelineExecutionUpdate(SQLModel):
     This model is used to update a pipeline execution
     """
 
-    current_pipeline_step_id: UUID | None
-    tasks: List[Task] | None
+    current_pipeline_step_id: UUID | None = None
+    tasks: List[Task] | None = None
 
 
 from pipeline_steps.models import PipelineStep  # noqa F401
 from pipelines.models import Pipeline  # noqa F401
 
-PipelineExecution.update_forward_refs()
-PipelineExecutionReadWithPipelineAndTasks.update_forward_refs()
+PipelineExecution.model_rebuild()
+PipelineExecutionReadWithPipelineAndTasks.model_rebuild()

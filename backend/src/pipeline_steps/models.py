@@ -83,4 +83,4 @@ class PipelineStepUpdate(PipelineStepBase):
 from pipelines.models import Pipeline  # noqa F401
 from pipeline_executions.models import PipelineExecution  # noqa F401
 
-PipelineStep.update_forward_refs()
+PipelineStep.model_rebuild()

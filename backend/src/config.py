@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     environment: Environment = Environment.PRODUCTION
     log_level: LogLevel = LogLevel.INFO
     database_url: str = "sqlite:///../core-engine.db"
-    database_connect_args: dict[str, bool | str | int] = {"check_same_thread": False}
+    database_connect_args: dict[str, bool | str | int] = {}
     s3_access_key_id: str
     s3_secret_access_key: str
     s3_region: str = "eu-central-2"

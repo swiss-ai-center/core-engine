@@ -84,16 +84,16 @@ class ServiceUpdate(SQLModel):
     This model is used to update a service
     """
 
-    name: str | None
-    slug: str | None
-    url: AnyHttpUrl | None
-    summary: str | None
-    description: str | None
-    status: ExecutionUnitStatus | None
-    data_in_fields: List[FieldDescription]
-    data_out_fields: List[FieldDescription]
-    tags: List[ExecutionUnitTag] | None
-    has_ai: bool | None
+    name: str | None = None
+    slug: str | None = None
+    url: AnyHttpUrl | None = None
+    summary: str | None = None
+    description: str | None = None
+    status: ExecutionUnitStatus | None = None
+    data_in_fields: List[FieldDescription] | None = None
+    data_out_fields: List[FieldDescription] | None = None
+    tags: List[ExecutionUnitTag] | None = None
+    has_ai: bool | None = None
 
 
 class ServiceTaskBase(BaseModel):
@@ -133,7 +133,7 @@ class ServicesWithCount(BaseModel):
 
 from tasks.models import Task, TaskRead  # noqa E402
 
-Service.update_forward_refs()
-ServiceTask.update_forward_refs()
-ServiceTaskBase.update_forward_refs()
-ServiceReadWithTasks.update_forward_refs()
+Service.model_rebuild()
+ServiceTask.model_rebuild()
+ServiceTaskBase.model_rebuild()
+ServiceReadWithTasks.model_rebuild()

@@ -46,7 +46,7 @@ class Pipeline(PipelineBase, table=True):
         back_populates="pipeline"
     )  # noqa F821
     steps: List[PipelineStep] = Relationship(
-        sa_relationship_kwargs={"cascade": "delete"},
+        sa_relationship_kwargs={"cascade": "delete", },
         back_populates="pipeline"
     )  # noqa F821
 
@@ -80,11 +80,11 @@ class PipelineUpdate(SQLModel):
     Pipeline update model
     This model is used to update a pipeline
     """
-    name: str | None
-    summary: str | None
-    description: str | None
-    status: ExecutionUnitStatus | None
-    steps: List[PipelineStepCreate] | None
+    name: str | None = None
+    summary: str | None = None
+    description: str | None = None
+    status: ExecutionUnitStatus | None = None
+    steps: List[PipelineStepCreate] | None = None
 
 
 class PipelinesWithCount(BaseModel):
@@ -98,4 +98,4 @@ class PipelinesWithCount(BaseModel):
 
 from pipeline_executions.models import PipelineExecution  # noqa E402
 
-Pipeline.update_forward_refs()
+Pipeline.model_rebuild()

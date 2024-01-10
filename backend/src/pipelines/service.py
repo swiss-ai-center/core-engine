@@ -228,7 +228,7 @@ class PipelinesService:
 
         pipeline_steps_create = pipeline.steps
         pipeline_steps = []
-        pipeline = Pipeline.from_orm(pipeline)
+        pipeline = Pipeline.model_validate(pipeline)
 
         for pipeline_step in pipeline_steps_create:
 
@@ -244,7 +244,7 @@ class PipelinesService:
                 inputs=pipeline_step.inputs,
                 service_id=service.id,
             )
-            pipeline_step_create = PipelineStep.from_orm(new_pipeline_step)
+            pipeline_step_create = PipelineStep.model_validate(new_pipeline_step)
             pipeline_steps.append(pipeline_step_create)
         pipeline.steps = pipeline_steps
 

@@ -80,5 +80,5 @@ class TaskUpdate(SQLModel):
 
 from pipeline_executions.models import PipelineExecution  # noqa: E402
 
-Task.update_forward_refs()
-TaskReadWithServiceAndPipeline.update_forward_refs()
+Task.model_rebuild()
+TaskReadWithServiceAndPipeline.model_rebuild()

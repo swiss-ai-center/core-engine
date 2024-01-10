@@ -49,7 +49,7 @@ app = FastAPI(
     contact={
         "name": "Swiss AI Center",
         "url": "https://swiss-ai-center.ch/",
-        "email": "ia.recherche@hes-so.ch",
+        "email": "info@swiss-ai-center.ch",
     },
     swagger_ui_parameters={
         "tagsSorter": "alpha",
