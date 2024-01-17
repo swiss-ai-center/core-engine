@@ -276,7 +276,7 @@ class ServicesService:
         current_service = self.session.get(Service, service_id)
         if not current_service:
             raise NotFoundException("Service Not Found")
-        service_data = service.dict(exclude_unset=True)
+        service_data = service.model_dump(exclude_unset=True)
         self.logger.debug(f"Updating service {service_id} with data: {service_data}")
         for key, value in service_data.items():
             if key == "url":

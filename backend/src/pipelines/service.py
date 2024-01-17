@@ -297,7 +297,7 @@ class PipelinesService:
         if not self.check_pipeline_consistency(current_pipeline):
             raise InconsistentPipelineException("Pipeline is not consistent")
 
-        pipeline_data = pipeline.dict(exclude_unset=True)
+        pipeline_data = pipeline.model_dump(exclude_unset=True)
 
         pipeline_data["steps"] = []
 

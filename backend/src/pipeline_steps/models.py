@@ -1,11 +1,11 @@
 import re
 from typing import List
-from pydantic.class_validators import validator
 from sqlmodel import Field, Relationship, Column, JSON
 from common.models import CoreModel
 from uuid import UUID, uuid4
 from services.models import Service
 from pydantic_settings import SettingsConfigDict
+from pydantic import field_validator
 
 
 class PipelineStepBase(CoreModel):
@@ -20,7 +20,7 @@ class PipelineStepBase(CoreModel):
     condition: str | None = Field(default=None, nullable=True)
     inputs: List[str] = Field(sa_column=Column(JSON))
 
-    @validator("identifier")
+    @field_validator("identifier")
     def identifier_format(cls, v):
         if not re.match(r"[a-z\-]+", v):
             raise ValueError(

@@ -9,7 +9,7 @@ from common.exceptions import CouldNotSendJsonException
 
 
 async def send_json_to_websocket(message: Message, websocket: WebSocket):
-    await websocket.send_json(message.dict())
+    await websocket.send_json(message.model_dump())
 
 
 class MessageQueue:
@@ -65,7 +65,7 @@ class ConnectionManager:
         message = Message(
             message={
                 "text": "Connected to the backend's WebSocket",
-                "data": connection_data.dict(),
+                "data": connection_data.model_dump(),
             },
             type=MessageType.SUCCESS, subject=MessageSubject.CONNECTION
         )
@@ -85,7 +85,7 @@ class ConnectionManager:
     async def send_json(self, message: Message, linked_id: UUID):
         connection = self.find_by_linked_id(linked_id)
         # Need to dump and load to avoid serialization issues
-        json_dumped = json.dumps(message.dict(), default=str)
+        json_dumped = json.dumps(message.model_dump(), default=str)
         json_object = json.loads(json_dumped)
         if connection:
             await connection.websocket.send_json(json_object)
@@ -98,7 +98,7 @@ class ConnectionManager:
 
     async def broadcast_json(self, message: Message):
         for connection in self.active_connections:
-            await connection.websocket.send_json(message.dict())
+            await connection.websocket.send_json(message.model_dump())
 
     async def retry_send_message(self):
         while len(self.message_queue.queue) > 0:

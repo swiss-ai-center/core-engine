@@ -52,7 +52,7 @@ def create_message(task: Task) -> Message:
     return Message(
         message={
             "text": message_text,
-            "data": task.dict(),
+            "data": task.model_dump(),
         },
         type=message_type, subject=MessageSubject.EXECUTION
     )
@@ -194,7 +194,7 @@ class TasksService:
         current_task = self.session.get(Task, task_id)
         if not current_task:
             raise NotFoundException("Task Not Found")
-        task_data = task.dict(exclude_unset=True)
+        task_data = task.model_dump(exclude_unset=True)
         self.logger.debug(f"Updating task {task_id} with data: {task_data}")
 
         for key, value in task_data.items():
@@ -292,7 +292,7 @@ class TasksService:
             pipeline_execution.files = files
 
         # Check if current pipeline step is the last one
-        if current_pipeline_step == pipeline.steps[-1]:
+        if current_pipeline_step.id == pipeline.steps[-1].id:
             # send message to client
             self.logger.debug(f"Sending task {task} to client")
             message = create_message(task)
@@ -320,12 +320,14 @@ class TasksService:
             next_service = self.session.get(Service, next_pipeline_step.service_id)
 
             # Get the task of the next pipeline step
-            query = self.session.query(Task).join(PipelineExecution).join(Service).where(
-                (Task.pipeline_execution_id == pipeline_execution.id) & (
-                        PipelineExecution.id == pipeline_execution.id) & (
-                        Service.id == next_pipeline_step.service_id)
+            sql_statement = select(Task).join(PipelineExecution).join(Service).where(
+                (Task.pipeline_execution_id == pipeline_execution.id) &
+                (PipelineExecution.id == pipeline_execution.id) &
+                (Service.id == next_pipeline_step.service_id)
             )
-            task = query.first()
+
+            # Execute the query using exec() and fetch the first result
+            task = self.session.exec(sql_statement).first()
 
             # Get the files for the next pipeline step
             task_files = []

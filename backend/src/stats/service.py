@@ -3,7 +3,7 @@ from stats.models import StatsBase, ServiceStats, StatusCount
 from tasks.models import TaskStatus
 from common_code.logger.logger import Logger, get_logger
 from fastapi import Depends
-from sqlmodel import Session, func
+from sqlmodel import Session, func, select
 from database import get_session
 from tasks.models import Task
 
@@ -24,7 +24,8 @@ class StatsService:
         stats = StatsBase(total=0, summary=[], services=[])
 
         # Get all services with their tasks and count the number of tasks per status
-        task_status_count = self.session.query(
+
+        statement = select(
             Service.id, Service.name, Task.status, func.count(Task.status)
         ).join(
             Service
@@ -32,10 +33,16 @@ class StatsService:
             Service.id == Task.service_id
         ).group_by(
             Service.id, Task.status
-        ).all()
+        )
+        task_status_count = self.session.exec(statement).all()
 
         # Get the total number of tasks per status keep empty status with 0
-        total_status_count = self.session.query(Task.status, func.count(Task.status)).group_by(Task.status).all()
+        statement = select(
+            Task.status, func.count(Task.status)
+        ).group_by(
+            Task.status
+        )
+        total_status_count = self.session.exec(statement).all()
 
         # For each service, add the status count to the ServiceStats object for each status
         for service_id, service_name, status, count in task_status_count:

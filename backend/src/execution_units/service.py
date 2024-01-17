@@ -82,7 +82,7 @@
 #             # cast to
 #             for step in execution_unit.steps:
 #
-#         execution_unit_data = execution_unit.dict(exclude_unset=True)
+#         execution_unit_data = execution_unit.model_dump(exclude_unset=True)
 #         self.logger.debug(f"Updating execution unit {execution_unit_id} with data: {execution_unit_data}")
 #         for key, value in execution_unit_data.items():
 #             setattr(current_execution_unit, key, value)
