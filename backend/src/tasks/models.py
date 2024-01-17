@@ -4,6 +4,7 @@ from tasks.enums import TaskStatus
 from common.models import CoreModel
 from uuid import UUID, uuid4
 from services.models import Service
+from pydantic_settings import SettingsConfigDict
 
 
 class TaskBase(CoreModel):
@@ -11,6 +12,7 @@ class TaskBase(CoreModel):
     Base class for Task
     This model is used in subclasses
     """
+    model_config = SettingsConfigDict(arbitrary_types_allowed=True)
 
     data_in: List[str] | None = Field(sa_column=Column(JSON), default=None)
     data_out: List[str] | None = Field(sa_column=Column(JSON), default=None)
@@ -19,10 +21,6 @@ class TaskBase(CoreModel):
     pipeline_execution_id: UUID | None = Field(
         default=None, nullable=True, foreign_key="pipeline_executions.id"
     )
-
-    # Needed for Column(JSON) to work
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class Task(TaskBase, table=True):

@@ -9,7 +9,7 @@ from sqlmodel.pool import StaticPool
 @pytest.fixture(name="session")
 def session_fixture():
     engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+        "sqlite://", connect_args={}, poolclass=StaticPool
     )
 
     SQLModel.metadata.create_all(engine)

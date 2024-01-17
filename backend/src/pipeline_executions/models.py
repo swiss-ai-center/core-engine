@@ -4,6 +4,7 @@ from uuid import UUID, uuid4
 from tasks.models import Task, TaskRead
 from typing import List, Union
 from typing_extensions import TypedDict
+from pydantic_settings import SettingsConfigDict
 
 
 class FileKeyReference(TypedDict):
@@ -20,6 +21,7 @@ class PipelineExecutionBase(CoreModel):
     Base class for a Pipeline Execution
     This model is used in subclasses
     """
+    model_config = SettingsConfigDict(arbitrary_types_allowed=True)
 
     pipeline_id: UUID | None = Field(
         default=None, nullable=True, foreign_key="pipelines.id"
@@ -27,10 +29,6 @@ class PipelineExecutionBase(CoreModel):
     current_pipeline_step_id: UUID | None = Field(
         default=None, nullable=True, foreign_key="pipeline_steps.id"
     )
-
-    # Needed for Column(JSON) to work
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class PipelineExecution(PipelineExecutionBase, table=True):

@@ -5,6 +5,7 @@ from sqlmodel import Field, Relationship, Column, JSON
 from common.models import CoreModel
 from uuid import UUID, uuid4
 from services.models import Service
+from pydantic_settings import SettingsConfigDict
 
 
 class PipelineStepBase(CoreModel):
@@ -12,6 +13,7 @@ class PipelineStepBase(CoreModel):
     Base class for a step in a Pipeline
     This model is used in subclasses
     """
+    model_config = SettingsConfigDict(arbitrary_types_allowed=True)
 
     identifier: str = Field(nullable=False)
     needs: List[str] | None = Field(sa_column=Column(JSON), default=None)
@@ -25,9 +27,6 @@ class PipelineStepBase(CoreModel):
                 "Identifier must be in kebab-case format. Example: my-pipeline-step-identifier"
             )
         return v
-
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class PipelineStep(
@@ -48,7 +47,7 @@ class PipelineStep(
         sa_relationship_kwargs={"cascade": "delete"},
         back_populates="current_pipeline_step",
     )  # noqa F821
-    service_id: UUID = Field(nullable=False, foreign_key="services.id")
+    service_id: UUID | None = Field(foreign_key="services.id")
     service: Service = Relationship(back_populates="pipeline_steps")
 
 

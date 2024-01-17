@@ -6,6 +6,7 @@ from common_code.common.models import FieldDescription, ExecutionUnitTag
 from common.models import CoreModel
 from execution_units.enums import ExecutionUnitStatus
 from pipeline_steps.models import PipelineStep, PipelineStepCreate
+from pydantic_settings import SettingsConfigDict
 
 
 class PipelineBase(CoreModel):
@@ -13,6 +14,8 @@ class PipelineBase(CoreModel):
     Base class for a Pipeline
     This model is used in subclasses
     """
+    model_config = SettingsConfigDict(arbitrary_types_allowed=True)
+
     name: str = Field(nullable=False)
     slug: str = Field(nullable=False, unique=True)
     summary: str = Field(nullable=False)
@@ -28,10 +31,6 @@ class PipelineBase(CoreModel):
     )
     tags: List[ExecutionUnitTag] | None = Field(sa_column=Column(JSON), default=None)
 
-    # Needed for Column(JSON) to work
-    class Config:
-        arbitrary_types_allowed = True
-
 
 class Pipeline(PipelineBase, table=True):
     """
@@ -46,7 +45,7 @@ class Pipeline(PipelineBase, table=True):
         back_populates="pipeline"
     )  # noqa F821
     steps: List[PipelineStep] = Relationship(
-        sa_relationship_kwargs={"cascade": "delete", },
+        sa_relationship_kwargs={"cascade": "delete"},
         back_populates="pipeline"
     )  # noqa F821
 

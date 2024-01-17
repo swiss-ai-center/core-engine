@@ -81,7 +81,7 @@ def get_many_tasks(
     response_model=TaskReadWithServiceAndPipeline,
 )
 def create(task: TaskCreate, tasks_service: TasksService = Depends()):
-    task_create = Task.from_orm(task)
+    task_create = Task.model_validate(task)
     task = tasks_service.create(task_create)
 
     return task

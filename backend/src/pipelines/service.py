@@ -223,39 +223,50 @@ class PipelinesService:
 
         found_pipeline = self.session.exec(select(Pipeline).where(Pipeline.slug == pipeline.slug)).first()
 
+        # Check if pipeline already exists
         if found_pipeline:
             raise ConflictException(f"Pipeline with slug '{found_pipeline.slug}' already exists.")
 
-        pipeline_steps_create = pipeline.steps
-        pipeline_steps = []
+        # Backup the pipeline steps
+        pipeline_steps = pipeline.steps
+
+        # Set the pipeline steps to an empty list - will be filled later
+        pipeline.steps = []
+
+        # Create the pipeline
         pipeline = Pipeline.model_validate(pipeline)
+        self.session.add(pipeline)
+        self.session.flush()
+        self.session.refresh(pipeline)
 
-        for pipeline_step in pipeline_steps_create:
-
+        # Create the pipeline steps
+        for pipeline_step in pipeline_steps:
             service = self.services_service.find_one_by_slug(pipeline_step.service_slug)
+
             if not service:
                 raise NotFoundException(f"Service with slug '{pipeline_step.service_slug}' not found.")
 
-            new_pipeline_step = PipelineStep(
-                pipeline_id=pipeline.id,
+            pipeline_step = PipelineStep(
                 identifier=pipeline_step.identifier,
                 needs=pipeline_step.needs,
                 condition=pipeline_step.condition,
                 inputs=pipeline_step.inputs,
-                service_id=service.id,
+                pipeline=pipeline,
+                # pipeline_id=pipeline.id,
+                service=service,
+                # service_id=service.id,
             )
-            pipeline_step_create = PipelineStep.model_validate(new_pipeline_step)
-            pipeline_steps.append(pipeline_step_create)
-        pipeline.steps = pipeline_steps
+
+            pipeline_step = PipelineStep.model_validate(pipeline_step)
+            self.session.add(pipeline_step)
+            self.session.flush()
 
         # Check if pipeline is consistent
         if not self.check_pipeline_consistency(pipeline):
+            self.session.rollback()
             raise InconsistentPipelineException("Pipeline is not consistent")
 
-        for step in pipeline.steps:
-            self.session.add(step)
-
-        self.session.add(pipeline)
+        self.logger.debug("Pipeline is consistent")
         self.session.commit()
         self.session.refresh(pipeline)
 
@@ -310,7 +321,7 @@ class PipelinesService:
                 inputs=pipeline_step.inputs,
                 service_id=service.id,
             )
-            pipeline_step_create = PipelineStep.from_orm(new_pipeline_step)
+            pipeline_step_create = PipelineStep.model_validate(new_pipeline_step)
             self.session.add(new_pipeline_step)
             pipeline_steps.append(pipeline_step_create)
 
@@ -683,6 +694,9 @@ class PipelinesService:
         :return: True if pipeline is consistent, False otherwise
         """
         self.logger.debug("Check pipeline consistency")
+
+        if len(pipeline.steps) == 0:
+            raise InconsistentPipelineException("Pipeline has no steps.")
 
         steps = pipeline.steps
 

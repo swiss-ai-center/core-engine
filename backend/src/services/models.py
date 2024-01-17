@@ -3,15 +3,18 @@ from uuid import UUID, uuid4
 from pydantic import BaseModel, AnyHttpUrl
 from sqlmodel import SQLModel, Relationship, Field, Column, JSON, String
 from common_code.common.models import FieldDescription, ExecutionUnitTag
+from common.models import CoreModel
 from execution_units.enums import ExecutionUnitStatus
-from execution_units.models import ExecutionUnitBase
+from pydantic_settings import SettingsConfigDict
 
 
-class ServiceBase(ExecutionUnitBase):
+class ServiceBase(CoreModel):
     """
     Base class for a Service
     This model is used in subclasses
     """
+    model_config = SettingsConfigDict(arbitrary_types_allowed=True)
+
     name: str = Field(nullable=False)
     slug: str = Field(nullable=False, unique=True)
     summary: str = Field(nullable=False)
@@ -28,10 +31,6 @@ class ServiceBase(ExecutionUnitBase):
     tags: List[ExecutionUnitTag] | None = Field(sa_column=Column(JSON), default=None)
     url: AnyHttpUrl = Field(sa_column=Column(String))
     has_ai: bool | None = Field(default=False, nullable=True)
-
-    # Needed for Column(JSON) to work
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class Service(ServiceBase, table=True):
@@ -131,6 +130,7 @@ class ServicesWithCount(BaseModel):
     services: List[ServiceRead]
 
 
+from pipeline_steps.models import PipelineStep  # noqa E402
 from tasks.models import Task, TaskRead  # noqa E402
 
 Service.model_rebuild()
