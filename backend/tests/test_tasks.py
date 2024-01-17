@@ -239,14 +239,14 @@ def test_read_task_non_processable(client: TestClient):
     response = client.get("/tasks/bad_id")
 
     assert response.status_code == 422
-    assert response.json()["detail"][0]["type"] == "type_error.uuid"
+    assert response.json()["detail"][0]["type"] == "uuid_parsing"
 
 
 def test_delete_task_non_processable(client: TestClient):
     response = client.delete("/tasks/bad_id")
 
     assert response.status_code == 422
-    assert response.json()["detail"][0]["type"] == "type_error.uuid"
+    assert response.json()["detail"][0]["type"] == "uuid_parsing"
 
 
 def test_patch_task_non_processable(client: TestClient):
@@ -261,4 +261,4 @@ def test_patch_task_non_processable(client: TestClient):
     )
 
     assert response.status_code == 422
-    assert response.json()["detail"][0]["type"] == "type_error.uuid"
+    assert response.json()["detail"][0]["type"] == "uuid_parsing"

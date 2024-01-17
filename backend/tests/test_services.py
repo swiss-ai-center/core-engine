@@ -247,21 +247,21 @@ def test_read_service_non_processable(client: TestClient):
     response = client.get("/services/bad_id")
 
     assert response.status_code == 422
-    assert response.json()["detail"][0]["type"] == "type_error.uuid"
+    assert response.json()["detail"][0]["type"] == "uuid_parsing"
 
 
 def test_delete_service_non_processable(client: TestClient):
     response = client.delete("/services/bad_id")
 
     assert response.status_code == 422
-    assert response.json()["detail"][0]["type"] == "type_error.uuid"
+    assert response.json()["detail"][0]["type"] == "uuid_parsing"
 
 
 def test_patch_service_non_processable(client: TestClient):
     response = client.patch("/services/bad_id", json={"status": "available"})
 
     assert response.status_code == 422
-    assert response.json()["detail"][0]["type"] == "type_error.uuid"
+    assert response.json()["detail"][0]["type"] == "uuid_parsing"
 
 
 def test_create_service_same_slug(client: TestClient, service_instance: HTTPServer):
@@ -342,6 +342,6 @@ def test_service_compute(client: TestClient, service_instance: HTTPServer):
     service_task_data = service_task_response.json()
 
     service_task_service_data = service_task_data["service"]
-
+    service_data["url"] = service_data["url"].rstrip("/")
     assert service_data == service_task_service_data
     assert len(service_task_data["data_in"]) == 1
