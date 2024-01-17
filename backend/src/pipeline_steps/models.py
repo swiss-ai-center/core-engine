@@ -79,7 +79,7 @@ class PipelineStepUpdate(PipelineStepBase):
     service_slug: str
 
 
-from pipelines.models import Pipeline  # noqa F401
-from pipeline_executions.models import PipelineExecution  # noqa F401
+from pipelines.models import Pipeline  # noqa E402
+from pipeline_executions.models import PipelineExecution  # noqa E402
 
 PipelineStep.model_rebuild()
