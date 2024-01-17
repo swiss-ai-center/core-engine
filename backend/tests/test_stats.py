@@ -10,7 +10,7 @@ from pytest_httpserver import HTTPServer
 @pytest.fixture(name="session")
 def session_fixture():
     engine = create_engine(
-        "sqlite://", connect_args={}, poolclass=StaticPool
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
     )
 
     SQLModel.metadata.create_all(engine)
