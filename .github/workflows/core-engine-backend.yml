@@ -163,7 +163,7 @@ jobs:
         with:
           kube-config: ${{ env.DEV_KUBE_CONFIG }}
           kube-namespace: ${{ env.DEV_NAMESPACE }}
-          kubectl-context: ./kubernetes
+          kubectl-context: ./backend/kubernetes
           kubectl-args: |
             apply \
               -f config-map.yml \
@@ -219,7 +219,7 @@ jobs:
         with:
           kube-config: ${{ env.PROD_KUBE_CONFIG }}
           kube-namespace: ${{ env.PROD_NAMESPACE }}
-          kubectl-context: ./kubernetes
+          kubectl-context: ./backend/kubernetes
           kubectl-args: |
             apply \
               -f config-map.yml \
