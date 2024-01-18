@@ -13,7 +13,6 @@ on:
       - main
       - prod
     paths:
-      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
       - .github/workflows/glitchtip.yml
       - backend/kubernetes/glitchtip.config-map.yml
       - backend/kubernetes/glitchtip.deployment.yml
@@ -23,7 +22,6 @@ on:
 
   pull_request:
     paths:
-      - .github/actions/execute-command-on-kubernetes-cluster/action.yml
       - .github/workflows/glitchtip.yml
       - backend/kubernetes/glitchtip.config-map.yml
       - backend/kubernetes/glitchtip.deployment.yml
@@ -66,7 +64,7 @@ jobs:
           yq ".spec.tls[0].hosts[0] = \"${HOST#*://}\"" glitchtip.ingress.yml > new-glitchtip.ingress.yml && mv new-glitchtip.ingress.yml glitchtip.ingress.yml
 
       - name: Deploy Glitchtip on the Kubernetes cluster
-        uses: ./.github/actions/execute-command-on-kubernetes-cluster
+        uses: swiss-ai-center/common-code/.github/actions/execute-command-on-kubernetes-cluster@main
         with:
           kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
           kube-namespace: swiss-ai-center-dev
