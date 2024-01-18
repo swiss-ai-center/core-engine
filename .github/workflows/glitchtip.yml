@@ -2,6 +2,12 @@
 name: glitchtip-workflow
 run-name: glitchtip workflow
 
+env:
+  # The Kubernetes namespace that the service should be deployed to
+  DEV_NAMESPACE: ${{ vars.DEV_NAMESPACE }}
+  # Kube configuration
+  DEV_KUBE_CONFIG: ${{ secrets.DEV_KUBE_CONFIG }}
+
 # Allow one concurrent deployment
 concurrency:
   group: "glitchtip"
@@ -66,8 +72,8 @@ jobs:
       - name: Deploy Glitchtip on the Kubernetes cluster
         uses: swiss-ai-center/common-code/.github/actions/execute-command-on-kubernetes-cluster@main
         with:
-          kube-config: ${{ secrets.DEV_KUBE_CONFIG }}
-          kube-namespace: swiss-ai-center-dev
+          kube-config: ${{ env.DEV_KUBE_CONFIG }}
+          kube-namespace: ${{ env.DEV_NAMESPACE }}
           kubectl-context: ./backend/kubernetes
           kubectl-args: |
             apply \

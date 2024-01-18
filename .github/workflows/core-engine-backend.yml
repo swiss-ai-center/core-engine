@@ -24,6 +24,8 @@ env:
   DEV_S3_REGION: ${{ vars.DEV_S3_REGION }}
   # S3 bucket
   DEV_S3_BUCKET: ${{ vars.DEV_S3_BUCKET }}
+  # The Kubernetes namespace that the service should be deployed to
+  DEV_NAMESPACE: ${{ vars.DEV_NAMESPACE }}
   # Kube configuration
   DEV_KUBE_CONFIG: ${{ secrets.DEV_KUBE_CONFIG }}
 
@@ -44,6 +46,8 @@ env:
   PROD_S3_REGION: ${{ vars.PROD_S3_REGION }}
   # S3 bucket
   PROD_S3_BUCKET: ${{ vars.PROD_S3_BUCKET }}
+  # The Kubernetes namespace that the service should be deployed to
+  PROD_NAMESPACE: ${{ vars.PROD_NAMESPACE }}
   # Kube configuration
   PROD_KUBE_CONFIG: ${{ secrets.PROD_KUBE_CONFIG }}
 
@@ -166,15 +170,15 @@ jobs:
           kubectl-context: ./backend/kubernetes
           kubectl-args: |
             apply \
-              -f config-map.yml \
-              -f stateful.yml \
-              -f service.yml \
-              -f ingress.yml
+              -f core-engine-backend.config-map.yml \
+              -f core-engine-backend.stateful.yml \
+              -f core-engine-backend.service.yml \
+              -f core-engine-backend.ingress.yml
 
   deploy-prod:
     needs: release
     runs-on: ubuntu-latest
-    if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_DEV == 'true' }}
+    if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/prod' && vars.DEPLOY_PROD == 'true' }}
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
@@ -222,7 +226,7 @@ jobs:
           kubectl-context: ./backend/kubernetes
           kubectl-args: |
             apply \
-              -f config-map.yml \
-              -f stateful.yml \
-              -f service.yml \
-              -f ingress.yml
+              -f core-engine-backend.config-map.yml \
+              -f core-engine-backend.stateful.yml \
+              -f core-engine-backend.service.yml \
+              -f core-engine-backend.ingress.yml

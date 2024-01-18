@@ -8,12 +8,20 @@ env:
   DEV_BACKEND_URL: ${{ vars.DEV_BACKEND_URL }}
   # The URL of the Core Engine (WebSockets)
   DEV_BACKEND_WS_URL: ${{ vars.DEV_BACKEND_WS_URL }}
+  # The Kubernetes namespace that the service should be deployed to
+  DEV_NAMESPACE: ${{ vars.DEV_NAMESPACE }}
+  # Kube configuration
+  DEV_KUBE_CONFIG: ${{ secrets.DEV_KUBE_CONFIG }}
 
   ## Production environment variables
   # The URL of the Core Engine (HTTP)
   PROD_BACKEND_URL: ${{ vars.PROD_BACKEND_URL }}
   # The URL of the Core Engine (WebSockets)
   PROD_BACKEND_WS_URL: ${{ vars.PROD_BACKEND_WS_URL }}
+  # The Kubernetes namespace that the service should be deployed to
+  PROD_NAMESPACE: ${{ vars.PROD_NAMESPACE }}
+  # Kube configuration
+  PROD_KUBE_CONFIG: ${{ secrets.PROD_KUBE_CONFIG }}
 
 # Allow one concurrent deployment
 concurrency:
@@ -111,7 +119,7 @@ jobs:
               -f core-engine-frontend.ingress.yml
 
       - name: Deploy Frontend on the Kubernetes cluster (prod)
-        if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_DEV == 'true' }}
+        if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/prod' && vars.DEPLOY_PROD == 'true' }}
         uses: swiss-ai-center/common-code/.github/actions/execute-command-on-kubernetes-cluster@main
         with:
           kube-config: ${{ env.PROD_KUBE_CONFIG }}
