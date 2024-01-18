@@ -2,23 +2,23 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   # This name uniquely identifies the stateful set
-  name: frontend-stateful
+  name: core-engine-frontend-stateful
   labels:
-    app: frontend
+    app: core-engine-frontend
 spec:
-  serviceName: frontend
+  serviceName: core-engine-frontend
   replicas: 1
   selector:
     matchLabels:
-      app: frontend
+      app: core-engine-frontend
   template:
     metadata:
       labels:
-        app: frontend
+        app: core-engine-frontend
     spec:
       containers:
-      - name: frontend
-        image: ghcr.io/swiss-ai-center/frontend:latest
+      - name: core-engine-frontend
+        image: ghcr.io/swiss-ai-center/core-engine-frontend:latest
         # If you build the image locally, change the next line to `imagePullPolicy: Never` - there is no need to pull the image
         imagePullPolicy: Always
         ports:

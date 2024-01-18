@@ -262,9 +262,13 @@ class PipelinesService:
             self.session.flush()
 
         # Check if pipeline is consistent
-        if not self.check_pipeline_consistency(pipeline):
+        try:
+            if not self.check_pipeline_consistency(pipeline):
+                self.session.rollback()
+                raise InconsistentPipelineException("Pipeline is not consistent")
+        except InconsistentPipelineException as e:
             self.session.rollback()
-            raise InconsistentPipelineException("Pipeline is not consistent")
+            raise e
 
         self.logger.debug("Pipeline is consistent")
         self.session.commit()
@@ -332,8 +336,13 @@ class PipelinesService:
             self.session.delete(current_pipeline_step)
 
         # Check if pipeline is consistent
-        if not self.check_pipeline_consistency(current_pipeline):
-            raise InconsistentPipelineException("Pipeline is not consistent")
+        try:
+            if not self.check_pipeline_consistency(current_pipeline):
+                self.session.rollback()
+                raise InconsistentPipelineException("Pipeline is not consistent")
+        except InconsistentPipelineException as e:
+            self.session.rollback()
+            raise e
 
         # Update the pipeline execution tasks to archive them
         pipeline_executions = self.session.exec(
