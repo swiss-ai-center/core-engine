@@ -240,31 +240,32 @@ class PipelinesService:
         self.session.refresh(pipeline)
 
         # Create the pipeline steps
-        for pipeline_step in pipeline_steps:
-            service = self.services_service.find_one_by_slug(pipeline_step.service_slug)
+        for step in pipeline_steps:
+
+            service = self.services_service.find_one_by_slug(step.service_slug)
 
             if not service:
-                raise NotFoundException(f"Service with slug '{pipeline_step.service_slug}' not found.")
+                raise NotFoundException(f"Service with slug '{step.service_slug}' not found.")
 
-            pipeline_step = PipelineStep(
-                identifier=pipeline_step.identifier,
-                needs=pipeline_step.needs,
-                condition=pipeline_step.condition,
-                inputs=pipeline_step.inputs,
+            new_pipeline_step = PipelineStep(
+                identifier=step.identifier,
+                needs=step.needs,
+                condition=step.condition,
+                inputs=step.inputs,
                 pipeline=pipeline,
-                # pipeline_id=pipeline.id,
                 service=service,
-                # service_id=service.id,
             )
 
-            pipeline_step = PipelineStep.model_validate(pipeline_step)
+            pipeline_step = PipelineStep.model_validate(new_pipeline_step)
             self.session.add(pipeline_step)
             self.session.flush()
 
         # Check if pipeline is consistent
-        if not self.check_pipeline_consistency(pipeline):
+        try:
+            self.check_pipeline_consistency(pipeline)
+        except InconsistentPipelineException as e:
             self.session.rollback()
-            raise InconsistentPipelineException("Pipeline is not consistent")
+            raise e
 
         self.logger.debug("Pipeline is consistent")
         self.session.commit()
@@ -288,14 +289,17 @@ class PipelinesService:
         self.logger.debug("Update pipeline")
 
         current_pipeline = self.session.get(Pipeline, pipeline_id)
-        old_pipeline_slug = current_pipeline.slug
-        current_pipeline_steps = current_pipeline.steps
 
         if not current_pipeline:
             raise NotFoundException("Pipeline Not Found")
 
-        if not self.check_pipeline_consistency(current_pipeline):
-            raise InconsistentPipelineException("Pipeline is not consistent")
+        old_pipeline_slug = current_pipeline.slug
+        # current_pipeline_steps = current_pipeline.steps
+
+        # Remove the existing pipeline steps from the pipeline
+        # for current_pipeline_step in current_pipeline_steps:
+        #     self.session.delete(current_pipeline_step)
+        # self.session.flush()
 
         pipeline_data = pipeline.model_dump(exclude_unset=True)
 
@@ -303,37 +307,43 @@ class PipelinesService:
 
         # Update each property of the pipeline
         for key, value in pipeline_data.items():
+            # TO BE REMOVED WHEN UPDATING ROUTINE IS FIXED
+            if key == "steps":
+                continue
             setattr(current_pipeline, key, value)
 
+        # Save the updated pipeline
+        self.session.add(current_pipeline)
+        self.session.flush()
+        self.session.refresh(current_pipeline)
+
         # Create new pipeline steps for the updated pipeline
-        pipeline_steps = []
-        for pipeline_step in pipeline.steps:
-
-            service = self.services_service.find_one_by_slug(pipeline_step.service_slug)
-            if not service:
-                raise NotFoundException(f"Service with slug '{pipeline_step.service_slug}' not found.")
-
-            new_pipeline_step = PipelineStep(
-                pipeline_id=pipeline_id,
-                identifier=pipeline_step.identifier,
-                needs=pipeline_step.needs,
-                condition=pipeline_step.condition,
-                inputs=pipeline_step.inputs,
-                service_id=service.id,
-            )
-            pipeline_step_create = PipelineStep.model_validate(new_pipeline_step)
-            self.session.add(new_pipeline_step)
-            pipeline_steps.append(pipeline_step_create)
-
-        current_pipeline.steps = pipeline_steps
-
-        # Remove the existing pipeline steps from the pipeline
-        for current_pipeline_step in current_pipeline_steps:
-            self.session.delete(current_pipeline_step)
+        # for step in pipeline.steps:
+        #
+        #     service = self.services_service.find_one_by_slug(step.service_slug)
+        #     if not service:
+        #         self.session.rollback()
+        #         raise NotFoundException(f"Service with slug '{step.service_slug}' not found.")
+        #
+        #     new_pipeline_step = PipelineStep(
+        #         identifier=step.identifier,
+        #         needs=step.needs,
+        #         condition=step.condition,
+        #         inputs=step.inputs,
+        #         pipeline=pipeline,
+        #         service=service,
+        #     )
+        #     pipeline_step = PipelineStep.model_validate(new_pipeline_step)
+        #     self.session.add(pipeline_step)
+        #     self.session.flush()
+        # self.session.refresh(current_pipeline)
 
         # Check if pipeline is consistent
-        if not self.check_pipeline_consistency(current_pipeline):
-            raise InconsistentPipelineException("Pipeline is not consistent")
+        try:
+            self.check_pipeline_consistency(current_pipeline)
+        except InconsistentPipelineException as e:
+            self.session.rollback()
+            raise e
 
         # Update the pipeline execution tasks to archive them
         pipeline_executions = self.session.exec(
@@ -356,10 +366,7 @@ class PipelinesService:
             self.logger.debug(f"Deleting pipeline_execution {pipeline_execution.id}")
             self.pipeline_executions_service.delete(pipeline_execution.id)
 
-        # Save the updated pipeline
-        self.session.add(current_pipeline)
         self.session.commit()
-        self.session.refresh(current_pipeline)
 
         # Update OpenAPI route
         self.remove_route(app, old_pipeline_slug)

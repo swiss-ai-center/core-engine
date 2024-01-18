@@ -1,0 +1,228 @@
+# Documentation: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsuses
+name: core_engine_backend_github_workflow
+run-name: Core Engine Backend GitHub Workflow
+
+env:
+  ## Common environment variables
+  # Sentry DSN for error reporting
+  GLITCHTIP_SENTRY_DSN: ${{ secrets.GLITCHTIP_SENTRY_DSN }}
+
+  ## Development environment variables
+  # The URLs of the Core Engine to which the services should connect
+  DEV_HOST: ${{ vars.DEV_HOST }}
+  # Logging level
+  DEV_LOG_LEVEL: ${{ vars.DEV_LOG_LEVEL }}
+  # Database URL to connect to
+  DEV_DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
+  # S3 access key ID
+  DEV_S3_ACCESS_KEY_ID: ${{ secrets.DEV_S3_ACCESS_KEY_ID }}
+  # S3 secret access key
+  DEV_S3_SECRET_ACCESS_KEY: ${{ secrets.DEV_S3_SECRET_ACCESS_KEY }}
+  # S3 host
+  DEV_S3_HOST: ${{ secrets.DEV_S3_HOST }}
+  # S3 region
+  DEV_S3_REGION: ${{ vars.DEV_S3_REGION }}
+  # S3 bucket
+  DEV_S3_BUCKET: ${{ vars.DEV_S3_BUCKET }}
+  # Kube configuration
+  DEV_KUBE_CONFIG: ${{ secrets.DEV_KUBE_CONFIG }}
+
+  ## Production environment variables
+  # The URLs of the Core Engine to which the services should connect
+  PROD_HOST: ${{ vars.PROD_HOST }}
+  # Logging level
+  PROD_LOG_LEVEL: ${{ vars.PROD_LOG_LEVEL }}
+  # Database URL to connect to
+  PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+  # S3 access key ID
+  PROD_S3_ACCESS_KEY_ID: ${{ secrets.PROD_S3_ACCESS_KEY_ID }}
+  # S3 secret access key
+  PROD_S3_SECRET_ACCESS_KEY: ${{ secrets.PROD_S3_SECRET_ACCESS_KEY }}
+  # S3 host
+  PROD_S3_HOST: ${{ secrets.PROD_S3_HOST }}
+  # S3 region
+  PROD_S3_REGION: ${{ vars.PROD_S3_REGION }}
+  # S3 bucket
+  PROD_S3_BUCKET: ${{ vars.PROD_S3_BUCKET }}
+  # Kube configuration
+  PROD_KUBE_CONFIG: ${{ secrets.PROD_KUBE_CONFIG }}
+
+# Allow one concurrent deployment
+concurrency:
+  group: "core-engine-backend"
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - main
+      - prod
+    paths:
+      - .github/workflows/core-engine-backend.yml
+      - backend/**/*
+
+  pull_request:
+    paths:
+      - .github/workflows/core-engine-backend.yml
+      - backend/**/*
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    if: ${{ vars.RUN_CICD == 'true' }}
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Lint Python app
+        uses: swiss-ai-center/common-code/.github/actions/lint-python-app@main
+        with:
+          python-app-path: ./backend
+
+  test:
+    needs: review
+    runs-on: ubuntu-latest
+    if: ${{ vars.RUN_CICD == 'true' }}
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Test Python app
+        uses: swiss-ai-center/common-code/.github/actions/test-python-app@main
+        with:
+          python-app-path: ./backend
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    if: ${{ vars.RUN_CICD == 'true' && success() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod') && (vars.DEPLOY_DEV == 'true' || vars.DEPLOY_PROD == 'true') }}
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Build and push Docker image to GitHub
+        id: build-and-push-docker-image-to-github
+        uses: swiss-ai-center/common-code/.github/actions/build-and-push-docker-image-to-github@main
+        with:
+          docker-registry-username: ${{ github.actor }}
+          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          docker-image-name: ${{ github.repository }}-backend
+          docker-image-context: ./backend
+    outputs:
+      docker-image-tags: ${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }}
+
+  deploy-dev:
+    needs: release
+    runs-on: ubuntu-latest
+    if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_DEV == 'true' }}
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Get service Docker image SHA tag
+        shell: bash
+        run: |
+          docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          echo "SERVICE_DOCKER_IMAGE_SHA_TAG=$docker_image_sha_tag" >> "$GITHUB_ENV"
+
+      - name: Prepare configuration files
+        shell: bash
+        working-directory: backend/kubernetes
+        env:
+          HOST: ${{ env.DEV_HOST }}
+          ENVIRONMENT: development
+          LOG_LEVEL: ${{ env.DEV_LOG_LEVEL }}
+          DATABASE_URL: ${{ env.DEV_DATABASE_URL }}
+          DATABASE_CONNECT_ARGS: '"{}"'
+          S3_ACCESS_KEY_ID: ${{ env.DEV_S3_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ env.DEV_S3_SECRET_ACCESS_KEY }}
+          S3_HOST: ${{ env.DEV_S3_HOST }}
+          S3_REGION: ${{ env.DEV_S3_REGION }}
+          S3_BUCKET: ${{ env.DEV_S3_BUCKET }}
+          SENTRY_DSN: ${{ env.GLITCHTIP_SENTRY_DSN }}
+        run: |
+          # Set core engine backend version
+          docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" core-engine-backend.stateful.yml > new-core-engine-backend.stateful.yml && mv new-core-engine-backend.stateful.yml core-engine-backend.stateful.yml
+
+          # Set core engine backend configuration (ConfigMap)
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' core-engine-backend.config-map.yml | envsubst > new-core-engine-backend.config-map.yml && mv new-core-engine-backend.config-map.yml core-engine-backend.config-map.yml
+
+          # Set core engine backend configuration (Ingress)
+          yq ".spec.rules[0].host = \"${HOST#*://}\"" core-engine-backend.ingress.yml > new-core-engine-backend.ingress.yml && mv new-core-engine-backend.ingress.yml core-engine-backend.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${HOST#*://}\"" core-engine-backend.ingress.yml > new-core-engine-backend.ingress.yml && mv new-core-engine-backend.ingress.yml core-engine-backend.ingress.yml
+
+      - name: Deploy service on the Kubernetes cluster
+        uses: swiss-ai-center/common-code/.github/actions/execute-command-on-kubernetes-cluster@main
+        with:
+          kube-config: ${{ env.DEV_KUBE_CONFIG }}
+          kube-namespace: ${{ env.DEV_NAMESPACE }}
+          kubectl-context: ./kubernetes
+          kubectl-args: |
+            apply \
+              -f config-map.yml \
+              -f stateful.yml \
+              -f service.yml \
+              -f ingress.yml
+
+  deploy-prod:
+    needs: release
+    runs-on: ubuntu-latest
+    if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_DEV == 'true' }}
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Get service Docker image SHA tag
+        shell: bash
+        run: |
+          docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          echo "SERVICE_DOCKER_IMAGE_SHA_TAG=$docker_image_sha_tag" >> "$GITHUB_ENV"
+
+      - name: Prepare configuration files
+        shell: bash
+        working-directory: backend/kubernetes
+        env:
+          HOST: ${{ env.PROD_HOST }}
+          ENVIRONMENT: production
+          LOG_LEVEL: ${{ env.PROD_LOG_LEVEL }}
+          DATABASE_URL: ${{ env.PROD_DATABASE_URL }}
+          DATABASE_CONNECT_ARGS: '"{}"'
+          S3_ACCESS_KEY_ID: ${{ env.PROD_S3_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ env.PROD_S3_SECRET_ACCESS_KEY }}
+          S3_HOST: ${{ env.PROD_S3_HOST }}
+          S3_REGION: ${{ env.PROD_S3_REGION }}
+          S3_BUCKET: ${{ env.PROD_S3_BUCKET }}
+          SENTRY_DSN: ${{ env.GLITCHTIP_SENTRY_DSN }}
+        run: |
+          # Set Backend version
+          docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" backend.stateful.yml > new-backend.stateful.yml && mv new-backend.stateful.yml backend.stateful.yml
+
+          # Set Backend configuration (ConfigMap)
+          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' backend.config-map.yml | envsubst > new-backend.config-map.yml && mv new-backend.config-map.yml backend.config-map.yml
+
+          # Set Backend configuration (Ingress)
+          yq ".spec.rules[0].host = \"${HOST#*://}\"" backend.ingress.yml > new-backend.ingress.yml && mv new-backend.ingress.yml backend.ingress.yml
+          yq ".spec.tls[0].hosts[0] = \"${HOST#*://}\"" backend.ingress.yml > new-backend.ingress.yml && mv new-backend.ingress.yml backend.ingress.yml
+
+      - name: Deploy service on the Kubernetes cluster
+        uses: swiss-ai-center/common-code/.github/actions/execute-command-on-kubernetes-cluster@main
+        with:
+          kube-config: ${{ env.PROD_KUBE_CONFIG }}
+          kube-namespace: ${{ env.PROD_NAMESPACE }}
+          kubectl-context: ./kubernetes
+          kubectl-args: |
+            apply \
+              -f config-map.yml \
+              -f stateful.yml \
+              -f service.yml \
+              -f ingress.yml

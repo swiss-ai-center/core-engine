@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: backend-config
+  name: core-engine-backend-config
   labels:
-    app: backend
+    app: core-engine-backend
 data:
   HOST: http://localhost:8080
   ENVIRONMENT: development
@@ -14,5 +14,5 @@ data:
   S3_SECRET_ACCESS_KEY: minio123
   S3_REGION: eu-central-2
   S3_HOST: http://minio-service:9000
-  S3_BUCKET: backend
+  S3_BUCKET: core-engine-
   SENTRY_DSN: ""
