@@ -19,7 +19,7 @@ env:
   # S3 secret access key
   DEV_S3_SECRET_ACCESS_KEY: ${{ secrets.DEV_S3_SECRET_ACCESS_KEY }}
   # S3 host
-  DEV_S3_HOST: ${{ vars.DEV_S3_HOST }}
+  DEV_S3_HOST: ${{ secrets.DEV_S3_HOST }}
   # S3 region
   DEV_S3_REGION: ${{ vars.DEV_S3_REGION }}
   # S3 bucket
@@ -39,7 +39,7 @@ env:
   # S3 secret access key
   PROD_S3_SECRET_ACCESS_KEY: ${{ secrets.PROD_S3_SECRET_ACCESS_KEY }}
   # S3 host
-  PROD_S3_HOST: ${{ vars.PROD_S3_HOST }}
+  PROD_S3_HOST: ${{ secrets.PROD_S3_HOST }}
   # S3 region
   PROD_S3_REGION: ${{ vars.PROD_S3_REGION }}
   # S3 bucket
