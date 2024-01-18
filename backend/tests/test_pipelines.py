@@ -255,18 +255,18 @@
 #     response = client.get("/pipelines/bad_id")
 #
 #     assert response.status_code == 422
-#     assert response.json()["detail"][0]["type"] == "type_error.uuid"
+#     assert response.json()["detail"][0]["type"] == "uuid_parsing"
 #
 #
 # def test_delete_pipeline_non_processable(client: TestClient):
 #     response = client.delete("/pipelines/bad_id")
 #
 #     assert response.status_code == 422
-#     assert response.json()["detail"][0]["type"] == "type_error.uuid"
+#     assert response.json()["detail"][0]["type"] == "uuid_parsing"
 #
 #
 # def test_patch_pipeline_non_processable(client: TestClient):
 #     response = client.patch("/pipelines/bad_id", json={"status": "running"})
 #
 #     assert response.status_code == 422
-#     assert response.json()["detail"][0]["type"] == "type_error.uuid"
+#     assert response.json()["detail"][0]["type"] == "uuid_parsing"

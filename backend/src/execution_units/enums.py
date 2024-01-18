@@ -7,7 +7,7 @@ class ExecutionUnitStatus(Enum):
     DISABLED = "disabled"
 
 
-class ExecutionUnitType(Enum):
-    PIPELINE = "pipeline"
-    SERVICE = "service"
-    EXECUTION_UNIT = "execution_unit"
+# class ExecutionUnitType(Enum):
+#     PIPELINE = "pipeline"
+#     SERVICE = "service"
+#     EXECUTION_UNIT = "execution_unit"

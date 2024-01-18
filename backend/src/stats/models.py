@@ -1,6 +1,6 @@
 from typing import List
 from uuid import UUID
-
+from tasks.models import TaskStatus
 from pydantic import BaseModel
 
 
@@ -8,7 +8,6 @@ class StatusCount(BaseModel):
     """
     Status count
     """
-    from tasks.models import TaskStatus
 
     status: TaskStatus
     count: int

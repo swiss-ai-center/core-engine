@@ -59,7 +59,7 @@ def create(
     pipeline_steps_service: PipelineStepsService = Depends(),
 ):
     try:
-        pipeline_step_create = PipelineStep.from_orm(pipeline_step)
+        pipeline_step_create = PipelineStep.model_validate(pipeline_step)
         pipeline_step = pipeline_steps_service.create(pipeline_step_create)
     except UnprocessableEntityException as e:
         raise HTTPException(status_code=422, detail=str(e))

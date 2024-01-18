@@ -92,7 +92,7 @@ class PipelineExecutionsService:
             if current_pipeline_step not in pipeline.steps:
                 raise UnprocessableEntityException("Pipeline step not part of the pipeline")
 
-        pipeline_execution_data = pipeline_execution.dict(exclude_unset=True)
+        pipeline_execution_data = pipeline_execution.model_dump(exclude_unset=True)
         self.logger.debug(f"Updating pipeline execution {pipeline_execution_id} with data: {pipeline_execution_data}")
         for key, value in pipeline_execution_data.items():
             setattr(current_pipeline_execution, key, value)

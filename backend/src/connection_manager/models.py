@@ -2,6 +2,7 @@ from enum import Enum
 from uuid import UUID
 from pydantic import BaseModel
 from fastapi import WebSocket
+from pydantic_settings import SettingsConfigDict
 
 
 class ExecutionType(str, Enum):
@@ -16,20 +17,19 @@ class Connection(BaseModel):
     """
     Connection is used to store the WebSocket connection, the linked_id and the execution_type.
     """
-    websocket: WebSocket | None
-    linked_id: UUID | None
-    execution_type: ExecutionType | None
+    model_config = SettingsConfigDict(arbitrary_types_allowed=True)
 
-    class Config:
-        arbitrary_types_allowed = True
+    websocket: WebSocket | None = None
+    linked_id: UUID | None = None
+    execution_type: ExecutionType | None = None
 
 
 class ConnectionData(BaseModel):
     """
     ConnectionData is used to store the linked_id and the execution_type when sending a message to the client.
     """
-    linked_id: UUID | None
-    execution_type: ExecutionType | None
+    linked_id: UUID | None = None
+    execution_type: ExecutionType | None = None
 
 
 class MessageType(str, Enum):
@@ -63,20 +63,18 @@ class Message(BaseModel):
     """
     Message is used to store the message, the type and the subject when sending a message to the client.
     """
+    model_config = SettingsConfigDict(arbitrary_types_allowed=True)
+
     message: MessageData
     type: MessageType
     subject: MessageSubject
-
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class MessageToSend(BaseModel):
     """
     MessageToSend is used to store the message and the linked_id in a queue to retry sending the message.
     """
+    model_config = SettingsConfigDict(arbitrary_types_allowed=True)
+
     message: Message
     linked_id: UUID
-
-    class Config:
-        arbitrary_types_allowed = True

@@ -89,7 +89,7 @@ async def create(
         services_service: ServicesService = Depends(),
 ):
     try:
-        service_create = Service.from_orm(service)
+        service_create = Service.model_validate(service)
         service = await services_service.create(service_create, request.app)
 
         return service

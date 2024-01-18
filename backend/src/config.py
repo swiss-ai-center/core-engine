@@ -1,6 +1,6 @@
 from enum import Enum
 from functools import lru_cache
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Environment(str, Enum):
@@ -18,11 +18,13 @@ class LogLevel(str, Enum):
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=("../.env", ".env"), extra="ignore")
+
     host: str = "http://localhost:8080"
     environment: Environment = Environment.PRODUCTION
     log_level: LogLevel = LogLevel.INFO
     database_url: str = "sqlite:///../core-engine.db"
-    database_connect_args: dict[str, bool | str | int] = {"check_same_thread": False}
+    database_connect_args: dict[str, bool | str | int] = {}
     s3_access_key_id: str
     s3_secret_access_key: str
     s3_region: str = "eu-central-2"
@@ -30,9 +32,6 @@ class Settings(BaseSettings):
     s3_bucket: str
     check_services_availability_interval: int = 30
     sentry_dsn: str
-
-    class Config:
-        env_file = ".env", "../.env"
 
 
 @lru_cache()
