@@ -66,7 +66,7 @@ jobs:
       - name: Deploy Glitchtip on the Kubernetes cluster
         uses: swiss-ai-center/common-code/.github/actions/execute-command-on-kubernetes-cluster@main
         with:
-          kube-config: ${{ secrets.KUBE_CONFIG_DEV }}
+          kube-config: ${{ env.DEV_KUBE_CONFIG }}
           kube-namespace: swiss-ai-center-dev
           kubectl-context: ./backend/kubernetes
           kubectl-args: |

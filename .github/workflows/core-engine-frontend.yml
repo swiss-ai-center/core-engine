@@ -95,7 +95,7 @@ jobs:
           # Set frontend version
           docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
-          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" frontend.stateful.yml > new-frontend.stateful.yml && mv new-frontend.stateful.yml frontend.stateful.yml
+          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" core-engine-frontend.stateful.yml > new-core-engine-frontend.stateful.yml && mv new-core-engine-frontend.stateful.yml core-engine-frontend.stateful.yml
 
       - name: Deploy Frontend on the Kubernetes cluster (dev)
         if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_DEV == 'true' }}
