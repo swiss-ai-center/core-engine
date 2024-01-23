@@ -539,7 +539,7 @@ class ServicesService:
                     self.logger.warning(f"Service {service.name} ({service.slug}) did not return an OK: {str(e)}")
                     self.disable_service(app, service)
                 except UnreachableException as e:
-                    self.logger.error(f"Service {service.name} ({service.slug}) unreachable: {str(e)}")
+                    self.logger.warning(f"Service {service.name} ({service.slug}) unreachable: {str(e)}")
                     self.disable_service(app, service)
                 else:
                     self.logger.info(f"Service {service.name} ({service.slug}) reachable and OK")
