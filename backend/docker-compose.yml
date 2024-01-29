@@ -7,7 +7,7 @@ services:
     command: |
       bash -c "
         # Create the virtual environment
-        python3.11 -m venv .venv &&
+        python3.10 -m venv .venv &&
         # Activate the virtual environment
         source .venv/bin/activate &&
         # Install the dependencies
