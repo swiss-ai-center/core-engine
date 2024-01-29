@@ -1,21 +1,41 @@
-networks:
-  db:
-    name: db
-  minio:
-    name: minio
-
 services:
+  backend:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: development.Dockerfile
+    command: |
+      bash -c "
+        # Create the virtual environment
+        python3.11 -m venv .venv &&
+        # Activate the virtual environment
+        source .venv/bin/activate &&
+        # Install the dependencies
+        pip install -r requirements.txt -r requirements-all.txt &&
+        # Run the backend
+        cd src &&
+        uvicorn --reload --host 0.0.0.0 --port 8080 main:app
+      "
+    depends_on:
+      - db
+      - mc
+    environment:
+      - HOST=http://host.docker.internal:8080
+      - S3_HOST=http://host.docker.internal:9000
+    ports:
+      - 8080:8080
+    working_dir: /workspaces/core-engine-backend
+    volumes:
+      - .:/workspaces/core-engine-backend
+
   db:
     container_name: db
     image: postgres:15.2-alpine
     command: postgres -c 'max_connections=1000'
-    restart: unless-stopped
     environment:
       - POSTGRES_DB=swiss-ai-center
       - POSTGRES_USER=swiss-ai-center
       - POSTGRES_PASSWORD=swiss-ai-center
-    networks:
-      - db
     ports:
       - 5432:5432
     volumes:
@@ -24,11 +44,8 @@ services:
   minio:
     container_name: minio
     image: quay.io/minio/minio:${MINIO_IMAGE_VERSION:-latest}
-    restart: unless-stopped
     environment:
-      # The MinIO root user
       - MINIO_ROOT_USER=minio
-      # The MinIO root password
       - MINIO_ROOT_PASSWORD=minio123
     command: server --address ":9000" --console-address ":9001" /data
     healthcheck:
@@ -36,8 +53,6 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-    networks:
-      - minio
     ports:
       - 9000:9000
       - 9001:9001
@@ -50,12 +65,8 @@ services:
     depends_on:
       - minio
     environment:
-      # The MinIO root user
       - MINIO_ROOT_USER=minio
-      # The MinIO root password
       - MINIO_ROOT_PASSWORD=minio123
-    networks:
-      - minio
     entrypoint: >
       sh -c "
         mc config host rm local;
