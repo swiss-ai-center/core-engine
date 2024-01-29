@@ -174,14 +174,16 @@ class TasksService:
         """
         self.logger.debug("Get task status from service")
         status = await self.http_client.get(f"{task.service.url}/tasks/{task.id}/status")
-        self.logger.debug(f"Got status {status} from service {task.service.url}")
-        task.status = status
+        status = json.loads(status.content.decode("utf-8"))
+
+        task.status = status["status"]
+        self.logger.debug(f"Got status {task.status} from service {task.service.url}")
 
         self.session.add(task)
         self.session.commit()
         self.session.refresh(task)
 
-        return task
+        return task.status
 
     async def update(self, task_id: UUID, task: TaskUpdate):
         """

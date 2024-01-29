@@ -1,6 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from common.exceptions import NotFoundException
+from tasks.enums import TaskStatus
 from tasks.service import TasksService
 from common.query_parameters import QueryParameters
 from tasks.models import TaskRead, TaskUpdate, TaskCreate, Task, TaskReadWithServiceAndPipeline
@@ -39,7 +40,7 @@ def get_one(
         400: {"detail": "Bad Request"},
         500: {"detail": "Internal Server Error"},
     },
-    response_model=TaskReadWithServiceAndPipeline,
+    response_model=TaskStatus,
 )
 async def get_one_status(
         task_id: UUID,
@@ -53,7 +54,7 @@ async def get_one_status(
         if task.status == "pending":
             task = await tasks_service.get_status_from_service(task)
 
-    return task
+    return task.status
 
 
 @router.get(
