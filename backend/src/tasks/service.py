@@ -183,7 +183,7 @@ class TasksService:
         self.session.commit()
         self.session.refresh(task)
 
-        return task.status
+        return task
 
     async def update(self, task_id: UUID, task: TaskUpdate):
         """
