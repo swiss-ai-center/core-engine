@@ -1,0 +1,21 @@
+services:
+  frontend:
+    container_name: frontend
+    build:
+      context: .
+      dockerfile: development.Dockerfile
+    command: |
+      bash -c "
+        # Install the dependencies
+        npm install &&
+        # Run the frontend
+        npm run start --host 0.0.0.0
+      "
+    # environment:
+    #   - HOST=http://backend:8080
+    #   - S3_HOST=http://minio:9000
+    ports:
+      - 3000:3000
+    working_dir: /workspaces/core-engine-frontend
+    volumes:
+      - .:/workspaces/core-engine-frontend
