@@ -34,6 +34,27 @@ def get_one(
 
 
 @router.get(
+    "/pipelines/slug/{pipeline_slug}",
+    summary="Get one pipeline by slug",
+    responses={
+        404: {"detail": "Pipeline Not Found"},
+        400: {"detail": "Bad Request"},
+        500: {"detail": "Internal Server Error"},
+    },
+    response_model=PipelineReadWithPipelineStepsAndTasks,
+)
+def get_one_by_slug(
+        pipeline_slug: str,
+        pipelines_service: PipelinesService = Depends()
+):
+    pipeline = pipelines_service.find_one_by_slug(pipeline_slug)
+    if not pipeline:
+        raise HTTPException(status_code=404, detail="Pipeline Not Found")
+
+    return pipeline
+
+
+@router.get(
     "/pipelines",
     summary="Get many pipelines",
     response_model=PipelinesWithCount | List[PipelineRead],

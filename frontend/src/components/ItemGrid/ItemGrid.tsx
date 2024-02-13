@@ -301,7 +301,7 @@ const ItemGrid: React.FC<{
                                         </CardContent>
                                         <CardActions sx={{p: 2}}>
                                             <Link
-                                                to={"/showcase/service/" + item.id}>
+                                                to={"/showcase/service/" + item.slug}>
                                                 <Button size={"small"} variant={"contained"}>View</Button>
                                             </Link>
                                         </CardActions>
@@ -370,7 +370,7 @@ const ItemGrid: React.FC<{
                                         </CardContent>
                                         <CardActions sx={{p: 2}}>
                                             <Link
-                                                to={"/showcase/pipeline/" + item.id}
+                                                to={"/showcase/pipeline/" + item.slug}
                                                 state={{back: searchParams.toString()}}
                                             >
                                                 <Button size={"small"} variant={"contained"}>View</Button>

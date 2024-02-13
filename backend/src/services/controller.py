@@ -33,6 +33,27 @@ def get_one(
 
 
 @router.get(
+    "/services/slug/{service_slug}",
+    summary="Get one service by slug",
+    responses={
+        404: {"detail": "Service Not Found"},
+        400: {"detail": "Bad Request"},
+        500: {"detail": "Internal Server Error"},
+    },
+    response_model=ServiceRead,
+)
+def get_one_by_slug(
+        service_slug: str,
+        services_service: ServicesService = Depends()
+):
+    service = services_service.find_one_by_slug(service_slug)
+    if not service:
+        raise HTTPException(status_code=404, detail="Service Not Found")
+
+    return service
+
+
+@router.get(
     "/services",
     summary="Get many services",
     response_model=ServicesWithCount | List[ServiceRead],

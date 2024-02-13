@@ -138,7 +138,7 @@ function App() {
             <EngineStats trigger={open} onClose={handleCloseStats}/>
             <Router>
                 <Routes>
-                    <Route path={"/showcase/:type/:id"} element={<Showcase mobileOpen={mobileOpen}/>}/>
+                    <Route path={"/showcase/:type/:slug"} element={<Showcase mobileOpen={mobileOpen}/>}/>
                     <Route path={"*"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
                 </Routes>
             </Router>

@@ -32,18 +32,18 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
         navigate(-1);
     }
 
-    const getDescription = async (id: string, type: string) => {
+    const getDescription = async (slug: string, type: string) => {
         setIsReady(false);
-        if (!id || !type) {
-            toast("No id or type provided", {type: "warning"});
+        if (!slug || !type) {
+            toast("No slug or type provided", {type: "warning"});
             navigateBack();
         }
         let desc = {};
         try {
             if (type === 'service') {
-                desc = await getServiceDescription(id);
+                desc = await getServiceDescription(slug);
             } else {
-                desc = await getPipelineDescription(id);
+                desc = await getPipelineDescription(slug);
             }
             if (desc) {
                 if ((desc as any).status === 'available') {
@@ -53,20 +53,20 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
                     navigateBack();
                 }
             } else {
-                toast("No description found with this id", {type: "warning"});
+                toast("No description found with this slug", {type: "warning"});
                 navigateBack();
             }
             setIsReady(true);
         } catch (e: any) {
-            toast("No description found with this id", {type: "warning"});
+            toast("No description found with this slug", {type: "warning"});
             navigateBack();
         }
     }
 
     React.useEffect(() => {
-        const id = params.id as string;
+        const slug = params.slug as string;
         const type = params.type as string;
-        getDescription(id, type);
+        getDescription(slug, type);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
