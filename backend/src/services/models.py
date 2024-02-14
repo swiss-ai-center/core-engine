@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from uuid import UUID, uuid4
 from pydantic import BaseModel, AnyHttpUrl
 from sqlmodel import SQLModel, Relationship, Field, Column, JSON, String
@@ -30,6 +30,7 @@ class ServiceBase(CoreModel):
     )
     tags: List[ExecutionUnitTag] | None = Field(sa_column=Column(JSON), default=None)
     url: AnyHttpUrl = Field(sa_column=Column(String))
+    docs_url: Optional[AnyHttpUrl] = Field(sa_column=Column(String))
     has_ai: bool | None = Field(default=False, nullable=True)
 
 
@@ -86,6 +87,7 @@ class ServiceUpdate(SQLModel):
     name: str | None = None
     slug: str | None = None
     url: AnyHttpUrl | None = None
+    docs_url: AnyHttpUrl = None
     summary: str | None = None
     description: str | None = None
     status: ExecutionUnitStatus | None = None

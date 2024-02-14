@@ -66,7 +66,7 @@ const ItemGrid: React.FC<{
             if (servicesList.services.length === 0) {
                 setServices([]);
                 setServiceCount(0);
-                toast("No services found", {type: "info"});
+                toast("No service found", {type: "info"});
             } else {
                 setServices(servicesList.services);
                 setServiceCount(servicesList.count);
@@ -85,7 +85,7 @@ const ItemGrid: React.FC<{
             if (pipelinesList.pipelines.length === 0) {
                 setPipelines([]);
                 setPipelineCount(0);
-                toast("No pipelines found", {type: "info"});
+                toast("No pipeline found", {type: "info"});
             } else {
                 setPipelines(pipelinesList.pipelines);
                 setPipelineCount(pipelinesList.count);

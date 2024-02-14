@@ -10,7 +10,7 @@ import {
 import { useParams } from 'react-router-dom';
 import Board from '../../components/Board/Board';
 import { getPipelineDescription, getServiceDescription } from '../../utils/api';
-import { OpenInNew, ArrowBack, ArrowUpward } from '@mui/icons-material';
+import { DescriptionTwoTone, ApiRounded, ArrowBack, ArrowUpward } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import Copyright from '../../components/Copyright/Copyright';
 import { InformationDrawer } from '../../components/InformationDrawer/InformationDrawer';
@@ -91,10 +91,17 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
                                 </Grid>
                                 {params.type as string === "service" ? (
                                     <Grid item>
-                                        <URLLink href={description.url}>
+                                        {description.docs_url ? (
+                                            <URLLink href={description.docs_url} target={"_blank"} sx={{paddingRight: 1}}>
+                                                <Button color={"secondary"} variant={"outlined"}
+                                                        startIcon={<DescriptionTwoTone/>}>
+                                                    Docs
+                                                </Button>
+                                            </URLLink>) : <></>}
+                                        <URLLink href={description.url} target={"_blank"}>
                                             <Button color={"secondary"} variant={"outlined"}
-                                                    startIcon={<OpenInNew/>}>
-                                                OpenAPI Specification
+                                                    startIcon={<ApiRounded/>}>
+                                                API
                                             </Button>
                                         </URLLink>
                                     </Grid>) : <></>
