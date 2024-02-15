@@ -97,13 +97,13 @@ export const getPipelines = async (filter: string, skip: number, limit: number, 
     }
 }
 
-export const getServiceDescription = async (id: string) => {
+export const getServiceDescription = async (slug: string) => {
     /*
      * Function to fetch a service description from the engine
-     * id: string - the id of the service
+     * slug: string - the slug of the service
      */
     try {
-        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + id, {headers: HEADERS});
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/slug/` + slug, {headers: HEADERS});
         if (response.status === 200) {
             return await response.json();
         }
@@ -113,13 +113,13 @@ export const getServiceDescription = async (id: string) => {
     }
 }
 
-export const getPipelineDescription = async (id: string) => {
+export const getPipelineDescription = async (slug: string) => {
     /*
      * Function to fetch a pipeline description from the engine
-     * id: string - the id of the pipeline
+     * slug: string - the slug of the pipeline
      */
     try {
-        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines/` + id, {headers: HEADERS});
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines/slug/` + slug, {headers: HEADERS});
         if (response.status === 200) {
             return await response.json();
         }

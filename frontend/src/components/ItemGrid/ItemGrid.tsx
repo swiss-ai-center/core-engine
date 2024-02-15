@@ -229,7 +229,7 @@ const ItemGrid: React.FC<{
     return (
         <>
             <Typography gutterBottom variant={"h4"} component={"h2"}>
-                Services <Chip label={isReady ? serviceCount : 100} variant={"outlined"} color={"secondary"}
+                Services <Chip label={isReady ? serviceCount : 0} variant={"outlined"} color={"secondary"}
                                size={"small"} style={{marginTop: "-2px"}}/>
             </Typography>
             {(isReady && services.length > 0) || !isReady ? servicePagination() : <></>}
@@ -313,7 +313,7 @@ const ItemGrid: React.FC<{
                                         </CardContent>
                                         <CardActions sx={{p: 2}}>
                                             <Link
-                                                to={"/showcase/service/" + item.id}>
+                                                to={"/showcase/service/" + item.slug}>
                                                 <Button size={"small"} variant={"contained"}>View</Button>
                                             </Link>
                                         </CardActions>
@@ -383,7 +383,7 @@ const ItemGrid: React.FC<{
                                         </CardContent>
                                         <CardActions sx={{p: 2}}>
                                             <Link
-                                                to={"/showcase/pipeline/" + item.id}
+                                                to={"/showcase/pipeline/" + item.slug}
                                                 state={{back: searchParams.toString()}}
                                             >
                                                 <Button size={"small"} variant={"contained"}>View</Button>

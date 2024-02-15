@@ -84,7 +84,7 @@ class PipelinesService:
             Pipeline.status == ExecutionUnitStatus.AVAILABLE,
             Pipeline.status == ExecutionUnitStatus.UNAVAILABLE,
             Pipeline.status == ExecutionUnitStatus.DISABLED,
-            )
+        )
 
         if status:
             filter_statement = Pipeline.status == status
@@ -211,6 +211,16 @@ class PipelinesService:
         self.logger.debug("Find pipeline")
 
         return self.session.get(Pipeline, pipeline_id)
+
+    def find_one_by_slug(self, pipeline_slug: str):
+        """
+        Find a pipeline by its slug.
+        :param pipeline_slug:
+        :return: The pipeline if found, None otherwise
+        """
+        self.logger.debug(f"Find pipeline with slug {pipeline_slug}")
+
+        return self.session.exec(select(Pipeline).where(Pipeline.slug == pipeline_slug)).first()
 
     def create(self, pipeline: PipelineCreate, app: FastAPI):
         """
