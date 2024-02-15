@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel
 from fastapi import WebSocket
@@ -19,17 +20,17 @@ class Connection(BaseModel):
     """
     model_config = SettingsConfigDict(arbitrary_types_allowed=True)
 
-    websocket: WebSocket | None = None
-    linked_id: UUID | None = None
-    execution_type: ExecutionType | None = None
+    websocket: Optional[WebSocket] = None
+    linked_id: Optional[UUID] = None
+    execution_type: Optional[ExecutionType] = None
 
 
 class ConnectionData(BaseModel):
     """
     ConnectionData is used to store the linked_id and the execution_type when sending a message to the client.
     """
-    linked_id: UUID | None = None
-    execution_type: ExecutionType | None = None
+    linked_id: Optional[UUID] = None
+    execution_type: Optional[ExecutionType] = None
 
 
 class MessageType(str, Enum):

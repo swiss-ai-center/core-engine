@@ -1,4 +1,4 @@
-# from typing import List
+# from typing import List, Optional
 # from sqlmodel import Field, Column, JSON
 # from common.models import CoreModel
 # from common_code.common.models import FieldDescription, ExecutionUnitTag
@@ -9,22 +9,14 @@
 #     """
 #     ExecutionUnit model
 #     """
+#     model_config = SettingsConfigDict(arbitrary_types_allowed=True)
 
-#     name: str = Field(nullable=False)
-#     slug: str = Field(nullable=False, unique=True)
-#     summary: str = Field(nullable=False)
-#     description: str | None = Field(default=None, nullable=True)
-#     status: ExecutionUnitStatus = Field(
-#         default=ExecutionUnitStatus.AVAILABLE, nullable=False
+#     name: str
+#     slug: str = Field(unique=True)
+#     summary: str
+#     description: Optional[str] = None
+#     status: ExecutionUnitStatus = ExecutionUnitStatus.AVAILABLE
 #     )
-#     data_in_fields: List[FieldDescription] | None = Field(
-#         sa_column=Column(JSON), default=None
-#     )
-#     data_out_fields: List[FieldDescription] | None = Field(
-#         sa_column=Column(JSON), default=None
-#     )
-#     tags: List[ExecutionUnitTag] | None = Field(sa_column=Column(JSON), default=None)
-
-#     # Needed for Column(JSON) to work
-#     class Config:
-#         arbitrary_types_allowed = True
+#     data_in_fields: Optional[List[FieldDescription]] = Field(sa_column=Column(JSON), default=None)
+#     data_out_fields: Optional[List[FieldDescription]] = Field(sa_column=Column(JSON), default=None)
+#     tags: Optional[List[ExecutionUnitTag]] = Field(sa_column=Column(JSON), default=None)

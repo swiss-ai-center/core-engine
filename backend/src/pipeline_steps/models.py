@@ -1,5 +1,5 @@
 import re
-from typing import List
+from typing import List, Optional
 from sqlmodel import Field, Relationship, Column, JSON
 from common.models import CoreModel
 from uuid import UUID, uuid4
@@ -15,9 +15,9 @@ class PipelineStepBase(CoreModel):
     """
     model_config = SettingsConfigDict(arbitrary_types_allowed=True)
 
-    identifier: str = Field(nullable=False)
-    needs: List[str] | None = Field(sa_column=Column(JSON), default=None)
-    condition: str | None = Field(default=None, nullable=True)
+    identifier: str
+    needs: Optional[List[str]] = Field(sa_column=Column(JSON), default=None)
+    condition: Optional[str] = None
     inputs: List[str] = Field(sa_column=Column(JSON))
 
     @field_validator("identifier")
@@ -41,13 +41,13 @@ class PipelineStep(
     __tablename__ = "pipeline_steps"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    pipeline_id: UUID | None = Field(foreign_key="pipelines.id")
+    pipeline_id: Optional[UUID] = Field(foreign_key="pipelines.id")
     pipeline: "Pipeline" = Relationship(back_populates="steps")  # noqa F821
     pipeline_executions: List["PipelineExecution"] = Relationship(
         sa_relationship_kwargs={"cascade": "delete"},
         back_populates="current_pipeline_step",
     )  # noqa F821
-    service_id: UUID | None = Field(foreign_key="services.id")
+    service_id: Optional[UUID] = Field(foreign_key="services.id")
     service: Service = Relationship(back_populates="pipeline_steps")
 
 

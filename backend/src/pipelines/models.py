@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from uuid import UUID, uuid4
 from pydantic import BaseModel
 from sqlmodel import SQLModel, Relationship, Field, Column, JSON
@@ -16,20 +16,14 @@ class PipelineBase(CoreModel):
     """
     model_config = SettingsConfigDict(arbitrary_types_allowed=True)
 
-    name: str = Field(nullable=False)
-    slug: str = Field(nullable=False, unique=True)
-    summary: str = Field(nullable=False)
-    description: str | None = Field(default=None, nullable=True)
-    status: ExecutionUnitStatus = Field(
-        default=ExecutionUnitStatus.AVAILABLE, nullable=False
-    )
-    data_in_fields: List[FieldDescription] | None = Field(
-        sa_column=Column(JSON), default=None
-    )
-    data_out_fields: List[FieldDescription] | None = Field(
-        sa_column=Column(JSON), default=None
-    )
-    tags: List[ExecutionUnitTag] | None = Field(sa_column=Column(JSON), default=None)
+    name: str
+    slug: str = Field(unique=True)
+    summary: str
+    description: Optional[str] = None
+    status: ExecutionUnitStatus = ExecutionUnitStatus.AVAILABLE
+    data_in_fields: Optional[List[FieldDescription]] = Field(sa_column=Column(JSON), default=None)
+    data_out_fields: Optional[List[FieldDescription]] = Field(sa_column=Column(JSON), default=None)
+    tags: Optional[List[ExecutionUnitTag]] = Field(sa_column=Column(JSON), default=None)
 
 
 class Pipeline(PipelineBase, table=True):
@@ -79,11 +73,11 @@ class PipelineUpdate(SQLModel):
     Pipeline update model
     This model is used to update a pipeline
     """
-    name: str | None = None
-    summary: str | None = None
-    description: str | None = None
-    status: ExecutionUnitStatus | None = None
-    steps: List[PipelineStepCreate] | None = None
+    name: Optional[str] = None
+    summary: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[ExecutionUnitStatus] = None
+    steps: Optional[List[PipelineStepCreate]] = None
 
 
 class PipelinesWithCount(BaseModel):
