@@ -24,7 +24,10 @@ class ServiceBase(CoreModel):
     data_out_fields: Optional[List[FieldDescription]] = Field(sa_column=Column(JSON), default=None)
     tags: Optional[List[ExecutionUnitTag]] = Field(sa_column=Column(JSON), default=None)
     url: AnyHttpUrl = Field(sa_column=Column(String))
-    docs_url: Optional[AnyHttpUrl] = Field(sa_column=Column(String), default=None)
+    docs_url: Optional[AnyHttpUrl] = Field(
+        sa_column=Column(String),
+        default="https://docs.swiss-ai-center.ch/reference/core-concepts/service"
+    )
     has_ai: Optional[bool] = False
 
 
@@ -52,6 +55,7 @@ class ServiceRead(ServiceBase):
     """
 
     id: UUID
+    docs_url: str
 
 
 class ServiceReadWithTasks(ServiceRead):
