@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Optional
 from sqlmodel import Field, JSON, Column, SQLModel, Relationship
 from tasks.enums import TaskStatus
 from common.models import CoreModel
@@ -14,13 +14,11 @@ class TaskBase(CoreModel):
     """
     model_config = SettingsConfigDict(arbitrary_types_allowed=True)
 
-    data_in: List[str] | None = Field(sa_column=Column(JSON), default=None)
-    data_out: List[str] | None = Field(sa_column=Column(JSON), default=None)
-    status: TaskStatus = Field(default=TaskStatus.PENDING, nullable=False)
-    service_id: UUID = Field(nullable=False, foreign_key="services.id")
-    pipeline_execution_id: UUID | None = Field(
-        default=None, nullable=True, foreign_key="pipeline_executions.id"
-    )
+    data_in: Optional[List[str]] = Field(sa_column=Column(JSON), default=None)
+    data_out: Optional[List[str]] = Field(sa_column=Column(JSON), default=None)
+    status: TaskStatus = TaskStatus.PENDING
+    service_id: UUID = Field(foreign_key="services.id")
+    pipeline_execution_id: Optional[UUID] = Field(default=None, foreign_key="pipeline_executions.id")
 
 
 class Task(TaskBase, table=True):
@@ -33,9 +31,7 @@ class Task(TaskBase, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     service: Service = Relationship(back_populates="tasks")
-    pipeline_execution: Union["PipelineExecution", None] = Relationship(
-        back_populates="tasks"
-    )
+    pipeline_execution: Optional["PipelineExecution"] = Relationship(back_populates="tasks")
 
 
 class TaskRead(TaskBase):
@@ -54,7 +50,7 @@ class TaskReadWithServiceAndPipeline(TaskRead):
     """
 
     service: Service
-    pipeline_execution: Union["PipelineExecution", None]
+    pipeline_execution: Optional["PipelineExecution"]
 
 
 class TaskCreate(TaskBase):
@@ -73,7 +69,7 @@ class TaskUpdate(SQLModel):
     """
 
     data_out: List[str]
-    status: TaskStatus | None
+    status: Optional[TaskStatus]
 
 
 from pipeline_executions.models import PipelineExecution  # noqa: E402

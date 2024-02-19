@@ -238,8 +238,9 @@ class ServicesService:
 
         is_service_response_ok = True
 
-        # stringify the url and remove the trailing slash
+        # stringify the url and docs_url and remove the trailing slash
         service.url = str(service.url).rstrip("/")
+        service.docs_url = str(service.docs_url).rstrip("/")
 
         try:
             await self.check_if_service_is_reachable_and_ok(service)
@@ -281,6 +282,9 @@ class ServicesService:
         for key, value in service_data.items():
             if key == "url":
                 # stringify the url and remove the trailing slash
+                value = str(value).rstrip("/")
+            if key == "docs_url":
+                # stringify docs_url and remove the trailing slash
                 value = str(value).rstrip("/")
             setattr(current_service, key, value)
         self.session.add(current_service)

@@ -1,7 +1,7 @@
 from sqlmodel import Field, JSON, Column, SQLModel, Relationship
 from common.models import CoreModel
 from uuid import UUID, uuid4
-from typing import List, Union
+from typing import List, Optional
 from typing_extensions import TypedDict
 from pydantic_settings import SettingsConfigDict
 
@@ -22,12 +22,8 @@ class PipelineExecutionBase(CoreModel):
     """
     model_config = SettingsConfigDict(arbitrary_types_allowed=True)
 
-    pipeline_id: UUID | None = Field(
-        default=None, nullable=True, foreign_key="pipelines.id"
-    )
-    current_pipeline_step_id: UUID | None = Field(
-        default=None, nullable=True, foreign_key="pipeline_steps.id"
-    )
+    pipeline_id: Optional[UUID] = Field(default=None, foreign_key="pipelines.id")
+    current_pipeline_step_id: Optional[UUID] = Field(default=None, foreign_key="pipeline_steps.id")
 
 
 class PipelineExecution(PipelineExecutionBase, table=True):
@@ -40,14 +36,14 @@ class PipelineExecution(PipelineExecutionBase, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     pipeline: "Pipeline" = Relationship(back_populates="pipeline_executions")
-    current_pipeline_step: Union["PipelineStep", None] = Relationship(
+    current_pipeline_step: Optional["PipelineStep"] = Relationship(
         back_populates="pipeline_executions"
     )
     tasks: List["Task"] = Relationship(
         sa_relationship_kwargs={"cascade": "delete"},
         back_populates="pipeline_execution",
     )
-    files: List[FileKeyReference] | None = Field(sa_column=Column(JSON), default=None)
+    files: Optional[List[FileKeyReference]] = Field(sa_column=Column(JSON), default=None)
 
 
 class PipelineExecutionRead(PipelineExecutionBase):
@@ -84,8 +80,8 @@ class PipelineExecutionUpdate(SQLModel):
     This model is used to update a pipeline execution
     """
 
-    current_pipeline_step_id: UUID | None = None
-    tasks: List["Task"] | None = None
+    current_pipeline_step_id: Optional[UUID] = None
+    tasks: Optional[List["Task"]] = None
 
 
 from pipeline_steps.models import PipelineStep  # noqa E402

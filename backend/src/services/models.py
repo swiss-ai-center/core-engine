@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from uuid import UUID, uuid4
 from pydantic import BaseModel, AnyHttpUrl
 from sqlmodel import SQLModel, Relationship, Field, Column, JSON, String
@@ -15,22 +15,20 @@ class ServiceBase(CoreModel):
     """
     model_config = SettingsConfigDict(arbitrary_types_allowed=True)
 
-    name: str = Field(nullable=False)
-    slug: str = Field(nullable=False, unique=True)
-    summary: str = Field(nullable=False)
-    description: str | None = Field(default=None, nullable=True)
-    status: ExecutionUnitStatus = Field(
-        default=ExecutionUnitStatus.AVAILABLE, nullable=False
-    )
-    data_in_fields: List[FieldDescription] | None = Field(
-        sa_column=Column(JSON), default=None
-    )
-    data_out_fields: List[FieldDescription] | None = Field(
-        sa_column=Column(JSON), default=None
-    )
-    tags: List[ExecutionUnitTag] | None = Field(sa_column=Column(JSON), default=None)
+    name: str
+    slug: str = Field(unique=True)
+    summary: str
+    description: Optional[str] = None
+    status: ExecutionUnitStatus = ExecutionUnitStatus.AVAILABLE
+    data_in_fields: Optional[List[FieldDescription]] = Field(sa_column=Column(JSON), default=None)
+    data_out_fields: Optional[List[FieldDescription]] = Field(sa_column=Column(JSON), default=None)
+    tags: Optional[List[ExecutionUnitTag]] = Field(sa_column=Column(JSON), default=None)
     url: AnyHttpUrl = Field(sa_column=Column(String))
-    has_ai: bool | None = Field(default=False, nullable=True)
+    docs_url: Optional[AnyHttpUrl] = Field(
+        sa_column=Column(String),
+        default="https://docs.swiss-ai-center.ch/reference/core-concepts/service"
+    )
+    has_ai: Optional[bool] = False
 
 
 class Service(ServiceBase, table=True):
@@ -57,6 +55,7 @@ class ServiceRead(ServiceBase):
     """
 
     id: UUID
+    docs_url: str
 
 
 class ServiceReadWithTasks(ServiceRead):
@@ -83,16 +82,17 @@ class ServiceUpdate(SQLModel):
     This model is used to update a service
     """
 
-    name: str | None = None
-    slug: str | None = None
-    url: AnyHttpUrl | None = None
-    summary: str | None = None
-    description: str | None = None
-    status: ExecutionUnitStatus | None = None
-    data_in_fields: List[FieldDescription] | None = None
-    data_out_fields: List[FieldDescription] | None = None
-    tags: List[ExecutionUnitTag] | None = None
-    has_ai: bool | None = None
+    name: Optional[str] = None
+    slug: Optional[str] = None
+    url: Optional[AnyHttpUrl] = None
+    docs_url: Optional[AnyHttpUrl] = None
+    summary: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[ExecutionUnitStatus] = None
+    data_in_fields: Optional[List[FieldDescription]] = None
+    data_out_fields: Optional[List[FieldDescription]] = None
+    tags: Optional[List[ExecutionUnitTag]] = None
+    has_ai: Optional[bool] = None
 
 
 class ServiceTaskBase(BaseModel):
