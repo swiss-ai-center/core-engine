@@ -8,7 +8,7 @@ import {
     resetRunState,
     RunState, setCurrentTask,
     setGeneralStatus,
-    startTimer,
+    resetTimer,
     setTaskArray
 } from '../../utils/reducers/runStateSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -74,7 +74,7 @@ const EntryNode = ({data}: any) => {
     const launchExecution = async (serviceSlug: string) => {
         dispatch(setGeneralStatus(RunState.UPLOADING));
         const response = await postToEngine(serviceSlug, fileArray);
-        dispatch(startTimer());
+        dispatch(resetTimer());
         if (response.id) {
             if (response.tasks) {
                 dispatch(setTaskArray(response.tasks));
@@ -123,6 +123,7 @@ const EntryNode = ({data}: any) => {
 
     React.useEffect(() => {
         dispatch(resetRunState());
+        dispatch(resetTimer());
         if (data.data_in_fields) {
             setFileArray(addIsSetToFields(data.data_in_fields));
         }

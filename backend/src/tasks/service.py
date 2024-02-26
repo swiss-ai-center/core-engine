@@ -30,7 +30,6 @@ def create_message(task: Task) -> Message:
     """
     if task.status == TaskStatus.SCHEDULED or \
             task.status == TaskStatus.PENDING or \
-            task.status == TaskStatus.SKIPPED or \
             task.status == TaskStatus.ARCHIVED or \
             task.status == TaskStatus.FETCHING or \
             task.status == TaskStatus.SAVING:
@@ -46,6 +45,9 @@ def create_message(task: Task) -> Message:
     elif task.status == TaskStatus.ERROR:
         message_type = MessageType.ERROR
         message_text = f"Task for {task.service.slug} failed"
+    elif task.status == TaskStatus.SKIPPED:
+        message_type = MessageType.WARNING
+        message_text = f"Task for {task.service.slug} skipped due to condition evaluation"
     else:
         message_type = MessageType.WARNING
         message_text = f"Task for {task.service.slug} unknown status"
@@ -79,16 +81,6 @@ def set_error_state(pipeline_execution: PipelineExecution, task_id: UUID):
         if task.id == task_id:
             task.status = TaskStatus.ERROR
             break
-
-
-def skip_remaining_tasks(pipeline_execution: PipelineExecution):
-    """
-    Skip remaining tasks in the pipeline execution
-    :param pipeline_execution: The pipeline execution to skip remaining tasks for
-    """
-    for task in pipeline_execution.tasks:
-        if task.status == TaskStatus.SCHEDULED:
-            task.status = TaskStatus.SKIPPED
 
 
 def sanitize(condition: str):
@@ -264,6 +256,17 @@ class TasksService:
         self.session.delete(current_task)
         self.session.commit()
         self.logger.debug(f"Deleted task with id {current_task.id}")
+
+    def skip_remaining_tasks(self, pipeline_execution: PipelineExecution):
+        """
+        Skip remaining tasks in the pipeline execution
+        :param pipeline_execution: The pipeline execution to skip remaining tasks for
+        """
+        for task in pipeline_execution.tasks:
+            if task.status == TaskStatus.SCHEDULED:
+                task.status = TaskStatus.SKIPPED
+            self.session.add(task)
+        self.session.commit()
 
     async def launch_next_step_in_pipeline(self, task: Task):
         """
@@ -441,15 +444,20 @@ class TasksService:
                                      f"Skipping the end of pipeline.")
                     # Set the current task as SKIPPED
                     task.status = TaskStatus.SKIPPED
+                    task.data_in = task_files
                     # Update the task
                     self.session.add(task)
+                    self.session.commit()
+                    self.session.refresh(task)
                     # Send message to client
                     self.logger.debug(f"Sending task {task} to client")
                     message = create_message(task)
+                    message.message.data["general_status"] = TaskStatus.FINISHED
                     try:
                         connection = self.connection_manager.find_by_linked_id(pipeline_execution.id)
                         if connection:
                             if connection.websocket:
+                                print(message)
                                 await asyncio.ensure_future(
                                     self.connection_manager.send_json(message, pipeline_execution.id))
                             else:
@@ -466,9 +474,11 @@ class TasksService:
                             MessageToSend(message=message, linked_id=pipeline_execution.id))
                     # Set remaining tasks as SKIPPED
                     # TODO: Check if this is the right behavior
-                    skip_remaining_tasks(pipeline_execution)
+                    self.skip_remaining_tasks(pipeline_execution)
+
                     # End the pipeline execution
                     end_pipeline_execution(pipeline_execution)
+
                     should_post_task = False
 
             if should_post_task:
@@ -529,7 +539,7 @@ class TasksService:
                     set_error_state(pipeline_execution, service_task.task.id)
 
                     # Skip all remaining tasks
-                    skip_remaining_tasks(pipeline_execution)
+                    self.skip_remaining_tasks(pipeline_execution)
 
                     # End the pipeline execution
                     end_pipeline_execution(pipeline_execution)
@@ -565,7 +575,7 @@ class TasksService:
                     set_error_state(pipeline_execution, service_task.task.id)
 
                     # Skip all remaining tasks
-                    skip_remaining_tasks(pipeline_execution)
+                    self.skip_remaining_tasks(pipeline_execution)
 
                     # End the pipeline execution
                     end_pipeline_execution(pipeline_execution)

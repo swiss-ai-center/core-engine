@@ -37,7 +37,7 @@ export const runStateSlice = createSlice({
         setGeneralStatus: (state, action) => {
             state.generalStatus = action.payload;
         },
-        startTimer: (state) => {
+        resetTimer: (state) => {
             state.timer = 0.0;
         },
         incrementTimer: (state) => {
@@ -54,7 +54,7 @@ export const runStateSlice = createSlice({
 
 // Action creators are generated for each case reducer function
 export const {
-    setCurrentTask, setTaskArray, setResultIdList, setGeneralStatus, resetRunState, startTimer, incrementTimer
+    setCurrentTask, setTaskArray, setResultIdList, setGeneralStatus, resetRunState, resetTimer, incrementTimer
 } = runStateSlice.actions;
 
 export default runStateSlice.reducer;

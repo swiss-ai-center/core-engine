@@ -1,19 +1,23 @@
 import React from "react";
 import { Handle, Position } from "react-flow-renderer";
-import { Button, Card, CardActions, CardContent, Link as URLLink, Tooltip, Typography } from '@mui/material';
-import { DownloadForOfflineTwoTone } from '@mui/icons-material';
+import { Box, Button, Card, CardActions, CardContent, Link as URLLink, Tooltip, Typography } from '@mui/material';
+import { DownloadForOfflineTwoTone, ErrorTwoTone } from '@mui/icons-material';
 import { RunState } from '../../utils/reducers/runStateSlice';
 import { useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
 import { download } from '../../utils/functions';
+import "./styles.css";
 
 
 const ProgressNode = ({data}: any) => {
     const lightgrey = grey[400];
+    const mediumgrey = grey[500];
     const darkgrey = grey[800];
     const colorMode = useSelector((state: any) => state.colorMode.value);
     const currentTask = useSelector((state: any) => state.runState.task);
     const taskArray = useSelector((state: any) => state.runState.taskArray);
+    const timer = useSelector((state: any) => state.runState.timer);
+    const [selfTimer, setSelfTimer] = React.useState(0.0);
 
     const getStatus = () => {
         if (currentTask && currentTask.service_id === data.service_id) {
@@ -39,20 +43,42 @@ const ProgressNode = ({data}: any) => {
         await download(resultIdList);
     }
 
+    // Timer increments when the task is being executed and then fixed to last value after execution
+    React.useEffect(() => {
+        if (isExecuting()) {
+            setSelfTimer(selfTimer + 0.1);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [timer]);
+
+    React.useEffect(() => {
+        if (timer === 0.0) {
+            setSelfTimer(0.0);
+        }
+    }, [timer]);
+
     return (
         <>
             <Card
                 sx={{
                     height: "100%", display: "flex", flexDirection: "column",
-                    border: !isExecuting() ? ("2px solid") : "none", alignItems: "center",
-                    borderColor: !isExecuting() ? (getStatus() === RunState.FINISHED ? "success.main" :
-                        getStatus() === RunState.ERROR ? "error.main" :
-                            (colorMode === "light" ? lightgrey : darkgrey)) : "none",
+                    border: !isExecuting() ? ("2px solid") : "none", alignItems: "left",
+                    borderColor: !isExecuting() ? (
+                        getStatus() === RunState.FINISHED ? "success.main" :
+                            getStatus() === RunState.ERROR ? "error.main" :
+                                getStatus() === RunState.SKIPPED ? "warning.main" :
+                                    (colorMode === "light" ? lightgrey : darkgrey)
+                    ) : "none",
                     borderRadius: 2,
                     boxShadow: "none",
                 }}
                 className={isExecuting() ? "rotating-border" : ""}
             >
+                <Box className={"timer timer-step"} zIndex={99} marginBottom={1}>
+                    <Typography variant={"caption"} color={colorMode === 'dark' ? lightgrey : mediumgrey}>
+                        {selfTimer.toFixed(1) + "s"}
+                    </Typography>
+                </Box>
                 <CardContent sx={{flexGrow: 1}}>
                     {data.type === "pipeline" ? (
                         <URLLink href={`/showcase/service/${data.service_id}`} sx={{textDecoration: "none"}}>
@@ -76,7 +102,8 @@ const ProgressNode = ({data}: any) => {
                     // if type is service, hide download button
                     sx={{display: data.type === "service" ? "none" : "flex"}}
                 >
-                    <Tooltip title={"Download intermediate result"} placement={"bottom"}>
+                    {getStatus() === RunState.SKIPPED ? (
+                    <Tooltip title={"Step was skipped"} placement={"bottom"}>
                         <span>
                             <Button
                                 disabled={getStatus() !== RunState.FINISHED}
@@ -88,13 +115,32 @@ const ProgressNode = ({data}: any) => {
                                 variant={"outlined"}
                                 color={"success"}
                                 size={"small"}
-                                endIcon={<DownloadForOfflineTwoTone/>}
-                                onClick={downloadIntermediateResult}
+                                endIcon={<ErrorTwoTone/>}
                             >
-                                Download
+                                Skipped
                             </Button>
                         </span>
-                    </Tooltip>
+                    </Tooltip>) : (
+                        <Tooltip title={"Download intermediate result"} placement={"bottom"}>
+                            <span>
+                                <Button
+                                    disabled={getStatus() !== RunState.FINISHED}
+                                    sx={{
+                                        display: "flex",
+                                        width: "100%",
+                                        minHeight: 32,
+                                    }}
+                                    variant={"outlined"}
+                                    color={"success"}
+                                    size={"small"}
+                                    endIcon={<DownloadForOfflineTwoTone/>}
+                                    onClick={downloadIntermediateResult}
+                                >
+                                    Download
+                                </Button>
+                            </span>
+                        </Tooltip>
+                    )}
                 </CardActions>
             </Card>
             <Handle

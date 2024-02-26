@@ -83,8 +83,8 @@
     border-radius: 8px;
     padding: 2px;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: flex-start;
+    align-items: flex-start;
 
     &::before {
         content: '';
@@ -113,19 +113,27 @@
     }
 }
 
-#timer[about='light'] {
+#timer-general[about='light'] {
     background-color: white;
 }
 
-#timer[about='dark'] {
+#timer-general[about='dark'] {
     background-color: #424242;
 }
 
-#timer {
+.timer-general {
     position: absolute;
     text-align: center;
     min-width: 70px;
-    padding: 8px;
+    padding: 5px;
     border-radius: 0 0 5px 0;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+}
+
+.timer-step {
+    position: absolute;
+    text-align: center;
+    font-size: 8px !important;
+    min-width: 20px;
+    padding-left: 4px;
 }

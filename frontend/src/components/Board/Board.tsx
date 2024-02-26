@@ -18,7 +18,7 @@ import { toast } from 'react-toastify';
 import { Message, MessageSubject } from '../../models/Message';
 import {
     incrementTimer,
-    RunState, runStateSlice,
+    RunState,
     setCurrentTask,
     setGeneralStatus,
     setResultIdList,
@@ -72,6 +72,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
     const isFinished = (task: any) => {
         return task.status === RunState.IDLE ||
             task.status === RunState.FINISHED ||
+            task.status === RunState.SKIPPED ||
             task.status === RunState.ERROR;
     }
 
@@ -91,7 +92,11 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                     let str;
                     // check if general_status is set. In this case, the execution is finished
                     if (dataObject.general_status) {
-                        dispatch(setResultIdList(dataObject.data_out));
+                        if (dataObject.data_out) {
+                            dispatch(setResultIdList(dataObject.data_out));
+                        } else {
+                            dispatch(setResultIdList(dataObject.data_in));
+                        }
                         dispatch(setGeneralStatus(dataObject.general_status));
                         dispatch(setCurrentTask(null));
                         str = `${text}`;
@@ -210,7 +215,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                     borderRadius: 3,
                 }}
             >
-                <Box id={"timer"} zIndex={99} about={colorMode}>
+                <Box id={"timer-general"} className={"timer-general"} zIndex={99} about={colorMode}>
                     <Typography
                         color={taskExecuting ? "primary" : (colorMode === 'dark' ? lightgrey : mediumgrey)}>
                         {timer.toFixed(1) + "s"}
