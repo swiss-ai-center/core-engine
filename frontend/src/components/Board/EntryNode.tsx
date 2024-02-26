@@ -3,11 +3,12 @@ import { Handle, Position } from "react-flow-renderer";
 import {
     Box, Button, Card, CardActions, CardContent, Divider, Input, LinearProgress, Tooltip, Typography
 } from '@mui/material';
-import { PlayCircleTwoTone, UploadFileTwoTone } from '@mui/icons-material';
+import { PlayCircleTwoTone, UploadFileTwoTone, UploadTwoTone } from '@mui/icons-material';
 import {
     resetRunState,
     RunState, setCurrentTask,
     setGeneralStatus,
+    startTimer,
     setTaskArray
 } from '../../utils/reducers/runStateSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -60,6 +61,10 @@ const EntryNode = ({data}: any) => {
         checkIfAllItemsAreUploaded();
     }
 
+    const isUploading = () => {
+        return (generalStatus === RunState.UPLOADING);
+    }
+
     const isIdle = () => {
         return generalStatus === RunState.IDLE ||
             generalStatus === RunState.FINISHED ||
@@ -67,8 +72,9 @@ const EntryNode = ({data}: any) => {
     }
 
     const launchExecution = async (serviceSlug: string) => {
+        dispatch(setGeneralStatus(RunState.UPLOADING));
         const response = await postToEngine(serviceSlug, fileArray);
-        console.log("response", response);
+        dispatch(startTimer());
         if (response.id) {
             if (response.tasks) {
                 dispatch(setTaskArray(response.tasks));
@@ -93,22 +99,23 @@ const EntryNode = ({data}: any) => {
         return <Box
             sx={{display: "flex", width: "100%", minHeight: 32, flexDirection: "column", justifyContent: "center"}}
         >
-            {!isIdle() ? (
+            {!isIdle() && !isUploading() ? (
                 <LinearProgress
                     sx={{borderRadius: 1, mb: 1, mx: 1}}
                     color={"primary"}
                 />
             ) : (
                 <Button
-                    disabled={!areItemsUploaded || !isIdle()}
+                    disabled={!areItemsUploaded || !isIdle() || isUploading()}
                     sx={{flexGrow: 1}}
                     variant={"contained"}
                     color={"primary"}
                     size={"small"}
-                    endIcon={<PlayCircleTwoTone sx={{color: (!isIdle()) ? "transparent" : "inherit"}}/>}
+                    endIcon={isUploading() ? <UploadTwoTone/> :
+                        <PlayCircleTwoTone sx={{color: (!isIdle()) ? "transparent" : "inherit"}}/>}
                     onClick={() => launchExecution(data.label.replace("-entry", ""))}
                 >
-                    Run
+                    {isUploading() ? "Uploading..." : "Run"}
                 </Button>
             )}
         </Box>

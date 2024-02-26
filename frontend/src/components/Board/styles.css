@@ -13,7 +13,7 @@
 }
 
 .fullscreen::backdrop {
-    background-color: rgba(255,255,255,1);
+    background-color: rgba(255, 255, 255, 1);
 }
 
 .react-flow__controls {
@@ -60,7 +60,7 @@
 }
 
 #board[about='dark'] > svg.react-flow__minimap > path {
-    fill: rgba(255,255,255,0.1) !important;
+    fill: rgba(255, 255, 255, 0.1) !important;
 }
 
 #board[about='dark'] > svg.react-flow__minimap > rect {
@@ -91,7 +91,7 @@
         position: absolute;
         z-index: -2;
         width: 200%;
-        height: 250%;
+        height: 270%;
         background-repeat: no-repeat;
         background-size: 50% 50%, 50% 50%;
         background-position: 0 0, 100% 0, 100% 100%, 0 100%;
@@ -113,4 +113,19 @@
     }
 }
 
+#timer[about='light'] {
+    background-color: white;
+}
 
+#timer[about='dark'] {
+    background-color: #424242;
+}
+
+#timer {
+    position: absolute;
+    text-align: center;
+    min-width: 70px;
+    padding: 8px;
+    border-radius: 0 0 5px 0;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+}
