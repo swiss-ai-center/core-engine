@@ -6,7 +6,7 @@ import EntryNode from './EntryNode';
 import ExitNode from './ExitNode';
 import ProgressNode from './ProgressNode';
 import { ControlButton } from 'reactflow';
-import { FullscreenExit } from '@mui/icons-material';
+import { LocationDisabled, GpsNotFixed } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
 import DrawGraph from './DrawGraph';
@@ -35,6 +35,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
     const taskArray = useSelector((state: any) => state.runState.taskArray);
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+    const [hideMiniMap, setHideMiniMap] = React.useState(true);
     const lightgrey = grey[300];
     const darkgrey = grey[900];
 
@@ -49,8 +50,8 @@ const Board: React.FC<{ description: any }> = ({description}) => {
     function CustomControls() {
         return (
             <Controls>
-                <ControlButton onClick={() => document.exitFullscreen()}>
-                    <FullscreenExit/>
+                <ControlButton onClick={() => setHideMiniMap(!hideMiniMap)} title={"toggle minimap"}>
+                    {hideMiniMap ? <GpsNotFixed/> : <LocationDisabled/>}
                 </ControlButton>
             </Controls>
         );
@@ -196,7 +197,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
             >
                 <CustomControls/>
                 <Background/>
-                <MiniMap
+                {!hideMiniMap ? (<MiniMap
                     style={{
                         backgroundColor: colorMode === 'dark' ? darkgrey : lightgrey,
                         padding: 0, margin: 0
@@ -204,7 +205,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                     nodeStrokeColor={() => {
                         return 'primary';
                     }}
-                />
+                />) : <></>}
             </ReactFlow>
         </ReactFlowProvider>
     );
