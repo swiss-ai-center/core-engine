@@ -6,7 +6,7 @@ import EntryNode from './EntryNode';
 import ExitNode from './ExitNode';
 import ProgressNode from './ProgressNode';
 import { ControlButton } from 'reactflow';
-import { FullscreenExit } from '@mui/icons-material';
+import { LocationDisabled, GpsNotFixed } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
 import DrawGraph from './DrawGraph';
@@ -17,6 +17,7 @@ import "./styles.css";
 import { toast } from 'react-toastify';
 import { Message, MessageSubject } from '../../models/Message';
 import {
+    incrementTimer,
     RunState,
     setCurrentTask,
     setGeneralStatus,
@@ -25,6 +26,8 @@ import {
 } from '../../utils/reducers/runStateSlice';
 import { Task } from '../../models/Task';
 import { ConnectionData } from '../../models/ConnectionData';
+import { Box, Typography } from '@mui/material';
+import { displayTimer } from '../../utils/functions';
 
 const Board: React.FC<{ description: any }> = ({description}) => {
     const dispatch = useDispatch();
@@ -33,9 +36,13 @@ const Board: React.FC<{ description: any }> = ({description}) => {
     }), []);
     const colorMode = useSelector((state: any) => state.colorMode.value);
     const taskArray = useSelector((state: any) => state.runState.taskArray);
+    const taskExecuting = useSelector((state: any) => state.runState.task);
+    const timer = useSelector((state: any) => state.runState.timer);
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+    const [hideMiniMap, setHideMiniMap] = React.useState(true);
     const lightgrey = grey[300];
+    const mediumgrey = grey[500];
     const darkgrey = grey[900];
 
     const onConnect = React.useCallback(
@@ -49,8 +56,8 @@ const Board: React.FC<{ description: any }> = ({description}) => {
     function CustomControls() {
         return (
             <Controls>
-                <ControlButton onClick={() => document.exitFullscreen()}>
-                    <FullscreenExit/>
+                <ControlButton onClick={() => setHideMiniMap(!hideMiniMap)} title={"toggle minimap"}>
+                    {hideMiniMap ? <GpsNotFixed/> : <LocationDisabled/>}
                 </ControlButton>
             </Controls>
         );
@@ -66,6 +73,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
     const isFinished = (task: any) => {
         return task.status === RunState.IDLE ||
             task.status === RunState.FINISHED ||
+            task.status === RunState.SKIPPED ||
             task.status === RunState.ERROR;
     }
 
@@ -85,12 +93,15 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                     let str;
                     // check if general_status is set. In this case, the execution is finished
                     if (dataObject.general_status) {
-                        dispatch(setResultIdList(dataObject.data_out));
+                        if (dataObject.data_out) {
+                            dispatch(setResultIdList(dataObject.data_out));
+                        } else {
+                            dispatch(setResultIdList(dataObject.data_in));
+                        }
                         dispatch(setGeneralStatus(dataObject.general_status));
                         dispatch(setCurrentTask(null));
                         str = `${text}`;
-                    // check if pipeline_execution_id is not set. In this case, the execution is finished but
-                    // for a task
+                    // check if pipeline_execution_id is not set. In this case, the execution is finished but for a task
                     } else if (!dataObject.pipeline_execution_id) {
                         dispatch(setResultIdList(dataObject.data_out));
                         dispatch(setGeneralStatus(dataObject.status));
@@ -147,6 +158,16 @@ const Board: React.FC<{ description: any }> = ({description}) => {
     }
 
     React.useEffect(() => {
+        if (taskExecuting) {
+            const interval = setInterval(() => {
+                dispatch(incrementTimer());
+            }, 100);
+            return () => clearInterval(interval);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [taskArray]);
+
+    React.useEffect(() => {
         if (description) {
             let entity
             if (description.url) {
@@ -191,12 +212,18 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                 about={colorMode}
                 style={{
                     backgroundColor: colorMode === 'dark' ? '#121212' : '#fff',
-                    borderRadius: 5,
+                    borderRadius: 3,
                 }}
             >
+                <Box id={"timer-general"} className={"timer-general"} zIndex={99} about={colorMode}>
+                    <Typography
+                        color={taskExecuting ? "primary" : (colorMode === 'dark' ? lightgrey : mediumgrey)}>
+                        {displayTimer(timer)}
+                    </Typography>
+                </Box>
                 <CustomControls/>
                 <Background/>
-                <MiniMap
+                {!hideMiniMap ? (<MiniMap
                     style={{
                         backgroundColor: colorMode === 'dark' ? darkgrey : lightgrey,
                         padding: 0, margin: 0
@@ -204,7 +231,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                     nodeStrokeColor={() => {
                         return 'primary';
                     }}
-                />
+                />) : <></>}
             </ReactFlow>
         </ReactFlowProvider>
     );
