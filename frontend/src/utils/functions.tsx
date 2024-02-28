@@ -19,3 +19,8 @@ export async function download(resultIdList: string[]) {
 export const isSmartphone = (): boolean => {
     return window.innerWidth < 600;
 }
+
+
+export const displayTimer = (timer: number): string => {
+    return timer < 300 ? timer.toFixed(1) + "s" : ">300.0s";
+}

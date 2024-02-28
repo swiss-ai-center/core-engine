@@ -27,6 +27,7 @@ import {
 import { Task } from '../../models/Task';
 import { ConnectionData } from '../../models/ConnectionData';
 import { Box, Typography } from '@mui/material';
+import { displayTimer } from '../../utils/functions';
 
 const Board: React.FC<{ description: any }> = ({description}) => {
     const dispatch = useDispatch();
@@ -217,7 +218,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                 <Box id={"timer-general"} className={"timer-general"} zIndex={99} about={colorMode}>
                     <Typography
                         color={taskExecuting ? "primary" : (colorMode === 'dark' ? lightgrey : mediumgrey)}>
-                        {timer.toFixed(1) + "s"}
+                        {displayTimer(timer)}
                     </Typography>
                 </Box>
                 <CustomControls/>

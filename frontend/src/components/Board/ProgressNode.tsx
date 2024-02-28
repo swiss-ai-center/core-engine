@@ -5,7 +5,7 @@ import { DownloadForOfflineTwoTone, ErrorTwoTone } from '@mui/icons-material';
 import { RunState } from '../../utils/reducers/runStateSlice';
 import { useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
-import { download } from '../../utils/functions';
+import { displayTimer, download } from '../../utils/functions';
 import "./styles.css";
 
 
@@ -76,7 +76,7 @@ const ProgressNode = ({data}: any) => {
             >
                 <Box className={"timer timer-step"} zIndex={99} marginBottom={1}>
                     <Typography variant={"caption"} color={colorMode === 'dark' ? lightgrey : mediumgrey}>
-                        {selfTimer.toFixed(1) + "s"}
+                        {displayTimer(selfTimer)}
                     </Typography>
                 </Box>
                 <CardContent sx={{flexGrow: 1}}>
