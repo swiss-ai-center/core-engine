@@ -100,8 +100,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                         dispatch(setGeneralStatus(dataObject.general_status));
                         dispatch(setCurrentTask(null));
                         str = `${text}`;
-                        // check if pipeline_execution_id is not set. In this case, the execution is finished but
-                        // for a task
+                    // check if pipeline_execution_id is not set. In this case, the execution is finished but for a task
                     } else if (!dataObject.pipeline_execution_id) {
                         dispatch(setResultIdList(dataObject.data_out));
                         dispatch(setGeneralStatus(dataObject.status));
@@ -164,7 +163,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
             }, 100);
             return () => clearInterval(interval);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [taskArray]);
 
     React.useEffect(() => {

@@ -46,7 +46,7 @@ def create_message(task: Task) -> Message:
         message_type = MessageType.ERROR
         message_text = f"Task for {task.service.slug} failed"
     elif task.status == TaskStatus.SKIPPED:
-        message_type = MessageType.WARNING
+        message_type = MessageType.INFO
         message_text = f"Task for {task.service.slug} skipped due to condition evaluation"
     else:
         message_type = MessageType.WARNING
@@ -445,10 +445,12 @@ class TasksService:
                     # Set the current task as SKIPPED
                     task.status = TaskStatus.SKIPPED
                     task.data_in = task_files
+
                     # Update the task
                     self.session.add(task)
                     self.session.commit()
                     self.session.refresh(task)
+
                     # Send message to client
                     self.logger.debug(f"Sending task {task} to client")
                     message = create_message(task)
@@ -457,7 +459,6 @@ class TasksService:
                         connection = self.connection_manager.find_by_linked_id(pipeline_execution.id)
                         if connection:
                             if connection.websocket:
-                                print(message)
                                 await asyncio.ensure_future(
                                     self.connection_manager.send_json(message, pipeline_execution.id))
                             else:
