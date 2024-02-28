@@ -100,7 +100,7 @@ const ProgressNode = ({data}: any) => {
                 </CardContent>
                 <CardActions
                     // if type is service, hide download button
-                    sx={{display: data.type === "service" ? "none" : "flex"}}
+                    sx={{display: data.type === "service" ? "none" : "flex", justifyContent: "center"}}
                 >
                     {getStatus() === RunState.SKIPPED ? (
                     <Tooltip title={"Step was skipped"} placement={"bottom"}>
