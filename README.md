@@ -1,7 +1,3 @@
-# Swiss AI Center
+# core-engine
 
-The main repository for the Swiss AI Center project.
-
-**This is a WIP project.**
-
-The documentation is hosted on GitHub Pages and is accessible at <https://docs.swiss-ai-center.ch/reference/core-engine>.
+_Check the [related documentation](https://docs.swiss-ai-center.ch/reference/core-engine) for more information._
