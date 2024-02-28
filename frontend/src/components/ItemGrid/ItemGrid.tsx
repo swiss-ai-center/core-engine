@@ -12,9 +12,8 @@ import {
     MenuItem,
     Pagination,
     Select,
-    Badge,
     Tooltip,
-    Typography, styled, BadgeProps,
+    Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { getPipelines, getServices } from '../../utils/api';
@@ -34,16 +33,6 @@ const minWidth = isSmartphone() ? '100%' : (window.innerWidth < 900) ? '50%' : '
 
 // align center for mobile, left for tablet and desktop
 const align = isSmartphone() ? 'center' : 'left';
-
-const StyledBadge = styled(Badge)<BadgeProps>(({theme}) => ({
-    '& .MuiBadge-badge': {
-        right: -5,
-        top: 3,
-        border: `2px solid ${theme.palette.secondary.main}`,
-        padding: '9px',
-        fontSize: '14px',
-    },
-}));
 
 const ItemGrid: React.FC<{
     filter: string, orderBy: string, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any

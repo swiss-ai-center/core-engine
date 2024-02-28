@@ -4,7 +4,6 @@ import {
     Toolbar,
     Typography,
     Grid,
-    TextField,
     Tooltip,
     Chip,
     AccordionSummary,
@@ -17,15 +16,13 @@ import { styled } from '@mui/material/styles';
 import MuiAccordion, { AccordionProps } from '@mui/material/Accordion';
 import { useSelector } from 'react-redux';
 import { isSmartphone } from '../../utils/functions';
+import Markdown, { defaultUrlTransform } from 'react-markdown';
+import rehypeKatex from 'rehype-katex'
+import remarkMath from 'remark-math'
+import 'katex/dist/katex.min.css'
+import './styles.css';
 
 const drawerWidth = isSmartphone() ? '100%' : 500;
-
-const removeInitialLineBreak = (text: string) => {
-    if (text.startsWith('\n')) {
-        return text.substring(1);
-    }
-    return text;
-}
 
 const Accordion = styled((props: AccordionProps) => (
     <MuiAccordion disableGutters elevation={0} square {...props} />
@@ -99,16 +96,28 @@ export const InformationDrawer: React.FC<{
                             </Grid>
                         ) : <></>}
                     </Grid>
-                    <TextField
-                        id={"description-textfield"}
-                        label={"Description"}
-                        multiline
-                        rows={10}
-                        fullWidth
-                        value={description ? removeInitialLineBreak(description.description) : ''}
-                        variant={"outlined"}
-                        disabled
-                    />
+                    <Box sx={{
+                        px: 2,
+                        border: 1,
+                        borderColor: colorMode === 'light' ? "#bdbdbd" : "#5a5a5a",
+                        borderRadius: 1
+                    }}>
+                        <Markdown urlTransform={defaultUrlTransform}
+                                  components={{
+                                      a: ({node, ...props}) => {
+                                          // eslint-disable-next-line jsx-a11y/anchor-has-content
+                                          return <a target={"_blank"} {...props}/>
+                                      }
+                                  }}
+                                  remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}
+                                  skipHtml={true}
+                                  className={"markdown-body"}
+                        >
+                            {
+                                description ? description.description : ''
+                            }
+                        </Markdown>
+                    </Box>
                 </Box>
                 <Box sx={{pb: 3}}>
                     {description ?
