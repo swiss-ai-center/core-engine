@@ -7,7 +7,13 @@ services:
     command: |
       bash -c "
         # Create the virtual environment
-        python3.10 -m venv .venv &&
+        if [ -d .venv ]; 
+        then 
+          echo '.venv exists and is not empty'; 
+        else 
+          echo '.venv does not exist or is empty'; 
+          python3.10 -m venv .venv; 
+        fi &&
         # Activate the virtual environment
         source .venv/bin/activate &&
         # Install the dependencies
