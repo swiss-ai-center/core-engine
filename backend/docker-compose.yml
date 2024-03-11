@@ -28,6 +28,8 @@ services:
     environment:
       - HOST=http://host.docker.internal:8080
       - S3_HOST=http://host.docker.internal:9000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - 8080:8080
     working_dir: /workspaces/core-engine-backend
