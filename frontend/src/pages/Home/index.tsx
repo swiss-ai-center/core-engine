@@ -139,7 +139,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                 </Container>
                 <Container maxWidth={false}>
                     <ItemGrid filter={search} orderBy={orderBy} tags={tags} handleTags={handleTags}
-                              ai={ai} handleAIToggle={handleAIToggle}/>
+                              ai={ai} handleAIToggle={handleAIToggle} addService={null}/>
                 </Container>
                 <Container maxWidth={false}>
                     <Copyright/>

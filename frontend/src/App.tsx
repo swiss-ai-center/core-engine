@@ -19,6 +19,7 @@ import { grey } from '@mui/material/colors';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleColorMode } from './utils/reducers/colorModeSlice';
 import "typeface-inter";
+import CreatePipeline from "./pages/CreatePipeline";
 
 
 function App() {
@@ -140,6 +141,7 @@ function App() {
                 <Routes>
                     <Route path={"/showcase/:type/:slug"} element={<Showcase mobileOpen={mobileOpen}/>}/>
                     <Route path={"*"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
+                    <Route path={"/create-pipeline"} element={<CreatePipeline mobileOpen={mobileOpen}/>}/>
                 </Routes>
             </Router>
             {/* End Main content */}
