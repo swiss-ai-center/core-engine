@@ -126,8 +126,9 @@
     text-align: center;
     min-width: 80px;
     padding: 5px;
+    border-right: 1px solid #eee;
+    border-bottom: 1px solid #eee;
     border-radius: 0 0 5px 0;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
 }
 
 .timer-step {

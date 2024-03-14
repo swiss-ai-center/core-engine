@@ -111,6 +111,7 @@ const EntryNode = ({data}: any) => {
                     variant={"contained"}
                     color={"primary"}
                     size={"small"}
+                    disableElevation
                     endIcon={isUploading() ? <UploadTwoTone/> :
                         <PlayCircleTwoTone sx={{color: (!isIdle()) ? "transparent" : "inherit"}}/>}
                     onClick={() => launchExecution(data.label.replace("-entry", ""))}

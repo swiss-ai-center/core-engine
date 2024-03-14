@@ -54,6 +54,7 @@ const ExitNode = ({data}: any) => {
                                     width: "100%",
                                     minHeight: 32,
                                 }}
+                                disableElevation
                                 variant={"contained"}
                                 color={"success"}
                                 size={"small"}

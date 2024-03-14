@@ -239,6 +239,7 @@ const ItemGrid: React.FC<{
                                       sx={{height: 'auto', minHeight: '250px'}}>
                                     <Card
                                         sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
+                                        variant={"outlined"}
                                     >
                                         <CardContent sx={{flexGrow: 1}}>
                                             <Grid container>
@@ -303,7 +304,9 @@ const ItemGrid: React.FC<{
                                         <CardActions sx={{p: 2}}>
                                             <Link
                                                 to={"/showcase/service/" + item.slug}>
-                                                <Button size={"small"} variant={"contained"}>View</Button>
+                                                <Button size={"small"} variant={"contained"} disableElevation>
+                                                    View
+                                                </Button>
                                             </Link>
                                         </CardActions>
                                     </Card>

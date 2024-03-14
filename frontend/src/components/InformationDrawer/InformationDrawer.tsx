@@ -21,6 +21,7 @@ import rehypeKatex from 'rehype-katex'
 import remarkMath from 'remark-math'
 import 'katex/dist/katex.min.css'
 import './styles.css';
+import { grey } from '@mui/material/colors';
 
 const drawerWidth = isSmartphone() ? '100%' : 500;
 
@@ -50,11 +51,21 @@ export const InformationDrawer: React.FC<{
           description
       }) => {
     const colorMode = useSelector((state: any) => state.colorMode.value);
+    const lightgrey = colorMode === 'light' ? grey[100] : grey[900];
+    const darkgrey = colorMode === 'light' ? grey[400] : grey[800];
 
     const drawer = (
         <>
             <Toolbar/>
-            <Box sx={{overflow: 'auto', p: isSmartphone() ? 2 : 3}}>
+            <Box m={isSmartphone() ? 2 : 3}
+                 sx={{
+                     overflow: 'auto',
+                     p: isSmartphone() ? 2 : 3,
+                     backgroundColor: lightgrey,
+                     border: 2,
+                     borderColor: darkgrey
+                 }}
+                 borderRadius={1}>
                 <Box sx={{mb: isSmartphone() ? 2 : 3}}>
                     <Typography
                         component={"h1"}
@@ -100,7 +111,8 @@ export const InformationDrawer: React.FC<{
                         px: 2,
                         border: 1,
                         borderColor: colorMode === 'light' ? "#bdbdbd" : "#5a5a5a",
-                        borderRadius: 1
+                        borderRadius: 1,
+                        backgroundColor: colorMode === 'light' ? "#fff" : "#000"
                     }}>
                         <Markdown urlTransform={defaultUrlTransform}
                                   components={{
@@ -119,7 +131,7 @@ export const InformationDrawer: React.FC<{
                         </Markdown>
                     </Box>
                 </Box>
-                <Box sx={{pb: 3}}>
+                <Box>
                     {description ?
                         <>
                             <Accordion variant={"outlined"} color={colorMode}>

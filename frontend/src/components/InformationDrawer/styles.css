@@ -1,3 +1,6 @@
 .markdown-body {
     word-break: break-word;
 }
+.markdown-container {
+    background-color: white;
+}

@@ -65,7 +65,20 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         handleNoFilter();
     }
 
+    const removeDuplicates = (arr: Tag[]) => {
+        return arr.filter((v, i, a) => a.findIndex(t => (t.acronym === v.acronym)) === i);
+    }
+
+    const arrayEquals = (a: Tag[], b: Tag[]) => {
+        return Array.isArray(a) && Array.isArray(b) && a.length === b.length &&
+            a.every((val, index) => val === b[index]);
+    }
+
     const handleTags = (event: SelectChangeEvent, newValue: Tag[]) => {
+        newValue = removeDuplicates(newValue);
+        if (arrayEquals(newValue, tags)) {
+            return;
+        }
         setTags(newValue);
         if (newValue.length === 0) {
             searchParams.delete('tags');
