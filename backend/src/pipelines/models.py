@@ -35,11 +35,11 @@ class Pipeline(PipelineBase, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     pipeline_executions: List["PipelineExecution"] = Relationship(
-        sa_relationship_kwargs={"cascade": "delete"},
+        sa_relationship_kwargs={"cascade": "delete, save-update"},
         back_populates="pipeline"
     )  # noqa F821
     steps: List[PipelineStep] = Relationship(
-        sa_relationship_kwargs={"cascade": "delete"},
+        sa_relationship_kwargs={"cascade": "delete, save-update"},
         back_populates="pipeline"
     )  # noqa F821
 
