@@ -4,4 +4,7 @@ psycopg2-binary==2.9.9
 python-multipart==0.0.9
 sentry-sdk[fastapi]==1.42.0
 sqlmodel==0.0.16
+testcontainers-core==0.0.1rc1
+testcontainers-minio==0.0.1rc1
+testcontainers-postgres==0.0.1rc1
 websockets==12.0
