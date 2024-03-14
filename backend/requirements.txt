@@ -1,4 +1,4 @@
-common-code[test] @ git+https://github.com/swiss-ai-center/common-code.git@9-update-dependencies
+common-code[test] @ git+https://github.com/swiss-ai-center/common-code.git@main
 makefun==1.15.2
 psycopg2-binary==2.9.9
 python-multipart==0.0.9
