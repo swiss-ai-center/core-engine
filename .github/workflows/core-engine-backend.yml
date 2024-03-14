@@ -78,7 +78,7 @@ jobs:
     if: ${{ vars.RUN_CICD == 'true' }}
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Lint Python app
         uses: swiss-ai-center/common-code/.github/actions/lint-python-app@main
@@ -91,7 +91,7 @@ jobs:
     if: ${{ vars.RUN_CICD == 'true' }}
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Test Python app
         uses: swiss-ai-center/common-code/.github/actions/test-python-app@main
@@ -102,10 +102,10 @@ jobs:
   release:
     needs: test
     runs-on: ubuntu-latest
-    if: ${{ vars.RUN_CICD == 'true' && success() && (vars.DEPLOY_DEV == 'true' || vars.DEPLOY_PROD == 'true') }}
+    if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && (vars.DEPLOY_DEV == 'true' || vars.DEPLOY_PROD == 'true') }}
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Build and push Docker image to GitHub
         id: build-and-push-docker-image-to-github
@@ -124,7 +124,7 @@ jobs:
     if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_DEV == 'true' }}
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get service Docker image SHA tag
         shell: bash
@@ -181,10 +181,10 @@ jobs:
   deploy-prod:
     needs: release
     runs-on: ubuntu-latest
-    if: ${{ vars.RUN_CICD == 'true' && success() && vars.DEPLOY_PROD == 'true' }}
+    if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_PROD == 'true' }}
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get service Docker image SHA tag
         shell: bash
