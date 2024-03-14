@@ -60,7 +60,6 @@ on:
   push:
     branches:
       - main
-      - prod
     paths:
       - .github/workflows/core-engine-backend.yml
       - backend/**/*
@@ -79,7 +78,7 @@ jobs:
     if: ${{ vars.RUN_CICD == 'true' }}
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Lint Python app
         uses: swiss-ai-center/common-code/.github/actions/lint-python-app@main
@@ -92,7 +91,7 @@ jobs:
     if: ${{ vars.RUN_CICD == 'true' }}
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Test Python app
         uses: swiss-ai-center/common-code/.github/actions/test-python-app@main
@@ -103,10 +102,10 @@ jobs:
   release:
     needs: test
     runs-on: ubuntu-latest
-    if: ${{ vars.RUN_CICD == 'true' && success() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod') && (vars.DEPLOY_DEV == 'true' || vars.DEPLOY_PROD == 'true') }}
+    if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && (vars.DEPLOY_DEV == 'true' || vars.DEPLOY_PROD == 'true') }}
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Build and push Docker image to GitHub
         id: build-and-push-docker-image-to-github
@@ -125,7 +124,7 @@ jobs:
     if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_DEV == 'true' }}
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get service Docker image SHA tag
         shell: bash
@@ -153,14 +152,18 @@ jobs:
           # Set core engine backend version
           docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
-          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" core-engine-backend.stateful.yml > new-core-engine-backend.stateful.yml && mv new-core-engine-backend.stateful.yml core-engine-backend.stateful.yml
+          yq -i ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" core-engine-backend.stateful.yml
 
           # Set core engine backend configuration (ConfigMap)
-          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' core-engine-backend.config-map.yml | envsubst > new-core-engine-backend.config-map.yml && mv new-core-engine-backend.config-map.yml core-engine-backend.config-map.yml
+          yq -i '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' core-engine-backend.config-map.yml
+          envsubst < core-engine-backend.config-map.yml > core-engine-backend.config-map.yml
 
           # Set core engine backend configuration (Ingress)
-          yq ".spec.rules[0].host = \"${HOST#*://}\"" core-engine-backend.ingress.yml > new-core-engine-backend.ingress.yml && mv new-core-engine-backend.ingress.yml core-engine-backend.ingress.yml
-          yq ".spec.tls[0].hosts[0] = \"${HOST#*://}\"" core-engine-backend.ingress.yml > new-core-engine-backend.ingress.yml && mv new-core-engine-backend.ingress.yml core-engine-backend.ingress.yml
+          yq -i "del(.metadata.annotations)" core-engine-backend.ingress.yml
+          yq -i "del(.spec.ingressClassName)" core-engine-backend.ingress.yml
+          yq -i ".spec.rules[0].host = \"${HOST#*://}\"" core-engine-backend.ingress.yml
+          yq -i ".spec.tls[0].hosts[0] = \"${HOST#*://}\"" core-engine-backend.ingress.yml
+          yq -i "del(.spec.tls[0].secretName)" core-engine-backend.ingress.yml
 
       - name: Deploy service on the Kubernetes cluster
         uses: swiss-ai-center/common-code/.github/actions/execute-command-on-kubernetes-cluster@main
@@ -178,10 +181,10 @@ jobs:
   deploy-prod:
     needs: release
     runs-on: ubuntu-latest
-    if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/prod' && vars.DEPLOY_PROD == 'true' }}
+    if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_PROD == 'true' }}
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get service Docker image SHA tag
         shell: bash
@@ -206,17 +209,18 @@ jobs:
           S3_BUCKET: ${{ env.PROD_S3_BUCKET }}
           SENTRY_DSN: ${{ env.GLITCHTIP_SENTRY_DSN }}
         run: |
-          # Set Backend version
+          # Set core engine backend version
           docker_image_tags=(${{ needs.release.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
-          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" backend.stateful.yml > new-backend.stateful.yml && mv new-backend.stateful.yml backend.stateful.yml
+          yq -i ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" core-engine-backend.stateful.yml
 
-          # Set Backend configuration (ConfigMap)
-          yq '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' backend.config-map.yml | envsubst > new-backend.config-map.yml && mv new-backend.config-map.yml backend.config-map.yml
+          # Set core engine backend configuration (ConfigMap)
+          yq -i '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' core-engine-backend.config-map.yml
+          envsubst < core-engine-backend.config-map.yml > core-engine-backend.config-map.yml
 
-          # Set Backend configuration (Ingress)
-          yq ".spec.rules[0].host = \"${HOST#*://}\"" backend.ingress.yml > new-backend.ingress.yml && mv new-backend.ingress.yml backend.ingress.yml
-          yq ".spec.tls[0].hosts[0] = \"${HOST#*://}\"" backend.ingress.yml > new-backend.ingress.yml && mv new-backend.ingress.yml backend.ingress.yml
+          # Set core engine backend configuration (Ingress)
+          yq -i ".spec.rules[0].host = \"${HOST#*://}\"" core-engine-backend.ingress.yml
+          yq -i ".spec.tls[0].hosts[0] = \"${HOST#*://}\"" core-engine-backend.ingress.yml
 
       - name: Deploy service on the Kubernetes cluster
         uses: swiss-ai-center/common-code/.github/actions/execute-command-on-kubernetes-cluster@main

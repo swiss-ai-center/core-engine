@@ -3,11 +3,11 @@ kind: Ingress
 metadata:
   name: core-engine-backend-ingress
   annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: "16m"
-    nginx.org/client-max-body-size: "16m"
+    cert-manager.io/issuer: "letsencrypt"
 spec:
+  ingressClassName: nginx
   rules:
-    - host: backend-core-engine-swiss-ai-center.kube.isc.heia-fr.ch
+    - host: core-engine.swiss-ai-center.ch
       http:
         paths:
           - path: /
@@ -19,4 +19,5 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - backend-core-engine-swiss-ai-center.kube.isc.heia-fr.ch
+        - core-engine.swiss-ai-center.ch
+      secretName: core-engine-swiss-ai-center-ch-tls-cert
