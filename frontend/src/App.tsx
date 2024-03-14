@@ -96,7 +96,10 @@ function App() {
             {/* End CssBaseline */}
 
             {/* Header navbar */}
-            <AppBar position={"fixed"} elevation={0} sx={{zIndex: (theme) => theme.zIndex.drawer + 1}}>
+            <AppBar position={"fixed"} elevation={0} sx={{
+                zIndex: (theme) => theme.zIndex.drawer + 1,
+                backgroundColor: colorMode === "light" ? "primary.main" : "background_color.main"
+            }}>
                 <Toolbar>
                     <IconButton
                         color={"inherit"}
