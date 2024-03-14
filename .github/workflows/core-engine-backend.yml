@@ -217,7 +217,8 @@ jobs:
 
           # Set core engine backend configuration (ConfigMap)
           yq -i '.data = (.data | to_entries | map({"key": .key, "value": "${" + .key + "}"}) | from_entries)' core-engine-backend.config-map.yml
-          envsubst < core-engine-backend.config-map.yml > core-engine-backend.config-map.yml
+          envsubst < core-engine-backend.config-map.yml > new-core-engine-backend.config-map.yml
+          mv new-core-engine-backend.config-map.yml core-engine-backend.config-map.yml
 
           # Set core engine backend configuration (Ingress)
           yq -i ".spec.rules[0].host = \"${HOST#*://}\"" core-engine-backend.ingress.yml
