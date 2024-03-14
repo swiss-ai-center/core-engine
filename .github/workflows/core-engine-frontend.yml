@@ -130,7 +130,7 @@ jobs:
 
       - name: Build and push Docker image to GitHub
         id: build-and-push-docker-image-to-github
-        if: ${{ vars.RUN_CICD == 'true' && success() && vars.DEPLOY_PROD == 'true' }}
+        if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_PROD == 'true' }}
         uses: swiss-ai-center/common-code/.github/actions/build-and-push-docker-image-to-github@main
         with:
           docker-registry-username: ${{ github.actor }}
@@ -139,7 +139,7 @@ jobs:
           docker-image-context: ./frontend
 
       - name: Prepare configuration files
-        if: ${{ vars.RUN_CICD == 'true' && success() && vars.DEPLOY_PROD == 'true' }}
+        if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_PROD == 'true' }}
         shell: bash
         working-directory: frontend/kubernetes
         run: |
@@ -149,7 +149,7 @@ jobs:
           yq -i ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" core-engine-frontend.stateful.yml
 
       - name: Deploy Frontend on the Kubernetes cluster
-        if: ${{ vars.RUN_CICD == 'true' && success() && vars.DEPLOY_PROD == 'true' }}
+        if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_PROD == 'true' }}
         uses: swiss-ai-center/common-code/.github/actions/execute-command-on-kubernetes-cluster@main
         with:
           kube-config: ${{ env.PROD_KUBE_CONFIG }}
