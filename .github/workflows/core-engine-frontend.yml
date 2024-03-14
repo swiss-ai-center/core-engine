@@ -32,15 +32,14 @@ on:
   push:
     branches:
       - main
-      - prod
     paths:
       - .github/workflows/core-engine-frontend.yml
       - frontend/**/*
 
   pull_request:
     paths:
-      - .github/workflows/core-engine-backend.yml
-      - backend/**/*
+      - .github/workflows/core-engine-frontend.yml
+      - frontend/**/*
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -150,7 +149,7 @@ jobs:
           yq -i ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" core-engine-frontend.stateful.yml
 
       - name: Deploy Frontend on the Kubernetes cluster
-        if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_PROD == 'true' }}
+        if: ${{ vars.RUN_CICD == 'true' && success() && vars.DEPLOY_PROD == 'true' }}
         uses: swiss-ai-center/common-code/.github/actions/execute-command-on-kubernetes-cluster@main
         with:
           kube-config: ${{ env.PROD_KUBE_CONFIG }}

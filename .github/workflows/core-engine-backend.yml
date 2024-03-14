@@ -60,7 +60,6 @@ on:
   push:
     branches:
       - main
-      - prod
     paths:
       - .github/workflows/core-engine-backend.yml
       - backend/**/*
