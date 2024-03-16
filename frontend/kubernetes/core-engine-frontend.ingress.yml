@@ -7,16 +7,16 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: app.swiss-ai-center.ch
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: core-engine-frontend-service
-            port:
-              number: 80
+    - host: app.swiss-ai-center.ch
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: core-engine-frontend-service
+                port:
+                  number: 80
   tls:
     - hosts:
         - app.swiss-ai-center.ch

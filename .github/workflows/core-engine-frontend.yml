@@ -12,6 +12,8 @@ env:
   DEV_NAMESPACE: ${{ vars.DEV_NAMESPACE }}
   # Kube configuration
   DEV_KUBE_CONFIG: ${{ secrets.DEV_KUBE_CONFIG }}
+  # The URL that the service (dev) should be accessible at
+  DEV_FRONTEND_HOST: ${{ vars.DEV_FRONTEND_HOST }}
 
   ## Production environment variables
   # The URL of the Core Engine (HTTP)
@@ -22,6 +24,8 @@ env:
   PROD_NAMESPACE: ${{ vars.PROD_NAMESPACE }}
   # Kube configuration
   PROD_KUBE_CONFIG: ${{ secrets.PROD_KUBE_CONFIG }}
+  # The URL that the service (prod) should be accessible at
+  PROD_FRONTEND_HOST: ${{ vars.PROD_FRONTEND_HOST }}
 
 # Allow one concurrent deployment
 concurrency:
@@ -84,11 +88,20 @@ jobs:
         if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_DEV == 'true' }}
         shell: bash
         working-directory: frontend/kubernetes
+        env:
+          DEV_FRONTEND_HOST: ${{ env.DEV_FRONTEND_HOST }}
         run: |
           # Set frontend version
           docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq -i ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" core-engine-frontend.stateful.yml
+
+          # Set core engine frontend configuration (Ingress)
+          yq -i "del(.metadata.annotations)" core-engine-frontend.ingress.yml
+          yq -i "del(.spec.ingressClassName)" core-engine-frontend.ingress.yml
+          yq -i ".spec.rules[0].host = \"${DEV_FRONTEND_HOST#*://}\"" core-engine-frontend.ingress.yml
+          yq -i ".spec.tls[0].hosts[0] = \"${DEV_FRONTEND_HOST#*://}\"" core-engine-frontend.ingress.yml
+          yq -i "del(.spec.tls[0].secretName)" core-engine-frontend.ingress.yml
 
       - name: Deploy Frontend on the Kubernetes cluster
         if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_DEV == 'true' }}
@@ -142,11 +155,17 @@ jobs:
         if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_PROD == 'true' }}
         shell: bash
         working-directory: frontend/kubernetes
+        env:
+          PROD_FRONTEND_HOST: ${{ env.PROD_FRONTEND_HOST }}
         run: |
           # Set frontend version
           docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
           yq -i ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" core-engine-frontend.stateful.yml
+
+          # Set core engine frontend configuration (Ingress)
+          yq -i ".spec.rules[0].host = \"${PROD_FRONTEND_HOST#*://}\"" core-engine-frontend.ingress.yml
+          yq -i ".spec.tls[0].hosts[0] = \"${PROD_FRONTEND_HOST#*://}\"" core-engine-frontend.ingress.yml
 
       - name: Deploy Frontend on the Kubernetes cluster
         if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_PROD == 'true' }}
