@@ -1,34 +1,34 @@
 import ItemGrid from "../../components/ItemGrid/ItemGrid";
-import {Box, Button, Container, SelectChangeEvent} from "@mui/material";
+import {Box, Container, SelectChangeEvent} from "@mui/material";
 import {Tag} from "../../models/Tag";
-import React, {useCallback, useEffect} from "react";
 import {useSearchParams} from "react-router-dom";
 import ReactFlow, {
     addEdge,
     Background,
     Connection,
     Controls,
-    Node,
     Edge,
     ReactFlowProvider,
     useEdgesState,
     useNodesState
 } from "react-flow-renderer";
-import Board from "../../components/Board/Board";
-import {useReactFlow} from "reactflow";
 import {ArrowUpward} from "@mui/icons-material";
 import ScrollToTop from "react-scroll-to-top";
 import {useSelector} from "react-redux";
-import EntryNode from "../../components/Board/EntryNode";
-import ProgressNode from "../../components/Board/ProgressNode";
 import ExitNode from "../../components/Board/ExitNode";
 import EntryNodeEdit from "../../components/Nodes/EntryNodeEdit";
 import {FieldDescription} from "../../models/ExecutionUnit";
 import ServiceNode from "../../components/Nodes/ServiceNode";
+import {handleAIToggle, handleNoFilter, handleSearch, handleTags} from "../../utils/functions";
+import {PipelineStep} from "../../models/Pipeline";
+import React from "react";
 
 let id = 0;
 const getId = () => `${id++}`;
 
+const nodeTypes = {
+    entryNodeEdit: EntryNodeEdit, serviceNode: ServiceNode, exitNode: ExitNode
+};
 const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
     {
         mobileOpen,
@@ -39,77 +39,142 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
         {value: 'name-desc', label: 'Name (Z-A)'},
     ];
 
-    const nodeTypes = React.useMemo(() => ({
-        entryNodeEdit: EntryNodeEdit, serviceNode: ServiceNode, exitNode: ExitNode
-    }), []);
     const colorMode = useSelector((state: any) => state.colorMode.value);
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+    const [pipeName, setPipeName] = React.useState('')
+    const [pipeSlug, setPipeSlug] = React.useState('')
+    const [pipeSummary, setPipeSummary] = React.useState('')
+    const [pipeDescription, setPipeDescription] = React.useState('')
     const [search, setSearch] = React.useState('');
     const [orderBy, setOrderBy] = React.useState(orderByList[0].value);
     const [tags, setTags] = React.useState<Tag[]>([]);
     const [ai, setAI] = React.useState(false);
+    const [pipeDataInFields, setPipeDataInFields] = React.useState<FieldDescription[]>([]);
+    const [pipeDataOutFields, setPipeDataOutFields] = React.useState<FieldDescription[]>([]);
+    const [pipeSteps, setPipeSteps] = React.useState<PipelineStep[]>([]);
     const [searchParams] = useSearchParams();
-    //const { getNodes, getEdges } = useReactFlow();
     const history = window.history;
-    const handleNoFilter = () => {
-        if (searchParams.toString() === '') {
-            history.pushState({}, '', window.location.pathname);
-        }
-    }
-    const handleTags = (event: SelectChangeEvent, newValue: Tag[]) => {
-        setTags(newValue);
-        if (newValue.length === 0) {
-            searchParams.delete('tags');
-        } else {
-            searchParams.delete('tags');
-            newValue.forEach((tag) => {
-                searchParams.append('tags', tag.acronym);
-            });
-        }
-        history.pushState({}, '', `?${searchParams.toString()}`);
-        handleNoFilter();
-    }
 
-    const handleAIToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setAI(event.target.checked);
-        if (event.target.checked) {
-            searchParams.set('ai', 'true');
-        } else {
-            searchParams.delete('ai');
-        }
-        history.pushState({}, '', `?${searchParams.toString()}`);
-        handleNoFilter();
-    }
 
-    const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearch(event.target.value);
-        if (event.target.value === '') {
-            searchParams.delete('filter');
-        } else {
-            searchParams.set('filter', event.target.value);
-        }
-        history.pushState({}, '', `?${searchParams.toString()}`);
-        handleNoFilter();
+    const handleNoFilterWrapper = () => handleNoFilter(searchParams, history)
+    const handleTagsWrapper = (event: SelectChangeEvent, newValue: Tag[]) => {
+        handleTags(event, newValue, setTags, searchParams, history, handleNoFilterWrapper);
     };
 
-    const onConnect = useCallback (
-        (params: Edge<any> | Connection) => {
-            if ('source' in params) {
-                const sourceNode = nodes.find((node) => node.id === params.source);
-                if (sourceNode && 'data' in sourceNode) {
-                    const dataIn = sourceNode.data.dataIn;
-                    console.log(dataIn); // Use the dataIn array as needed
-                }
-            }
-            return setEdges((eds) => addEdge(params, eds))
-        },
-        [nodes,edges],
-    );
+    const handleAIToggleWrapper = (event: React.ChangeEvent<HTMLInputElement>) => {
+        handleAIToggle(event, setAI, searchParams, history, handleNoFilterWrapper)
+    }
 
+    const onSelectServiceInput = (identifier: string, connParam: Edge<any> | Connection,) => {
+        const step = pipeSteps.find((step) => step.identifier === identifier)
+        // TODO
+    };
+
+    const findFollowingNodes = (nodeId: string) => {
+        const followingNodes: string[] = [];
+        let next: string | null = getNextNode(nodeId)
+        while (next !== null) {
+            followingNodes.push(next)
+            next = getNextNode(next)
+        }
+        return followingNodes;
+    }
+
+    const getNextNode = (nodeId: string) => {
+        let next = null;
+        edges.forEach((edge) => {
+            if (edge.source === nodeId) {
+                next = edge.target;
+                return undefined;
+            }
+        })
+        return next;
+    }
+
+
+    const findPrecedingNodes = (nodeId: string) => {
+        const prevNodes: string[] = [];
+        let prev: string | null = getPreviousNode(nodeId)
+        while (prev !== null) {
+            prevNodes.push(prev)
+            prev = getPreviousNode(prev)
+        }
+        return prevNodes;
+    }
+
+    const getPreviousNode = (nodeId: string) => {
+        let prev = null;
+        edges.forEach((edge) => {
+            if (edge.target === nodeId) {
+                prev = edge.source;
+                return undefined;
+            }
+        })
+        return prev;
+    }
+
+    const onConnect = (params: Edge<any> | Connection) => {
+        setEdges((eds) => addEdge(params, eds))
+        const sourceNode = nodes.find((node) => node.id === params.source)
+        if (params.source && params.target && sourceNode) {
+            const possibleInput = getNodeDataInOptions(params.source)
+
+            sourceNode.data.dataOut.forEach((output: FieldDescription) => {
+                possibleInput.push(output);
+            })
+
+            // Find all the subsequent nodes (the ones after the link/connection that has been established)
+            const affectedNodes = findFollowingNodes(params.target)
+            affectedNodes.unshift(params.target)
+
+            // Set the possible the input options for all subsequent nodes
+            affectedNodes.forEach((nodeId: string) => {
+                // set the output using a deep copy of the options to avoid unwillingly modifying the previous
+                // nodes' options
+                setNodeDataInOptions(nodeId, JSON.parse(JSON.stringify(possibleInput)))
+                const affectedNode = nodes.find((node) => node.id === nodeId)
+                affectedNode?.data.dataOut.forEach((output: FieldDescription) => {
+                    possibleInput.push(output);
+                })
+            })
+
+        }
+    };
+
+    const setNodeDataInOptions = (nodeId: string, possibleInput: FieldDescription[]) => {
+        setNodes((nds) =>
+            nds.map((node) => {
+                if (node.id !== nodeId) {
+                    return node;
+                }
+
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        dataInOptions: possibleInput,
+                    },
+                };
+            })
+        );
+    }
+
+    const getNodeDataInOptions = (node: string) => {
+        const prevNodes = findPrecedingNodes(node)
+        const possibleInput: FieldDescription[] = []
+
+        // Add all the output fields from the previous nodes to the options list
+        prevNodes.forEach((nodeId) => {
+            const node = nodes.find((nd) => nd.id === nodeId)
+            node?.data.dataOut.forEach((output: FieldDescription) => {
+                possibleInput.push(output);
+            })
+        })
+        return possibleInput;
+    }
 
     React.useEffect(() => {
-        // Call the addInitialNodes function here
         setNodes((nodes) => nodes.concat(createEntryNode()));
     }, [setNodes]);
 
@@ -118,13 +183,14 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
             id: "entry",
             type: "entryNodeEdit",
             data: {
+
                 label: "entry",
             },
             position: {x: 0, y: 0},
         }
     }
 
-    const addServiceNode = (serviceName: string) => {
+    const addServiceNode = (serviceName: string, serviceSlug: string, dataIn: FieldDescription[], dataOut: FieldDescription[]) => {
         const id = getId();
         const newNode = {
             id,
@@ -134,6 +200,11 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
                 y: 150,
             },
             data: {
+                identifier: serviceSlug,
+                onSelectInput: onSelectServiceInput,
+                dataInOptions: [],
+                dataIn: dataIn,
+                dataOut: dataOut,
                 label: `${serviceName}`
             },
         };
@@ -164,20 +235,15 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
                                 nodeTypes={nodeTypes}
                                 onConnect={onConnect}
                             >
-                                <Controls />
-                                <Background  gap={12} size={1} />
+                                <Controls/>
+                                <Background gap={12} size={1}/>
                             </ReactFlow>
                         </ReactFlowProvider>
                     </Box>
                 </Container>
-                <Container>
-                    <Button onClick={() => addServiceNode("None")}>
-                        New node
-                    </Button>
-                </Container>
                 <Container maxWidth={false}>
-                    <ItemGrid filter={search} orderBy={orderBy} tags={tags} handleTags={handleTags}
-                              ai={ai} handleAIToggle={handleAIToggle} addService={addServiceNode}/>
+                    <ItemGrid filter={search} orderBy={orderBy} tags={tags} handleTags={handleTagsWrapper}
+                              ai={ai} handleAIToggle={handleAIToggleWrapper} addService={addServiceNode}/>
                 </Container>
             </Box>
         </Box>

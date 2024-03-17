@@ -1,15 +1,13 @@
 import React, {useState} from "react";
-import {Handle, Position} from "react-flow-renderer";
-import {Autocomplete, Card, CardActions, CardContent, TextField, Typography} from '@mui/material';
+import { Connection, Handle, Position} from "react-flow-renderer";
+import {Autocomplete, Box, Card, CardActions, CardContent, TextField, Typography} from '@mui/material';
 import {useSelector} from 'react-redux';
 import {grey} from '@mui/material/colors';
-import {DataTypeOptions} from "../../enums/dataTypeEnum";
+import {FieldDescription} from "../../models/ExecutionUnit";
 
 
 const ServiceNode: React.FC<{ data: any }> = (
-    {
-        data,
-    }) => {
+    {data}) => {
     const lightgrey = grey[400];
     const darkgrey = grey[800];
     const colorMode = useSelector((state: any) => state.colorMode.value);
@@ -18,11 +16,48 @@ const ServiceNode: React.FC<{ data: any }> = (
     const [linked, setLinked]  = React.useState<boolean>(false)
 
 
+    const options: string[] = [];
+    data.dataInOptions.forEach((option: FieldDescription) => {
+        options.push(option.name)
+    })
+
+    const listDataIn = data.dataIn.map((inputField: { name: string ; type: string[]; }, index: number) =>
+            <Box sx={{display: "flex"}} key={index}>
+                <Box sx={{display: "flex", flexDirection: "column", justifyContent: "center"}} key={index}>
+                    <Typography variant={"body1"}>{inputField.name} : </Typography>
+                    <Box sx={{display:"flex"}}>
+                        {inputField.type.map((type: string) => <Typography variant={"body2"}>{type} &nbsp;</Typography>)}
+                    </Box>
+                </Box>
+                <Autocomplete
+                    sx={{mb: 2}}
+                    value={inputValue}
+                    blurOnSelect={false}
+                    options={options}
+                    autoHighlight={false}
+                    isOptionEqualToValue={(option, value) => value === "" || option === value}
+                    renderOption={(props, option, {selected}) => (
+                        <li {...props}>
+                            {option}
+                        </li>
+                    )}
+                    renderInput={(params) => (
+                        <TextField {...params} label={"Data-In"} placeholder="Select"/>
+                    )}
+                />
+            </Box>
+    );
+
+    const onConnect = (connection: Connection) => {
+        setLinked(true);
+    }
+
     return (
         <>
             <Handle
                 type={"target"}
                 position={Position.Left}
+                onConnect={(param) => onConnect(param)}
             />
             <Card
                 sx={{
@@ -35,36 +70,12 @@ const ServiceNode: React.FC<{ data: any }> = (
                 }}
             >
                 <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "20em"}}>
-                    <Typography variant={"subtitle1"} color={"primary"}
+                    <Typography variant={"h5"} color={"primary"}
                                 sx={{justifyContent: "center", display: "flex"}}
                     >
                         {data.label}
                     </Typography>
-
-                    {selectedDataIn.map((dataType, index) => (
-                        <Typography sx={{py: 0.3}} key={index}>{dataType}</Typography>
-                    ))}
-
-                    {linked ? (
-                        <Autocomplete
-                        sx={{mb: 2}}
-                        value={inputValue}
-                        blurOnSelect={false}
-                        options={DataTypeOptions}
-                        autoHighlight={false}
-                        isOptionEqualToValue={(option, value) => value === "" || option === value}
-                        renderOption={(props, option, {selected}) => (
-                            <li {...props}>
-                                {option}
-                            </li>
-                        )}
-                        renderInput={(params) => (
-                            <TextField {...params} label={"Data-In"} placeholder="Data-In" />
-                        )}
-                    />)
-                        :
-                        false
-                    }
+                    {listDataIn}
                 </CardContent>
                 <CardActions>{}</CardActions>
             </Card>

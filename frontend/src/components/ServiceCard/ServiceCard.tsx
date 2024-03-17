@@ -83,7 +83,7 @@ const ServiceCard : React.FC<{
                         to={"/showcase/service/" + item.slug}>
                         <Button size={"small"} variant={"contained"}>View</Button>
                     </Link>
-                    {addService && <Button onClick={() => addService(item.slug)}>Add</Button>}
+                    {addService && <Button onClick={() => addService(item.name, item.slug, item.data_in_fields, item.data_out_fields)}>Add</Button>}
                 </CardActions>
             </Card>
         </Grid>

@@ -16,6 +16,7 @@ import ScrollToTop from 'react-scroll-to-top';
 import { ArrowUpward } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import { useFileArray } from '../../utils/hooks/fileArray';
+import {handleAIToggle, handleNoFilter, handleSearch, handleTags} from "../../utils/functions";
 
 
 const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
@@ -37,22 +38,18 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     const [searchParams] = useSearchParams();
     const history = window.history;
 
-    const handleNoFilter = () => {
-        if (searchParams.toString() === '') {
-            history.pushState({}, '', window.location.pathname);
-        }
+    const handleNoFilterWrapper = () =>   handleNoFilter(searchParams, history)
+    const handleTagsWrapper = (event: SelectChangeEvent, newValue: Tag[]) => {
+        handleTags(event, newValue, setTags, searchParams, history, handleNoFilterWrapper);
+    };
+
+    const handleAIToggleWrapper = (event: React.ChangeEvent<HTMLInputElement>) => {
+        handleAIToggle(event, setAI, searchParams, history, handleNoFilterWrapper)
     }
 
-    const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearch(event.target.value);
-        if (event.target.value === '') {
-            searchParams.delete('filter');
-        } else {
-            searchParams.set('filter', event.target.value);
-        }
-        history.pushState({}, '', `?${searchParams.toString()}`);
-        handleNoFilter();
-    };
+    const handleSearchWrapper =  (event: React.ChangeEvent<HTMLInputElement>) => {
+        handleSearch(event, setSearch, searchParams, handleNoFilterWrapper, history)
+    }
 
     const handleOrder = (event: SelectChangeEvent) => {
         setOrderBy(event.target.value as string);
@@ -62,32 +59,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             searchParams.set('orderBy', event.target.value as string);
         }
         history.pushState({}, '', `?${searchParams.toString()}`);
-        handleNoFilter();
-    }
-
-    const handleTags = (event: SelectChangeEvent, newValue: Tag[]) => {
-        setTags(newValue);
-        if (newValue.length === 0) {
-            searchParams.delete('tags');
-        } else {
-            searchParams.delete('tags');
-            newValue.forEach((tag) => {
-                searchParams.append('tags', tag.acronym);
-            });
-        }
-        history.pushState({}, '', `?${searchParams.toString()}`);
-        handleNoFilter();
-    }
-
-    const handleAIToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setAI(event.target.checked);
-        if (event.target.checked) {
-            searchParams.set('ai', 'true');
-        } else {
-            searchParams.delete('ai');
-        }
-        history.pushState({}, '', `?${searchParams.toString()}`);
-        handleNoFilter();
+        handleNoFilterWrapper();
     }
 
     React.useEffect(() => {
@@ -104,7 +76,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             setOrderBy('name-asc');
             history.pushState({}, '', `?${searchParams.toString()}`);
         }
-        handleNoFilter();
+        handleNoFilterWrapper();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

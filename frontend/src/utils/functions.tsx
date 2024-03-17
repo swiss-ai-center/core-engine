@@ -1,5 +1,8 @@
 import { getResult } from './api';
 import { toast } from 'react-toastify';
+import {Tag} from "../models/Tag";
+import {SelectChangeEvent} from "@mui/material";
+import React from "react";
 
 export async function download(resultIdList: string[]) {
     for (const id of resultIdList) {
@@ -24,3 +27,69 @@ export const isSmartphone = (): boolean => {
 export const displayTimer = (timer: number): string => {
     return timer < 300 ? timer.toFixed(1) + "s" : ">300.0s";
 }
+
+
+export const handleTags = (
+    event: SelectChangeEvent,
+    newValue: Tag[],
+    setTags: React.Dispatch<React.SetStateAction<Tag[]>>,
+    searchParams: URLSearchParams,
+    windowHistory: History,
+    handleNoFilter: any
+) => {
+    setTags(newValue);
+    if (newValue.length === 0) {
+        searchParams.delete('tags');
+    } else {
+        searchParams.delete('tags');
+        newValue.forEach((tag) => {
+            searchParams.append('tags', tag.acronym);
+        });
+    }
+    windowHistory.pushState({}, '', `?${searchParams.toString()}`);
+    handleNoFilter();
+};
+
+export const handleAIToggle = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    setAI:  React.Dispatch<React.SetStateAction<boolean>>,
+    searchParams: URLSearchParams,
+    windowHistory: History,
+    handleNoFilter: any
+    ) => {
+    setAI(event.target.checked);
+    if (event.target.checked) {
+        searchParams.set('ai', 'true');
+    } else {
+        searchParams.delete('ai');
+    }
+    windowHistory.pushState({}, '', `?${searchParams.toString()}`);
+    handleNoFilter();
+};
+
+export const handleSearch = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    setSearch:  React.Dispatch<React.SetStateAction<string>>,
+    searchParams: URLSearchParams,
+    handleNoFilter: any,
+    windowHistory: History) => {
+    setSearch(event.target.value);
+    if (event.target.value === '') {
+        searchParams.delete('filter');
+    } else {
+        searchParams.set('filter', event.target.value);
+    }
+    windowHistory.pushState({}, '', `?${searchParams.toString()}`);
+    handleNoFilter();
+};
+
+export const handleNoFilter = (
+    searchParams: URLSearchParams,
+    windowHistory:  History) => {
+    if (searchParams.toString() === '') {
+        windowHistory.pushState({}, '', window.location.pathname);
+    }
+}
+
+
+
