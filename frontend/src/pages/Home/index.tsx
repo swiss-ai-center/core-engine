@@ -87,9 +87,9 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             <FilterDrawer
                 mobileOpen={mobileOpen} handleOpen={handleOpen}
                 orderBy={orderBy} handleOrder={handleOrder} orderByList={orderByList}
-                search={search} handleSearch={handleSearch}
-                tags={tags} handleTags={handleTags}
-                ai={ai} handleAIToggle={handleAIToggle}
+                search={search} handleSearch={handleSearchWrapper}
+                tags={tags} handleTags={handleTagsWrapper}
+                ai={ai} handleAIToggle={handleAIToggleWrapper}
             />
             <Box component={"main"} sx={{flexGrow: 1, py: 4}}>
                 <Toolbar/>

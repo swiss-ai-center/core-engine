@@ -1,5 +1,5 @@
 import ItemGrid from "../../components/ItemGrid/ItemGrid";
-import {Box, Container, SelectChangeEvent} from "@mui/material";
+import {AutocompleteValue, Box, Container, SelectChangeEvent} from "@mui/material";
 import {Tag} from "../../models/Tag";
 import {useSearchParams} from "react-router-dom";
 import ReactFlow, {
@@ -56,6 +56,9 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
     const [searchParams] = useSearchParams();
     const history = window.history;
 
+    // TODO - explain . This is passed down to the child Nodes
+    const nodesRef = React.useRef(nodes)
+    const setNodeRef = React.useRef(setNodes)
 
     const handleNoFilterWrapper = () => handleNoFilter(searchParams, history)
     const handleTagsWrapper = (event: SelectChangeEvent, newValue: Tag[]) => {
@@ -65,10 +68,26 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
     const handleAIToggleWrapper = (event: React.ChangeEvent<HTMLInputElement>) => {
         handleAIToggle(event, setAI, searchParams, history, handleNoFilterWrapper)
     }
+    const onSelectServiceInput = (nodeId: string, inputIndex: number, value: string) => {
+        const node = nodesRef.current.find((node) => node.id === nodeId)
+        if(node === undefined) return;
+        const selectedInput= [...node.data.selectedDataIn];
+        selectedInput[inputIndex] = value;
+        setNodeRef.current((nds) =>
+            nds.map((node) => {
+                if (node.id !== nodeId) {
+                    return node;
+                }
 
-    const onSelectServiceInput = (identifier: string, connParam: Edge<any> | Connection,) => {
-        const step = pipeSteps.find((step) => step.identifier === identifier)
-        // TODO
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        selectedDataIn: selectedInput,
+                    },
+                };
+            })
+        );
     };
 
     const findFollowingNodes = (nodeId: string) => {
@@ -121,28 +140,28 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
             const possibleInput = getNodeDataInOptions(params.source)
 
             sourceNode.data.dataOut.forEach((output: FieldDescription) => {
-                possibleInput.push(output);
+                possibleInput.push(`${sourceNode.data.identifier}.${output.name}`);
             })
 
             // Find all the subsequent nodes (the ones after the link/connection that has been established)
             const affectedNodes = findFollowingNodes(params.target)
             affectedNodes.unshift(params.target)
 
-            // Set the possible the input options for all subsequent nodes
+            // Set the possible input options for all subsequent nodes
             affectedNodes.forEach((nodeId: string) => {
                 // set the output using a deep copy of the options to avoid unwillingly modifying the previous
                 // nodes' options
                 setNodeDataInOptions(nodeId, JSON.parse(JSON.stringify(possibleInput)))
                 const affectedNode = nodes.find((node) => node.id === nodeId)
                 affectedNode?.data.dataOut.forEach((output: FieldDescription) => {
-                    possibleInput.push(output);
+                    possibleInput.push(`${affectedNode.data.identifier}.${output.name}`);
                 })
             })
 
         }
     };
 
-    const setNodeDataInOptions = (nodeId: string, possibleInput: FieldDescription[]) => {
+    const setNodeDataInOptions = (nodeId: string, possibleInput: string[]) => {
         setNodes((nds) =>
             nds.map((node) => {
                 if (node.id !== nodeId) {
@@ -162,13 +181,13 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
 
     const getNodeDataInOptions = (node: string) => {
         const prevNodes = findPrecedingNodes(node)
-        const possibleInput: FieldDescription[] = []
+        const possibleInput: string[] = []
 
         // Add all the output fields from the previous nodes to the options list
         prevNodes.forEach((nodeId) => {
             const node = nodes.find((nd) => nd.id === nodeId)
             node?.data.dataOut.forEach((output: FieldDescription) => {
-                possibleInput.push(output);
+                possibleInput.push(`${node.data.identifier}.${output.name}`);
             })
         })
         return possibleInput;
@@ -176,7 +195,13 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
 
     React.useEffect(() => {
         setNodes((nodes) => nodes.concat(createEntryNode()));
-    }, [setNodes]);
+    }, []);
+
+    React.useEffect(() =>  {
+        nodesRef.current = nodes;
+        setNodeRef.current = setNodes
+    }, [nodes, setNodes])
+
 
     const createEntryNode = () => {
         return {
@@ -192,6 +217,8 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
 
     const addServiceNode = (serviceName: string, serviceSlug: string, dataIn: FieldDescription[], dataOut: FieldDescription[]) => {
         const id = getId();
+        const selectedDataIn = new Array<string>(dataIn.length);
+        const dataInOptions = new Array<string>();
         const newNode = {
             id,
             type: "serviceNode",
@@ -202,7 +229,8 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
             data: {
                 identifier: serviceSlug,
                 onSelectInput: onSelectServiceInput,
-                dataInOptions: [],
+                dataInOptions: dataInOptions,
+                selectedDataIn:selectedDataIn,
                 dataIn: dataIn,
                 dataOut: dataOut,
                 label: `${serviceName}`
