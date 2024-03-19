@@ -1,7 +1,13 @@
 import React from 'react';
 import ReactFlow, {
-    addEdge, ReactFlowProvider, Background, Controls, useNodesState, useEdgesState, MiniMap
-} from 'react-flow-renderer';
+    Background,
+    Controls,
+    useNodesState,
+    useEdgesState,
+    MiniMap,
+    useReactFlow,
+    Edge,
+} from 'reactflow';
 import EntryNode from './EntryNode';
 import ExitNode from './ExitNode';
 import ProgressNode from './ProgressNode';
@@ -13,7 +19,6 @@ import DrawGraph from './DrawGraph';
 import { Service } from '../../models/Service';
 import { Pipeline } from '../../models/Pipeline';
 import { useWebSocketConnection } from '../../utils/useWebSocketConnection';
-import "./styles.css";
 import { toast } from 'react-toastify';
 import { Message, MessageSubject } from '../../models/Message';
 import {
@@ -28,8 +33,25 @@ import { Task } from '../../models/Task';
 import { ConnectionData } from '../../models/ConnectionData';
 import { Box, Typography } from '@mui/material';
 import { displayTimer } from '../../utils/functions';
+import { ElkNode, EntryNodeData, ExitNodeData, ProgressNodeData } from '../../models/NodeData';
+import ELK from 'elkjs/lib/elk.bundled';
+import "./styles.css";
+import 'reactflow/dist/style.css';
+
+const layoutOptions = {
+    'elk.algorithm': 'layered',
+    'elk.direction': 'RIGHT',
+    'elk.layered.spacing.edgeNodeBetweenLayers': '40',
+    'elk.spacing.nodeNode': '40',
+    'elk.layered.nodePlacement.strategy': 'SIMPLE',
+};
+
+const elk = new ELK();
 
 const Board: React.FC<{ description: any }> = ({description}) => {
+    const lightgrey = grey[300];
+    const mediumgrey = grey[500];
+    const darkgrey = grey[900];
     const dispatch = useDispatch();
     const nodeTypes = React.useMemo(() => ({
         entryNode: EntryNode, progressNode: ProgressNode, exitNode: ExitNode
@@ -38,19 +60,10 @@ const Board: React.FC<{ description: any }> = ({description}) => {
     const taskArray = useSelector((state: any) => state.runState.taskArray);
     const taskExecuting = useSelector((state: any) => state.runState.task);
     const timer = useSelector((state: any) => state.runState.timer);
-    const [nodes, setNodes, onNodesChange] = useNodesState([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+    const [nodes, , onNodesChange] = useNodesState([]);
+    const [edges, , onEdgesChange] = useEdgesState([]);
     const [hideMiniMap, setHideMiniMap] = React.useState(true);
-    const lightgrey = grey[300];
-    const mediumgrey = grey[500];
-    const darkgrey = grey[900];
-
-    const onConnect = React.useCallback(
-        (params: any) => setEdges((eds: any) => addEdge({...params, animated: true}, eds)),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        []
-    );
-
+    const {setNodes, setEdges, fitView} = useReactFlow<EntryNodeData | ProgressNodeData | ExitNodeData>();
     const {lastJsonMessage} = useWebSocketConnection();
 
     function CustomControls() {
@@ -101,7 +114,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                         dispatch(setGeneralStatus(dataObject.general_status));
                         dispatch(setCurrentTask(null));
                         str = `${text}`;
-                    // check if pipeline_execution_id is not set. In this case, the execution is finished but for a task
+                        // check if pipeline_execution_id is not set. In this case, the execution is finished but for a task
                     } else if (!dataObject.pipeline_execution_id) {
                         dispatch(setResultIdList(dataObject.data_out));
                         dispatch(setGeneralStatus(dataObject.status));
@@ -168,22 +181,89 @@ const Board: React.FC<{ description: any }> = ({description}) => {
     }, [taskArray]);
 
     React.useEffect(() => {
-        if (description) {
-            let entity
-            if (description.url) {
-                entity = Object.assign(new Service(), description);
-            } else {
-                entity = Object.assign(new Pipeline(), description);
+        // uses elkjs to give each node a layouted position
+        const getLayoutedNodes = async (nodes: ElkNode[], edges: Edge[]) => {
+            const graph = {
+                id: 'root',
+                layoutOptions,
+                children: nodes.map((n) => {
+                    const targetPorts = n.data.targetHandles.map((t) => ({
+                        id: t.id,
+
+                        // ⚠️ it's important to let elk know on which side the port is
+                        // in this example targets are on the left (WEST) and sources on the right (EAST)
+                        properties: {
+                            side: 'WEST',
+                        },
+                    }));
+
+                    const sourcePorts = n.data.sourceHandles.map((s) => ({
+                        id: s.id,
+                        properties: {
+                            side: 'EAST',
+                        },
+                    }));
+
+                    return {
+                        id: n.id,
+                        width: n.width ?? 150,
+                        height: n.height ?? 50,
+                        // ⚠️ we need to tell elk that the ports are fixed, in order to reduce edge crossings
+                        properties: {
+                            'org.eclipse.elk.portConstraints': 'FIXED_ORDER',
+                        },
+                        // we are also passing the id, so we can also handle edges without a sourceHandle or targetHandle option
+                        ports: [{id: n.id}, ...targetPorts, ...sourcePorts],
+                    };
+                }),
+                edges: edges.map((e) => ({
+                    id: e.id,
+                    sources: [e.sourceHandle || e.source],
+                    targets: [e.targetHandle || e.target],
+                })),
+            };
+            const layoutedGraph = await elk.layout(graph);
+            return nodes.map((node) => {
+                const layoutedNode = layoutedGraph.children?.find(
+                    (lgNode) => lgNode.id === node.id,
+                );
+
+                return {
+                    ...node,
+                    position: {
+                        x: layoutedNode?.x ?? 0,
+                        y: layoutedNode?.y ?? 0,
+                    },
+                };
+            });
+        };
+
+        const layoutNodes = async () => {
+            if (description) {
+                let entity
+                if (description.url) {
+                    entity = Object.assign(new Service(), description);
+                } else {
+                    entity = Object.assign(new Pipeline(), description);
+                }
+                const {
+                    nodes: baseNodes,
+                    edges: baseEdges
+                } = DrawGraph(entity);
+
+                const layoutedNodes = await getLayoutedNodes(
+                    baseNodes as ElkNode[],
+                    baseEdges,
+                );
+                setNodes(layoutedNodes);
+                setEdges(baseEdges);
             }
-            const {
-                nodes: layoutedNodes,
-                edges: layoutedEdges
-            } = DrawGraph(entity);
-            setNodes([...layoutedNodes]);
-            setEdges([...layoutedEdges]);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [description])
+
+            setTimeout(() => fitView(), 0);
+        };
+
+        layoutNodes();
+    }, [description, setNodes, setEdges, fitView]);
 
 
     React.useEffect(() => {
@@ -197,43 +277,50 @@ const Board: React.FC<{ description: any }> = ({description}) => {
     }, [lastJsonMessage]);
 
     return (
-        <ReactFlowProvider>
-            <ReactFlow
-                id={"board"}
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                nodeTypes={nodeTypes}
-                fitView
-                nodesDraggable={false}
-                nodesConnectable={false}
-                about={colorMode}
-                style={{
-                    backgroundColor: colorMode === 'dark' ? '#121212' : '#fff',
-                    borderRadius: 3,
-                }}
-            >
-                <Box id={"timer-general"} className={"timer-general"} zIndex={99} about={colorMode}>
-                    <Typography
-                        color={taskExecuting ? "primary" : (colorMode === 'dark' ? lightgrey : mediumgrey)}>
-                        {displayTimer(timer)}
-                    </Typography>
-                </Box>
-                <CustomControls/>
-                <Background/>
-                {!hideMiniMap ? (<MiniMap
+        <ReactFlow
+            id={"board"}
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            nodeTypes={nodeTypes}
+            nodesConnectable={false}
+            fitView
+            snapToGrid
+            about={colorMode}
+            style={{
+                backgroundColor: colorMode === 'dark' ? '#121212' : '#fff',
+                borderRadius: 3,
+            }}
+        >
+            <Box id={"timer-general"} className={"timer-general"} zIndex={99} about={colorMode}>
+                <Typography
+                    color={taskExecuting ? "primary" : (colorMode === 'dark' ? lightgrey : mediumgrey)}>
+                    {displayTimer(timer)}
+                </Typography>
+            </Box>
+            <Background/>
+            <CustomControls/>
+            {!hideMiniMap ? (
+                <MiniMap
+                    nodeColor={(n: any) => {
+                        if (n.type === 'entryNode') {
+                            return '#ccffcc';
+                        } else if (n.type === 'progressNode') {
+                            return '#add8e6';
+                        }
+                        return '#ffb6c1';
+                    }}
                     style={{
                         backgroundColor: colorMode === 'dark' ? darkgrey : lightgrey,
                         padding: 0, margin: 0
                     }}
                     nodeStrokeColor={() => {
-                        return 'primary';
+                        return 'primary.main';
                     }}
-                />) : <></>}
-            </ReactFlow>
-        </ReactFlowProvider>
+                />
+            ) : <></>}
+        </ReactFlow>
     );
 };
 

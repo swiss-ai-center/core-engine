@@ -341,6 +341,7 @@ const ItemGrid: React.FC<{
                                       sx={{height: 'auto', minHeight: '250px'}}>
                                     <Card
                                         sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
+                                        variant={"outlined"}
                                     >
                                         <CardContent sx={{flexGrow: 1}}>
                                             <Typography gutterBottom variant={"h5"} component={"h2"}>
@@ -378,7 +379,9 @@ const ItemGrid: React.FC<{
                                                 to={"/showcase/pipeline/" + item.slug}
                                                 state={{back: searchParams.toString()}}
                                             >
-                                                <Button size={"small"} variant={"contained"}>View</Button>
+                                                <Button size={"small"} variant={"contained"} disableElevation>
+                                                    View
+                                                </Button>
                                             </Link>
                                         </CardActions>
                                     </Card>

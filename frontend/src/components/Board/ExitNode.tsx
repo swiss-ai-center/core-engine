@@ -1,5 +1,5 @@
 import React from "react";
-import { Handle, Position } from "react-flow-renderer";
+import { NodeProps, Position } from "reactflow";
 import {
     Button, Card, CardActions, CardContent, Tooltip, Typography
 } from '@mui/material';
@@ -10,9 +10,11 @@ import {
 import { useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
 import { download } from '../../utils/functions';
+import { EntryNodeData } from '../../models/NodeData';
+import CustomHandle from './CustomHandle';
 
 
-const ExitNode = ({data}: any) => {
+const ExitNode = ({data}: NodeProps<EntryNodeData>) => {
     const lightgrey = grey[400];
     const darkgrey = grey[800];
     const colorMode = useSelector((state: any) => state.colorMode.value);
@@ -67,10 +69,19 @@ const ExitNode = ({data}: any) => {
                     </Tooltip>
                 </CardActions>
             </Card>
-            <Handle
-                type={"target"}
-                position={Position.Left}
-            />
+            <div className="handles target">
+                {data.targetHandles.map((handle, index) => {
+                    return (
+                        <CustomHandle
+                            key={handle.id}
+                            id={handle.id}
+                            label={handle.label}
+                            type={"target"}
+                            position={Position.Left}
+                        />
+                    );
+                })}
+            </div>
         </>
     );
 };

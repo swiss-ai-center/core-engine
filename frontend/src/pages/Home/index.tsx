@@ -2,7 +2,6 @@ import {
     Box,
     Container,
     SelectChangeEvent,
-    Typography,
     Toolbar,
 } from '@mui/material';
 import React from 'react';

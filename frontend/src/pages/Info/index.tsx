@@ -24,7 +24,8 @@ import {
 import Copyright from '../../components/Copyright/Copyright';
 import ScrollToTop from 'react-scroll-to-top';
 import { useSelector } from 'react-redux';
-import { isSmartphone, navigateHome, navigateTo } from '../../utils/functions';
+import { isSmartphone } from '../../utils/functions';
+import { useNavigate } from 'react-router-dom';
 
 const Item = styled(Paper)(({theme}) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -36,13 +37,20 @@ const Item = styled(Paper)(({theme}) => ({
 
 const Info: React.FC = () => {
     const colorMode = useSelector((state: any) => state.colorMode.value);
+    const navigate = useNavigate();
     const [isHovered, setHovered] = React.useState(false);
+
+    const navigateHome = () => {
+        navigate("/home");
+    }
+
 
     React.useEffect(() => {
         if (window.location.pathname !== '/') {
-            navigateHome();
+            navigate("/");
+
         }
-    }, []);
+    }, [navigateHome]);
 
     return (
         <Box sx={{display: "flex"}}>
@@ -67,7 +75,7 @@ const Info: React.FC = () => {
                         AI applications for SMEs to accelerate its adoption in Switzerland.
                     </Typography>
                     <Box sx={{display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 1}} my={4}>
-                        <Button endIcon={isHovered ? <ArrowForward/> : <></>} onClick={() => navigateTo("/home")}
+                        <Button endIcon={isHovered ? <ArrowForward/> : <></>} onClick={navigateHome}
                                 variant={"contained"}
                                 disableElevation
                                 color={"secondary"}
@@ -126,12 +134,14 @@ const Info: React.FC = () => {
                     <Grid container spacing={2} justifyContent={"center"}>
                         <Grid item xs={12} md={6}>
                             <Card sx={{height: "100%"}} variant={"outlined"}>
-                                <CardHeader title={"What is the Core Engine?"} titleTypographyProps={{variant: "h5"}}/>
+                                <CardHeader title={"What is the Core Engine?"}
+                                            titleTypographyProps={{variant: "h5"}}/>
                                 <CardContent>
                                     <Typography variant={"h6"} align={"justify"} color={"text.secondary"} paragraph>
                                         This application is a showcase of the Swiss AI Center Core Engine.
                                         It provides a set of services and pipelines to demonstrate the capabilities
-                                        of the platform. You can test the services and pipelines, chain them together
+                                        of the platform. You can test the services and pipelines, chain them
+                                        together
                                         and create your own workflows.
                                     </Typography>
                                 </CardContent>
@@ -143,12 +153,15 @@ const Info: React.FC = () => {
                                             titleTypographyProps={{variant: "h5"}}/>
                                 <CardContent>
                                     <Typography variant={"h6"} align={"justify"} color={"text.secondary"} paragraph>
-                                        To use the Core Engine, just click on the "Launch the application" button and
+                                        To use the Core Engine, just click on the "Launch the application" button
+                                        and
                                         you will be redirected to the list of services and pipelines. You can filter
-                                        them by category, search for a specific service or pipeline, and sort them by
+                                        them by category, search for a specific service or pipeline, and sort them
+                                        by
                                         name. To add your own services or pipelines, just head to the <URLLink
                                         target={"_blank"}
-                                        href={"https://docs.swiss-ai-center.ch"}>documentation</URLLink> and follow the
+                                        href={"https://docs.swiss-ai-center.ch"}>documentation</URLLink> and follow
+                                        the
                                         instructions.
                                     </Typography>
                                 </CardContent>
@@ -156,13 +169,15 @@ const Info: React.FC = () => {
                         </Grid>
                         <Grid item xs={12} md={6}>
                             <Card sx={{height: "100%"}} variant={"outlined"}>
-                                <CardHeader title={"How much does it cost?"} titleTypographyProps={{variant: "h5"}}/>
+                                <CardHeader title={"How much does it cost?"}
+                                            titleTypographyProps={{variant: "h5"}}/>
                                 <CardContent>
                                     <Typography variant={"h6"} align={"justify"} color={"text.secondary"} paragraph>
                                         The Core Engine is free to use. It is an open-source project and is
                                         maintained by the Swiss AI Center. You can use the services and pipelines
                                         to develop your own applications and workflows. If you need help or support,
-                                        you can <URLLink href={"mailto:info@swiss-ai-center.ch"}>contact us</URLLink>.
+                                        you can <URLLink href={"mailto:info@swiss-ai-center.ch"}>contact
+                                        us</URLLink>.
                                     </Typography>
                                 </CardContent>
                             </Card>
@@ -173,7 +188,8 @@ const Info: React.FC = () => {
                                 <CardContent>
                                     <Typography variant={"h6"} align={"justify"} color={"text.secondary"} paragraph>
                                         The Core Engine is an open-source project and is maintained by the Swiss AI
-                                        Center. If you want to contribute to the project, you can fork the repository
+                                        Center. If you want to contribute to the project, you can fork the
+                                        repository
                                         on <URLLink
                                         target={"_blank"}
                                         href={"https://github.com/swiss-ai-center/core-engine"}>GitHub</URLLink> and

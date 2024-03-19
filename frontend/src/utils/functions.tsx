@@ -24,15 +24,3 @@ export const isSmartphone = (): boolean => {
 export const displayTimer = (timer: number): string => {
     return timer < 300 ? timer.toFixed(1) + "s" : ">300.0s";
 }
-
-export const navigateBack = () => {
-    window.history.back();
-};
-
-export const navigateHome = () => {
-    window.location.href = "/";
-}
-
-export const navigateTo = (path: string) => {
-    window.location.href = path;
-}

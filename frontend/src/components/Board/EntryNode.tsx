@@ -1,5 +1,5 @@
 import React from "react";
-import { Handle, Position } from "react-flow-renderer";
+import { NodeProps, Position } from "reactflow";
 import {
     Box, Button, Card, CardActions, CardContent, Divider, Input, LinearProgress, Tooltip, Typography
 } from '@mui/material';
@@ -18,6 +18,8 @@ import { useFileArray } from '../../utils/hooks/fileArray';
 import { useWebSocketConnection } from '../../utils/useWebSocketConnection';
 import { toast } from 'react-toastify';
 import { grey } from '@mui/material/colors';
+import { EntryNodeData } from '../../models/NodeData';
+import CustomHandle from './CustomHandle';
 
 function createAllowedTypesString(allowedTypes: string[]) {
     return allowedTypes.join(', ');
@@ -30,7 +32,7 @@ function addIsSetToFields(fields: FieldDescription[]): FieldDescriptionWithSetAn
 }
 
 
-const EntryNode = ({data}: any) => {
+const EntryNode = ({data}: NodeProps<EntryNodeData>) => {
     const lightgrey = grey[400];
     const darkgrey = grey[800];
     const colorMode = useSelector((state: any) => state.colorMode.value);
@@ -195,10 +197,20 @@ const EntryNode = ({data}: any) => {
                 </CardContent>
                 <CardActions>{actionContent()}</CardActions>
             </Card>
-            <Handle
-                type={"source"}
-                position={Position.Right}
-            />
+
+            <div className="handles sources">
+                {data.sourceHandles.map((handle) => {
+                    return (
+                        <CustomHandle
+                            key={handle.id}
+                            id={handle.id}
+                            label={handle.label}
+                            type={"source"}
+                            position={Position.Right}
+                        />
+                    );
+                })}
+            </div>
         </>
     );
 };

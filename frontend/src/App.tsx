@@ -145,7 +145,6 @@ function App() {
             <Router>
                 <Routes>
                     <Route path={"/showcase/:type/:slug"} element={<Showcase mobileOpen={mobileOpen}/>}/>
-                    // showcase without type and slug redirects to home
                     <Route path={"/showcase"} element={<Info />}/>
                     <Route path={"/home"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
                     <Route path={"*"} element={<Info />}/>
