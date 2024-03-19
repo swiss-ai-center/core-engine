@@ -5,6 +5,7 @@ import {
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Showcase from './pages/Showcase';
 import Home from './pages/Home';
+import Info from './pages/Info';
 import CssBaseline from '@mui/material/CssBaseline';
 import {
     MenuRounded as MenuIcon,
@@ -125,12 +126,14 @@ function App() {
                                     {colorMode === 'light' ? <LightModeTwoTone/> : <DarkModeTwoTone/>}
                                 </IconButton>
                             </Tooltip>
+                            {/* if page is Info, hide stats button */}
+                            {window.location.pathname === "/" ? <></> :
                             <Tooltip title={"Engine stats"}>
                                 <IconButton sx={{marginLeft: "auto"}} color={"inherit"} size={"large"}
                                             onClick={() => handleOpenStats()}>
                                     <QueryStatsTwoTone/>
                                 </IconButton>
-                            </Tooltip>
+                            </Tooltip>}
                         </Grid>
                     </Grid>
                 </Toolbar>
@@ -142,7 +145,11 @@ function App() {
             <Router>
                 <Routes>
                     <Route path={"/showcase/:type/:slug"} element={<Showcase mobileOpen={mobileOpen}/>}/>
-                    <Route path={"*"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
+                    // showcase without type and slug redirects to home
+                    <Route path={"/showcase"} element={<Info />}/>
+                    <Route path={"/home"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
+                    <Route path={"*"} element={<Info />}/>
+
                 </Routes>
             </Router>
             {/* End Main content */}

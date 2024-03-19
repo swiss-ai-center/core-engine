@@ -1,6 +1,6 @@
-import { Grid, IconButton, Link, Tooltip, Typography } from '@mui/material';
+import { Button, Grid, IconButton, Link as URLLink, Link, Tooltip, Typography } from '@mui/material';
 import React from 'react';
-import { DescriptionTwoTone, GitHub, PublicTwoTone } from '@mui/icons-material';
+import { AllInclusiveTwoTone, DescriptionTwoTone, GitHub, PublicTwoTone } from '@mui/icons-material';
 import { isSmartphone } from '../../utils/functions';
 
 const chooseJustify = (isMobile: boolean): string => {
@@ -33,6 +33,14 @@ function Copyright() {
                           underline={"none"} target={"_blank"}>
                         <IconButton sx={{marginLeft: "auto"}} color={"primary"} size={"large"}>
                             <GitHub/>
+                        </IconButton>
+                    </Link>
+                </Tooltip>
+                <Tooltip title={"A guide to MLOps"}>
+                    <Link color={"inherit"} href={"https://mlops.swiss-ai-center.ch"}
+                          underline={"none"} target={"_blank"}>
+                        <IconButton sx={{marginLeft: "auto"}} color={"primary"} size={"large"}>
+                            <AllInclusiveTwoTone/>
                         </IconButton>
                     </Link>
                 </Tooltip>
