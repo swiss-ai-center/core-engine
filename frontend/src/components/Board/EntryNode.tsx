@@ -9,7 +9,7 @@ import {
     RunState, setCurrentTask,
     setGeneralStatus,
     resetTimer,
-    setTaskArray
+    setTaskArray,
 } from '../../utils/reducers/runStateSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { postToEngine } from '../../utils/api';
@@ -130,8 +130,7 @@ const EntryNode = ({data}: NodeProps<EntryNodeData>) => {
         if (data.data_in_fields) {
             setFileArray(addIsSetToFields(data.data_in_fields));
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data]);
+    }, [data, dispatch, setFileArray]);
 
     React.useEffect(() => {
         checkIfAllItemsAreUploaded();

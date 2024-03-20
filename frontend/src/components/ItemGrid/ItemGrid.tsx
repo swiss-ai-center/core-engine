@@ -59,50 +59,6 @@ const ItemGrid: React.FC<{
         dispatch(setPipelinePerPage(value));
     }
 
-    const listServices = async (filter: string, orderBy: string, tags: string[]) => {
-        const skip = (pageService - 1) * servicesPerPage;
-        const servicesList = await getServices(filter, skip, servicesPerPage, orderBy, tags, ai);
-        if (servicesList.services) {
-            if (servicesList.services.length === 0) {
-                setServices([]);
-                setServiceCount(0);
-                toast("No service found", {type: "info"});
-            } else {
-                setServices(servicesList.services);
-                setServiceCount(servicesList.count);
-            }
-        } else {
-            setServices([]);
-            setServiceCount(0);
-            toast(`Error while fetching services: ${servicesList.error}`, {type: "error"});
-        }
-    }
-
-    const listPipelines = async (filter: string, orderBy: string, tags: string[]) => {
-        const skip = (pagePipeline - 1) * pipelinesPerPage;
-        const pipelinesList = await getPipelines(filter, skip, pipelinesPerPage, orderBy, tags);
-        if (pipelinesList.pipelines) {
-            if (pipelinesList.pipelines.length === 0) {
-                setPipelines([]);
-                setPipelineCount(0);
-                toast("No pipeline found", {type: "info"});
-            } else {
-                setPipelines(pipelinesList.pipelines);
-                setPipelineCount(pipelinesList.count);
-            }
-        } else {
-            setPipelines([]);
-            setPipelineCount(0);
-            toast(`Error while fetching pipelines: ${pipelinesList.error}`, {type: "error"});
-        }
-    }
-
-    const listElements = async (filter: string, orderBy: string, tags: string[]) => {
-        await listServices(filter, orderBy, tags);
-        await listPipelines(filter, orderBy, tags);
-        setIsReady(true);
-    }
-
     const servicePagination = () => {
         return (
             <Grid container sx={{py: 1}} spacing={4} alignItems={"center"} justifyContent={"center"}>
@@ -111,7 +67,7 @@ const ItemGrid: React.FC<{
                         <Pagination
                             page={pageService}
                             size={"large"}
-                            onChange={(event, page) => {
+                            onChange={(_, page) => {
                                 setPageService(page);
                             }}
                             sx={{alignItems: 'center', justifyContent: 'center'}}
@@ -156,7 +112,7 @@ const ItemGrid: React.FC<{
                         <Pagination
                             page={pagePipeline}
                             size={"large"}
-                            onChange={(event, page) => {
+                            onChange={(_, page) => {
                                 setPagePipeline(page);
                             }}
                             sx={{alignItems: 'center', justifyContent: 'center'}}
@@ -196,23 +152,64 @@ const ItemGrid: React.FC<{
     React.useEffect(() => {
         setPageService(1);
         setPagePipeline(1);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [servicesPerPage, pipelinesPerPage]);
 
     React.useEffect(() => {
         setPageService(1);
         setPagePipeline(1);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filter]);
 
     React.useEffect(() => {
+        const listServices = async (filter: string, orderBy: string, tags: string[]) => {
+            const skip = (pageService - 1) * servicesPerPage;
+            const servicesList = await getServices(filter, skip, servicesPerPage, orderBy, tags, ai);
+            if (servicesList.services) {
+                if (servicesList.services.length === 0) {
+                    setServices([]);
+                    setServiceCount(0);
+                    toast("No service found", {type: "info"});
+                } else {
+                    setServices(servicesList.services);
+                    setServiceCount(servicesList.count);
+                }
+            } else {
+                setServices([]);
+                setServiceCount(0);
+                toast(`Error while fetching services: ${servicesList.error}`, {type: "error"});
+            }
+        }
+
+        const listPipelines = async (filter: string, orderBy: string, tags: string[]) => {
+            const skip = (pagePipeline - 1) * pipelinesPerPage;
+            const pipelinesList = await getPipelines(filter, skip, pipelinesPerPage, orderBy, tags);
+            if (pipelinesList.pipelines) {
+                if (pipelinesList.pipelines.length === 0) {
+                    setPipelines([]);
+                    setPipelineCount(0);
+                    toast("No pipeline found", {type: "info"});
+                } else {
+                    setPipelines(pipelinesList.pipelines);
+                    setPipelineCount(pipelinesList.count);
+                }
+            } else {
+                setPipelines([]);
+                setPipelineCount(0);
+                toast(`Error while fetching pipelines: ${pipelinesList.error}`, {type: "error"});
+            }
+        }
+
+        const listElements = async (filter: string, orderBy: string, tags: string[]) => {
+            await listServices(filter, orderBy, tags);
+            await listPipelines(filter, orderBy, tags);
+            setIsReady(true);
+        }
+
         // on filter change, use listElements to update the list only if the user stopped typing for 300ms
         const timeout = setTimeout(() => {
             setIsReady(false);
             listElements(filter, orderBy, tags.map(t => t.acronym));
         }, 300);
         return () => clearTimeout(timeout);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filter, pageService, pagePipeline, orderBy, tags, ai, servicesPerPage, pipelinesPerPage]);
 
     return (

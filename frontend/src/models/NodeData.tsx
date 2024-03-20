@@ -10,6 +10,7 @@ export type ElkNodeData = {
 export type ProgressNodeData = ElkNodeData & {
     type: string;
     service_id: string;
+    service_slug: string;
 };
 
 export type EntryNodeData = ElkNodeData & {

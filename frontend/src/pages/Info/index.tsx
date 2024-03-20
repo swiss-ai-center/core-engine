@@ -50,7 +50,7 @@ const Info: React.FC = () => {
             navigate("/");
 
         }
-    }, [navigateHome]);
+    }, [navigate]);
 
     return (
         <Box sx={{display: "flex"}}>
@@ -67,12 +67,14 @@ const Info: React.FC = () => {
                         color={"text.primary"}
                         gutterBottom
                     >
-                        Swiss AI Center
+                        Core Engine of the Swiss AI Center
                     </Typography>
                     <Typography variant={"h5"} align={"justify"} color={"text.secondary"} mb={4} paragraph>
-                        The Swiss AI Center is a project created by the University of Applied Sciences
-                        Western Switzerland (HES-SO). The objective is to provide a platform to develop
-                        AI applications for SMEs to accelerate its adoption in Switzerland.
+                        The Swiss AI Center is supported by the University of Applied Science Western Switzerland
+                        HES-SO. Its main mission is to accelerate the adoption of AI by SMEs, by organising activities
+                        such as prototyping, education for enterprises, networking events,
+                        conferences, methodologies. One important activity is the Core Engine, a rapid prototyping tool
+                        allowing to define seamlessly data pipelines involving AI services.
                     </Typography>
                     <Box sx={{display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 1}} my={4}>
                         <Button endIcon={isHovered ? <ArrowForward/> : <></>} onClick={navigateHome}

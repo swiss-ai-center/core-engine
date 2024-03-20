@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
     AppBar, Toolbar, Link, Grid, IconButton, Tooltip, PaletteMode
 } from '@mui/material';
@@ -33,7 +33,7 @@ function App() {
         setMobileOpen(!mobileOpen);
     };
 
-    const getDesignTokens = (mode: PaletteMode) => ({
+    const getDesignTokens = useCallback((mode: PaletteMode) => ({
         palette: {
             mode,
             ...(mode === 'light'
@@ -71,13 +71,12 @@ function App() {
         typography: {
             fontFamily: ["Neue Haas Grotesk Display Pro, sans-serif", "Helvetica now, sans-serif"].join(','),
         }
-    });
+    }), [darkgrey, lightgrey]);
 
     const theme = React.useMemo(
         () =>
             createTheme(getDesignTokens(colorMode)),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [colorMode],
+        [colorMode, getDesignTokens],
     );
     const [open, setOpen] = React.useState(false);
 

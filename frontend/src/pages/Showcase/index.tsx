@@ -28,55 +28,55 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
 
     const [description, setDescription] = React.useState<any>(null);
 
-    const navigateHome = () => {
-        navigate("/home");
-    }
-
-    const getDescription = async (slug: string, type: string) => {
-        setIsReady(false);
-        if (!slug || !type) {
-            toast("No slug or type provided", {type: "warning"});
-            navigateHome();
+    React.useEffect(() => {
+        const navigateHome = () => {
+            navigate("/home");
         }
-        let desc: any = {};
-        try {
-            if (type === 'service') {
-                desc = await getServiceDescription(slug);
-            } else {
-                desc = await getPipelineDescription(slug);
+
+        const getDescription = async (slug: string, type: string) => {
+            setIsReady(false);
+            if (!slug || !type) {
+                toast("No slug or type provided", {type: "warning"});
+                navigateHome();
             }
-            if (desc) {
-                if (type !== 'service') {
-                    const steps = desc.steps
-                    const stepsDescriptions = await Promise.all(steps.map((step: any) => getServiceDescription(step.identifier)));
-                    for (let i = 0; i < steps.length; i++) {
-                        steps[i].service = stepsDescriptions[i];
-                    }
-                    desc.steps = steps;
-                }
-                if ((desc as any).status === 'available') {
-                    setDescription(desc);
+            let desc: any = {};
+            try {
+                if (type === 'service') {
+                    desc = await getServiceDescription(slug);
                 } else {
-                    toast("This service or pipeline is actually not available", {type: "warning"});
+                    desc = await getPipelineDescription(slug);
+                }
+                if (desc) {
+                    if (type !== 'service') {
+                        const steps = desc.steps
+                        const stepsDescriptions = await Promise.all(steps.map((step: any) => getServiceDescription(step.identifier)));
+                        for (let i = 0; i < steps.length; i++) {
+                            steps[i].service = stepsDescriptions[i];
+                        }
+                        desc.steps = steps;
+                    }
+                    if ((desc as any).status === 'available') {
+                        setDescription(desc);
+                    } else {
+                        toast("This service or pipeline is actually not available", {type: "warning"});
+                        navigateHome();
+                    }
+                } else {
+                    toast("No description found with this slug", {type: "warning"});
                     navigateHome();
                 }
-            } else {
+                setIsReady(true);
+            } catch (e: any) {
                 toast("No description found with this slug", {type: "warning"});
                 navigateHome();
             }
-            setIsReady(true);
-        } catch (e: any) {
-            toast("No description found with this slug", {type: "warning"});
-            navigateHome();
         }
-    }
 
-    React.useEffect(() => {
         const slug = params.slug as string;
         const type = params.type as string;
+
         getDescription(slug, type);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [navigate, params]);
 
     return (
         <>

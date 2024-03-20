@@ -10,11 +10,11 @@ import {
 import { useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
 import { download } from '../../utils/functions';
-import { EntryNodeData } from '../../models/NodeData';
+import { ExitNodeData } from '../../models/NodeData';
 import CustomHandle from './CustomHandle';
 
 
-const ExitNode = ({data}: NodeProps<EntryNodeData>) => {
+const ExitNode = ({data}: NodeProps<ExitNodeData>) => {
     const lightgrey = grey[400];
     const darkgrey = grey[800];
     const colorMode = useSelector((state: any) => state.colorMode.value);
@@ -70,7 +70,7 @@ const ExitNode = ({data}: NodeProps<EntryNodeData>) => {
                 </CardActions>
             </Card>
             <div className="handles target">
-                {data.targetHandles.map((handle, index) => {
+                {data.targetHandles.map((handle) => {
                     return (
                         <CustomHandle
                             key={handle.id}

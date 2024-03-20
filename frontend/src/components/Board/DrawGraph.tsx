@@ -4,6 +4,10 @@ import { Pipeline } from '../../models/Pipeline';
 import { Edge } from 'reactflow';
 import { ElkNode } from 'elkjs';
 
+const nodeWidth = 250;
+const nodeHeight = 200;
+const edgeType = 'smoothstep';
+
 export default function getNodesAndEdges(entity: Service | Pipeline | null) {
     let nodes: ElkNode[] = [];
     let edges: Edge[] = [];
@@ -21,6 +25,7 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
                 target: serviceNode.id,
                 targetHandle: `${serviceNode.id}-${entity.data_in_fields[i].name}`,
                 animated: false,
+                type: edgeType,
             });
         }
         for (let i = 0; i < entity.data_out_fields.length; i++) {
@@ -31,6 +36,7 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
                 target: exitNode.id,
                 targetHandle: `${exitNode.id}-${entity.data_out_fields[i].name}`,
                 animated: false,
+                type: edgeType,
             });
         }
 
@@ -58,6 +64,7 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
             target: entity.steps[0].identifier,
             targetHandle: `${entity.steps[0].identifier}-${entity.steps[0].service.data_in_fields[0].name}`,
             animated: false,
+            type: edgeType,
         });
 
         // Connect the steps to each other
@@ -69,6 +76,7 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
                 target: entity.steps[i + 1].identifier,
                 targetHandle: `${entity.steps[i + 1].identifier}-${entity.steps[i + 1].service.data_in_fields[0].name}`,
                 animated: false,
+                type: edgeType,
             });
         }
 
@@ -80,6 +88,7 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
             target: exitNode.id,
             targetHandle: `${exitNode.id}-${entity.data_out_fields[0].name}`,
             animated: false,
+            type: edgeType,
         });
 
         edges = edges.flat()
@@ -103,9 +112,12 @@ const generateNode = (slug: string, type: string, service_id: string, data_in_fi
             label: slug,
             type: type,
             service_id: service_id,
+            service_slug: slug,
             sourceHandles: sourceHandles,
             targetHandles: targetHandles,
-        }
+        },
+        width: nodeWidth,
+        height: nodeHeight,
     }
 }
 
@@ -129,6 +141,8 @@ const generateEntryNode = (
             targetHandles: [],
         },
         position: {x: 0, y: 0},
+        width: nodeWidth,
+        height: nodeHeight,
     }
 }
 
@@ -145,6 +159,8 @@ const generateExitNode = (slug: string, data_out_fields: FieldDescription[]) => 
             data_out_fields: data_out_fields,
             sourceHandles: [],
             targetHandles: targetHandles,
-        }
+        },
+        width: nodeWidth,
+        height: nodeHeight,
     }
 }

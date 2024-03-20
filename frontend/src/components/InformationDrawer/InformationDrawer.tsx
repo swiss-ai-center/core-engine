@@ -26,7 +26,7 @@ import { grey } from '@mui/material/colors';
 const drawerWidth = isSmartphone() ? '100%' : 500;
 
 const Accordion = styled((props: AccordionProps) => (
-    <MuiAccordion disableGutters elevation={0} square {...props} />
+    <MuiAccordion disableGutters elevation={0} square {...props} children={props.children}/>
 ))(({theme, color}) => ({
     border: `1px solid ${color === 'light' ? "#bdbdbd" : "#5a5a5a"}`,
     '&:not(:last-child)': {

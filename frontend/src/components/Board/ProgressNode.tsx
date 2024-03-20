@@ -83,7 +83,7 @@ const ProgressNode = ({data}: NodeProps<ProgressNodeData>) => {
                 </Box>
                 <CardContent sx={{flexGrow: 1}}>
                     {data.type === "pipeline" ? (
-                        <URLLink href={`/showcase/service/${data.service_id}`} sx={{textDecoration: "none"}}>
+                        <URLLink href={`/showcase/service/${data.service_slug}`} sx={{textDecoration: "none"}}>
                             <Tooltip title={"Service's page"} placement={"top"}>
                                 <Typography variant={"subtitle1"} color={"primary"}
                                             sx={{justifyContent: "center", display: "flex"}}
@@ -146,10 +146,10 @@ const ProgressNode = ({data}: NodeProps<ProgressNodeData>) => {
                 </CardActions>
             </Card>
             <div className="handles targets">
-                {data.targetHandles.map((handle) => {
+                {data.targetHandles.map((handle, index) => {
                     return (
                         <CustomHandle
-                            key={handle.id}
+                            key={index}
                             id={handle.id}
                             label={handle.label}
                             type={"target"}
@@ -159,10 +159,10 @@ const ProgressNode = ({data}: NodeProps<ProgressNodeData>) => {
                 })}
             </div>
             <div className="handles sources">
-                {data.sourceHandles.map((handle) => {
+                {data.sourceHandles.map((handle, index) => {
                     return (
                         <CustomHandle
-                            key={handle.id}
+                            key={index}
                             id={handle.id}
                             label={handle.label}
                             type={"source"}

@@ -1,5 +1,6 @@
 import { Handle, HandleType, Position } from 'reactflow';
 import { Tooltip } from '@mui/material';
+import React from 'react';
 
 const CustomHandle: React.FC<{ id: string, type: HandleType, position: Position, label: string }> = (
     {
