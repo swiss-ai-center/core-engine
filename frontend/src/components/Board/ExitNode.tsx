@@ -9,7 +9,7 @@ import {
 } from '../../utils/reducers/runStateSlice';
 import { useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
-import { download } from '../../utils/functions';
+import { download, positionHandle } from '../../utils/functions';
 import { ExitNodeData } from '../../models/NodeData';
 import CustomHandle from './CustomHandle';
 
@@ -70,13 +70,14 @@ const ExitNode = ({data}: NodeProps<ExitNodeData>) => {
                 </CardActions>
             </Card>
             <div className="handles target">
-                {data.targetHandles.map((handle) => {
+                {data.targetHandles.map((handle, index) => {
                     return (
                         <CustomHandle
                             key={handle.id}
                             id={handle.id}
                             label={handle.label}
                             type={"target"}
+                            style={{top: positionHandle(data.targetHandles.length, index + 1)}}
                             position={Position.Left}
                         />
                     );

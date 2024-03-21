@@ -6,7 +6,7 @@ import { ElkNode } from 'elkjs';
 
 const nodeWidth = 250;
 const nodeHeight = 200;
-const edgeType = 'smoothstep';
+const edgeType = 'default';
 
 export default function getNodesAndEdges(entity: Service | Pipeline | null) {
     let nodes: ElkNode[] = [];
@@ -19,7 +19,7 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
         nodes = [entryNode, serviceNode, exitNode];
         for (let i = 0; i < entity.data_in_fields.length; i++) {
             edges.push({
-                id: "e" + i,
+                id: `${entryNode.id}-${entity.data_in_fields[i].name}-${serviceNode.id}-${entity.data_in_fields[i].name}`,
                 source: entryNode.id,
                 sourceHandle: `${entryNode.id}-${entity.data_in_fields[i].name}`,
                 target: serviceNode.id,
@@ -30,7 +30,7 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
         }
         for (let i = 0; i < entity.data_out_fields.length; i++) {
             edges.push({
-                id: "e" + (i + entity.data_in_fields.length),
+                id: `${serviceNode.id}-${entity.data_out_fields[i].name}-${exitNode.id}-${entity.data_out_fields[i].name}`,
                 source: serviceNode.id,
                 sourceHandle: `${serviceNode.id}-${entity.data_out_fields[i].name}`,
                 target: exitNode.id,
@@ -56,40 +56,74 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
         const exitNode = generateExitNode(entity.slug, entity.data_out_fields);
         nodes.push(exitNode);
 
-        // Connect the entry node to the first step
-        edges.push({
-            id: "e0",
-            source: entryNode.id,
-            sourceHandle: `${entryNode.id}-${entity.data_in_fields[0].name}`,
-            target: entity.steps[0].identifier,
-            targetHandle: `${entity.steps[0].identifier}-${entity.steps[0].service.data_in_fields[0].name}`,
-            animated: false,
-            type: edgeType,
-        });
+        // Connect entry node to each other node
+        // The rule is that a node defines his input with "<step.identifier>.<field.name>"
+        // and if it requires entities from the pipeline, it uses "pipeline.<field.name>"
+        for (let i = 0; i < entity.steps.length; i++) {
+            const step = entity.steps[i];
+            // for each input field of the step, connect the entry node to the step
+            // the input array is an array of strings in the form "<node_identifier>.<field_identifier>"
+            // in the same order as the fields in service.data_in_fields
+            // so map the input array to the corresponding field in service.data_in_fields
+            // and if the node_identifier is "pipeline", connect the entry node to the step
+            for (let j = 0; j < step.inputs.length; j++) {
+                const field = step.inputs[j];
+                const fieldIdentifier = field.split(".")[1];
+                if (field.split(".")[0] === "pipeline") {
+                    // id should be unique depending on the edge source and target
+                    edges.push({
+                        id: `${entryNode.id}-${fieldIdentifier}-${step.identifier}-${step.service.data_in_fields[j].name}`,
+                        source: entryNode.id,
+                        sourceHandle: `${entryNode.id}-${fieldIdentifier}`,
+                        target: step.identifier,
+                        targetHandle: `${step.identifier}-${step.service.data_in_fields[j].name}`,
+                        animated: false,
+                        type: edgeType,
+                    });
+                } else {
+                    const referredNode = nodes.find((node) => node.id === field.split(".")[0]);
+                    if (referredNode) {
+                        edges.push({
+                            id: `${referredNode.id}-${fieldIdentifier}-${step.identifier}-${step.service.data_in_fields[j].name}`,
+                            source: referredNode.id,
+                            sourceHandle: `${referredNode.id}-${fieldIdentifier}`,
+                            target: step.identifier,
+                            targetHandle: `${step.identifier}-${step.service.data_in_fields[j].name}`,
+                            animated: false,
+                            type: edgeType,
+                        });
+                    }
 
-        // Connect the steps to each other
-        for (let i = 0; i < entity.steps.length - 1; i++) {
-            edges.push({
-                id: "e" + (i + 1),
-                source: entity.steps[i].identifier,
-                sourceHandle: `${entity.steps[i].identifier}-${entity.steps[i].service.data_out_fields[0].name}`,
-                target: entity.steps[i + 1].identifier,
-                targetHandle: `${entity.steps[i + 1].identifier}-${entity.steps[i + 1].service.data_in_fields[0].name}`,
-                animated: false,
-                type: edgeType,
-            });
+                }
+            }
         }
-
-        // Connect the last step to the exit node
-        edges.push({
-            id: "e" + entity.steps.length,
-            source: entity.steps[entity.steps.length - 1].identifier,
-            sourceHandle: `${entity.steps[entity.steps.length - 1].identifier}-${entity.steps[entity.steps.length - 1].service.data_out_fields[0].name}`,
-            target: exitNode.id,
-            targetHandle: `${exitNode.id}-${entity.data_out_fields[0].name}`,
-            animated: false,
-            type: edgeType,
-        });
+        // connect the required steps to the exit node
+        // to do this, find the steps that are not required by any other step and connect them to the exit node
+        const requiredSteps = new Set<string>();
+        for (let i = 0; i < entity.steps.length; i++) {
+            const step = entity.steps[i];
+            for (let j = 0; j < step.inputs.length; j++) {
+                if (step.inputs[j].split(".")[0] !== "pipeline") {
+                    requiredSteps.add(step.inputs[j].split(".")[0]);
+                }
+            }
+        }
+        for (let i = 0; i < entity.steps.length; i++) {
+            const step = entity.steps[i];
+            if (!requiredSteps.has(step.identifier)) {
+                for (let j = 0; j < step.service.data_out_fields.length; j++) {
+                    edges.push({
+                        id: `${step.identifier}-${step.service.data_out_fields[j].name}-${exitNode.id}-${step.service.data_out_fields[j].name}`,
+                        source: step.identifier,
+                        sourceHandle: `${step.identifier}-${step.service.data_out_fields[j].name}`,
+                        target: exitNode.id,
+                        targetHandle: `${exitNode.id}-${step.service.data_out_fields[j].name}`,
+                        animated: false,
+                        type: edgeType,
+                    });
+                }
+            }
+        }
 
         edges = edges.flat()
         return {nodes: nodes, edges: edges};

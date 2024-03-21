@@ -39,11 +39,7 @@ import "./styles.css";
 import 'reactflow/dist/style.css';
 
 const layoutOptions = {
-    'elk.algorithm': 'layered',
-    'elk.direction': 'RIGHT',
-    'elk.layered.spacing.edgeNodeBetweenLayers': '40',
-    'elk.spacing.nodeNode': '40',
-    'elk.layered.nodePlacement.strategy': 'SIMPLE',
+    'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
 };
 
 const elk = new ELK();
@@ -68,7 +64,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
 
     function CustomControls() {
         return (
-            <Controls>
+            <Controls showInteractive={false}>
                 <ControlButton onClick={() => setHideMiniMap(!hideMiniMap)} title={"toggle minimap"}>
                     {hideMiniMap ? <GpsNotFixed/> : <LocationDisabled/>}
                 </ControlButton>
@@ -253,6 +249,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                             str += `, linked_id: ${dataObject.linked_id}`;
                         }
                         if (dataObject.execution_type) {
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
                             str += `, execution_type: ${dataObject.execution_type}`;
                         }
                         // toast(str, {type: type, theme: colorMode === 'light' ? 'dark' : 'light'});
@@ -281,10 +278,9 @@ const Board: React.FC<{ description: any }> = ({description}) => {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             nodeTypes={nodeTypes}
-            nodesFocusable={false}
-            nodesDraggable={false}
             elevateNodesOnSelect={false}
             elevateEdgesOnSelect={false}
+            nodesConnectable={false}
             fitView
             snapToGrid
             about={colorMode}

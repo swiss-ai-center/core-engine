@@ -5,7 +5,7 @@ import { DownloadForOfflineTwoTone, ErrorTwoTone } from '@mui/icons-material';
 import { RunState } from '../../utils/reducers/runStateSlice';
 import { useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
-import { displayTimer, download } from '../../utils/functions';
+import { displayTimer, download, positionHandle } from '../../utils/functions';
 import "./styles.css";
 import { ProgressNodeData } from '../../models/NodeData';
 import CustomHandle from './CustomHandle';
@@ -153,6 +153,7 @@ const ProgressNode = ({data}: NodeProps<ProgressNodeData>) => {
                             id={handle.id}
                             label={handle.label}
                             type={"target"}
+                            style={{top: positionHandle(data.targetHandles.length, index + 1)}}
                             position={Position.Left}
                         />
                     );
@@ -166,6 +167,7 @@ const ProgressNode = ({data}: NodeProps<ProgressNodeData>) => {
                             id={handle.id}
                             label={handle.label}
                             type={"source"}
+                            style={{top: positionHandle(data.sourceHandles.length, index + 1)}}
                             position={Position.Right}
                         />
                     );

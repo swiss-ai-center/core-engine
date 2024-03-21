@@ -9,6 +9,7 @@
     "@mui/material": "^5.15.13",
     "@mui/x-data-grid": "^6.19.6",
     "@reduxjs/toolkit": "^2.2.1",
+    "@types/uuid": "^9.0.8",
     "animate.css": "^4.1.1",
     "dagre": "^0.8.5",
     "elkjs": "^0.9.2",
@@ -27,6 +28,7 @@
     "rehype-math": "^0.2.0",
     "remark-math": "^6.0.0",
     "typeface-inter": "^3.18.1",
+    "uuid": "^9.0.1",
     "web-vitals": "^3.5.2"
   },
   "devDependencies": {

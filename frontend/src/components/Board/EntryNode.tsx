@@ -20,6 +20,7 @@ import { toast } from 'react-toastify';
 import { grey } from '@mui/material/colors';
 import { EntryNodeData } from '../../models/NodeData';
 import CustomHandle from './CustomHandle';
+import { positionHandle } from '../../utils/functions';
 
 function createAllowedTypesString(allowedTypes: string[]) {
     return allowedTypes.join(', ');
@@ -198,13 +199,21 @@ const EntryNode = ({data}: NodeProps<EntryNodeData>) => {
             </Card>
 
             <div className="handles sources">
-                {data.sourceHandles.map((handle) => {
+                {data.sourceHandles.map((handle, index) => {
+                    // check if sourceHandles has duplicates
+                    const sourceHandles = data.sourceHandles;
+                    const sourceHandlesIds = sourceHandles.map((handle) => handle.id);
+                    const sourceHandlesSet = new Set(sourceHandlesIds);
+                    if (sourceHandlesSet.size !== sourceHandlesIds.length) {
+                        console.error("sourceHandles has duplicates");
+                    }
                     return (
                         <CustomHandle
                             key={handle.id}
                             id={handle.id}
                             label={handle.label}
                             type={"source"}
+                            style={{top: positionHandle(data.sourceHandles.length, index + 1)}}
                             position={Position.Right}
                         />
                     );
