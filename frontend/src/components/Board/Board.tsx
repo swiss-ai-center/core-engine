@@ -4,15 +4,12 @@ import ReactFlow, {
     Controls,
     useNodesState,
     useEdgesState,
-    MiniMap,
     useReactFlow,
     Edge,
 } from 'reactflow';
 import EntryNode from './EntryNode';
 import ExitNode from './ExitNode';
 import ProgressNode from './ProgressNode';
-import { ControlButton } from 'reactflow';
-import { LocationDisabled, GpsNotFixed } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
 import DrawGraph from './DrawGraph';
@@ -46,8 +43,7 @@ const elk = new ELK();
 
 const Board: React.FC<{ description: any }> = ({description}) => {
     const lightgrey = grey[300];
-    const mediumgrey = grey[500];
-    const darkgrey = grey[900];
+    const darkgrey = grey[500];
     const dispatch = useDispatch();
     const nodeTypes = React.useMemo(() => ({
         entryNode: EntryNode, progressNode: ProgressNode, exitNode: ExitNode
@@ -58,19 +54,8 @@ const Board: React.FC<{ description: any }> = ({description}) => {
     const timer = useSelector((state: any) => state.runState.timer);
     const [nodes, , onNodesChange] = useNodesState([]);
     const [edges, , onEdgesChange] = useEdgesState([]);
-    const [hideMiniMap, setHideMiniMap] = React.useState(true);
     const {setNodes, setEdges, fitView} = useReactFlow<EntryNodeData | ProgressNodeData | ExitNodeData>();
     const {lastJsonMessage} = useWebSocketConnection();
-
-    function CustomControls() {
-        return (
-            <Controls showInteractive={false}>
-                <ControlButton onClick={() => setHideMiniMap(!hideMiniMap)} title={"toggle minimap"}>
-                    {hideMiniMap ? <GpsNotFixed/> : <LocationDisabled/>}
-                </ControlButton>
-            </Controls>
-        );
-    }
 
     React.useEffect(() => {
         if (taskExecuting) {
@@ -291,31 +276,12 @@ const Board: React.FC<{ description: any }> = ({description}) => {
         >
             <Box id={"timer-general"} className={"timer-general"} zIndex={99} about={colorMode}>
                 <Typography
-                    color={taskExecuting ? "primary" : (colorMode === 'dark' ? lightgrey : mediumgrey)}>
+                    color={taskExecuting ? "primary" : (colorMode === 'dark' ? lightgrey : darkgrey)}>
                     {displayTimer(timer)}
                 </Typography>
             </Box>
             <Background/>
-            <CustomControls/>
-            {!hideMiniMap ? (
-                <MiniMap
-                    nodeColor={(n: any) => {
-                        if (n.type === 'entryNode') {
-                            return '#ccffcc';
-                        } else if (n.type === 'progressNode') {
-                            return '#add8e6';
-                        }
-                        return '#ffb6c1';
-                    }}
-                    style={{
-                        backgroundColor: colorMode === 'dark' ? darkgrey : lightgrey,
-                        padding: 0, margin: 0
-                    }}
-                    nodeStrokeColor={() => {
-                        return 'primary.main';
-                    }}
-                />
-            ) : <></>}
+            <Controls showInteractive={false}/>
         </ReactFlow>
     );
 };
