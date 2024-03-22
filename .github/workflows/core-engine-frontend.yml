@@ -97,7 +97,7 @@ jobs:
           yq -i ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" core-engine-frontend.stateful.yml
 
           # Set core engine frontend configuration (Ingress)
-          yq -i "del(.metadata.annotations)" core-engine-frontend.ingress.yml
+          yq -i "del(.metadata.annotations.cert-manager\.io/cluster-issuer)" core-engine-frontend.ingress.yml
           yq -i "del(.spec.ingressClassName)" core-engine-frontend.ingress.yml
           yq -i ".spec.rules[0].host = \"${DEV_FRONTEND_HOST#*://}\"" core-engine-frontend.ingress.yml
           yq -i ".spec.tls[0].hosts[0] = \"${DEV_FRONTEND_HOST#*://}\"" core-engine-frontend.ingress.yml

@@ -4,6 +4,8 @@ metadata:
   name: core-engine-frontend-ingress
   annotations:
     cert-manager.io/issuer: "letsencrypt"
+    nginx.ingress.kubernetes.io/proxy-body-size: "16m"
+    nginx.org/client-max-body-size: "16m"
 spec:
   ingressClassName: nginx
   rules:

@@ -160,7 +160,7 @@ jobs:
           mv new-core-engine-backend.config-map.yml core-engine-backend.config-map.yml
 
           # Set core engine backend configuration (Ingress)
-          yq -i "del(.metadata.annotations)" core-engine-backend.ingress.yml
+          yq -i "del(.metadata.annotations.cert-manager\.io/cluster-issuer)" core-engine-backend.ingress.yml
           yq -i "del(.spec.ingressClassName)" core-engine-backend.ingress.yml
           yq -i ".spec.rules[0].host = \"${HOST#*://}\"" core-engine-backend.ingress.yml
           yq -i ".spec.tls[0].hosts[0] = \"${HOST#*://}\"" core-engine-backend.ingress.yml
