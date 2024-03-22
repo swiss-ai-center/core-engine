@@ -56,10 +56,10 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 18
+      - name: Set up Node.js 20.11.1
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20.11.1
 
       - name: Install dependencies
         working-directory: frontend
@@ -123,10 +123,10 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 18
+      - name: Set up Node.js 20.11.1
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20.11.1
 
       - name: Install dependencies
         working-directory: frontend
