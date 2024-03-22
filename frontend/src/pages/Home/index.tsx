@@ -2,10 +2,9 @@ import {
     Box,
     Container,
     SelectChangeEvent,
-    Typography,
     Toolbar,
 } from '@mui/material';
-import React from 'react';
+import React, { useCallback } from 'react';
 import ItemGrid from '../../components/ItemGrid/ItemGrid';
 import { FilterDrawer } from '../../components/FilterDrawer/FilterDrawer';
 import { useSearchParams } from 'react-router-dom';
@@ -25,10 +24,10 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     }) => {
     const colorMode = useSelector((state: any) => state.colorMode.value);
     // this is the list of order by options, the first one is the default
-    const orderByList = [
+    const orderByList = React.useMemo(() => [
         {value: 'name-asc', label: 'Name (A-Z)'},
-        {value: 'name-desc', label: 'Name (Z-A)'},
-    ];
+        {value: 'name-desc', label: 'Name (Z-A)'}
+    ], []);
     const {setFileArray} = useFileArray();
     const [search, setSearch] = React.useState('');
     const [orderBy, setOrderBy] = React.useState(orderByList[0].value);
@@ -37,11 +36,11 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     const [searchParams] = useSearchParams();
     const history = window.history;
 
-    const handleNoFilter = () => {
+    const handleNoFilter = useCallback(() => {
         if (searchParams.toString() === '') {
             history.pushState({}, '', window.location.pathname);
         }
-    }
+    }, [searchParams, history]);
 
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(event.target.value);
@@ -65,7 +64,20 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         handleNoFilter();
     }
 
-    const handleTags = (event: SelectChangeEvent, newValue: Tag[]) => {
+    const removeDuplicates = (arr: Tag[]) => {
+        return arr.filter((v, i, a) => a.findIndex(t => (t.acronym === v.acronym)) === i);
+    }
+
+    const arrayEquals = (a: Tag[], b: Tag[]) => {
+        return Array.isArray(a) && Array.isArray(b) && a.length === b.length &&
+            a.every((val, index) => val === b[index]);
+    }
+
+    const handleTags = (_: SelectChangeEvent, newValue: Tag[]) => {
+        newValue = removeDuplicates(newValue);
+        if (arrayEquals(newValue, tags)) {
+            return;
+        }
         setTags(newValue);
         if (newValue.length === 0) {
             searchParams.delete('tags');
@@ -90,6 +102,8 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         handleNoFilter();
     }
 
+    // rewrite last useEffect in a clean way
+    // the same logic but with a cleaner code
     React.useEffect(() => {
         setFileArray([]);
         setSearch(searchParams.get('filter') || '');
@@ -105,8 +119,8 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             history.pushState({}, '', `?${searchParams.toString()}`);
         }
         handleNoFilter();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [searchParams, setFileArray, history, orderByList, handleNoFilter]);
+
 
     return (
         <Box sx={{display: 'flex'}}>
@@ -121,22 +135,6 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             />
             <Box component={"main"} sx={{flexGrow: 1, py: 4}}>
                 <Toolbar/>
-                <Container maxWidth={false} sx={{mb: 4}}>
-                    <Typography
-                        component={"h1"}
-                        variant={"h2"}
-                        align={"center"}
-                        color={"text.primary"}
-                        gutterBottom
-                    >
-                        Swiss AI Center
-                    </Typography>
-                    <Typography variant={"h5"} align={"justify"} color={"text.secondary"} paragraph>
-                        The Swiss AI Center is a project created by the University of Applied Sciences
-                        Western Switzerland (HES-SO). The objective is to provide a platform to develop
-                        AI applications for SMEs to accelerate its adoption in Switzerland.
-                    </Typography>
-                </Container>
                 <Container maxWidth={false}>
                     <ItemGrid filter={search} orderBy={orderBy} tags={tags} handleTags={handleTags}
                               ai={ai} handleAIToggle={handleAIToggle}/>

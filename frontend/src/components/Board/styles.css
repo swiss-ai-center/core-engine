@@ -126,8 +126,17 @@
     text-align: center;
     min-width: 80px;
     padding: 5px;
+    border-right: 1px solid;
+    border-bottom: 1px solid;
     border-radius: 0 0 5px 0;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+}
+
+.timer-general[about='light'] {
+    border-color: lightgrey;
+}
+
+.timer-general[about='dark'] {
+    border-color: #212121;
 }
 
 .timer-step {
