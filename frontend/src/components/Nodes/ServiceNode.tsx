@@ -10,12 +10,9 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
     const lightgrey = grey[400];
     const darkgrey = grey[800];
     const colorMode = useSelector((state: any) => state.colorMode.value);
-    const [selectedDataIn, setSelectedDataIn] = useState<string[]>(new Array(data.dataIn.length));
-    const [inputValue, setInputValue]  = React.useState<string>('')
-    const [linked, setLinked]  = React.useState<boolean>(false)
+    const [dataInList, setDataInList]  = React.useState<any>()
 
-
-    const listDataIn = data.dataIn.map((inputField: { name: string ; type: string[]; }, index: number) =>
+    const listDataIn = () => data.dataIn.map((inputField: { name: string ; type: string[]; }, index: number) =>
             <Box sx={{display: "flex", width: "100%"}} key={index}>
                 <Box sx={{display: "flex", flexDirection: "column", justifyContent: "center", width: "40%"}} key={index}>
                     <Typography variant={"body1"}>{inputField.name} : </Typography>
@@ -26,6 +23,7 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
                 <Autocomplete
                     fullWidth
                     sx={{mb: 2, minWidth: "10em", width: "60%"}}
+                    value={data.selectedDataIn[index]}
                     options={data.dataInOptions}
                     autoHighlight={false}
                     renderOption={(props, option: string, {selected}) => (
@@ -43,16 +41,16 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
             </Box>
     );
 
-    const onConnect = (connection: Connection) => {
-        setLinked(true);
-    }
+    React.useEffect(() =>  {
+        setDataInList(listDataIn())
+    }, [data])
+
 
     return (
         <>
             <Handle
                 type={"target"}
                 position={Position.Left}
-                onConnect={(param) => onConnect(param)}
             />
             <Card
                 sx={{
@@ -75,7 +73,7 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
                             <Typography variant={"body1"}>Input </Typography>
                         </Box>
                     </Box>
-                    {listDataIn}
+                    {dataInList}
                 </CardContent>
                 <CardActions>{}</CardActions>
             </Card>

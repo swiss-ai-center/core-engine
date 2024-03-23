@@ -8,6 +8,7 @@ import ReactFlow, {
     Connection,
     Controls,
     Edge,
+    Node,
     ReactFlowProvider,
     useEdgesState,
     useNodesState
@@ -22,6 +23,7 @@ import ServiceNode from "../../components/Nodes/ServiceNode";
 import {handleAIToggle, handleNoFilter, handleSearch, handleTags} from "../../utils/functions";
 import {PipelineStep} from "../../models/Pipeline";
 import React from "react";
+import test from "node:test";
 
 let id = 0;
 const getId = () => `${id++}`;
@@ -56,9 +58,11 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
     const [searchParams] = useSearchParams();
     const history = window.history;
 
-    // TODO - explain . This is passed down to the child Nodes
+    // TODO - explain why this is necessary. This is passed down to the children Nodes
     const nodesRef = React.useRef(nodes)
-    const setNodeRef = React.useRef(setNodes)
+    const setNodesRef = React.useRef(setNodes)
+    const edgesRef = React.useRef(edges)
+
 
     const handleNoFilterWrapper = () => handleNoFilter(searchParams, history)
     const handleTagsWrapper = (event: SelectChangeEvent, newValue: Tag[]) => {
@@ -68,12 +72,19 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
     const handleAIToggleWrapper = (event: React.ChangeEvent<HTMLInputElement>) => {
         handleAIToggle(event, setAI, searchParams, history, handleNoFilterWrapper)
     }
+
+    const onDeleteNode = (deletedNodes: Node[]) => {
+        deletedNodes.forEach((node) => {
+            const edge = edgesRef.current.find((edge) => edge.source === node.id)
+            if (edge) setSubsequentDataInOptions(edge, true);
+        })
+    }
     const onSelectServiceInput = (nodeId: string, inputIndex: number, value: string) => {
         const node = nodesRef.current.find((node) => node.id === nodeId)
-        if(node === undefined) return;
-        const selectedInput= [...node.data.selectedDataIn];
+        if (node === undefined) return;
+        const selectedInput = [...node.data.selectedDataIn];
         selectedInput[inputIndex] = value;
-        setNodeRef.current((nds) =>
+        setNodesRef.current((nds) =>
             nds.map((node) => {
                 if (node.id !== nodeId) {
                     return node;
@@ -90,79 +101,124 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
         );
     };
 
-    const findFollowingNodes = (nodeId: string) => {
-        const followingNodes: string[] = [];
-        let next: string | null = getNextNode(nodeId)
-        while (next !== null) {
-            followingNodes.push(next)
-            next = getNextNode(next)
+    const onSelectEntryInput = (inputIndex: number, type: string[]) => {
+        const node = nodesRef.current.find((node) => node.type === "entryNodeEdit")
+        if (node === undefined) return;
+        const dataIn = [...node.data.dataIn];
+        dataIn[inputIndex].type = type;
+
+        setNodesRef.current((nds) =>
+            nds.map((node) => {
+                if (node.type !== "entryNodeEdit") {
+                    return node;
+                }
+
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        dataIn: dataIn,
+                    },
+                };
+            })
+        );
+    }
+
+    const onSelectEntryInputName = (inputIndex: number, newName: string, previousName: string) => {
+        const entryNode = nodesRef.current.find((node) => node.type === "entryNodeEdit")
+        if (entryNode === undefined) return;
+        const dataIn = [...entryNode.data.dataIn];
+        dataIn[inputIndex].name = newName;
+        setNodesRef.current((nds) =>
+            nds.map((node) => {
+                if (node.type !== "entryNodeEdit") {
+                    return node;
+                }
+
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        dataIn: dataIn,
+                    },
+                };
+            })
+        );
+
+
+        const initialEdge = edgesRef.current.find((edge)=> edge.source === "entry" )
+        if (initialEdge) {
+            setSubsequentDataInOptions(initialEdge, false)
+
+            // Propagate the name change of the selected input data in the other nodes
+            const affectedNodes = findFollowingNodes(initialEdge.source)
+            affectedNodes.forEach((nodeId: string) => {
+                const affectedNode = nodesRef.current.find((node) => node.id === nodeId)
+                if (affectedNode) updateSelectedInputOption(affectedNode, `${entryNode.data.identifier}.${newName}`,  `${entryNode.data.identifier}.${previousName}`);
+            })
         }
-        return followingNodes;
     }
 
-    const getNextNode = (nodeId: string) => {
-        let next = null;
-        edges.forEach((edge) => {
-            if (edge.source === nodeId) {
-                next = edge.target;
-                return undefined;
-            }
+    const updateSelectedInputOption = (affectedNode: Node, newName:  string, previousName: string) => {
+        const selectedDataIn = affectedNode.data.selectedDataIn.map((option: string) => {
+            if (option === previousName) return newName;
+            return option;
         })
-        return next;
+        setNodesRef.current((nds) =>
+            nds.map((node) => {
+                if (node.id !== affectedNode.id) {
+                    return node;
+                }
+
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        selectedDataIn: selectedDataIn,
+                    },
+                };
+            })
+        );
     }
 
-
-    const findPrecedingNodes = (nodeId: string) => {
-        const prevNodes: string[] = [];
-        let prev: string | null = getPreviousNode(nodeId)
-        while (prev !== null) {
-            prevNodes.push(prev)
-            prev = getPreviousNode(prev)
-        }
-        return prevNodes;
+    const onConnect = (params: Edge<any> | Connection) =>  {
+        setEdges((eds) => addEdge(params, eds));
+        setSubsequentDataInOptions(params, false);
     }
 
-    const getPreviousNode = (nodeId: string) => {
-        let prev = null;
-        edges.forEach((edge) => {
-            if (edge.target === nodeId) {
-                prev = edge.source;
-                return undefined;
-            }
-        })
-        return prev;
-    }
+    const setSubsequentDataInOptions = (edge: Edge<any> | Connection , deleted: boolean ) => {
+        const sourceNode = nodesRef.current.find((node) => node.id === edge.source)
+        if (!(sourceNode && edge.source && edge.target)) return;
+        let possibleInput: string[] = [];
 
-    const onConnect = (params: Edge<any> | Connection) => {
-        setEdges((eds) => addEdge(params, eds))
-        const sourceNode = nodes.find((node) => node.id === params.source)
-        if (params.source && params.target && sourceNode) {
-            const possibleInput = getNodeDataInOptions(params.source)
 
-            sourceNode.data.dataOut.forEach((output: FieldDescription) => {
+        if (!deleted) {
+            possibleInput = getNodeDataInOptions(edge.source);
+            const sourceNodeDataOut = sourceNode.id === "entry" ? sourceNode.data.dataIn : sourceNode.data.dataOut;
+            sourceNodeDataOut.forEach((output: FieldDescription) => {
                 possibleInput.push(`${sourceNode.data.identifier}.${output.name}`);
             })
 
-            // Find all the subsequent nodes (the ones after the link/connection that has been established)
-            const affectedNodes = findFollowingNodes(params.target)
-            affectedNodes.unshift(params.target)
-
-            // Set the possible input options for all subsequent nodes
-            affectedNodes.forEach((nodeId: string) => {
-                // set the output using a deep copy of the options to avoid unwillingly modifying the previous
-                // nodes' options
-                setNodeDataInOptions(nodeId, JSON.parse(JSON.stringify(possibleInput)))
-                const affectedNode = nodes.find((node) => node.id === nodeId)
-                affectedNode?.data.dataOut.forEach((output: FieldDescription) => {
-                    possibleInput.push(`${affectedNode.data.identifier}.${output.name}`);
-                })
-            })
-
         }
-    };
+
+        // Find all the subsequent nodes (the ones after the link/connection that has been established)
+        const affectedNodes = findFollowingNodes(edge.target)
+        affectedNodes.unshift(edge.target)
+
+        // Set the possible input options for all subsequent nodes
+        affectedNodes.forEach((nodeId: string) => {
+            // set the input options using a deep copy of the options to avoid unwillingly modifying the previous
+            // nodes' options
+            setNodeDataInOptions(nodeId, JSON.parse(JSON.stringify(possibleInput)))
+            const affectedNode = nodes.find((node) => node.id === nodeId)
+            affectedNode?.data.dataOut.forEach((output: FieldDescription) => {
+                possibleInput.push(`${affectedNode.data.identifier}.${output.name}`);
+            })
+        })
+    }
 
     const setNodeDataInOptions = (nodeId: string, possibleInput: string[]) => {
-        setNodes((nds) =>
+        setNodesRef.current((nds) =>
             nds.map((node) => {
                 if (node.id !== nodeId) {
                     return node;
@@ -186,29 +242,48 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
         // Add all the output fields from the previous nodes to the options list
         prevNodes.forEach((nodeId) => {
             const node = nodes.find((nd) => nd.id === nodeId)
-            node?.data.dataOut.forEach((output: FieldDescription) => {
-                possibleInput.push(`${node.data.identifier}.${output.name}`);
+            const nodeDataOut: FieldDescription[] = node?.id === "entry" ? node?.data.dataIn : node?.data.dataOut;
+            nodeDataOut.forEach((output: FieldDescription) => {
+                possibleInput.push(`${node?.data.identifier}.${output.name}`);
             })
         })
         return possibleInput;
     }
 
-    React.useEffect(() => {
-        setNodes((nodes) => nodes.concat(createEntryNode()));
-    }, []);
+    const onAddPipelineInput = () => {
+        const entryNode = nodesRef.current.find((node) => node.type === "entryNodeEdit")
+        if (!entryNode) return;
+        const dataIn = [...entryNode.data.dataIn];
+        dataIn.push(new FieldDescription())
+        setNodesRef.current((nds) =>
+            nds.map((node) => {
+                if (node.type !== "entryNodeEdit") {
+                    return node;
+                }
 
-    React.useEffect(() =>  {
-        nodesRef.current = nodes;
-        setNodeRef.current = setNodes
-    }, [nodes, setNodes])
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        dataIn: dataIn,
+                    },
+                };
+            })
+        );
+    }
 
 
     const createEntryNode = () => {
+        const dataIn: FieldDescription[] = [];
         return {
             id: "entry",
             type: "entryNodeEdit",
             data: {
-
+                onAddPipelineInput: onAddPipelineInput,
+                onSelectEntryInput: onSelectEntryInput,
+                onSelectEntryInputName: onSelectEntryInputName,
+                identifier: "entry",
+                dataIn: dataIn,
                 label: "entry",
             },
             position: {x: 0, y: 0},
@@ -230,14 +305,70 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
                 identifier: serviceSlug,
                 onSelectInput: onSelectServiceInput,
                 dataInOptions: dataInOptions,
-                selectedDataIn:selectedDataIn,
+                selectedDataIn: selectedDataIn,
                 dataIn: dataIn,
                 dataOut: dataOut,
-                label: `${serviceName}`
+                label: `${serviceName} ${id}`
             },
         };
         setNodes((nodes) => nodes.concat(newNode));
     };
+
+    const findFollowingNodes = (nodeId: string) => {
+        const followingNodes: string[] = [];
+        let next: string | null = getNextNode(nodeId)
+        while (next !== null) {
+            followingNodes.push(next)
+            next = getNextNode(next)
+        }
+        return followingNodes;
+    }
+
+    const getNextNode = (nodeId: string) => {
+        let next = null;
+        edgesRef.current.forEach((edge) => {
+            if (edge.source === nodeId) {
+                next = edge.target;
+                return undefined;
+            }
+        })
+        return next;
+    }
+
+
+    const findPrecedingNodes = (nodeId: string) => {
+        const prevNodes: string[] = [];
+        let prev: string | null = getPreviousNode(nodeId)
+        while (prev !== null) {
+            prevNodes.push(prev)
+            prev = getPreviousNode(prev)
+        }
+        return prevNodes;
+    }
+
+    const getPreviousNode = (nodeId: string) => {
+        let prev = null;
+        edgesRef.current.forEach((edge) => {
+            if (edge.target === nodeId) {
+                prev = edge.source;
+                return undefined;
+            }
+        })
+        return prev;
+    }
+
+
+    React.useEffect(() => {
+        const initialNodes: Node<any>[] = []
+        initialNodes.push(createEntryNode())
+        setNodes((nodes) => initialNodes);
+    }, []);
+
+    React.useEffect(() =>  {
+        nodesRef.current = nodes;
+        setNodesRef.current = setNodes
+        edgesRef.current = edges
+    }, [nodes, setNodes, edges])
 
 
     return (
@@ -260,6 +391,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
                                 edges={edges}
                                 onNodesChange={onNodesChange}
                                 onEdgesChange={onEdgesChange}
+                                onNodesDelete={onDeleteNode}
                                 nodeTypes={nodeTypes}
                                 onConnect={onConnect}
                             >
