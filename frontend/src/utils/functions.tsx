@@ -28,6 +28,10 @@ export const displayTimer = (timer: number): string => {
     return timer < 300 ? timer.toFixed(1) + "s" : ">300.0s";
 }
 
+export const positionHandle = (handlesLength: number, index: number) => {
+    return `${(index / (handlesLength + 1)) * 100}%`;
+}
+
 
 export const handleTags = (
     event: SelectChangeEvent,

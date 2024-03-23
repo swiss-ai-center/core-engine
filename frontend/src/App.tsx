@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
     AppBar, Toolbar, Link, Grid, IconButton, Tooltip, PaletteMode
 } from '@mui/material';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Showcase from './pages/Showcase';
 import Home from './pages/Home';
+import Info from './pages/Info';
 import CssBaseline from '@mui/material/CssBaseline';
 import {
     MenuRounded as MenuIcon,
@@ -33,7 +34,7 @@ function App() {
         setMobileOpen(!mobileOpen);
     };
 
-    const getDesignTokens = (mode: PaletteMode) => ({
+    const getDesignTokens = useCallback((mode: PaletteMode) => ({
         palette: {
             mode,
             ...(mode === 'light'
@@ -71,13 +72,12 @@ function App() {
         typography: {
             fontFamily: ["Neue Haas Grotesk Display Pro, sans-serif", "Helvetica now, sans-serif"].join(','),
         }
-    });
+    }), [darkgrey, lightgrey]);
 
     const theme = React.useMemo(
         () =>
             createTheme(getDesignTokens(colorMode)),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [colorMode],
+        [colorMode, getDesignTokens],
     );
     const [open, setOpen] = React.useState(false);
 
@@ -97,7 +97,10 @@ function App() {
             {/* End CssBaseline */}
 
             {/* Header navbar */}
-            <AppBar position={"fixed"} elevation={1} sx={{zIndex: (theme) => theme.zIndex.drawer + 1}}>
+            <AppBar position={"fixed"} elevation={0} sx={{
+                zIndex: (theme) => theme.zIndex.drawer + 1,
+                backgroundColor: colorMode === "light" ? "primary.main" : "background_color.main"
+            }}>
                 <Toolbar>
                     <IconButton
                         color={"inherit"}
@@ -123,12 +126,14 @@ function App() {
                                     {colorMode === 'light' ? <LightModeTwoTone/> : <DarkModeTwoTone/>}
                                 </IconButton>
                             </Tooltip>
+                            {/* if page is Info, hide stats button */}
+                            {window.location.pathname === "/" ? <></> :
                             <Tooltip title={"Engine stats"}>
                                 <IconButton sx={{marginLeft: "auto"}} color={"inherit"} size={"large"}
                                             onClick={() => handleOpenStats()}>
                                     <QueryStatsTwoTone/>
                                 </IconButton>
-                            </Tooltip>
+                            </Tooltip>}
                         </Grid>
                     </Grid>
                 </Toolbar>
@@ -140,7 +145,9 @@ function App() {
             <Router>
                 <Routes>
                     <Route path={"/showcase/:type/:slug"} element={<Showcase mobileOpen={mobileOpen}/>}/>
-                    <Route path={"*"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
+                    <Route path={"/showcase"} element={<Info />}/>
+                    <Route path={"/home"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
+                    <Route path={"*"} element={<Info />}/>
                     <Route path={"/create-pipeline"} element={<CreatePipeline mobileOpen={mobileOpen}/>}/>
                 </Routes>
             </Router>

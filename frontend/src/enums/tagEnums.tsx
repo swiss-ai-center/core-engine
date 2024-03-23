@@ -1,6 +1,6 @@
 import { Tag } from '../models/Tag';
 
-// each tag has an acronym, name, and an unique set of colors
+// each tag has an acronym, name, and a unique set of colors
 export const Tags = [
     {
         "acronym": "IP",

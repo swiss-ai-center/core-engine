@@ -1,15 +1,17 @@
 import React from "react";
-import { Handle, Position } from "react-flow-renderer";
+import { NodeProps, Position } from "reactflow";
 import { Box, Button, Card, CardActions, CardContent, Link as URLLink, Tooltip, Typography } from '@mui/material';
 import { DownloadForOfflineTwoTone, ErrorTwoTone } from '@mui/icons-material';
 import { RunState } from '../../utils/reducers/runStateSlice';
 import { useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
-import { displayTimer, download } from '../../utils/functions';
+import { displayTimer, download, positionHandle } from '../../utils/functions';
 import "./styles.css";
+import { ProgressNodeData } from '../../models/NodeData';
+import CustomHandle from './CustomHandle';
 
 
-const ProgressNode = ({data}: any) => {
+const ProgressNode = ({data}: NodeProps<ProgressNodeData>) => {
     const lightgrey = grey[400];
     const mediumgrey = grey[500];
     const darkgrey = grey[800];
@@ -48,7 +50,7 @@ const ProgressNode = ({data}: any) => {
         if (isExecuting()) {
             setSelfTimer(selfTimer + 0.1);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [timer]);
 
     React.useEffect(() => {
@@ -81,7 +83,7 @@ const ProgressNode = ({data}: any) => {
                 </Box>
                 <CardContent sx={{flexGrow: 1}}>
                     {data.type === "pipeline" ? (
-                        <URLLink href={`/showcase/service/${data.service_id}`} sx={{textDecoration: "none"}}>
+                        <URLLink href={`/showcase/service/${data.service_slug}`} sx={{textDecoration: "none"}}>
                             <Tooltip title={"Service's page"} placement={"top"}>
                                 <Typography variant={"subtitle1"} color={"primary"}
                                             sx={{justifyContent: "center", display: "flex"}}
@@ -103,7 +105,7 @@ const ProgressNode = ({data}: any) => {
                     sx={{display: data.type === "service" ? "none" : "flex", justifyContent: "center"}}
                 >
                     {getStatus() === RunState.SKIPPED ? (
-                    <Tooltip title={"Step was skipped"} placement={"bottom"}>
+                        <Tooltip title={"Step was skipped"} placement={"bottom"}>
                         <span>
                             <Button
                                 disabled={getStatus() !== RunState.FINISHED}
@@ -120,7 +122,7 @@ const ProgressNode = ({data}: any) => {
                                 Skipped
                             </Button>
                         </span>
-                    </Tooltip>) : (
+                        </Tooltip>) : (
                         <Tooltip title={"Download intermediate result"} placement={"bottom"}>
                             <span>
                                 <Button
@@ -143,14 +145,34 @@ const ProgressNode = ({data}: any) => {
                     )}
                 </CardActions>
             </Card>
-            <Handle
-                type={"target"}
-                position={Position.Left}
-            />
-            <Handle
-                type={"source"}
-                position={Position.Right}
-            />
+            <div className="handles targets">
+                {data.targetHandles.map((handle, index) => {
+                    return (
+                        <CustomHandle
+                            key={index}
+                            id={handle.id}
+                            label={handle.label}
+                            type={"target"}
+                            style={{top: positionHandle(data.targetHandles.length, index + 1)}}
+                            position={Position.Left}
+                        />
+                    );
+                })}
+            </div>
+            <div className="handles sources">
+                {data.sourceHandles.map((handle, index) => {
+                    return (
+                        <CustomHandle
+                            key={index}
+                            id={handle.id}
+                            label={handle.label}
+                            type={"source"}
+                            style={{top: positionHandle(data.sourceHandles.length, index + 1)}}
+                            position={Position.Right}
+                        />
+                    );
+                })}
+            </div>
         </>
     );
 };

@@ -12,6 +12,8 @@ env:
   DEV_NAMESPACE: ${{ vars.DEV_NAMESPACE }}
   # Kube configuration
   DEV_KUBE_CONFIG: ${{ secrets.DEV_KUBE_CONFIG }}
+  # The URL that the service (dev) should be accessible at
+  DEV_FRONTEND_HOST: ${{ vars.DEV_FRONTEND_HOST }}
 
   ## Production environment variables
   # The URL of the Core Engine (HTTP)
@@ -22,6 +24,8 @@ env:
   PROD_NAMESPACE: ${{ vars.PROD_NAMESPACE }}
   # Kube configuration
   PROD_KUBE_CONFIG: ${{ secrets.PROD_KUBE_CONFIG }}
+  # The URL that the service (prod) should be accessible at
+  PROD_FRONTEND_HOST: ${{ vars.PROD_FRONTEND_HOST }}
 
 # Allow one concurrent deployment
 concurrency:
@@ -32,39 +36,36 @@ on:
   push:
     branches:
       - main
-      - prod
     paths:
       - .github/workflows/core-engine-frontend.yml
       - frontend/**/*
 
   pull_request:
     paths:
-      - .github/workflows/core-engine-backend.yml
-      - backend/**/*
+      - .github/workflows/core-engine-frontend.yml
+      - frontend/**/*
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
-  run-workflow:
+  run-workflow-dev:
     runs-on: ubuntu-latest
     if: ${{ vars.RUN_CICD == 'true' }}
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js 18
+      - name: Set up Node.js 20.11.1
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20.11.1
 
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
 
-      - name: Build app for dev
-        # Only run on main
-        if: ${{ github.ref == 'refs/heads/main' }}
+      - name: Build app
         working-directory: frontend
         env:
           REACT_APP_ENGINE_URL: ${{ env.DEV_BACKEND_URL }}
@@ -73,39 +74,36 @@ jobs:
           CI: false
         run: npm run build
 
-      - name: Build app for prod
-        # Only run on prod
-        if: ${{ github.ref == 'refs/heads/prod' }}
-        working-directory: frontend
-        env:
-          # TODO: Change this to the prod engine URL
-          REACT_APP_ENGINE_URL: ${{ env.PROD_BACKEND_URL }}
-          REACT_APP_ENGINE_WS_URL: ${{ env.PROD_BACKEND_WS_URL }}
-          # So it does not treat warnings as errors
-          CI: false
-        run: npm run build
-
       - name: Build and push Docker image to GitHub
         id: build-and-push-docker-image-to-github
-        if: ${{ vars.RUN_CICD == 'true' && success() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod') && (vars.DEPLOY_DEV == 'true' || vars.DEPLOY_PROD == 'true') }}
+        if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_DEV == 'true' }}
         uses: swiss-ai-center/common-code/.github/actions/build-and-push-docker-image-to-github@main
         with:
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          docker-image-name: ${{ github.repository }}-frontend
+          docker-image-name: ${{ github.repository }}-frontend-dev
           docker-image-context: ./frontend
 
       - name: Prepare configuration files
-        if: ${{ vars.RUN_CICD == 'true' && success() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod') && (vars.DEPLOY_DEV == 'true' || vars.DEPLOY_PROD == 'true') }}
+        if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_DEV == 'true' }}
         shell: bash
         working-directory: frontend/kubernetes
+        env:
+          DEV_FRONTEND_HOST: ${{ env.DEV_FRONTEND_HOST }}
         run: |
           # Set frontend version
           docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
           docker_image_sha_tag="${docker_image_tags[1]}"
-          yq ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" core-engine-frontend.stateful.yml > new-core-engine-frontend.stateful.yml && mv new-core-engine-frontend.stateful.yml core-engine-frontend.stateful.yml
+          yq -i ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" core-engine-frontend.stateful.yml
 
-      - name: Deploy Frontend on the Kubernetes cluster (dev)
+          # Set core engine frontend configuration (Ingress)
+          yq -i "del(.metadata.annotations.cert-manager\.io/cluster-issuer)" core-engine-frontend.ingress.yml
+          yq -i "del(.spec.ingressClassName)" core-engine-frontend.ingress.yml
+          yq -i ".spec.rules[0].host = \"${DEV_FRONTEND_HOST#*://}\"" core-engine-frontend.ingress.yml
+          yq -i ".spec.tls[0].hosts[0] = \"${DEV_FRONTEND_HOST#*://}\"" core-engine-frontend.ingress.yml
+          yq -i "del(.spec.tls[0].secretName)" core-engine-frontend.ingress.yml
+
+      - name: Deploy Frontend on the Kubernetes cluster
         if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_DEV == 'true' }}
         uses: swiss-ai-center/common-code/.github/actions/execute-command-on-kubernetes-cluster@main
         with:
@@ -118,8 +116,59 @@ jobs:
               -f core-engine-frontend.service.yml \
               -f core-engine-frontend.ingress.yml
 
-      - name: Deploy Frontend on the Kubernetes cluster (prod)
-        if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/prod' && vars.DEPLOY_PROD == 'true' }}
+  run-workflow-prod:
+    runs-on: ubuntu-latest
+    if: ${{ vars.RUN_CICD == 'true' }}
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20.11.1
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.11.1
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build app
+        working-directory: frontend
+        env:
+          REACT_APP_ENGINE_URL: ${{ env.PROD_BACKEND_URL }}
+          REACT_APP_ENGINE_WS_URL: ${{ env.PROD_BACKEND_WS_URL }}
+          # So it does not treat warnings as errors
+          CI: false
+        run: npm run build
+
+      - name: Build and push Docker image to GitHub
+        id: build-and-push-docker-image-to-github
+        if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_PROD == 'true' }}
+        uses: swiss-ai-center/common-code/.github/actions/build-and-push-docker-image-to-github@main
+        with:
+          docker-registry-username: ${{ github.actor }}
+          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          docker-image-name: ${{ github.repository }}-frontend
+          docker-image-context: ./frontend
+
+      - name: Prepare configuration files
+        if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_PROD == 'true' }}
+        shell: bash
+        working-directory: frontend/kubernetes
+        env:
+          PROD_FRONTEND_HOST: ${{ env.PROD_FRONTEND_HOST }}
+        run: |
+          # Set frontend version
+          docker_image_tags=(${{ steps.build-and-push-docker-image-to-github.outputs.docker-image-tags }})
+          docker_image_sha_tag="${docker_image_tags[1]}"
+          yq -i ".spec.template.spec.containers[0].image = \"$docker_image_sha_tag\"" core-engine-frontend.stateful.yml
+
+          # Set core engine frontend configuration (Ingress)
+          yq -i ".spec.rules[0].host = \"${PROD_FRONTEND_HOST#*://}\"" core-engine-frontend.ingress.yml
+          yq -i ".spec.tls[0].hosts[0] = \"${PROD_FRONTEND_HOST#*://}\"" core-engine-frontend.ingress.yml
+
+      - name: Deploy Frontend on the Kubernetes cluster
+        if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_PROD == 'true' }}
         uses: swiss-ai-center/common-code/.github/actions/execute-command-on-kubernetes-cluster@main
         with:
           kube-config: ${{ env.PROD_KUBE_CONFIG }}
