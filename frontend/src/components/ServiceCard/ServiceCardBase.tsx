@@ -3,13 +3,12 @@ import {Button, Card, CardActions, CardContent, Chip, Tooltip, Typography} from 
 import {Psychology} from "@mui/icons-material";
 import {Tags} from "../../enums/tagEnums";
 import {Link} from "react-router-dom";
-import React from "react";
+import React, {ReactNode} from "react";
 import {Tag} from "../../models/Tag";
 
-const ServiceCard : React.FC<{
-    index: number, item: any, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any, addService: any,
-}> = ({index, item, tags, handleTags, ai, handleAIToggle, addService}) => {
-
+const ServiceCardBase : React.FC<{
+    index: number, item: any, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any, children: ReactNode
+}> = ({index, item, tags, handleTags, ai, handleAIToggle, children}) => {
 
 
     return (
@@ -79,15 +78,11 @@ const ServiceCard : React.FC<{
                     </Typography>
                 </CardContent>
                 <CardActions sx={{p: 2}}>
-                    <Link
-                        to={"/showcase/service/" + item.slug}>
-                        <Button size={"small"} variant={"contained"}>View</Button>
-                    </Link>
-                    {addService && <Button onClick={() => addService(item.name, item.slug, item.data_in_fields, item.data_out_fields)}>Add</Button>}
+                    {children}
                 </CardActions>
             </Card>
         </Grid>
     );
 }
 
-export default ServiceCard;
+export default ServiceCardBase;

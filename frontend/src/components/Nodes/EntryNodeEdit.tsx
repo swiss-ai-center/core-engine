@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import { Handle, Position } from "react-flow-renderer";
+import { Handle, Position } from "reactflow";
 import {
     Autocomplete, AutocompleteChangeDetails, AutocompleteChangeReason, Box, Button,
     Card,
@@ -80,7 +80,7 @@ const  EntryNodeEdit: React.FC<{ id: string, data: any }> = (
                 <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "20em"}}>
                     <Typography variant={"subtitle1"} color={"primary"}
                                 sx={{justifyContent: "center", display: "flex"}}>
-                        Entry Node
+                        {data.label}
                     </Typography>
                     {dataInSelection}
                 </CardContent>

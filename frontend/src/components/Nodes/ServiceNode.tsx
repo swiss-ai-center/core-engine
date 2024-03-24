@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import { Connection, Handle, Position} from "react-flow-renderer";
+import { Connection, Handle, Position} from "reactflow";
 import {Autocomplete, Box, Card, CardActions, CardContent, TextField, Typography} from '@mui/material';
 import {useSelector} from 'react-redux';
 import {grey} from '@mui/material/colors';
@@ -10,17 +10,18 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
     const lightgrey = grey[400];
     const darkgrey = grey[800];
     const colorMode = useSelector((state: any) => state.colorMode.value);
-    const [dataInList, setDataInList]  = React.useState<any>()
 
-    const listDataIn = () => data.dataIn.map((inputField: { name: string ; type: string[]; }, index: number) =>
+    const listDataIn = () => {
+        return data.dataIn.map((inputField: { name: string ; type: string[]; }, index: number) =>
             <Box sx={{display: "flex", width: "100%"}} key={index}>
                 <Box sx={{display: "flex", flexDirection: "column", justifyContent: "center", width: "40%"}} key={index}>
-                    <Typography variant={"body1"}>{inputField.name} : </Typography>
+                    <Typography variant={"body2"}>{inputField.name} : </Typography>
                     <Box sx={{display:"flex"}}>
                         {inputField.type.map((type: string) => <Typography variant={"body2"}>{type} &nbsp;</Typography>)}
                     </Box>
                 </Box>
                 <Autocomplete
+                    key={data.selectedDataIn[index]}
                     fullWidth
                     sx={{mb: 2, minWidth: "10em", width: "60%"}}
                     value={data.selectedDataIn[index]}
@@ -39,12 +40,8 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
                     )}
                 />
             </Box>
-    );
-
-    React.useEffect(() =>  {
-        setDataInList(listDataIn())
-    }, [data])
-
+        );
+    }
 
     return (
         <>
@@ -63,7 +60,7 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
                 }}
             >
                 <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "30em"}}>
-                    <Typography variant={"h5"} color={"primary"}
+                    <Typography variant={"subtitle1"} color={"primary"}
                                 sx={{justifyContent: "center", display: "flex", mb: 2 }}
                     >
                         {data.label}
@@ -73,7 +70,7 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
                             <Typography variant={"body1"}>Input </Typography>
                         </Box>
                     </Box>
-                    {dataInList}
+                    {listDataIn()}
                 </CardContent>
                 <CardActions>{}</CardActions>
             </Card>

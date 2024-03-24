@@ -1,5 +1,5 @@
 import ItemGrid from "../../components/ItemGrid/ItemGrid";
-import {AutocompleteValue, Box, Container, SelectChangeEvent} from "@mui/material";
+import {Box, Container, SelectChangeEvent} from "@mui/material";
 import {Tag} from "../../models/Tag";
 import {useSearchParams} from "react-router-dom";
 import ReactFlow, {
@@ -12,24 +12,23 @@ import ReactFlow, {
     ReactFlowProvider,
     useEdgesState,
     useNodesState
-} from "react-flow-renderer";
+} from "reactflow";
 import {ArrowUpward} from "@mui/icons-material";
 import ScrollToTop from "react-scroll-to-top";
 import {useSelector} from "react-redux";
-import ExitNode from "../../components/Board/ExitNode";
 import EntryNodeEdit from "../../components/Nodes/EntryNodeEdit";
 import {FieldDescription} from "../../models/ExecutionUnit";
 import ServiceNode from "../../components/Nodes/ServiceNode";
-import {handleAIToggle, handleNoFilter, handleSearch, handleTags} from "../../utils/functions";
+import {handleAIToggle, handleNoFilter, handleTags} from "../../utils/functions";
 import {PipelineStep} from "../../models/Pipeline";
 import React from "react";
-import test from "node:test";
+import ExitNodeEdit from "../../components/Nodes/ExitNodeEdit";
 
 let id = 0;
 const getId = () => `${id++}`;
 
 const nodeTypes = {
-    entryNodeEdit: EntryNodeEdit, serviceNode: ServiceNode, exitNode: ExitNode
+    entryNodeEdit: EntryNodeEdit, serviceNode: ServiceNode, exitNodeEdit: ExitNodeEdit
 };
 const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
     {
@@ -75,10 +74,48 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
 
     const onDeleteNode = (deletedNodes: Node[]) => {
         deletedNodes.forEach((node) => {
+            // Find a better way, to handle entry and exit node deletion. As of the current version of ReactFlow,
+            // there doesn't seem to be a way to properly prevent certain nodes (and their associated edges) from being
+            // deleted depending on their state or other variables. Future versions of ReactFlow might include a
+            // "OnBeforeDelete" function which might be helpful.
+            if (node.type === "exitNodeEdit") {
+                setNodesRef.current(prevNodes => {
+                    const exit: Node = createExitNode();
+                    return [...prevNodes, exit];
+                });
+                return;
+            } else if (node.type === "entryNodeEdit") {
+                setNodesRef.current(prevNodes => {
+                    const entry: Node = createEntryNode();
+                    return [...prevNodes, entry];
+                });
+            }
+
             const edge = edgesRef.current.find((edge) => edge.source === node.id)
-            if (edge) setSubsequentDataInOptions(edge, true);
+            if(!edge) return;;
+            if(edge.targetNode?.type === "exitNodeEdit") {
+                const pipelineOutput: FieldDescription[] = [];
+                setNodesRef.current((nds) =>
+                    nds.map((node) => {
+                        if (node.type !== "exitNodeEdit") {
+                            return node;
+                        }
+
+                        return {
+                            ...node,
+                            data: {
+                                ...node.data,
+                                dataOut: pipelineOutput,
+                            },
+                        };
+                    })
+                );
+            } else {
+                setSubsequentDataInOptions(edge, true);
+            }
         })
     }
+
     const onSelectServiceInput = (nodeId: string, inputIndex: number, value: string) => {
         const node = nodesRef.current.find((node) => node.id === nodeId)
         if (node === undefined) return;
@@ -146,7 +183,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
         );
 
 
-        const initialEdge = edgesRef.current.find((edge)=> edge.source === "entry" )
+        const initialEdge = edgesRef.current.find((edge)=> edge.source === entryNode.id)
         if (initialEdge) {
             setSubsequentDataInOptions(initialEdge, false)
 
@@ -154,7 +191,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
             const affectedNodes = findFollowingNodes(initialEdge.source)
             affectedNodes.forEach((nodeId: string) => {
                 const affectedNode = nodesRef.current.find((node) => node.id === nodeId)
-                if (affectedNode) updateSelectedInputOption(affectedNode, `${entryNode.data.identifier}.${newName}`,  `${entryNode.data.identifier}.${previousName}`);
+                if (affectedNode && affectedNode.type !== "exitNodeEdit") updateSelectedInputOption(affectedNode, `${entryNode.data.identifier}.${newName}`,  `${entryNode.data.identifier}.${previousName}`);
             })
         }
     }
@@ -183,7 +220,28 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
 
     const onConnect = (params: Edge<any> | Connection) =>  {
         setEdges((eds) => addEdge(params, eds));
-        setSubsequentDataInOptions(params, false);
+        const targetNode = nodesRef.current.find((node) => node.id === params.target);
+        if (targetNode?.type === "exitNodeEdit") {
+            const sourceNode = nodesRef.current.find((node) => node.id === params.source);
+            const pipelineOutput: FieldDescription[] = sourceNode?.data.dataOut;
+            setNodesRef.current((nds) =>
+                nds.map((node) => {
+                    if (node.type !== "exitNodeEdit") {
+                        return node;
+                    }
+
+                    return {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            dataOut: pipelineOutput,
+                        },
+                    };
+                })
+            );
+        } else {
+            setSubsequentDataInOptions(params, false);
+        }
     }
 
     const setSubsequentDataInOptions = (edge: Edge<any> | Connection , deleted: boolean ) => {
@@ -194,11 +252,10 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
 
         if (!deleted) {
             possibleInput = getNodeDataInOptions(edge.source);
-            const sourceNodeDataOut = sourceNode.id === "entry" ? sourceNode.data.dataIn : sourceNode.data.dataOut;
+            const sourceNodeDataOut = sourceNode.type === "entryNodeEdit" ? sourceNode.data.dataIn : sourceNode.data.dataOut;
             sourceNodeDataOut.forEach((output: FieldDescription) => {
                 possibleInput.push(`${sourceNode.data.identifier}.${output.name}`);
             })
-
         }
 
         // Find all the subsequent nodes (the ones after the link/connection that has been established)
@@ -210,7 +267,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
             // set the input options using a deep copy of the options to avoid unwillingly modifying the previous
             // nodes' options
             setNodeDataInOptions(nodeId, JSON.parse(JSON.stringify(possibleInput)))
-            const affectedNode = nodes.find((node) => node.id === nodeId)
+            const affectedNode = nodesRef.current.find((node) => node.id === nodeId)
             affectedNode?.data.dataOut.forEach((output: FieldDescription) => {
                 possibleInput.push(`${affectedNode.data.identifier}.${output.name}`);
             })
@@ -242,7 +299,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
         // Add all the output fields from the previous nodes to the options list
         prevNodes.forEach((nodeId) => {
             const node = nodes.find((nd) => nd.id === nodeId)
-            const nodeDataOut: FieldDescription[] = node?.id === "entry" ? node?.data.dataIn : node?.data.dataOut;
+            const nodeDataOut: FieldDescription[] = node?.type === "entryNodeEdit" ? node?.data.dataIn : node?.data.dataOut;
             nodeDataOut.forEach((output: FieldDescription) => {
                 possibleInput.push(`${node?.data.identifier}.${output.name}`);
             })
@@ -275,8 +332,9 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
 
     const createEntryNode = () => {
         const dataIn: FieldDescription[] = [];
+        const id = getId();
         return {
-            id: "entry",
+            id: `entry${id}`,
             type: "entryNodeEdit",
             data: {
                 onAddPipelineInput: onAddPipelineInput,
@@ -284,9 +342,27 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
                 onSelectEntryInputName: onSelectEntryInputName,
                 identifier: "entry",
                 dataIn: dataIn,
-                label: "entry",
+                label: "Pipeline entry",
             },
-            position: {x: 0, y: 0},
+            position: {x: 50, y: 200},
+        }
+    }
+
+    const createExitNode = () => {
+        const dataOut: FieldDescription[] = [];
+        const id = getId();
+        return {
+            id: `exit${id}`,
+            type: "exitNodeEdit",
+            data: {
+                onAddPipelineInput: onAddPipelineInput,
+                onSelectEntryInput: onSelectEntryInput,
+                onSelectEntryInputName: onSelectEntryInputName,
+                identifier: "exit",
+                dataOut: dataOut,
+                label: "Exit",
+            },
+            position: {x: 550, y: 200},
         }
     }
 
@@ -311,7 +387,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
                 label: `${serviceName} ${id}`
             },
         };
-        setNodes((nodes) => nodes.concat(newNode));
+        setNodesRef.current((nodes) => nodes.concat(newNode));
     };
 
     const findFollowingNodes = (nodeId: string) => {
@@ -361,8 +437,10 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean }> = (
     React.useEffect(() => {
         const initialNodes: Node<any>[] = []
         initialNodes.push(createEntryNode())
-        setNodes((nodes) => initialNodes);
+        initialNodes.push(createExitNode())
+        setNodes(() => initialNodes);
     }, []);
+
 
     React.useEffect(() =>  {
         nodesRef.current = nodes;
