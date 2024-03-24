@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, {useCallback} from 'react';
 import {
     AppBar, Toolbar, Link, Grid, IconButton, Tooltip, PaletteMode
 } from '@mui/material';
@@ -20,6 +20,7 @@ import { grey } from '@mui/material/colors';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleColorMode } from './utils/reducers/colorModeSlice';
 import "typeface-inter";
+import CreatePipeline from "./pages/CreatePipeline";
 
 
 function App() {
@@ -147,7 +148,7 @@ function App() {
                     <Route path={"/showcase"} element={<Info />}/>
                     <Route path={"/home"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
                     <Route path={"*"} element={<Info />}/>
-
+                    <Route path={"/create-pipeline"} element={<CreatePipeline mobileOpen={mobileOpen}/>}/>
                 </Routes>
             </Router>
             {/* End Main content */}
