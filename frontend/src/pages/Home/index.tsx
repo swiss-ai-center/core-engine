@@ -15,6 +15,9 @@ import ScrollToTop from 'react-scroll-to-top';
 import { ArrowUpward } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import { useFileArray } from '../../utils/hooks/fileArray';
+import CreatePipelineServiceCard from "../../components/ServiceCard/CreatePipelineServiceCard";
+import HomeServiceCard from "../../components/ServiceCard/HomeServiceCard";
+import PipelineCard from "../../components/PipelineCard/PipelineCard";
 
 
 const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
@@ -137,7 +140,9 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                 <Toolbar/>
                 <Container maxWidth={false}>
                     <ItemGrid filter={search} orderBy={orderBy} tags={tags} handleTags={handleTags}
-                              ai={ai} handleAIToggle={handleAIToggle} addService={null}/>
+                              ai={ai} handleAIToggle={handleAIToggle}
+                              items={{service: HomeServiceCard, pipeline: PipelineCard}}
+                              itemFunctions={null}/>
                 </Container>
                 <Container maxWidth={false}>
                     <Copyright/>

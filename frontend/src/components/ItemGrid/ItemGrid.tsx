@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {ReactNode} from 'react';
 import {
     Box,
     Button,
@@ -36,8 +36,9 @@ const minWidth = isSmartphone() ? '100%' : (window.innerWidth < 900) ? '50%' : '
 const align = isSmartphone() ? 'center' : 'left';
 
 const ItemGrid: React.FC<{
-    filter: string, orderBy: string, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any, addService: any
-}> = ({filter, orderBy, tags, handleTags, ai, handleAIToggle, addService}) => {
+    filter: string, orderBy: string, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any,
+    items: any, itemFunctions: any
+}> = ({filter, orderBy, tags, handleTags, ai, handleAIToggle, items, itemFunctions}) => {
     const dispatch = useDispatch();
     const servicesPerPage = useSelector((state: any) => state.perPage.value.services);
     const pipelinesPerPage = useSelector((state: any) => state.perPage.value.pipelines);
@@ -150,6 +151,16 @@ const ItemGrid: React.FC<{
         );
     };
 
+    const serviceCard = (item: any, index: number): ReactNode => {
+        const ServiceCard = items?.service
+        if (!ServiceCard) return false;
+        return (
+            <ServiceCard index={index} item={item} tags={tags} handleTags={handleTags} ai={ai} handleAIToggle={handleAIToggle}
+                         functions={itemFunctions}></ServiceCard>
+            )
+    }
+
+
     React.useEffect(() => {
         setPageService(1);
         setPagePipeline(1);
@@ -233,17 +244,7 @@ const ItemGrid: React.FC<{
                     ) : (
                         services.map((item: any, index: number) => {
                             return (
-
-                                <ServiceCardBase index={index} item={item} tags={tags} handleTags={handleTags} ai={ai} handleAIToggle={handleAIToggle}>
-                                    {addService ?
-                                        <Button onClick={() => addService(item.name, item.slug, item.data_in_fields, item.data_out_fields)}>Add</Button>
-                                        :
-                                        <Link
-                                            to={"/showcase/service/" + item.slug}>
-                                            <Button size={"small"} variant={"contained"}>View</Button>
-                                        </Link>
-                                    }
-                                </ServiceCardBase>
+                                serviceCard(item, index)
                             );
                         }))}
                 </Grid>

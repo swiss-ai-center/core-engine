@@ -13,6 +13,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
 import {DataType, DataTypeOptions} from "../../enums/dataTypeEnum";
 import {NodeProps} from "reactflow";
+import {FieldDescription} from "../../models/ExecutionUnit";
+import CustomHandle from "../Board/CustomHandle";
+import {positionHandle} from "../../utils/functions";
 
 const  EntryNodeEdit: React.FC<{ id: string, data: any }> = (
     {id, data}) => {
@@ -36,7 +39,7 @@ const  EntryNodeEdit: React.FC<{ id: string, data: any }> = (
     }
 
     const dataInSelection = data.dataIn.map((inputField: { name: string ; type: string[];}, index: number) =>
-        <Box sx={{display: "flex", width: "100%"}}>
+        <Box sx={{display: "flex", width: "100%"}} key={index}>
             <Box sx={{display: "flex", alignItems: "center", width: "40%", mr: 1}} key={index}>
                 <TextField id="standard-basic" label="Input Name" variant="standard"
                 onBlur={(event) => onSelectInputName(event.target.value, index)}/>
@@ -45,6 +48,7 @@ const  EntryNodeEdit: React.FC<{ id: string, data: any }> = (
                 fullWidth
                 multiple
                 value={inputField.type}
+                aria-placeholder={"ywywyw"}
                 sx={{mb: 2, width: "60%"}}
                 options={DataTypeOptions}
                 isOptionEqualToValue={(option, value) => value === "" || option === value}
@@ -77,7 +81,7 @@ const  EntryNodeEdit: React.FC<{ id: string, data: any }> = (
                     boxShadow: "none",
                 }}
             >
-                <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "20em"}}>
+                <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "15em"}}>
                     <Typography variant={"subtitle1"} color={"primary"}
                                 sx={{justifyContent: "center", display: "flex"}}>
                         {data.label}
@@ -89,10 +93,18 @@ const  EntryNodeEdit: React.FC<{ id: string, data: any }> = (
                     <Icon sx={{ display: 'flex', alignItems: 'center' }} color={"primary"} onClick={onAddInput}><AddCircle/></Icon>
                 </CardActions>
             </Card>
-            <Handle
-                type={"source"}
-                position={Position.Right}
-            />
+            {data.dataIn.map((input: FieldDescription, index: number) => {
+                return (
+                    <CustomHandle
+                        key={index}
+                        id={input.name}
+                        label={input.name}
+                        type={"source"}
+                        style={{top: positionHandle(data.dataIn.length, index + 1)}}
+                        position={Position.Right}
+                    />
+                );
+            })}
         </>
     );
 };

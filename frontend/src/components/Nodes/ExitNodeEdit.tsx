@@ -40,7 +40,7 @@ const ExitNodeEdit: React.FC<{ id: string, data: any }> = (
                     boxShadow: "none",
                 }}
             >
-                <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "20em"}}>
+                <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "10em"}}>
                     <Typography variant={"subtitle1"} color={"primary"}
                                 sx={{justifyContent: "center", display: "flex", mb: 2 }}
                     >

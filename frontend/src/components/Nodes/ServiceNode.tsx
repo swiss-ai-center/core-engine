@@ -1,8 +1,12 @@
 import React, {useState} from "react";
 import { Connection, Handle, Position} from "reactflow";
-import {Autocomplete, Box, Card, CardActions, CardContent, TextField, Typography} from '@mui/material';
+import {Autocomplete, Box, Card, CardActions, CardContent, IconButton, TextField, Typography} from '@mui/material';
 import {useSelector} from 'react-redux';
 import {grey} from '@mui/material/colors';
+import {Close as CloseIcon} from "@mui/icons-material";
+import CustomHandle from "../Board/CustomHandle";
+import {positionHandle} from "../../utils/functions";
+import {FieldDescription} from "../../models/ExecutionUnit";
 
 
 const ServiceNode: React.FC<{ id: string, data: any }> = (
@@ -20,35 +24,24 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
                         {inputField.type.map((type: string) => <Typography variant={"body2"}>{type} &nbsp;</Typography>)}
                     </Box>
                 </Box>
-                <Autocomplete
-                    key={data.selectedDataIn[index]}
-                    fullWidth
-                    sx={{mb: 2, minWidth: "10em", width: "60%"}}
-                    value={data.selectedDataIn[index]}
-                    options={data.dataInOptions}
-                    autoHighlight={false}
-                    renderOption={(props, option: string, {selected}) => (
-                        <li {...props}>
-                            {option}
-                        </li>
-                    )}
-                    onChange={(event,value) => {
-                        if (value) data.onSelectInput(id,index,value);
-                    }}
-                    renderInput={(params) => (
-                        <TextField {...params} label={"Input source"}/>
-                    )}
-                />
             </Box>
         );
     }
 
     return (
         <>
-            <Handle
-                type={"target"}
-                position={Position.Left}
-            />
+            {data.dataIn.map((input: FieldDescription, index: number) => {
+                return (
+                    <CustomHandle
+                        key={index}
+                        id={input.name === "Input Name" ?  `${input.name}${index}` : input.name}
+                        label={input.name}
+                        type={"target"}
+                        style={{top: positionHandle(data.dataIn.length, index + 1)}}
+                        position={Position.Left}
+                    />
+                );
+            })}
             <Card
                 sx={{
                     height: "100%", display: "flex", flexDirection: "column",
@@ -59,25 +52,33 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
                     boxShadow: "none",
                 }}
             >
-                <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "30em"}}>
+                <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "15em"}}>
                     <Typography variant={"subtitle1"} color={"primary"}
                                 sx={{justifyContent: "center", display: "flex", mb: 2 }}
                     >
                         {data.label}
                     </Typography>
                     <Box sx={{display: "flex", width: "100%"}}>
-                        <Box sx={{display: "flex", flexDirection: "column", alignItems: "center", width: "40%"}}>
-                            <Typography variant={"body1"}>Input </Typography>
+                        <Box sx={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+                            <Typography variant={"body1"}>RIEN </Typography>
                         </Box>
                     </Box>
                     {listDataIn()}
                 </CardContent>
                 <CardActions>{}</CardActions>
             </Card>
-            <Handle
-                type={"source"}
-                position={Position.Right}
-            />
+            {data.dataOut.map((output: FieldDescription, index: number) => {
+                return (
+                    <CustomHandle
+                        key={index}
+                        id={output.name}
+                        label={output.name}
+                        type={"source"}
+                        style={{top: positionHandle(data.dataOut.length, index + 1)}}
+                        position={Position.Right}
+                    />
+                );
+            })}
         </>
     );
 };

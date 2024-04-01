@@ -148,7 +148,7 @@ function App() {
                     <Route path={"/showcase"} element={<Info />}/>
                     <Route path={"/home"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
                     <Route path={"*"} element={<Info />}/>
-                    <Route path={"/create-pipeline"} element={<CreatePipeline mobileOpen={mobileOpen}/>}/>
+                    <Route path={"/create-pipeline"} element={<CreatePipeline mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
                 </Routes>
             </Router>
             {/* End Main content */}

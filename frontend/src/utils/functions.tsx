@@ -87,6 +87,21 @@ export const handleSearch = (
     handleNoFilter();
 };
 
+const orderByList =  [
+    {value: 'name-asc', label: 'Name (A-Z)'},
+    {value: 'name-desc', label: 'Name (Z-A)'}
+]
+export const handleOrder = (event: SelectChangeEvent, setOrderBy: any, searchParams: URLSearchParams, windowHistory: History ) => {
+    setOrderBy(event.target.value as string);
+    if (event.target.value === orderByList[0].value) {
+        searchParams.delete('orderBy');
+    } else {
+        searchParams.set('orderBy', event.target.value as string);
+    }
+    windowHistory.pushState({}, '', `?${searchParams.toString()}`);
+    handleNoFilter(searchParams, windowHistory);
+}
+
 export const handleNoFilter = (
     searchParams: URLSearchParams,
     windowHistory:  History) => {

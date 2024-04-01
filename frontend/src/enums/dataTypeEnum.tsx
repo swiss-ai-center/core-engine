@@ -12,6 +12,6 @@ export enum DataType {
 
  export const DataTypeOptions: string[] = [];
 
-Object.keys(DataType).forEach((value) => {
+Object.values(DataType).forEach((value) => {
     DataTypeOptions.push(value);
 });
