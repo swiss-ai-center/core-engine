@@ -18,6 +18,7 @@ spec:
     spec:
       containers:
       - name: core-engine-frontend
+        # To use the development image, change the next line to `image: ghcr.io/swiss-ai-center/core-engine-frontend-dev:latest`
         image: ghcr.io/swiss-ai-center/core-engine-frontend:latest
         # If you build the image locally, change the next line to `imagePullPolicy: Never` - there is no need to pull the image
         imagePullPolicy: Always

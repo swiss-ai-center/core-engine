@@ -3,20 +3,23 @@ kind: Ingress
 metadata:
   name: core-engine-frontend-ingress
   annotations:
+    cert-manager.io/issuer: "letsencrypt"
     nginx.ingress.kubernetes.io/proxy-body-size: "16m"
     nginx.org/client-max-body-size: "16m"
 spec:
+  ingressClassName: nginx
   rules:
-  - host: frontend-core-engine-swiss-ai-center.kube.isc.heia-fr.ch
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: core-engine-frontend-service
-            port:
-              number: 80
+    - host: app.swiss-ai-center.ch
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: core-engine-frontend-service
+                port:
+                  number: 80
   tls:
     - hosts:
-        - frontend-core-engine-swiss-ai-center.kube.isc.heia-fr.ch
+        - app.swiss-ai-center.ch
+      secretName: app-swiss-ai-center-ch-tls-cert

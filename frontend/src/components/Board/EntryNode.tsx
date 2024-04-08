@@ -1,5 +1,5 @@
 import React from "react";
-import { Handle, Position } from "react-flow-renderer";
+import { NodeProps, Position } from "reactflow";
 import {
     Box, Button, Card, CardActions, CardContent, Divider, Input, LinearProgress, Tooltip, Typography
 } from '@mui/material';
@@ -9,7 +9,7 @@ import {
     RunState, setCurrentTask,
     setGeneralStatus,
     resetTimer,
-    setTaskArray
+    setTaskArray,
 } from '../../utils/reducers/runStateSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { postToEngine } from '../../utils/api';
@@ -18,6 +18,9 @@ import { useFileArray } from '../../utils/hooks/fileArray';
 import { useWebSocketConnection } from '../../utils/useWebSocketConnection';
 import { toast } from 'react-toastify';
 import { grey } from '@mui/material/colors';
+import { EntryNodeData } from '../../models/NodeData';
+import CustomHandle from './CustomHandle';
+import { positionHandle } from '../../utils/functions';
 
 function createAllowedTypesString(allowedTypes: string[]) {
     return allowedTypes.join(', ');
@@ -30,7 +33,7 @@ function addIsSetToFields(fields: FieldDescription[]): FieldDescriptionWithSetAn
 }
 
 
-const EntryNode = ({data}: any) => {
+const EntryNode = ({data}: NodeProps<EntryNodeData>) => {
     const lightgrey = grey[400];
     const darkgrey = grey[800];
     const colorMode = useSelector((state: any) => state.colorMode.value);
@@ -111,6 +114,7 @@ const EntryNode = ({data}: any) => {
                     variant={"contained"}
                     color={"primary"}
                     size={"small"}
+                    disableElevation
                     endIcon={isUploading() ? <UploadTwoTone/> :
                         <PlayCircleTwoTone sx={{color: (!isIdle()) ? "transparent" : "inherit"}}/>}
                     onClick={() => launchExecution(data.label.replace("-entry", ""))}
@@ -127,8 +131,7 @@ const EntryNode = ({data}: any) => {
         if (data.data_in_fields) {
             setFileArray(addIsSetToFields(data.data_in_fields));
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data]);
+    }, [data, dispatch, setFileArray]);
 
     React.useEffect(() => {
         checkIfAllItemsAreUploaded();
@@ -194,10 +197,28 @@ const EntryNode = ({data}: any) => {
                 </CardContent>
                 <CardActions>{actionContent()}</CardActions>
             </Card>
-            <Handle
-                type={"source"}
-                position={Position.Right}
-            />
+
+            <div className="handles sources">
+                {data.sourceHandles.map((handle, index) => {
+                    // check if sourceHandles has duplicates
+                    const sourceHandles = data.sourceHandles;
+                    const sourceHandlesIds = sourceHandles.map((handle) => handle.id);
+                    const sourceHandlesSet = new Set(sourceHandlesIds);
+                    if (sourceHandlesSet.size !== sourceHandlesIds.length) {
+                        console.error("sourceHandles has duplicates");
+                    }
+                    return (
+                        <CustomHandle
+                            key={handle.id}
+                            id={handle.id}
+                            label={handle.label}
+                            type={"source"}
+                            style={{top: positionHandle(data.sourceHandles.length, index + 1)}}
+                            position={Position.Right}
+                        />
+                    );
+                })}
+            </div>
         </>
     );
 };

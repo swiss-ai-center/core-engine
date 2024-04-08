@@ -1,4 +1,5 @@
 import { ExecutionUnit } from './ExecutionUnit';
+import { Service } from './Service';
 
 export class PipelineStep {
     identifier: string;
@@ -6,6 +7,7 @@ export class PipelineStep {
     condition: string;
     inputs: string[];
     service_id: string;
+    service: Service;
 }
 
 export class Pipeline extends ExecutionUnit {
