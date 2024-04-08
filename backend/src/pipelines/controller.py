@@ -9,6 +9,8 @@ from pipeline_steps.models import PipelineStep
 from uuid import UUID, uuid4
 from sqlalchemy.exc import CompileError
 
+from services.service import ServicesService
+
 router = APIRouter()
 
 
@@ -183,19 +185,24 @@ def delete(
 def check(
         pipeline: PipelineCreate,
         pipelines_service: PipelinesService = Depends(),
+        services_service: ServicesService = Depends(),
 ):
     try:
         new_pipeline_id = uuid4()
         new_steps = []
         for step in pipeline.steps:
-            new_step = PipelineStep(
+            service = services_service.find_one_by_slug(step.service_slug)
+            if not service:
+                raise NotFoundException(f"Service with slug {step.service_slug} not found")
+            new_pipeline_step = PipelineStep(
                 identifier=step.identifier,
                 needs=step.needs,
                 condition=step.condition,
                 inputs=step.inputs,
-                service_id=step.service_id,
                 pipeline_id=new_pipeline_id,
+                service_id=service.id,
             )
+            new_step = PipelineStep.model_validate(new_pipeline_step)
             new_steps.append(new_step)
 
         new_pipeline = Pipeline(
