@@ -298,55 +298,73 @@ class PipelinesService:
         """
         self.logger.debug("Update pipeline")
 
+        # Get the current pipeline
         current_pipeline = self.session.get(Pipeline, pipeline_id)
 
         if not current_pipeline:
             raise NotFoundException("Pipeline Not Found")
 
         old_pipeline_slug = current_pipeline.slug
-        # current_pipeline_steps = current_pipeline.steps
 
-        # Remove the existing pipeline steps from the pipeline
-        # for current_pipeline_step in current_pipeline_steps:
-        #     self.session.delete(current_pipeline_step)
-        # self.session.flush()
-
+        # Dump the model data
         pipeline_data = pipeline.model_dump(exclude_unset=True)
 
-        pipeline_data["steps"] = []
-
-        # Update each property of the pipeline
+        # Update Pipeline attributes
         for key, value in pipeline_data.items():
-            # TO BE REMOVED WHEN UPDATING ROUTINE IS FIXED
             if key == "steps":
                 continue
             setattr(current_pipeline, key, value)
+
+        # Update/Add/Delete Steps
+        existing_step_identifiers = {step.identifier for step in current_pipeline.steps}
+        updated_step_ids = set()
+
+        for step_data in pipeline_data["steps"]:
+            step_identifier = step_data.get("identifier")
+            if step_identifier in existing_step_identifiers:
+                # Update existing step
+                step = self.session.exec(
+                    select(PipelineStep).where(
+                        and_(PipelineStep.pipeline_id == pipeline_id, PipelineStep.identifier == step_identifier)
+                    )
+                ).first()
+                # Get the service
+                service = self.services_service.find_one_by_slug(step_data["service_slug"])
+                if not service:
+                    raise NotFoundException(f"Service with slug '{step_data['service_slug']}' not found.")
+                step.service = service
+                for key, value in step_data.items():
+                    if key == "service_slug":
+                        continue
+                    setattr(step, key, value)
+                updated_step_ids.add(step_identifier)
+            else:
+                # Get the service
+                service = self.services_service.find_one_by_slug(step_data["service_slug"])
+                if not service:
+                    raise NotFoundException(f"Service with slug '{step_data['service_slug']}' not found.")
+                step_data["service"] = service
+                # Remove the service_slug key
+                step_data.pop("service_slug")
+                # Add new step
+                new_step = PipelineStep(**step_data, pipeline_id=pipeline_id)
+                self.session.add(new_step)
+                updated_step_ids.add(new_step.id)
+
+        # Delete steps that are no longer present
+        steps_to_delete = existing_step_identifiers - updated_step_ids
+        for step_identifier in steps_to_delete:
+            step = self.session.exec(
+                select(PipelineStep).where(
+                    and_(PipelineStep.pipeline_id == pipeline_id, PipelineStep.identifier == step_identifier)
+                )
+            ).first()
+            self.session.delete(step)
 
         # Save the updated pipeline
         self.session.add(current_pipeline)
         self.session.flush()
         self.session.refresh(current_pipeline)
-
-        # Create new pipeline steps for the updated pipeline
-        # for step in pipeline.steps:
-        #
-        #     service = self.services_service.find_one_by_slug(step.service_slug)
-        #     if not service:
-        #         self.session.rollback()
-        #         raise NotFoundException(f"Service with slug '{step.service_slug}' not found.")
-        #
-        #     new_pipeline_step = PipelineStep(
-        #         identifier=step.identifier,
-        #         needs=step.needs,
-        #         condition=step.condition,
-        #         inputs=step.inputs,
-        #         pipeline=pipeline,
-        #         service=service,
-        #     )
-        #     pipeline_step = PipelineStep.model_validate(new_pipeline_step)
-        #     self.session.add(pipeline_step)
-        #     self.session.flush()
-        # self.session.refresh(current_pipeline)
 
         # Check if pipeline is consistent
         try:
@@ -369,7 +387,7 @@ class PipelinesService:
                 )
                 self.tasks_service.update(
                     task.id,
-                    TaskUpdate(status=TaskStatus.ARCHIVED, pipeline_execution_id=None)
+                    TaskUpdate(status=TaskStatus.ARCHIVED, pipeline_execution_id=None, data_out=[])
                 )
 
             # Delete the pipeline_execution
@@ -562,7 +580,7 @@ class PipelinesService:
 
                     for pipeline_task in pipeline_tasks:
                         pipeline_task.status = TaskStatus.ERROR
-                        self.tasks_service.update(task.id, pipeline_task)
+                        await self.tasks_service.update(task.id, pipeline_task)
 
                     raise HTTPException(
                         status_code=500,

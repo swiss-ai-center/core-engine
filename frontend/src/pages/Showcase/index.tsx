@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import Board from '../../components/Board/Board';
-import { getPipelineDescription, getServiceDescription } from '../../utils/api';
+import { getPipelineDescription, getServiceDescription, getServiceDescriptionById } from '../../utils/api';
 import { DescriptionTwoTone, ApiRounded, ArrowBack, ArrowUpward } from '@mui/icons-material';
 import Copyright from '../../components/Copyright/Copyright';
 import { InformationDrawer } from '../../components/InformationDrawer/InformationDrawer';
@@ -49,7 +49,7 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
                 if (desc) {
                     if (type !== 'service') {
                         const steps = desc.steps
-                        const stepsDescriptions = await Promise.all(steps.map((step: any) => getServiceDescription(step.identifier)));
+                        const stepsDescriptions = await Promise.all(steps.map((step: any) => getServiceDescriptionById(step.service_id)));
                         for (let i = 0; i < steps.length; i++) {
                             steps[i].service = stepsDescriptions[i];
                         }

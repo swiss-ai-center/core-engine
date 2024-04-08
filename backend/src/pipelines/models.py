@@ -39,7 +39,7 @@ class Pipeline(PipelineBase, table=True):
         back_populates="pipeline"
     )  # noqa F821
     steps: List[PipelineStep] = Relationship(
-        sa_relationship_kwargs={"cascade": "delete, save-update"},
+        sa_relationship_kwargs={"cascade": "delete, save-update, delete-orphan"},
         back_populates="pipeline"
     )  # noqa F821
 
