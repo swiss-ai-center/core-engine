@@ -97,6 +97,22 @@ export const getPipelines = async (filter: string, skip: number, limit: number, 
     }
 }
 
+export const getServiceDescriptionById = async (id: string) => {
+    /*
+     * Function to fetch a service description from the engine
+     * id: string - the id of the service
+     */
+    try {
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + id, {headers: HEADERS});
+        if (response.status === 200) {
+            return await response.json();
+        }
+        return null;
+    } catch (error: any) {
+        return {error: error.message}
+    }
+}
+
 export const getServiceDescription = async (slug: string) => {
     /*
      * Function to fetch a service description from the engine
