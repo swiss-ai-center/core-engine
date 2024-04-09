@@ -6,9 +6,9 @@ import { RunState } from '../../utils/reducers/runStateSlice';
 import { useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
 import { displayTimer, download, positionHandle } from '../../utils/functions';
-import "./styles.css";
+import "../Board/styles.css";
 import { ProgressNodeData } from '../../models/NodeData';
-import CustomHandle from './CustomHandle';
+import CustomHandle from '../Handles/CustomHandle';
 
 
 const ProgressNode = ({data}: NodeProps<ProgressNodeData>) => {

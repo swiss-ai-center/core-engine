@@ -15,8 +15,10 @@ const CreatePipelineServiceCard : React.FC<{
     return (
         <ServiceCardBase index={index} item={item} tags={tags} handleTags={handleTags} ai={ai}
                          handleAIToggle={handleAIToggle}>
-            <Button
-                onClick={() => functions.addService(item.name, item.slug, item.data_in_fields, item.data_out_fields)}>Add</Button>
+            <Button size={"small"} variant={"contained"}
+                onClick={() => {
+                    functions.addService(item.name, item.id, item.tags, item.slug, item.data_in_fields, item.data_out_fields)
+                }}>Add</Button>
         </ServiceCardBase>
     );
 }

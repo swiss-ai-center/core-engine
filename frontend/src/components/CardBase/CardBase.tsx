@@ -12,8 +12,6 @@ const CardBase : React.FC<{
 
 
     return (
-        <Grid xs={12} sm={6} lg={4} xl={3} key={index}
-              sx={{height: 'auto', minHeight: '250px'}}>
             <Card
                 sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
                 variant={"outlined"}
@@ -49,7 +47,6 @@ const CardBase : React.FC<{
                     {cardActions}
                 </CardActions>
             </Card>
-        </Grid>
     );
 }
 

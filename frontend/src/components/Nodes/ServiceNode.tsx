@@ -4,7 +4,7 @@ import {Autocomplete, Box, Card, CardActions, CardContent, IconButton, TextField
 import {useSelector} from 'react-redux';
 import {grey} from '@mui/material/colors';
 import {Close as CloseIcon} from "@mui/icons-material";
-import CustomHandle from "../Board/CustomHandle";
+import CustomHandle from "../Handles/CustomHandle";
 import {positionHandle} from "../../utils/functions";
 import {FieldDescription} from "../../models/ExecutionUnit";
 
@@ -58,11 +58,6 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
                     >
                         {data.label}
                     </Typography>
-                    <Box sx={{display: "flex", width: "100%"}}>
-                        <Box sx={{display: "flex", flexDirection: "column", alignItems: "center"}}>
-                            <Typography variant={"body1"}>RIEN </Typography>
-                        </Box>
-                    </Box>
                     {listDataIn()}
                 </CardContent>
                 <CardActions>{}</CardActions>

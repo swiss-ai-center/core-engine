@@ -19,7 +19,7 @@ import { useWebSocketConnection } from '../../utils/useWebSocketConnection';
 import { toast } from 'react-toastify';
 import { grey } from '@mui/material/colors';
 import { EntryNodeData } from '../../models/NodeData';
-import CustomHandle from './CustomHandle';
+import CustomHandle from '../Handles/CustomHandle';
 import { positionHandle } from '../../utils/functions';
 
 function createAllowedTypesString(allowedTypes: string[]) {

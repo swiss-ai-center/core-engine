@@ -7,9 +7,9 @@ import ReactFlow, {
     useReactFlow,
     Edge,
 } from 'reactflow';
-import EntryNode from './EntryNode';
-import ExitNode from './ExitNode';
-import ProgressNode from './ProgressNode';
+import EntryNode from '../Nodes/EntryNode';
+import ExitNode from '../Nodes/ExitNode';
+import ProgressNode from '../Nodes/ProgressNode';
 import { useDispatch, useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
 import DrawGraph from './DrawGraph';

@@ -11,7 +11,7 @@ import { useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
 import { download, positionHandle } from '../../utils/functions';
 import { ExitNodeData } from '../../models/NodeData';
-import CustomHandle from './CustomHandle';
+import CustomHandle from '../Handles/CustomHandle';
 
 
 const ExitNode = ({data}: NodeProps<ExitNodeData>) => {

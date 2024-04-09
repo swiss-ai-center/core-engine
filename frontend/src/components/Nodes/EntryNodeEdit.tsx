@@ -4,17 +4,16 @@ import {
     Autocomplete, AutocompleteChangeDetails, AutocompleteChangeReason, Box, Button,
     Card,
     CardActions,
-    CardContent, Icon,
+    CardContent, Icon, IconButton,
     TextField,
     Typography
 } from '@mui/material';
-import { AddCircle } from '@mui/icons-material';
+import {AddCircle, Close as CloseIcon} from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
 import {DataType, DataTypeOptions} from "../../enums/dataTypeEnum";
-import {NodeProps} from "reactflow";
 import {FieldDescription} from "../../models/ExecutionUnit";
-import CustomHandle from "../Board/CustomHandle";
+import CustomHandle from "../Handles/CustomHandle";
 import {positionHandle} from "../../utils/functions";
 
 const  EntryNodeEdit: React.FC<{ id: string, data: any }> = (
@@ -33,22 +32,35 @@ const  EntryNodeEdit: React.FC<{ id: string, data: any }> = (
         }))
     }
 
+    const onDeleteInput = (index: number) => {
+        const updatedNames = [...inputNames]
+        updatedNames.splice(index,1)
+        setInputNames(updatedNames)
+        data.onDeleteEntryInput(index);
+    }
     const onAddInput = () => {
-        setInputNames([...inputNames,""])
-        data.onAddPipelineInput()
+        const defaultName = "Input Name";
+        let newName = defaultName;
+        let counter = 1;
+        while (inputNames.includes(newName)) {
+            newName = `${defaultName} ${counter}`;
+            counter++;
+        }
+        setInputNames([...inputNames, newName]);
+        data.onAddEntryInput(newName);
     }
 
     const dataInSelection = data.dataIn.map((inputField: { name: string ; type: string[];}, index: number) =>
         <Box sx={{display: "flex", width: "100%"}} key={index}>
             <Box sx={{display: "flex", alignItems: "center", width: "40%", mr: 1}} key={index}>
-                <TextField id="standard-basic" label="Input Name" variant="standard"
-                onBlur={(event) => onSelectInputName(event.target.value, index)}/>
+                <TextField id="standard-basic" label="Input Name" variant="standard" defaultValue={inputField.name}
+                           onFocus={(event) => event.target.select()}
+                           onChange={(event) => onSelectInputName(event.target.value, index)}/>
             </Box>
             <Autocomplete
                 fullWidth
                 multiple
                 value={inputField.type}
-                aria-placeholder={"ywywyw"}
                 sx={{mb: 2, width: "60%"}}
                 options={DataTypeOptions}
                 isOptionEqualToValue={(option, value) => value === "" || option === value}
@@ -64,6 +76,17 @@ const  EntryNodeEdit: React.FC<{ id: string, data: any }> = (
                     <TextField {...params} label={"Data type"} placeholder=""/>
                 )}
             />
+            <Box sx={{display: "flex", alignItems: "center", justifyContent: "center"}}>
+                <IconButton
+                    sx={{width: "fit-content", height: "fit-content"}}
+                    aria-label={"close"}
+                    onClick={() => {
+                        onDeleteInput(index)
+                    }}
+                >
+                    <CloseIcon/>
+                </IconButton>
+            </Box>
         </Box>
     );
 
