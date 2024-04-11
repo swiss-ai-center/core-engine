@@ -469,6 +469,9 @@ class ServicesService:
                     # Return the created task to the end-user
                     return task
 
+            # Enable pipelines linked to the service via pipeline steps
+            self.enable_pipelines_linked_to_service(service)
+
             app.add_api_route(
                 f"/{service.slug}",
                 handler,
@@ -501,9 +504,46 @@ class ServicesService:
 
         self.logger.debug(f"Service {service.name} status set to {updated_service.status.value}")
 
+        # Disable pipeline linked to the service via pipeline steps
+        self.disable_pipelines_linked_to_service(updated_service)
+
         self.remove_route(app, service.slug)
 
         self.logger.info(f"Service {service.name} unregistered")
+
+    def enable_pipelines_linked_to_service(self, service: Service):
+        """
+        Enable pipelines linked to a service via pipeline steps
+        :param service: The service to enable the pipelines for
+        """
+        self.logger.debug(f"Enabling pipelines linked to service {service.id}")
+
+        # Get the pipelines linked to the service
+        for pipeline_step in service.pipeline_steps:
+            pipeline = pipeline_step.pipeline
+            # check if the services linked to the pipeline are all available
+            for step in pipeline.steps:
+                if step.service.status != ExecutionUnitStatus.AVAILABLE:
+                    return
+            pipeline.status = ExecutionUnitStatus.AVAILABLE
+            self.session.add(pipeline)
+            self.session.commit()
+            self.logger.debug(f"Pipeline {pipeline.name} status set to {pipeline.status.value}")
+
+    def disable_pipelines_linked_to_service(self, service: Service):
+        """
+        Disable pipelines linked to a service via pipeline steps
+        :param service: The service to disable the pipelines for
+        """
+        self.logger.debug(f"Disabling pipelines linked to service {service.id}")
+
+        # Get the pipelines linked to the service
+        for pipeline_step in service.pipeline_steps:
+            pipeline = pipeline_step.pipeline
+            pipeline.status = ExecutionUnitStatus.DISABLED
+            self.session.add(pipeline)
+            self.session.commit()
+            self.logger.debug(f"Pipeline {pipeline.name} status set to {pipeline.status.value}")
 
     async def check_if_service_is_reachable_and_ok(self, service: Service):
         """
