@@ -268,6 +268,23 @@ class TasksService:
             self.session.add(task)
         self.session.commit()
 
+    def stop_pipeline_execution(self, pipeline_execution_id: UUID):
+        """
+        Stop pipeline execution
+        :param pipeline_execution_id: id of pipeline execution to stop
+        """
+        self.logger.debug("Stop pipeline execution")
+        pipeline_execution = self.session.get(PipelineExecution, pipeline_execution_id)
+        if not pipeline_execution:
+            raise NotFoundException("Pipeline Execution Not Found")
+
+        self.skip_remaining_tasks(pipeline_execution)
+        end_pipeline_execution(pipeline_execution)
+
+        self.session.add(pipeline_execution)
+        self.session.commit()
+        self.logger.debug(f"Stopped pipeline execution with id {pipeline_execution.id}")
+
     async def launch_next_step_in_pipeline(self, task: Task):
         """
         Launch the next step in the pipeline
