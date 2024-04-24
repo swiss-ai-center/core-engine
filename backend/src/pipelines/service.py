@@ -1,5 +1,6 @@
 import json
 import re
+import graphlib
 from fastapi import FastAPI, UploadFile, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from inspect import Parameter, Signature
@@ -17,7 +18,6 @@ from uuid import UUID
 from pipeline_steps.models import PipelineStep
 from pipelines.models import Pipeline, PipelineUpdate, PipelineCreate
 from common.exceptions import NotFoundException, InconsistentPipelineException, ConflictException
-import graphlib
 from pipeline_executions.models import FileKeyReference, PipelineExecution, PipelineExecutionReadWithPipelineAndTasks
 from pipeline_executions.service import PipelineExecutionsService
 from tasks.enums import TaskStatus
@@ -838,8 +838,9 @@ class PipelinesService:
                     # For each input type, create a FieldDescriptionType
                     input_types = [FieldDescriptionType(v) for v in input_types]
 
-                    # Compare variable_types_to_check with input_types without checking the order
-                    if not sorted(variable_types_to_check) == sorted(input_types):
+                    # Compare variable_types_to_check with input_types without checking the order,
+                    # variable_types_to_check needs to be a subset of input_types or equal
+                    if not set(variable_types_to_check).issubset(set(input_types)):
                         raise InconsistentPipelineException(
                             f"The type of the variable {variable} is not compatible with the input type of the "
                             f"remote execution unit. "
