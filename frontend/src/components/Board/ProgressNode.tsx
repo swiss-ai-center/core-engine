@@ -81,7 +81,7 @@ const ProgressNode = ({data}: NodeProps<ProgressNodeData>) => {
                         {displayTimer(selfTimer)}
                     </Typography>
                 </Box>
-                <CardContent sx={{flexGrow: 1}}>
+                <CardContent sx={{flexGrow: 1, width: "100%"}}>
                     {data.type === "pipeline" ? (
                         <URLLink href={`/showcase/service/${data.service_slug}`} sx={{textDecoration: "none"}}>
                             <Tooltip title={"Service's page"} placement={"top"}>
@@ -102,7 +102,7 @@ const ProgressNode = ({data}: NodeProps<ProgressNodeData>) => {
                 </CardContent>
                 <CardActions
                     // if type is service, hide download button
-                    sx={{display: data.type === "service" ? "none" : "flex", justifyContent: "center"}}
+                    sx={{display: data.type === "service" ? "none" : "flex", width: "100%", justifyContent: "center"}}
                 >
                     {getStatus() === RunState.SKIPPED ? (
                         <Tooltip title={"Step was skipped"} placement={"bottom"}>

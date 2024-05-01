@@ -23,9 +23,10 @@ import {
 } from '@mui/icons-material';
 import Copyright from '../../components/Copyright/Copyright';
 import ScrollToTop from 'react-scroll-to-top';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { isSmartphone } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom';
+import { setMenuIcon } from '../../utils/reducers/menuIconSlice';
 
 const Item = styled(Paper)(({theme}) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -36,7 +37,9 @@ const Item = styled(Paper)(({theme}) => ({
 }));
 
 const Info: React.FC = () => {
+    const dispatch = useDispatch();
     const colorMode = useSelector((state: any) => state.colorMode.value);
+
     const navigate = useNavigate();
     const [isHovered, setHovered] = React.useState(false);
 
@@ -44,13 +47,15 @@ const Info: React.FC = () => {
         navigate("/home");
     }
 
-
     React.useEffect(() => {
         if (window.location.pathname !== '/') {
             navigate("/");
-
         }
     }, [navigate]);
+
+    React.useEffect(() => {
+        dispatch(setMenuIcon(false));
+    });
 
     return (
         <Box sx={{display: "flex"}}>

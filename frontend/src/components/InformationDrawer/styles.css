@@ -1,5 +1,7 @@
 .markdown-body {
     word-break: break-word;
+    max-height: 400px;
+    overflow: auto;
 }
 .markdown-container {
     background-color: white;

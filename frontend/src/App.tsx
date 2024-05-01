@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import {
     AppBar, Toolbar, Link, Grid, IconButton, Tooltip, PaletteMode
 } from '@mui/material';
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
 import Showcase from './pages/Showcase';
 import Home from './pages/Home';
 import Info from './pages/Info';
@@ -24,10 +24,11 @@ import "typeface-inter";
 
 function App() {
     const dispatch = useDispatch();
+    const menuIcon = useSelector((state: any) => state.menuIcon.value);
     const colorMode = useSelector((state: any) => state.colorMode.value);
     const lightgrey = grey[300];
     const darkgrey = grey[900];
-    const [mobileOpen, setMobileOpen] = React.useState(false);
+    const [mobileOpen, setMobileOpen] = React.useState(false)
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
@@ -101,6 +102,7 @@ function App() {
                 backgroundColor: colorMode === "light" ? "primary.main" : "background_color.main"
             }}>
                 <Toolbar>
+                    {menuIcon ?
                     <IconButton
                         color={"inherit"}
                         aria-label={"open drawer"}
@@ -109,7 +111,7 @@ function App() {
                         sx={{mr: 2, display: {md: 'none'}}}
                     >
                         {mobileOpen ? <CloseIcon/> : <MenuIcon/>}
-                    </IconButton>
+                    </IconButton> : <></>}
                     <Grid container justifyContent={"space-between"} alignItems={"center"} sx={{height: "100%"}}>
                         <Grid item>
                             <Link color={"inherit"} href={"/"} underline={"none"}>
@@ -147,7 +149,6 @@ function App() {
                     <Route path={"/showcase"} element={<Info />}/>
                     <Route path={"/home"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
                     <Route path={"*"} element={<Info />}/>
-
                 </Routes>
             </Router>
             {/* End Main content */}

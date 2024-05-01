@@ -13,8 +13,9 @@ import { Tag } from '../../models/Tag';
 import { TagObjects } from '../../enums/tagEnums';
 import ScrollToTop from 'react-scroll-to-top';
 import { ArrowUpward } from '@mui/icons-material';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useFileArray } from '../../utils/hooks/fileArray';
+import { setMenuIcon } from '../../utils/reducers/menuIconSlice';
 
 
 const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
@@ -22,6 +23,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         mobileOpen,
         handleOpen,
     }) => {
+    const dispatch = useDispatch();
     const colorMode = useSelector((state: any) => state.colorMode.value);
     // this is the list of order by options, the first one is the default
     const orderByList = React.useMemo(() => [
@@ -121,6 +123,9 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         handleNoFilter();
     }, [searchParams, setFileArray, history, orderByList, handleNoFilter]);
 
+    React.useEffect(() => {
+        dispatch(setMenuIcon(true));
+    });
 
     return (
         <Box sx={{display: 'flex'}}>

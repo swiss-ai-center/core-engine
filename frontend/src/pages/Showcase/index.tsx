@@ -15,18 +15,24 @@ import Copyright from '../../components/Copyright/Copyright';
 import { InformationDrawer } from '../../components/InformationDrawer/InformationDrawer';
 import { toast } from 'react-toastify';
 import ScrollToTop from 'react-scroll-to-top';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { isSmartphone } from '../../utils/functions';
 import { ReactFlowProvider } from 'reactflow';
+import { setMenuIcon } from '../../utils/reducers/menuIconSlice';
 
 
 const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
+    const dispatch = useDispatch();
     const params = useParams();
     const navigate = useNavigate();
     const colorMode = useSelector((state: any) => state.colorMode.value);
     const [isReady, setIsReady] = React.useState(false);
 
     const [description, setDescription] = React.useState<any>(null);
+
+    React.useEffect(() => {
+        dispatch(setMenuIcon(true));
+    });
 
     React.useEffect(() => {
         const navigateHome = () => {
