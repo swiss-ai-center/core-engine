@@ -1,11 +1,26 @@
 import {
     Autocomplete,
-    Box, Button, Checkbox,
-    Drawer, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, Stack, styled, Switch, TextField,
-    Toolbar, Typography,
+    Box,
+    Button,
+    Checkbox,
+    Drawer,
+    FormControl,
+    Grid,
+    IconButton,
+    InputLabel,
+    Link as URLLink,
+    MenuItem,
+    Select,
+    Stack,
+    styled,
+    Switch,
+    TextField,
+    Toolbar,
+    Typography,
 } from '@mui/material';
 import React from 'react';
 import {
+    ApiRounded,
     CheckBox as CheckBoxIcon,
     CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
     Clear as ClearIcon, Psychology,
@@ -182,6 +197,14 @@ export const FilterDrawer: React.FC<{
                         Reset filters
                     </Button>
                 </Box>
+            </Box>
+            <Box sx={{position: 'fixed', bottom: 20, left: 20, zIndex: 1000}}>
+                <URLLink href={`${process.env.REACT_APP_ENGINE_URL}/docs`} target={"_blank"}>
+                    <Button color={"secondary"} variant={"outlined"}
+                            startIcon={<ApiRounded/>}>
+                        Backend
+                    </Button>
+                </URLLink>
             </Box>
         </>
     );
