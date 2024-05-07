@@ -9,8 +9,8 @@ export enum DataType {
     AUDIO_OGG = "audio/ogg"
 }
 
- export const DataTypeOptions: string[] = [];
+export const dataTypeOptions: string[] = [];
 
 Object.values(DataType).forEach((value) => {
-    DataTypeOptions.push(value);
+    dataTypeOptions.push(value);
 });

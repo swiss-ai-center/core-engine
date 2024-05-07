@@ -5,7 +5,7 @@ import {Tags} from "../../enums/tagEnums";
 import {Link} from "react-router-dom";
 import React, {ReactNode} from "react";
 import {Tag} from "../../models/Tag";
-import CardBase from "../CardBase/CardBase";
+import CardBase from "./CardBase";
 
 const ServiceCardBase : React.FC<{
     index: number, item: any, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any, children: ReactNode

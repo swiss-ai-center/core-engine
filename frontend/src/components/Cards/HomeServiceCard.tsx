@@ -7,7 +7,7 @@ import React, {ReactNode} from "react";
 import {Tag} from "../../models/Tag";
 import ServiceCardBase from "./ServiceCardBase";
 
-const CreatePipelineServiceCard : React.FC<{
+const HomeServiceCard : React.FC<{
     index: number, item: any, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any, functions: any
 }> = ({index, item, tags, handleTags, ai, handleAIToggle, functions}) => {
 
@@ -15,12 +15,13 @@ const CreatePipelineServiceCard : React.FC<{
     return (
         <ServiceCardBase index={index} item={item} tags={tags} handleTags={handleTags} ai={ai}
                          handleAIToggle={handleAIToggle}>
-            <Button size={"small"} variant={"contained"}
-                onClick={() => {
-                    functions.addService(item.name, item.id, item.tags, item.slug, item.data_in_fields, item.data_out_fields)
-                }}>Add</Button>
+            <Link
+                to={"/showcase/service/" + item.slug}>
+                <Button size={"small"} variant={"contained"} disableElevation={true}>View</Button>
+            </Link>
+
         </ServiceCardBase>
     );
 }
 
-export default CreatePipelineServiceCard;
+export default HomeServiceCard;

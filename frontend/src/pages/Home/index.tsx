@@ -15,9 +15,9 @@ import ScrollToTop from 'react-scroll-to-top';
 import { ArrowUpward } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import { useFileArray } from '../../utils/hooks/fileArray';
-import CreatePipelineServiceCard from "../../components/ServiceCard/CreatePipelineServiceCard";
-import HomeServiceCard from "../../components/ServiceCard/HomeServiceCard";
-import PipelineCard from "../../components/PipelineCard/PipelineCard";
+import CreatePipelineServiceCard from "../../components/Cards/CreatePipelineServiceCard";
+import HomeServiceCard from "../../components/Cards/HomeServiceCard";
+import PipelineCard from "../../components/Cards/PipelineCard";
 
 
 const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (

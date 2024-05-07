@@ -1,5 +1,5 @@
 import ItemGrid from "../../components/ItemGrid/ItemGrid";
-import {Box, Button, Container, IconButton, SelectChangeEvent, TextField, Typography} from "@mui/material";
+import {Box, Button, Container, SelectChangeEvent, TextField, Typography} from "@mui/material";
 import {Tag} from "../../models/Tag";
 import {useSearchParams} from "react-router-dom";
 import ReactFlow, {
@@ -25,7 +25,7 @@ import ExitNodeEdit from "../../components/Nodes/ExitNodeEdit";
 import EditEdge from "../../components/Edges/EditEdge";
 import {toast} from "react-toastify";
 import {FilterDrawer} from "../../components/FilterDrawer/FilterDrawer";
-import CreatePipelineServiceCard from "../../components/ServiceCard/CreatePipelineServiceCard";
+import CreatePipelineServiceCard from "../../components/Cards/CreatePipelineServiceCard";
 import Grid from "@mui/material/Unstable_Grid2";
 import {checkPipelineValidity, createPipeline} from "../../utils/api";
 
@@ -59,8 +59,6 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     const [orderBy, setOrderBy] = React.useState(orderByList[0].value);
     const [tags, setTags] = React.useState<Tag[]>([]);
     const [ai, setAI] = React.useState(false);
-    const [pipeDataInFields, setPipeDataInFields] = React.useState<FieldDescription[]>([]);
-    const [pipeDataOutFields, setPipeDataOutFields] = React.useState<FieldDescription[]>([]);
     const [searchParams] = useSearchParams();
     const history = window.history;
 
@@ -173,7 +171,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         setNodeSelectedDataIn(affectedNode, selectedDataIn);
     }
 
-    const onConnect = (params: Edge<any> | Connection) => {
+    const onConnect = (params: Edge | Connection) => {
         if (params.target === params.source) return;
         const targetNode = nodesRef.current.find((node) => node.id === params.target);
         const sourceNode = nodesRef.current.find((node) => node.id === params.source);
@@ -398,12 +396,15 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         }
     }
 
+
     const addServiceNode = (serviceName: string, serviceId: string, tags: any[], serviceSlug: string, dataIn: FieldDescription[], dataOut: FieldDescription[]) => {
         let counter = 2;
         const selectedDataIn = new Array<string>(dataIn.length);
         let identifier = serviceSlug
         let label = serviceName;
-        while (nodesRef.current.find((node) => node.data.identifier === identifier)) {
+        const doesIdentifierExist = (node: Node) => node.data.identifier === identifier;
+
+        while (nodesRef.current.find(doesIdentifierExist)) {
             identifier = `${serviceSlug}-${counter}`;
             label = `${serviceName} ${counter}`;
             counter++;
@@ -498,6 +499,13 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
     }
 
+    const addRequiredNodes = (queue: string[], index: number) => {
+        const node = nodesRef.current.find((nd) => nd.id === queue[index]);
+        node?.data.needs.forEach((nodeId: string) => {
+            queue.push(nodeId);
+        });
+    }
+
     const getJSONRepresentation = (): string => {
         const entryNode = nodesRef.current.find((node) => node.type === "entryNodeEdit");
         const exitNode = nodesRef.current.find((node) => node.type === "exitNodeEdit");
@@ -505,15 +513,16 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
         const data_in_fields = entryNode?.data.dataIn;
         const data_out_fields = exitNode?.data.dataOut;
-        const queue: string[] = [lastEdge!.source]
-        let index = 0
+        const queue: string[] = [lastEdge!.source];
+        let index = 0;
+
+        // Add all nodes in the queue in reverse order of their appearance in the pipeline (allowing duplicates)
         while (index < queue.length) {
-            const node = nodesRef.current.find((nd) => nd.id === queue[index])
-            node?.data.needs.forEach((nodeId: string) => {
-                queue.push(nodeId)
-            })
+            addRequiredNodes(queue, index);
             index++;
         }
+
+        // Sort the node list and reverse their order
         const visited: string [] = [];
         const nodesInStepOrder = queue.reverse().filter((nodeId) => {
             if (visited.includes(nodeId)) return false;
@@ -632,7 +641,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                     </Box>
                 </Container>
                 <Container sx={{mt: "1em", paddingRight: 0, paddingLeft: 0, "!important": {pr: 0, pl: 0}}}>
-                    <Typography gutterBottom variant={"h4"} component={"h2"} sx={{mt: 2}}>
+                    <Typography gutterBottom variant={"h4"} component={"h2"} sx={{mt: 5, mb: 4}}>
                         Pipeline information
                     </Typography>
                     <Grid container spacing={5} justifyContent={"center"}>

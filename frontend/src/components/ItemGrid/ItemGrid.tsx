@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { getPipelines, getServices } from '../../utils/api';
-import { Link, useSearchParams } from 'react-router-dom';
+import {Link, useNavigate, useSearchParams} from 'react-router-dom';
 import "./styles.css";
 import { Tags } from '../../enums/tagEnums';
 import { Tag } from '../../models/Tag';
@@ -27,7 +27,7 @@ import { toast } from 'react-toastify';
 import LoadingGrid from '../LoadingGrid/LoadingGrid';
 import { Psychology } from '@mui/icons-material';
 import { isSmartphone } from '../../utils/functions';
-import ServiceCardBase from "../ServiceCard/ServiceCardBase";
+import ServiceCardBase from "../Cards/ServiceCardBase";
 
 // min width is 100% for mobile, 50% for tablet, 33% for desktop
 const minWidth = isSmartphone() ? '100%' : (window.innerWidth < 900) ? '50%' : '33%';
@@ -50,6 +50,11 @@ const ItemGrid: React.FC<{
     const [searchParams] = useSearchParams();
     const [pipelines, setPipelines] = React.useState([]);
     const [services, setServices] = React.useState([]);
+    const navigate = useNavigate();
+
+    const navigateToCreatePipeline = () => {
+        navigate("/create-pipeline");
+    }
 
     const setServicesPerPage = (value: number) => {
         setPageService(1);
@@ -273,10 +278,21 @@ const ItemGrid: React.FC<{
             }
             {items?.pipeline &&
                 <>
-                    <Typography gutterBottom variant={"h4"} component={"h2"}>
-                        Pipelines <Chip label={isReady ? pipelineCount : 0} variant={"outlined"} color={"secondary"}
-                                        size={"small"} style={{marginTop: "-2px"}}/>
-                    </Typography>
+                    <Box sx={{display: "flex", justifyContent: "space-between", alignItems: "center", mb: "5px"}}>
+                        <Typography gutterBottom variant={"h4"} component={"h2"}>
+                            Pipelines <Chip label={isReady ? pipelineCount : 0} variant={"outlined"} color={"secondary"}
+                                            size={"small"} style={{marginTop: "-2px"}}/>
+                        </Typography>
+                        <Button
+                            variant={"contained"}
+                            disableElevation
+                            color={"secondary"}
+                            size={"large"}
+                            onClick={navigateToCreatePipeline}
+                        >
+                            Create a new Pipeline
+                        </Button>
+                    </Box>
                     {(isReady && pipelines.length > 0) || !isReady ? pipelinePagination() : <></>}
                     {!isReady ?
                         <LoadingGrid/>

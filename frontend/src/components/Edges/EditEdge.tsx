@@ -4,18 +4,16 @@ import {
     EdgeLabelRenderer,
     EdgeProps,
     getBezierPath,
-    useReactFlow,
 } from 'reactflow';
 
 import {AddCircle, Close as CloseIcon} from "@mui/icons-material";
-import {Box, Button, Icon, IconButton, TextField, Typography} from "@mui/material";
+import {Box, IconButton, Paper, TextField, Typography} from "@mui/material";
 
 
-
-export default function CustomEdge({id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data,
-                                       style = {}, markerEnd,}: EdgeProps) {
-    const { setEdges } = useReactFlow();
-
+export default function CustomEdge({
+                                       id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data,
+                                       style = {}, markerEnd,
+                                   }: EdgeProps) {
     const [edgePath, labelX, labelY] = getBezierPath({
         sourceX,
         sourceY,
@@ -39,17 +37,19 @@ export default function CustomEdge({id, sourceX, sourceY, targetX, targetY, sour
 
     const edgeLabel = () => {
         return data.condition !== "" ? (
-            <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
-                <Typography variant={"body2"} align={"justify"}>{data.condition}</Typography>
-                <IconButton
-                    sx={{width: "fit-content", height: "fit-content", transform: "scale(0.5)"}}
-                    aria-label={"close"}
-                    onClick={() => {
-                        data.onDeleteCondition(id)
-                    }}
-                >
-                    <CloseIcon/>
-                </IconButton>
+            <Box sx={{display: "flex", flexDirection: "row", alignItems: "center"}}>
+                <Paper elevation={2} sx={{paddingBlock: 1, paddingLeft: 2, display: "flex", alignItems: "center"}}>
+                    <Typography variant={"body2"} align={"justify"}>{data.condition}</Typography>
+                    <IconButton
+                        sx={{width: "fit-content", height: "fit-content", transform: "scale(0.5)"}}
+                        aria-label={"close"}
+                        onClick={() => {
+                            data.onDeleteCondition(id)
+                        }}
+                    >
+                        <CloseIcon/>
+                    </IconButton>
+                </Paper>
             </Box>
         ) : (
             <IconButton size="small" onClick={onEdgeClick}>
@@ -60,7 +60,7 @@ export default function CustomEdge({id, sourceX, sourceY, targetX, targetY, sour
 
     return (
         <>
-            <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} />
+            <BaseEdge path={edgePath} markerEnd={markerEnd} style={style}/>
             <EdgeLabelRenderer>
                 <div
                     style={{

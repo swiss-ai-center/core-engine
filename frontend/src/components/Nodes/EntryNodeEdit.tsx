@@ -1,7 +1,8 @@
-import React, {useState} from "react";
-import { Handle, Position } from "reactflow";
+import React from "react";
+import {Position} from "reactflow";
 import {
-    Autocomplete, AutocompleteChangeDetails, AutocompleteChangeReason, Box, Button,
+    Autocomplete,
+    Box,
     Card,
     CardActions,
     CardContent, Icon, IconButton,
@@ -9,32 +10,32 @@ import {
     Typography
 } from '@mui/material';
 import {AddCircle, Close as CloseIcon} from '@mui/icons-material';
-import { useDispatch, useSelector } from 'react-redux';
-import { grey } from '@mui/material/colors';
-import {DataType, DataTypeOptions} from "../../enums/dataTypeEnum";
+import {useSelector} from 'react-redux';
+import {grey} from '@mui/material/colors';
+import {dataTypeOptions} from "../../enums/dataTypeEnum";
 import {FieldDescription} from "../../models/ExecutionUnit";
 import CustomHandle from "../Handles/CustomHandle";
 import {positionHandle} from "../../utils/functions";
 
-const  EntryNodeEdit: React.FC<{ id: string, data: any }> = (
+const EntryNodeEdit: React.FC<{ id: string, data: any }> = (
     {id, data}) => {
     const lightgrey = grey[400];
     const darkgrey = grey[800];
     const colorMode = useSelector((state: any) => state.colorMode.value);
-    const [inputNames, setInputNames]  = React.useState<string[]>([])
+    const [inputNames, setInputNames] = React.useState<string[]>([])
 
 
-    const onSelectInputName = (newName: string, index: number ) => {
+    const onSelectInputName = (newName: string, index: number) => {
         data.onSelectEntryInputName(index, newName, inputNames[index])
         setInputNames(inputNames.map((name, nameIndex) => {
-            if (nameIndex !== index ) return name;
+            if (nameIndex !== index) return name;
             return newName;
         }))
     }
 
     const onDeleteInput = (index: number) => {
         const updatedNames = [...inputNames]
-        updatedNames.splice(index,1)
+        updatedNames.splice(index, 1)
         setInputNames(updatedNames)
         data.onDeleteEntryInput(index);
     }
@@ -50,10 +51,10 @@ const  EntryNodeEdit: React.FC<{ id: string, data: any }> = (
         data.onAddEntryInput(newName);
     }
 
-    const dataInSelection = data.dataIn.map((inputField: { name: string ; type: string[];}, index: number) =>
+    const dataInSelection = data.dataIn.map((inputField: { name: string; type: string[]; }, index: number) =>
         <Box sx={{display: "flex", width: "100%"}} key={index}>
             <Box sx={{display: "flex", alignItems: "center", width: "40%", mr: 1}} key={index}>
-                <TextField id="standard-basic" label="Input Name" variant="standard" defaultValue={inputField.name}
+                <TextField label="Input Name" variant="standard" defaultValue={inputField.name}
                            onFocus={(event) => event.target.select()}
                            onChange={(event) => onSelectInputName(event.target.value, index)}/>
             </Box>
@@ -62,7 +63,7 @@ const  EntryNodeEdit: React.FC<{ id: string, data: any }> = (
                 multiple
                 value={inputField.type}
                 sx={{mb: 2, width: "60%"}}
-                options={DataTypeOptions}
+                options={dataTypeOptions}
                 isOptionEqualToValue={(option, value) => value === "" || option === value}
                 renderOption={(props, option, {selected}) => (
                     <li {...props}>
@@ -91,7 +92,6 @@ const  EntryNodeEdit: React.FC<{ id: string, data: any }> = (
     );
 
 
-
     return (
         <>
             <Card
@@ -111,9 +111,10 @@ const  EntryNodeEdit: React.FC<{ id: string, data: any }> = (
                     </Typography>
                     {dataInSelection}
                 </CardContent>
-                <CardActions sx={{ justifyContent: "flex-end", m: 1 }}>
-                    <Typography variant={"body1"} sx={{ mr: 1 }}>Add input file</Typography>
-                    <Icon sx={{ display: 'flex', alignItems: 'center' }} color={"primary"} onClick={onAddInput}><AddCircle/></Icon>
+                <CardActions sx={{justifyContent: "flex-end", m: 1}}>
+                    <Typography variant={"body1"} sx={{mr: 1}}>Add input file</Typography>
+                    <Icon sx={{display: 'flex', alignItems: 'center'}} color={"primary"}
+                          onClick={onAddInput}><AddCircle/></Icon>
                 </CardActions>
             </Card>
             {data.dataIn.map((input: FieldDescription, index: number) => {

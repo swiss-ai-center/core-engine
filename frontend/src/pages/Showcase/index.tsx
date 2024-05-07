@@ -7,17 +7,17 @@ import {
     Toolbar,
     Link as URLLink, Grid,
 } from '@mui/material';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import {Link, useNavigate, useParams} from 'react-router-dom';
 import Board from '../../components/Board/Board';
-import { getPipelineDescription, getServiceDescription, getServiceDescriptionById } from '../../utils/api';
-import { DescriptionTwoTone, ApiRounded, ArrowBack, ArrowUpward } from '@mui/icons-material';
+import {getPipelineDescription, getServiceDescription, getServiceDescriptionById} from '../../utils/api';
+import {DescriptionTwoTone, ApiRounded, ArrowBack, ArrowUpward} from '@mui/icons-material';
 import Copyright from '../../components/Copyright/Copyright';
-import { InformationDrawer } from '../../components/InformationDrawer/InformationDrawer';
-import { toast } from 'react-toastify';
+import {InformationDrawer} from '../../components/InformationDrawer/InformationDrawer';
+import {toast} from 'react-toastify';
 import ScrollToTop from 'react-scroll-to-top';
-import { useSelector } from 'react-redux';
-import { isSmartphone } from '../../utils/functions';
-import { ReactFlowProvider } from 'reactflow';
+import {useSelector} from 'react-redux';
+import {isSmartphone} from '../../utils/functions';
+import {ReactFlowProvider} from 'reactflow';
 
 
 const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
@@ -147,5 +147,3 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
 }
 
 export default Showcase;
-
-

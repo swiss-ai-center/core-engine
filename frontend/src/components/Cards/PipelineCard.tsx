@@ -5,7 +5,7 @@ import {Tags} from "../../enums/tagEnums";
 import {Link} from "react-router-dom";
 import React, {ReactNode} from "react";
 import {Tag} from "../../models/Tag";
-import CardBase from "../CardBase/CardBase";
+import CardBase from "./CardBase";
 
 const PipelineCard : React.FC<{
     index: number, item: any, tags: Tag[], handleTags: any, searchParams: URLSearchParams
@@ -17,7 +17,7 @@ const PipelineCard : React.FC<{
                 to={"/showcase/pipeline/" + item.slug}
                 state={{back: searchParams.toString()}}
             >
-                <Button size={"small"} variant={"contained"} disableElevation>
+                <Button size={"small"} variant={"contained"} disableElevation={true}>
                     View
                 </Button>
             </Link>
