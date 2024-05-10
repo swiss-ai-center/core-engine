@@ -1,5 +1,5 @@
 import React from "react";
-import {Position} from "reactflow";
+import {Position, useUpdateNodeInternals} from "reactflow";
 import {
     Autocomplete,
     Box,
@@ -23,6 +23,7 @@ const EntryNodeEdit: React.FC<{ id: string, data: any }> = (
     const darkgrey = grey[800];
     const colorMode = useSelector((state: any) => state.colorMode.value);
     const [inputNames, setInputNames] = React.useState<string[]>([])
+    const updateNodeInternals = useUpdateNodeInternals();
 
 
     const onSelectInputName = (newName: string, index: number) => {
@@ -31,6 +32,7 @@ const EntryNodeEdit: React.FC<{ id: string, data: any }> = (
             if (nameIndex !== index) return name;
             return newName;
         }))
+        updateNodeInternals(id)
     }
 
     const onDeleteInput = (index: number) => {
@@ -38,7 +40,9 @@ const EntryNodeEdit: React.FC<{ id: string, data: any }> = (
         updatedNames.splice(index, 1)
         setInputNames(updatedNames)
         data.onDeleteEntryInput(index);
+        updateNodeInternals(id)
     }
+
     const onAddInput = () => {
         const defaultName = "Input Name";
         let newName = defaultName;
@@ -49,14 +53,15 @@ const EntryNodeEdit: React.FC<{ id: string, data: any }> = (
         }
         setInputNames([...inputNames, newName]);
         data.onAddEntryInput(newName);
+        updateNodeInternals(id)
     }
 
     const dataInSelection = data.dataIn.map((inputField: { name: string; type: string[]; }, index: number) =>
-        <Box sx={{display: "flex", width: "100%"}} key={index}>
+        <Box sx={{display: "flex", width: "100%"}} key={inputField.name}>
             <Box sx={{display: "flex", alignItems: "center", width: "40%", mr: 1}} key={index}>
                 <TextField label="Input Name" variant="standard" defaultValue={inputField.name}
                            onFocus={(event) => event.target.select()}
-                           onChange={(event) => onSelectInputName(event.target.value, index)}/>
+                           onBlur={(event) => onSelectInputName(event.target.value, index)}/>
             </Box>
             <Autocomplete
                 fullWidth

@@ -62,7 +62,9 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     const [searchParams] = useSearchParams();
     const history = window.history;
 
-    // TODO - explain why this is necessary. This is passed down to the children Nodes
+    // TODO - explain why this is necessary. There really should be a better way to do this.
+    // TODO - This involves putting nodes and edges as dependencies of a UseEffect hook which is a bad idea
+    // TODO - since it will be executed for every single movement of a node in the chart.
     const nodesRef = React.useRef(nodes)
     const setNodesRef = React.useRef(setNodes)
     const edgesRef = React.useRef(edges)
@@ -70,26 +72,6 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
 
     const handleNoFilterWrapper = () => handleNoFilter(searchParams, history)
-
-    const onNodeDelete = (deletedNodes: Node[]) => {
-        deletedNodes.forEach((node) => {
-            // Find a better way, to handle entry and exit node deletion. As of the current version of ReactFlow,
-            // there doesn't seem to be a way to properly prevent certain nodes (and their associated edges) from being
-            // deleted depending on their state or other variables. Future versions of ReactFlow might include a
-            // "OnBeforeDelete" function which could be helpful.
-            if (node.type === "exitNodeEdit") {
-                setNodesRef.current(prevNodes => {
-                    const exit: Node = createExitNode();
-                    return [...prevNodes, exit];
-                });
-            } else if (node.type === "entryNodeEdit") {
-                setNodesRef.current(prevNodes => {
-                    const entry: Node = createEntryNode();
-                    return [...prevNodes, entry];
-                });
-            }
-        })
-    }
 
 
     const onEdgeDelete = (deletedEdges: Edge[]) => {
@@ -131,45 +113,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
         })
     }
-    const onSelectEntryInput = (inputIndex: number, type: string[]) => {
-        const entryNode = nodesRef.current.find((node) => node.type === "entryNodeEdit")
-        if (entryNode === undefined) return;
-        const dataIn = [...entryNode.data.dataIn];
-        dataIn[inputIndex].type = type;
-        setNodeDataIn(entryNode, dataIn);
-    }
 
-    const onSelectEntryInputName = (inputIndex: number, newName: string, previousName: string) => {
-        const entryNode = nodesRef.current.find((node) => node.type === "entryNodeEdit")
-        if (entryNode === undefined) return;
-        const dataIn = [...entryNode.data.dataIn];
-        dataIn[inputIndex].name = newName;
-        setNodeDataIn(entryNode, dataIn);
-
-
-        const initialEdge = edgesRef.current.find((edge) => edge.source === entryNode.id)
-        if (initialEdge) {
-            // Propagate the name change of the selected input data in the other nodes
-            const affectedNodes = edgesRef.current
-                .map((edge) => edge.sourceHandle === previousName ? edge.target : null)
-                .filter((target) => target !== null);
-
-
-            affectedNodes.forEach((nodeId) => {
-                const affectedNode = nodesRef.current.find((node) => node.id === nodeId)
-                if (affectedNode && affectedNode.type !== "exitNodeEdit")
-                    updateSelectedInputOption(affectedNode, `${entryNode.data.identifier}.${newName}`, `${entryNode.data.identifier}.${previousName}`);
-            })
-        }
-    }
-
-    const updateSelectedInputOption = (affectedNode: Node, newName: string, previousName: string) => {
-        const selectedDataIn = affectedNode.data.selectedDataIn.map((option: string) => {
-            if (option === previousName) return newName;
-            return option;
-        })
-        setNodeSelectedDataIn(affectedNode, selectedDataIn);
-    }
 
     const onConnect = (params: Edge | Connection) => {
         if (params.target === params.source) return;
@@ -343,43 +287,6 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         );
     }
 
-    const onAddEntryInput = (defaultName: string) => {
-        const entryNode = nodesRef.current.find((node) => node.type === "entryNodeEdit")
-        if (!entryNode) return;
-        const dataIn = [...entryNode.data.dataIn];
-        const inputField = new FieldDescription();
-        inputField.type = [];
-        inputField.name = defaultName;
-        dataIn.push(inputField);
-        setNodeDataIn(entryNode, dataIn);
-    }
-
-    const onDeleteEntryInput = (index: number) => {
-        const entryNode = nodesRef.current.find((node) => node.type === "entryNodeEdit")
-        if (!entryNode) return;
-        const dataIn = [...entryNode.data.dataIn];
-        dataIn.splice(index, 1)
-        setNodeDataIn(entryNode, dataIn)
-    }
-
-    const createEntryNode = () => {
-        const dataIn: FieldDescription[] = [];
-        const id = getId();
-        return {
-            id: `entry${id}`,
-            type: "entryNodeEdit",
-            data: {
-                onAddEntryInput: onAddEntryInput,
-                onSelectEntryInput: onSelectEntryInput,
-                onSelectEntryInputName: onSelectEntryInputName,
-                onDeleteEntryInput: onDeleteEntryInput,
-                identifier: "entry",
-                dataIn: dataIn,
-                label: "Pipeline entry",
-            },
-            position: {x: 50, y: 200},
-        }
-    }
 
     const createExitNode = () => {
         const dataOut: FieldDescription[] = [];
@@ -387,6 +294,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         return {
             id: `exit${id}`,
             type: "exitNodeEdit",
+            deletable: false,
             data: {
                 identifier: "exit",
                 dataOut: dataOut,
@@ -432,7 +340,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         setNodesRef.current((nodes) => nodes.concat(newNode));
     };
 
-    const checkInputsAreConnected = () : boolean => {
+    const checkInputsAreConnected = (): boolean => {
         const exitNode = nodesRef.current.find((node) => node.type === "exitNodeEdit");
         const lastEdge = edgesRef.current.find((edge) => edge.target === exitNode?.id);
         if (!lastEdge) return false;
@@ -453,7 +361,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         const json = getJSONRepresentation();
         createPipeline(json)
             .then((answer) => {
-                if(answer?.errorBody) {
+                if (answer?.errorBody) {
                     toast(`Error: ${answer?.errorBody}`)
                 } else {
                     toast("Pipeline created")
@@ -465,7 +373,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     }
 
 
-    const checkPipeline = async () : Promise<boolean> => {
+    const checkPipeline = async (): Promise<boolean> => {
 
         if (pipeName === '' || pipeSlug === '' || pipeSummary === '' || pipeDescription === '') {
             toast("Please fill in the Pipeline information")
@@ -537,7 +445,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             let condition: string = "";
             incomingEdges.forEach((edge, index) => {
                 if (edge.data.condition !== "")
-                    condition = index === 0 ? condition.concat(`${edge.data.condition}`) : condition.concat(` and  ${edge.data.condition}`)
+                    condition = index === 0 ? condition.concat(`(${edge.data.condition})`) : condition.concat(` and  (${edge.data.condition})`)
             })
             const node = nodesRef.current.find((nd) => nd.id === nodeId)
             node?.data.tags.forEach((tag: any) => {
@@ -576,18 +484,95 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
 
     React.useEffect(() => {
+        const onAddEntryInput = (defaultName: string) => {
+            const entryNode = nodesRef.current.find((node) => node.type === "entryNodeEdit")
+            if (!entryNode) return;
+            const dataIn = [...entryNode.data.dataIn];
+            const inputField = new FieldDescription();
+            inputField.type = [];
+            inputField.name = defaultName;
+            dataIn.push(inputField);
+            setNodeDataIn(entryNode, dataIn);
+        }
+
+        const onDeleteEntryInput = (index: number) => {
+            const entryNode = nodesRef.current.find((node) => node.type === "entryNodeEdit")
+            if (!entryNode) return;
+            const dataIn = [...entryNode.data.dataIn];
+            dataIn.splice(index, 1)
+            setNodeDataIn(entryNode, dataIn)
+        }
+
+        const onSelectEntryInput = (inputIndex: number, type: string[]) => {
+            const entryNode = nodesRef.current.find((node) => node.type === "entryNodeEdit")
+            if (entryNode === undefined) return;
+            const dataIn = [...entryNode.data.dataIn];
+            dataIn[inputIndex].type = type;
+            setNodeDataIn(entryNode, dataIn);
+        }
+        const updateSelectedInputOption = (affectedNode: Node, newName: string, previousName: string) => {
+            const selectedDataIn = affectedNode.data.selectedDataIn.map((option: string) => {
+                if (option === previousName) return newName;
+                return option;
+            })
+            setNodeSelectedDataIn(affectedNode, selectedDataIn);
+        }
+        const onSelectEntryInputName = (inputIndex: number, newName: string, previousName: string) => {
+            const entryNode = nodesRef.current.find((node) => node.type === "entryNodeEdit")
+            if (entryNode === undefined) return;
+            const dataIn = [...entryNode.data.dataIn];
+            dataIn[inputIndex].name = newName;
+            setNodeDataIn(entryNode, dataIn);
+
+
+            const initialEdge = edgesRef.current.find((edge) => edge.source === entryNode.id)
+            if (initialEdge) {
+                // Propagate the name change of the selected input data in the other nodes
+                const affectedNodes = edgesRef.current
+                    .map((edge) => edge.sourceHandle === previousName ? edge.target : null)
+                    .filter((target) => target !== null);
+
+
+                affectedNodes.forEach((nodeId) => {
+                    const affectedNode = nodesRef.current.find((node) => node.id === nodeId)
+                    if (affectedNode && affectedNode.type !== "exitNodeEdit")
+                        updateSelectedInputOption(affectedNode, `${entryNode.data.identifier}.${newName}`, `${entryNode.data.identifier}.${previousName}`);
+                })
+            }
+        }
+
+        const createEntryNode = () => {
+            const dataIn: FieldDescription[] = [];
+            const id = getId();
+            return {
+                id: `entry${id}`,
+                type: "entryNodeEdit",
+                deletable: false,
+                data: {
+                    onAddEntryInput: onAddEntryInput,
+                    onSelectEntryInput: onSelectEntryInput,
+                    onSelectEntryInputName: onSelectEntryInputName,
+                    onDeleteEntryInput: onDeleteEntryInput,
+                    identifier: "entry",
+                    dataIn: dataIn,
+                    label: "Pipeline entry",
+                },
+                position: {x: 50, y: 200},
+            }
+        }
+
         const initialNodes: Node<any>[] = []
         initialNodes.push(createEntryNode())
         initialNodes.push(createExitNode())
         setNodes(() => initialNodes);
-    }, []);
+    }, [setNodes]);
 
     React.useEffect(() => {
         nodesRef.current = nodes;
         setNodesRef.current = setNodes
         edgesRef.current = edges
         setEdgesRef.current = setEdges
-    }, [nodes, setNodes, edges, setEdges])
+    }, [edges, nodes, setNodes, setEdges])
 
 
     return (
@@ -611,7 +596,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                 handleAIToggle={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleAIToggle(event, setAI, searchParams, history, handleNoFilterWrapper)}
             />
-            <Box component={"main"} sx={{flexGrow: 1, py: 10, px: 10}}>
+            <Box component={"main"} sx={{flexGrow: 1, py: 10}}>
                 <Container maxWidth={false}>
                     <Box sx={{
                         height: 500,
@@ -627,7 +612,6 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                                 edges={edges}
                                 onNodesChange={onNodesChange}
                                 onEdgesChange={onEdgesChange}
-                                onNodesDelete={onNodeDelete}
                                 onEdgesDelete={onEdgeDelete}
                                 isValidConnection={isValidConnection}
                                 nodeTypes={nodeTypes}
@@ -641,11 +625,11 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                     </Box>
                 </Container>
                 <Container sx={{mt: "1em", paddingRight: 0, paddingLeft: 0, "!important": {pr: 0, pl: 0}}}>
-                    <Typography gutterBottom variant={"h4"} component={"h2"} sx={{mt: 5, mb: 4}}>
+                    <Typography variant={"h4"} component={"h2"} sx={{mt: 5, mb: 4}}>
                         Pipeline information
                     </Typography>
-                    <Grid container spacing={5} justifyContent={"center"}>
-                        <Grid xs={12} md={6} justifyContent={"center"}>
+                    <Grid container spacing={2} justifyContent={"flex-start"}>
+                        <Grid xs={12} md={6} justifyContent={"center"} sx={{mb: 2}}>
                             <TextField sx={{height: "100%", width: "100%"}} variant={"outlined"}
                                        placeholder={"Pipeline Name"}
                                        onChange={(event) => setPipeName(event.target.value)}>

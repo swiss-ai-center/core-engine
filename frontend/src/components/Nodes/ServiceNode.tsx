@@ -1,9 +1,8 @@
-import React, {useState} from "react";
-import { Connection, Handle, Position} from "reactflow";
-import {Autocomplete, Box, Card, CardActions, CardContent, IconButton, TextField, Typography} from '@mui/material';
+import React from "react";
+import {Position} from "reactflow";
+import {Box, Card, CardActions, CardContent, Typography} from '@mui/material';
 import {useSelector} from 'react-redux';
 import {grey} from '@mui/material/colors';
-import {Close as CloseIcon} from "@mui/icons-material";
 import CustomHandle from "../Handles/CustomHandle";
 import {positionHandle} from "../../utils/functions";
 import {FieldDescription} from "../../models/ExecutionUnit";
@@ -16,15 +15,18 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
     const colorMode = useSelector((state: any) => state.colorMode.value);
 
     const listDataIn = () => {
-        return data.dataIn.map((inputField: { name: string ; type: string[]; }, index: number) =>
-            <Box sx={{display: "flex", width: "100%"}} key={index}>
-                <Box sx={{display: "flex", flexDirection: "column", justifyContent: "center", width: "40%"}} key={index}>
-                    <Typography variant={"body2"}>{inputField.name} : </Typography>
-                    <Box sx={{display:"flex"}}>
-                        {inputField.type.map((type: string) => <Typography variant={"body2"}>{type} &nbsp;</Typography>)}
+        return data.dataIn.map((inputField: { name: string; type: string[]; }, index: number) =>
+            <div key={inputField.name}>
+                <Box sx={{display: "flex", width: "100%"}}>
+                    <Box sx={{display: "flex", flexDirection: "column", justifyContent: "center", width: "40%"}} key={inputField.name}>
+                        <Typography variant={"body2"}>{inputField.name} : </Typography>
+                        <Box sx={{display: "flex"}}>
+                            {inputField.type.map((type: string) => <Typography
+                                variant={"body2"} key={`${inputField.name}${type}`}>{type} &nbsp;</Typography>)}
+                        </Box>
                     </Box>
                 </Box>
-            </Box>
+            </div>
         );
     }
 
@@ -34,7 +36,7 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
                 return (
                     <CustomHandle
                         key={index}
-                        id={input.name === "Input Name" ?  `${input.name}${index}` : input.name}
+                        id={input.name === "Input Name" ? `${input.name}${index}` : input.name}
                         label={input.name}
                         type={"target"}
                         style={{top: positionHandle(data.dataIn.length, index + 1)}}
@@ -54,7 +56,7 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
             >
                 <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "15em"}}>
                     <Typography variant={"subtitle1"} color={"primary"}
-                                sx={{justifyContent: "center", display: "flex", mb: 2 }}
+                                sx={{justifyContent: "center", display: "flex", mb: 2}}
                     >
                         {data.label}
                     </Typography>
