@@ -445,7 +445,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             let condition: string = "";
             incomingEdges.forEach((edge, index) => {
                 if (edge.data.condition !== "")
-                    condition = index === 0 ? condition.concat(`(${edge.data.condition})`) : condition.concat(` and  (${edge.data.condition})`)
+                    condition = condition === "" ? condition.concat(`(${edge.data.condition})`) : condition.concat(` and  (${edge.data.condition})`)
             })
             const node = nodesRef.current.find((nd) => nd.id === nodeId)
             node?.data.tags.forEach((tag: any) => {
@@ -524,7 +524,6 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             dataIn[inputIndex].name = newName;
             setNodeDataIn(entryNode, dataIn);
 
-
             const initialEdge = edgesRef.current.find((edge) => edge.source === entryNode.id)
             if (initialEdge) {
                 // Propagate the name change of the selected input data in the other nodes
@@ -539,6 +538,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                         updateSelectedInputOption(affectedNode, `${entryNode.data.identifier}.${newName}`, `${entryNode.data.identifier}.${previousName}`);
                 })
             }
+            return;
         }
 
         const createEntryNode = () => {
@@ -567,7 +567,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         setNodes(() => initialNodes);
     }, [setNodes]);
 
-    React.useEffect(() => {
+    React.useMemo(() => {
         nodesRef.current = nodes;
         setNodesRef.current = setNodes
         edgesRef.current = edges

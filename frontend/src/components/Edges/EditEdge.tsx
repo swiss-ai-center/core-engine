@@ -24,13 +24,17 @@ export default function CustomEdge({
     });
 
     const [isEditing, setIsEditing] = React.useState(false);
+
     const onEdgeClick = () => {
         setIsEditing(true);
     };
 
 
     const handleConditionInput = (value: string) => {
-        if (value.length === 0) return;
+        if (value.length === 0) {
+            setIsEditing(false);
+            return;
+        }
         setIsEditing(false);
         data.onAddCondition(id, value);
     };

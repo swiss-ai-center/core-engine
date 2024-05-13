@@ -104,11 +104,10 @@ export const checkPipelineValidity = async (jsonDescription: string)=> {
      * jsonDescription: string - the pipeline's description, in json format.
      */
 
-    const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'accept': 'application/json',
-        'Content-Type': 'application/json'
-    }
+    const headers : any = HEADERS
+    headers['accept'] = 'application/json';
+    headers['Content-Type'] = 'application/json'
+
     try {
         const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipeline/check/`, {
             headers: headers,
@@ -133,11 +132,10 @@ export const createPipeline = async (jsonDescription: string)=> {
      * Function used to check if a pipeline is valid (using a Json representation of said pipeline)
      * jsonDescription: string - the pipeline's description, in json format.
      */
-    const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'accept': 'application/json',
-        'Content-Type': 'application/json'
-    }
+    const headers : any = HEADERS
+    headers['accept'] = 'application/json';
+    headers['Content-Type'] = 'application/json'
+
     try {
         const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines`, {
             headers: headers,

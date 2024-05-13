@@ -2,9 +2,6 @@ import React, {ReactNode} from 'react';
 import {
     Box,
     Button,
-    Card,
-    CardActions,
-    CardContent,
     Chip,
     Divider,
     FormControl,
@@ -12,22 +9,18 @@ import {
     MenuItem,
     Pagination,
     Select,
-    Tooltip,
     Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { getPipelines, getServices } from '../../utils/api';
-import {Link, useNavigate, useSearchParams} from 'react-router-dom';
+import {getPipelines, getServices} from '../../utils/api';
+import {useNavigate, useSearchParams} from 'react-router-dom';
 import "./styles.css";
-import { Tags } from '../../enums/tagEnums';
-import { Tag } from '../../models/Tag';
-import { useDispatch, useSelector } from 'react-redux';
-import { setServicePerPage, setPipelinePerPage } from '../../utils/reducers/perPageSlice';
-import { toast } from 'react-toastify';
+import {Tag} from '../../models/Tag';
+import {useDispatch, useSelector} from 'react-redux';
+import {setServicePerPage, setPipelinePerPage} from '../../utils/reducers/perPageSlice';
+import {toast} from 'react-toastify';
 import LoadingGrid from '../LoadingGrid/LoadingGrid';
-import { Psychology } from '@mui/icons-material';
-import { isSmartphone } from '../../utils/functions';
-import ServiceCardBase from "../Cards/ServiceCardBase";
+import {isSmartphone} from '../../utils/functions';
 
 // min width is 100% for mobile, 50% for tablet, 33% for desktop
 const minWidth = isSmartphone() ? '100%' : (window.innerWidth < 900) ? '50%' : '33%';
@@ -159,9 +152,10 @@ const ItemGrid: React.FC<{
     const serviceCard = (item: any, index: number): ReactNode => {
         const ServiceCard = items?.service
         return (
-            <ServiceCard index={index} item={item} tags={tags} handleTags={handleTags} ai={ai} handleAIToggle={handleAIToggle}
+            <ServiceCard index={index} item={item} tags={tags} handleTags={handleTags} ai={ai}
+                         handleAIToggle={handleAIToggle}
                          functions={itemFunctions}></ServiceCard>
-            )
+        )
     }
 
 
@@ -169,7 +163,7 @@ const ItemGrid: React.FC<{
         const PipelineCard = items?.pipeline;
         return (
             <PipelineCard index={index} item={item} tags={tags} handleTags={handleTags} searchParams={searchParams}
-                         functions={itemFunctions}></PipelineCard>
+                          functions={itemFunctions}></PipelineCard>
         )
     }
 
@@ -234,7 +228,7 @@ const ItemGrid: React.FC<{
             listElements(filter, orderBy, tags.map(t => t.acronym));
         }, 300);
         return () => clearTimeout(timeout);
-    }, [filter, pageService, pagePipeline, orderBy, tags, ai, servicesPerPage, pipelinesPerPage]);
+    }, [filter, pageService, pagePipeline, orderBy, tags, ai, servicesPerPage, pipelinesPerPage, items]);
 
     return (
         <>
@@ -272,7 +266,7 @@ const ItemGrid: React.FC<{
             }
             {items?.service && items?.pipeline ?
                 <Divider sx={{mt: 2, mb: 2}}>
-                ○
+                    ○
                 </Divider>
                 : false
             }

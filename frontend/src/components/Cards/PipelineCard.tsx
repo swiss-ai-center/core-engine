@@ -1,13 +1,10 @@
-import Grid from "@mui/material/Unstable_Grid2";
-import {Button, Card, CardActions, CardContent, Chip, Tooltip, Typography} from "@mui/material";
-import {Psychology} from "@mui/icons-material";
-import {Tags} from "../../enums/tagEnums";
+import {Button, Typography} from "@mui/material";
 import {Link} from "react-router-dom";
-import React, {ReactNode} from "react";
+import React from "react";
 import {Tag} from "../../models/Tag";
 import CardBase from "./CardBase";
 
-const PipelineCard : React.FC<{
+const PipelineCard: React.FC<{
     index: number, item: any, tags: Tag[], handleTags: any, searchParams: URLSearchParams
 }> = ({index, item, tags, handleTags, searchParams}) => {
 
@@ -34,8 +31,8 @@ const PipelineCard : React.FC<{
         </Typography>
 
     return (
-            <CardBase index={index} item={item} tags={tags} handleTags={handleTags} cardActions={cardActions()}
-                      cardName={cardName()} summary={summary()}></CardBase>
+        <CardBase index={index} item={item} tags={tags} handleTags={handleTags} cardActions={cardActions()}
+                  cardName={cardName()} summary={summary()}></CardBase>
     );
 }
 

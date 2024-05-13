@@ -1,13 +1,11 @@
 import Grid from "@mui/material/Unstable_Grid2";
-import {Button, Card, CardActions, CardContent, Chip, Tooltip, Typography} from "@mui/material";
+import {Tooltip, Typography} from "@mui/material";
 import {Psychology} from "@mui/icons-material";
-import {Tags} from "../../enums/tagEnums";
-import {Link} from "react-router-dom";
 import React, {ReactNode} from "react";
 import {Tag} from "../../models/Tag";
 import CardBase from "./CardBase";
 
-const ServiceCardBase : React.FC<{
+const ServiceCardBase: React.FC<{
     index: number, item: any, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any, children: ReactNode
 }> = ({index, item, tags, handleTags, ai, handleAIToggle, children}) => {
 

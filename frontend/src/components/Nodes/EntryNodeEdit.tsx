@@ -16,6 +16,7 @@ import {dataTypeOptions} from "../../enums/dataTypeEnum";
 import {FieldDescription} from "../../models/ExecutionUnit";
 import CustomHandle from "../Handles/CustomHandle";
 import {positionHandle} from "../../utils/functions";
+import {toast} from "react-toastify";
 
 const EntryNodeEdit: React.FC<{ id: string, data: any }> = (
     {id, data}) => {
@@ -27,6 +28,12 @@ const EntryNodeEdit: React.FC<{ id: string, data: any }> = (
 
 
     const onSelectInputName = (newName: string, index: number) => {
+        if (inputNames[index] === newName) return;
+        if (inputNames.includes(newName)) {
+            toast("Input name must be unique", {type: "info"});
+            return;
+        }
+
         data.onSelectEntryInputName(index, newName, inputNames[index])
         setInputNames(inputNames.map((name, nameIndex) => {
             if (nameIndex !== index) return name;

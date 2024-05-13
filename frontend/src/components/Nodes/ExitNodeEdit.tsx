@@ -1,6 +1,6 @@
-import React, {useState} from "react";
-import { Connection, Handle, Position} from "reactflow";
-import {Autocomplete, Box, Card, CardActions, CardContent, TextField, Typography} from '@mui/material';
+import React from "react";
+import { Handle, Position} from "reactflow";
+import { Box, Card, CardActions, CardContent, Typography} from '@mui/material';
 import {useSelector} from 'react-redux';
 import {grey} from '@mui/material/colors';
 
@@ -13,11 +13,11 @@ const ExitNodeEdit: React.FC<{ id: string, data: any }> = (
 
     const listDataOut = () => {
         return data.dataOut.map((inputField: { name: string ; type: string[]; }, index: number) =>
-            <Box sx={{display: "flex", width: "100%", alignItems: "center"}} key={index}>
+            <Box sx={{display: "flex", width: "100%", alignItems: "center"}} key={inputField.name}>
                 <Box sx={{display: "flex", flexDirection: "column", justifyContent: "center", width: "100%"}} key={index}>
                     <Typography variant={"body1"}>{inputField.name} </Typography>
                     <Box sx={{display:"flex"}}>
-                        {inputField.type.map((type: string) => <Typography variant={"body2"}>{type} &nbsp;</Typography>)}
+                        {inputField.type.map((type: string) => <Typography variant={"body2"} key={`${inputField.name}${type}`}>{type} &nbsp;</Typography>)}
                     </Box>
                 </Box>
             </Box>
