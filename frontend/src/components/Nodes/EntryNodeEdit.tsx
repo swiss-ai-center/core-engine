@@ -91,7 +91,7 @@ const EntryNodeEdit: React.FC<{ id: string, data: any }> = (
             />
             <Box sx={{display: "flex", alignItems: "center", justifyContent: "center"}}>
                 <IconButton
-                    sx={{width: "fit-content", height: "fit-content"}}
+                    sx={{width: "fit-content", height: "fit-content", transform: "scale(0.7)"}}
                     aria-label={"close"}
                     onClick={() => {
                         onDeleteInput(index)
@@ -118,7 +118,7 @@ const EntryNodeEdit: React.FC<{ id: string, data: any }> = (
             >
                 <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "15em"}}>
                     <Typography variant={"subtitle1"} color={"primary"}
-                                sx={{justifyContent: "center", display: "flex"}}>
+                                sx={{justifyContent: "center", display: "flex", mb: 2}}>
                         {data.label}
                     </Typography>
                     {dataInSelection}

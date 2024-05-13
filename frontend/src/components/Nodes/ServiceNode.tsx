@@ -1,11 +1,13 @@
-import React from "react";
-import {Position} from "reactflow";
-import {Box, Card, CardActions, CardContent, Typography} from '@mui/material';
+import React, {useCallback} from "react";
+import {Position, useReactFlow} from "reactflow";
+import {Box, Card, CardActions, CardContent, IconButton, Typography} from '@mui/material';
 import {useSelector} from 'react-redux';
 import {grey} from '@mui/material/colors';
 import CustomHandle from "../Handles/CustomHandle";
 import {positionHandle} from "../../utils/functions";
 import {FieldDescription} from "../../models/ExecutionUnit";
+import {Close as CloseIcon} from "@mui/icons-material";
+
 
 
 const ServiceNode: React.FC<{ id: string, data: any }> = (
@@ -13,6 +15,12 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
     const lightgrey = grey[400];
     const darkgrey = grey[800];
     const colorMode = useSelector((state: any) => state.colorMode.value);
+    const { deleteElements } = useReactFlow();
+
+    const onDelete = useCallback(() => {
+        deleteElements({ nodes: [{ id }] });
+    }, [id, deleteElements]);
+
 
     const listDataIn = () => {
         return data.dataIn.map((inputField: { name: string; type: string[]; }, index: number) =>
@@ -54,15 +62,22 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
                     boxShadow: "none",
                 }}
             >
-                <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "15em"}}>
-                    <Typography variant={"subtitle1"} color={"primary"}
-                                sx={{justifyContent: "center", display: "flex", mb: 2}}
-                    >
-                        {data.label}
-                    </Typography>
+                <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "17em"}}>
+                    <Box sx={{display: "flex", flexDirection: "row", alignItems: "center"}}>
+                        <Typography variant={"subtitle1"} color={"primary"} sx={{flexGrow: 1, textAlign: "center",width: "80%", ml: "10%"}}>
+                            {data.label}
+                        </Typography>
+                        <IconButton
+                            sx={{width: "10%", height: "fit-content", transform: "scale(0.7)"}}
+                            aria-label={"close"}
+                            onClick={onDelete}
+                        >
+                            <CloseIcon/>
+                        </IconButton>
+                    </Box>
                     {listDataIn()}
                 </CardContent>
-                <CardActions>{}</CardActions>
+                <CardActions></CardActions>
             </Card>
             {data.dataOut.map((output: FieldDescription, index: number) => {
                 return (

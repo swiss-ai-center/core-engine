@@ -7,11 +7,12 @@ import ReactFlow, {
     Background,
     Connection,
     Controls,
-    Edge, getOutgoers,
+    Edge,
+    getOutgoers,
     Node,
     ReactFlowProvider,
     useEdgesState,
-    useNodesState
+    useNodesState,
 } from "reactflow";
 import {ArrowUpward} from "@mui/icons-material";
 import ScrollToTop from "react-scroll-to-top";
@@ -304,7 +305,6 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         }
     }
 
-
     const addServiceNode = (serviceName: string, serviceId: string, tags: any[], serviceSlug: string, dataIn: FieldDescription[], dataOut: FieldDescription[]) => {
         let counter = 2;
         const selectedDataIn = new Array<string>(dataIn.length);
@@ -318,9 +318,11 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             counter++;
         }
 
+
         const newNode = {
             id: identifier,
             type: "serviceNode",
+
             position: {
                 x: 150,
                 y: 150,
@@ -404,7 +406,6 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             console.log("Error checking validity: ", error);
             return false;
         }
-
     }
 
     const addRequiredNodes = (queue: string[], index: number) => {
