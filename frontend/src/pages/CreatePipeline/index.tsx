@@ -30,9 +30,6 @@ import CreatePipelineServiceCard from "../../components/Cards/CreatePipelineServ
 import Grid from "@mui/material/Unstable_Grid2";
 import {checkPipelineValidity, createPipeline} from "../../utils/api";
 
-let id = 0;
-const getId = () => `${id++}`;
-
 const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     {mobileOpen, handleOpen}) => {
 
@@ -288,12 +285,10 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         );
     }
 
-
-    const createExitNode = () => {
+    const createExitNode= React.useCallback(() => {
         const dataOut: FieldDescription[] = [];
-        const id = getId();
         return {
-            id: `exit${id}`,
+            id: "exit",
             type: "exitNodeEdit",
             deletable: false,
             data: {
@@ -303,9 +298,9 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             },
             position: {x: 550, y: 200},
         }
-    }
+    }, []);
 
-    const addServiceNode = (serviceName: string, serviceId: string, tags: any[], serviceSlug: string, dataIn: FieldDescription[], dataOut: FieldDescription[]) => {
+    const addServiceNode = (serviceName: string, tags: any[], serviceSlug: string, dataIn: FieldDescription[], dataOut: FieldDescription[]) => {
         let counter = 2;
         const selectedDataIn = new Array<string>(dataIn.length);
         let identifier = serviceSlug
@@ -317,7 +312,6 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             label = `${serviceName} ${counter}`;
             counter++;
         }
-
 
         const newNode = {
             id: identifier,
@@ -333,7 +327,6 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                 dataIn: dataIn,
                 dataOut: dataOut,
                 service_slug: serviceSlug,
-                serviceId: serviceId,
                 tags: tags,
                 needs: [],
                 label: label
@@ -544,9 +537,8 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
         const createEntryNode = () => {
             const dataIn: FieldDescription[] = [];
-            const id = getId();
             return {
-                id: `entry${id}`,
+                id: "entry",
                 type: "entryNodeEdit",
                 deletable: false,
                 data: {
@@ -566,7 +558,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         initialNodes.push(createEntryNode())
         initialNodes.push(createExitNode())
         setNodes(() => initialNodes);
-    }, [setNodes]);
+    }, [setNodes, createExitNode]);
 
     React.useMemo(() => {
         nodesRef.current = nodes;
