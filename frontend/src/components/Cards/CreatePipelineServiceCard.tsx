@@ -13,7 +13,7 @@ const CreatePipelineServiceCard: React.FC<{
                          handleAIToggle={handleAIToggle}>
             <Button size={"small"} variant={"contained"} disableElevation={true}
                     onClick={() => {
-                        functions.addService(item.name, item.tags, item.slug, item.data_in_fields, item.data_out_fields)
+                        functions.addService(item.name, item.id, item.tags, item.slug, item.data_in_fields, item.data_out_fields)
                     }}>Add</Button>
         </ServiceCardBase>
     );

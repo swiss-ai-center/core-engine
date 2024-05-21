@@ -9,6 +9,7 @@ import {FieldDescription} from "../../models/ExecutionUnit";
 import {Close as CloseIcon} from "@mui/icons-material";
 
 
+
 const ServiceNode: React.FC<{ id: string, data: any }> = (
     {id, data}) => {
     const lightgrey = grey[400];
@@ -23,9 +24,9 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
 
     const listDataIn = () => {
         return data.dataIn.map((inputField: { name: string; type: string[]; }, index: number) =>
-            <div key={inputField.name} style={{marginBottom: 4}}>
+            <div key={inputField.name}>
                 <Box sx={{display: "flex", width: "100%"}}>
-                    <Box sx={{display: "flex", flexDirection: "column", justifyContent: "center"}} key={inputField.name}>
+                    <Box sx={{display: "flex", flexDirection: "column", justifyContent: "center", width: "40%"}} key={inputField.name}>
                         <Typography variant={"body2"}>{inputField.name} : </Typography>
                         <Box sx={{display: "flex"}}>
                             {inputField.type.map((type: string) => <Typography
@@ -60,11 +61,10 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
                     borderRadius: 2,
                     boxShadow: "none",
                 }}
-
             >
-                <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "17em", mt: -2}}>
+                <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "17em"}}>
                     <Box sx={{display: "flex", flexDirection: "row", alignItems: "center"}}>
-                        <Typography variant={"subtitle1"} color={"primary"} sx={{flexGrow: 1, textAlign: "center",width: "80%"}}>
+                        <Typography variant={"subtitle1"} color={"primary"} sx={{flexGrow: 1, textAlign: "center",width: "80%", ml: "10%"}}>
                             {data.label}
                         </Typography>
                         <IconButton
