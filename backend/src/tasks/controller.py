@@ -104,12 +104,17 @@ async def update(
 ):
     try:
         # Update the task
-        task = await tasks_service.update(task_id, task_update)
+        task: Task = await tasks_service.update(task_id, task_update)
 
         # Check if the task is linked to a pipeline_execution
         if task.pipeline_execution_id:
-            # If the task is linked to a pipeline_execution, we need launch the next step in the pipeline
-            await tasks_service.launch_next_step_in_pipeline(task)
+            if task.status == TaskStatus.ERROR:
+                # If the task is in error, we need to stop the pipeline_execution
+                if task.pipeline_execution_id is not None:
+                    await tasks_service.stop_pipeline_execution(task)
+            else:
+                # If the task is linked to a pipeline_execution, we need launch the next step in the pipeline
+                await tasks_service.launch_next_step_in_pipeline(task)
 
     except NotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
