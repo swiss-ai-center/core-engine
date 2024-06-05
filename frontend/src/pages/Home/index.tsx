@@ -16,9 +16,9 @@ import { ArrowUpward } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFileArray } from '../../utils/hooks/fileArray';
 import { setMenuIcon } from '../../utils/reducers/menuIconSlice';
-import CreatePipelineServiceCard from "../../components/Cards/CreatePipelineServiceCard";
 import HomeServiceCard from "../../components/Cards/HomeServiceCard";
 import PipelineCard from "../../components/Cards/PipelineCard";
+import { PerPage } from '../../utils/reducers/perPageSlice';
 
 
 const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
@@ -107,8 +107,6 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         handleNoFilter();
     }
 
-    // rewrite last useEffect in a clean way
-    // the same logic but with a cleaner code
     React.useEffect(() => {
         setFileArray([]);
         setSearch(searchParams.get('filter') || '');
@@ -147,7 +145,9 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                     <ItemGrid filter={search} orderBy={orderBy} tags={tags} handleTags={handleTags}
                               ai={ai} handleAIToggle={handleAIToggle}
                               items={{service: HomeServiceCard, pipeline: PipelineCard}}
-                              itemFunctions={null}/>
+                              itemFunctions={null}
+                              paginationPositions={["top", "bottom"]} paginationOptions={Object.values(PerPage)}
+                              />
                 </Container>
                 <Container maxWidth={false}>
                     <Copyright/>

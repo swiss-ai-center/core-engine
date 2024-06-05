@@ -1,4 +1,4 @@
-import React, {ReactNode} from 'react';
+import React, { ReactNode } from 'react';
 import {
     Box,
     Button,
@@ -12,15 +12,15 @@ import {
     Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import {getPipelines, getServices} from '../../utils/api';
-import {useNavigate, useSearchParams} from 'react-router-dom';
+import { getPipelines, getServices } from '../../utils/api';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import "./styles.css";
-import {Tag} from '../../models/Tag';
-import {useDispatch, useSelector} from 'react-redux';
-import {setServicePerPage, setPipelinePerPage} from '../../utils/reducers/perPageSlice';
-import {toast} from 'react-toastify';
+import { Tag } from '../../models/Tag';
+import { useDispatch, useSelector } from 'react-redux';
+import { setServicePerPage, setPipelinePerPage } from '../../utils/reducers/perPageSlice';
+import { toast } from 'react-toastify';
 import LoadingGrid from '../LoadingGrid/LoadingGrid';
-import {isSmartphone} from '../../utils/functions';
+import { isSmartphone } from '../../utils/functions';
 
 // min width is 100% for mobile, 50% for tablet, 33% for desktop
 const minWidth = isSmartphone() ? '100%' : (window.innerWidth < 900) ? '50%' : '33%';
@@ -30,8 +30,19 @@ const align = isSmartphone() ? 'center' : 'left';
 
 const ItemGrid: React.FC<{
     filter: string, orderBy: string, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any,
-    items: any, itemFunctions: any
-}> = ({filter, orderBy, tags, handleTags, ai, handleAIToggle, items, itemFunctions}) => {
+    items: any, itemFunctions: any, paginationOptions: number[], paginationPositions: string[]
+}> = ({
+          filter,
+          orderBy,
+          tags,
+          handleTags,
+          ai,
+          handleAIToggle,
+          items,
+          itemFunctions,
+          paginationOptions,
+          paginationPositions
+      }) => {
     const dispatch = useDispatch();
     const servicesPerPage = useSelector((state: any) => state.perPage.value.services);
     const pipelinesPerPage = useSelector((state: any) => state.perPage.value.pipelines);
@@ -92,10 +103,11 @@ const ItemGrid: React.FC<{
                                 }}
                                 disabled={!isReady || services.length <= 0}
                             >
-                                <MenuItem value={6}>6</MenuItem>
-                                <MenuItem value={15}>15</MenuItem>
-                                <MenuItem value={30}>30</MenuItem>
-                                <MenuItem value={60}>60</MenuItem>
+                                {paginationOptions.map((option: number) => {
+                                    return (
+                                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                                    );
+                                })}
                             </Select>
                         </FormControl>
                     </Box>
@@ -137,10 +149,11 @@ const ItemGrid: React.FC<{
                                 }}
                                 disabled={!isReady || pipelines.length <= 0}
                             >
-                                <MenuItem value={6}>6</MenuItem>
-                                <MenuItem value={15}>15</MenuItem>
-                                <MenuItem value={30}>30</MenuItem>
-                                <MenuItem value={60}>60</MenuItem>
+                                {paginationOptions.map((option: number) => {
+                                    return (
+                                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                                    );
+                                })}
                             </Select>
                         </FormControl>
                     </Box>
@@ -238,7 +251,7 @@ const ItemGrid: React.FC<{
                         Services <Chip label={isReady ? serviceCount : 0} variant={"outlined"} color={"secondary"}
                                        size={"small"} style={{marginTop: "-2px"}}/>
                     </Typography>
-                    {(isReady && services.length > 0) || !isReady ? servicePagination() : <></>}
+                    {((isReady && services.length > 0) || !isReady) && paginationPositions.includes("top") ? servicePagination() : <></>}
                     {!isReady ?
                         <LoadingGrid/>
                         :
@@ -261,7 +274,7 @@ const ItemGrid: React.FC<{
                                 }))}
                         </Grid>
                     }
-                    {(isReady && services.length > 0) || !isReady ? servicePagination() : <></>}
+                    {((isReady && services.length > 0) || !isReady) && paginationPositions.includes("bottom") ? servicePagination() : <></>}
                 </>
             }
             {items?.service && items?.pipeline ?
@@ -281,13 +294,13 @@ const ItemGrid: React.FC<{
                             variant={"contained"}
                             disableElevation
                             color={"secondary"}
-                            size={"large"}
                             onClick={navigateToCreatePipeline}
+                            hidden={isSmartphone()}
                         >
                             Create a new Pipeline
                         </Button>
                     </Box>
-                    {(isReady && pipelines.length > 0) || !isReady ? pipelinePagination() : <></>}
+                    {((isReady && pipelines.length > 0) || !isReady) && paginationPositions.includes("top") ? pipelinePagination() : <></>}
                     {!isReady ?
                         <LoadingGrid/>
                         :
@@ -310,7 +323,7 @@ const ItemGrid: React.FC<{
                                 }))}
                         </Grid>
                     }
-                    {(isReady && pipelines.length > 0) || !isReady ? pipelinePagination() : <></>}
+                    {((isReady && pipelines.length > 0) || !isReady) && paginationPositions.includes("bottom") ? pipelinePagination() : <></>}
                 </>
             }
 

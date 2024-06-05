@@ -1,40 +1,30 @@
-import React, {useCallback} from "react";
-import {Position, useReactFlow} from "reactflow";
-import {Box, Card, CardActions, CardContent, IconButton, Typography} from '@mui/material';
-import {useSelector} from 'react-redux';
-import {grey} from '@mui/material/colors';
+import React, { useCallback } from "react";
+import { Position, useReactFlow } from "reactflow";
+import { Card, CardActions, CardContent, Fab, Tooltip, Typography } from '@mui/material';
+import { useSelector } from 'react-redux';
+import { grey } from '@mui/material/colors';
 import CustomHandle from "../Handles/CustomHandle";
-import {positionHandle} from "../../utils/functions";
-import {FieldDescription} from "../../models/ExecutionUnit";
-import {Close as CloseIcon} from "@mui/icons-material";
+import { positionHandle } from "../../utils/functions";
+import { FieldDescription } from "../../models/ExecutionUnit";
+import { CloseRounded } from "@mui/icons-material";
+import DataField from './DataField';
 
 
-
-const ServiceNode: React.FC<{ id: string, data: any }> = (
+const StepNodeEdit: React.FC<{ id: string, data: any }> = (
     {id, data}) => {
     const lightgrey = grey[400];
     const darkgrey = grey[800];
     const colorMode = useSelector((state: any) => state.colorMode.value);
-    const { deleteElements } = useReactFlow();
+    const {deleteElements} = useReactFlow();
 
     const onDelete = useCallback(() => {
-        deleteElements({ nodes: [{ id }] });
+        deleteElements({nodes: [{id}]});
     }, [id, deleteElements]);
 
 
     const listDataIn = () => {
         return data.dataIn.map((inputField: { name: string; type: string[]; }, index: number) =>
-            <div key={inputField.name}>
-                <Box sx={{display: "flex", width: "100%"}}>
-                    <Box sx={{display: "flex", flexDirection: "column", justifyContent: "center", width: "40%"}} key={inputField.name}>
-                        <Typography variant={"body2"}>{inputField.name} : </Typography>
-                        <Box sx={{display: "flex"}}>
-                            {inputField.type.map((type: string) => <Typography
-                                variant={"body2"} key={`${inputField.name}${type}`}>{type} &nbsp;</Typography>)}
-                        </Box>
-                    </Box>
-                </Box>
-            </div>
+            <DataField inputField={inputField} data={data.dataIn} index={index}/>
         );
     }
 
@@ -63,21 +53,21 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
                 }}
             >
                 <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "17em"}}>
-                    <Box sx={{display: "flex", flexDirection: "row", alignItems: "center"}}>
-                        <Typography variant={"subtitle1"} color={"primary"} sx={{flexGrow: 1, textAlign: "center",width: "80%", ml: "10%"}}>
-                            {data.label}
-                        </Typography>
-                        <IconButton
-                            sx={{width: "10%", height: "fit-content", transform: "scale(0.7)"}}
-                            aria-label={"close"}
-                            onClick={onDelete}
-                        >
-                            <CloseIcon/>
-                        </IconButton>
-                    </Box>
+                    <Typography variant={"subtitle1"} color={"primary"}
+                                sx={{justifyContent: "center", display: "flex", mb: 2}}
+                    >
+                        {data.label}
+                    </Typography>
                     {listDataIn()}
                 </CardContent>
-                <CardActions></CardActions>
+                <CardActions sx={{justifyContent: "flex-end", m: 0}}>
+                    <Tooltip title={"Delete node"}>
+                        <Fab color={"error"} aria-label={"delete"} size={"small"} onClick={onDelete}
+                             sx={{boxShadow: 0}}>
+                            <CloseRounded/>
+                        </Fab>
+                    </Tooltip>
+                </CardActions>
             </Card>
             {data.dataOut.map((output: FieldDescription, index: number) => {
                 return (
@@ -95,4 +85,4 @@ const ServiceNode: React.FC<{ id: string, data: any }> = (
     );
 };
 
-export default ServiceNode;
+export default StepNodeEdit;

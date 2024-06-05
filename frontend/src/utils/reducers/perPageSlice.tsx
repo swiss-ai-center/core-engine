@@ -1,16 +1,16 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 export const PerPage = {
-    6: 6,
-    15: 15,
-    30: 30,
+    4: 4,
+    12: 12,
+    20: 20,
     60: 60,
 }
 
 const initialState = {
     value: {
-        services: PerPage[15],
-        pipelines: PerPage[15],
+        services: PerPage[12],
+        pipelines: PerPage[12],
     }
 }
 
@@ -49,6 +49,6 @@ export const perPageSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setServicePerPage, setPipelinePerPage } = perPageSlice.actions
+export const {setServicePerPage, setPipelinePerPage} = perPageSlice.actions
 
 export default perPageSlice.reducer

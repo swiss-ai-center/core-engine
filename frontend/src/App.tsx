@@ -72,7 +72,21 @@ function App() {
         },
         typography: {
             fontFamily: ["Neue Haas Grotesk Display Pro, sans-serif", "Helvetica now, sans-serif"].join(','),
-        }
+        },
+        components: {
+            MuiFab: {
+                styleOverrides: {
+                    sizeSmall: {
+                        width: 24,
+                        height: 24,
+                        minHeight: 'unset',
+                        '& .MuiSvgIcon-root': {
+                            fontSize: 16,
+                        },
+                    },
+                },
+            },
+        },
     }), [darkgrey, lightgrey]);
 
     const theme = React.useMemo(
@@ -104,15 +118,15 @@ function App() {
             }}>
                 <Toolbar>
                     {menuIcon ?
-                    <IconButton
-                        color={"inherit"}
-                        aria-label={"open drawer"}
-                        edge={"start"}
-                        onClick={handleDrawerToggle}
-                        sx={{mr: 2, display: {md: 'none'}}}
-                    >
-                        {mobileOpen ? <CloseIcon/> : <MenuIcon/>}
-                    </IconButton> : <></>}
+                        <IconButton
+                            color={"inherit"}
+                            aria-label={"open drawer"}
+                            edge={"start"}
+                            onClick={handleDrawerToggle}
+                            sx={{mr: 2, display: {md: 'none'}}}
+                        >
+                            {mobileOpen ? <CloseIcon/> : <MenuIcon/>}
+                        </IconButton> : <></>}
                     <Grid container justifyContent={"space-between"} alignItems={"center"} sx={{height: "100%"}}>
                         <Grid item>
                             <Link color={"inherit"} href={"/"} underline={"none"}>
@@ -130,12 +144,12 @@ function App() {
                             </Tooltip>
                             {/* if page is Info, hide stats button */}
                             {window.location.pathname === "/" ? <></> :
-                            <Tooltip title={"Engine stats"}>
-                                <IconButton sx={{marginLeft: "auto"}} color={"inherit"} size={"large"}
-                                            onClick={() => handleOpenStats()}>
-                                    <QueryStatsTwoTone/>
-                                </IconButton>
-                            </Tooltip>}
+                                <Tooltip title={"Engine stats"}>
+                                    <IconButton sx={{marginLeft: "auto"}} color={"inherit"} size={"large"}
+                                                onClick={() => handleOpenStats()}>
+                                        <QueryStatsTwoTone/>
+                                    </IconButton>
+                                </Tooltip>}
                         </Grid>
                     </Grid>
                 </Toolbar>
@@ -147,10 +161,11 @@ function App() {
             <Router>
                 <Routes>
                     <Route path={"/showcase/:type/:slug"} element={<Showcase mobileOpen={mobileOpen}/>}/>
-                    <Route path={"/showcase"} element={<Info />}/>
+                    <Route path={"/showcase"} element={<Info/>}/>
                     <Route path={"/home"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
-                    <Route path={"*"} element={<Info />}/>
-                    <Route path={"/create-pipeline"} element={<CreatePipeline mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
+                    <Route path={"*"} element={<Info/>}/>
+                    <Route path={"/create-pipeline"}
+                           element={<CreatePipeline mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
                 </Routes>
             </Router>
             {/* End Main content */}

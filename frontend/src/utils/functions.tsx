@@ -1,7 +1,7 @@
 import { getResult } from './api';
 import { toast } from 'react-toastify';
-import {Tag} from "../models/Tag";
-import {SelectChangeEvent} from "@mui/material";
+import { Tag } from "../models/Tag";
+import { SelectChangeEvent } from "@mui/material";
 import React from "react";
 
 export async function download(resultIdList: string[]) {
@@ -29,12 +29,13 @@ export const displayTimer = (timer: number): string => {
 }
 
 export const positionHandle = (handlesLength: number, index: number) => {
+    if (handlesLength === 0) return '50%';
     return `${(index / (handlesLength + 1)) * 100}%`;
 }
 
 
 export const handleTags = (
-    event: SelectChangeEvent,
+    _: SelectChangeEvent,
     newValue: Tag[],
     setTags: React.Dispatch<React.SetStateAction<Tag[]>>,
     searchParams: URLSearchParams,
@@ -56,11 +57,11 @@ export const handleTags = (
 
 export const handleAIToggle = (
     event: React.ChangeEvent<HTMLInputElement>,
-    setAI:  React.Dispatch<React.SetStateAction<boolean>>,
+    setAI: React.Dispatch<React.SetStateAction<boolean>>,
     searchParams: URLSearchParams,
     windowHistory: History,
     handleNoFilter: any
-    ) => {
+) => {
     setAI(event.target.checked);
     if (event.target.checked) {
         searchParams.set('ai', 'true');
@@ -73,7 +74,7 @@ export const handleAIToggle = (
 
 export const handleSearch = (
     event: React.ChangeEvent<HTMLInputElement>,
-    setSearch:  React.Dispatch<React.SetStateAction<string>>,
+    setSearch: React.Dispatch<React.SetStateAction<string>>,
     searchParams: URLSearchParams,
     handleNoFilter: any,
     windowHistory: History) => {
@@ -87,11 +88,11 @@ export const handleSearch = (
     handleNoFilter();
 };
 
-const orderByList =  [
+const orderByList = [
     {value: 'name-asc', label: 'Name (A-Z)'},
     {value: 'name-desc', label: 'Name (Z-A)'}
 ]
-export const handleOrder = (event: SelectChangeEvent, setOrderBy: any, searchParams: URLSearchParams, windowHistory: History ) => {
+export const handleOrder = (event: SelectChangeEvent, setOrderBy: any, searchParams: URLSearchParams, windowHistory: History) => {
     setOrderBy(event.target.value as string);
     if (event.target.value === orderByList[0].value) {
         searchParams.delete('orderBy');
@@ -104,7 +105,7 @@ export const handleOrder = (event: SelectChangeEvent, setOrderBy: any, searchPar
 
 export const handleNoFilter = (
     searchParams: URLSearchParams,
-    windowHistory:  History) => {
+    windowHistory: History) => {
     if (searchParams.toString() === '') {
         windowHistory.pushState({}, '', window.location.pathname);
     }

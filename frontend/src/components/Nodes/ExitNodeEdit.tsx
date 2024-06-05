@@ -1,8 +1,11 @@
 import React from "react";
-import { Handle, Position} from "reactflow";
-import { Box, Card, CardActions, CardContent, Typography} from '@mui/material';
-import {useSelector} from 'react-redux';
-import {grey} from '@mui/material/colors';
+import { Handle, Position } from "reactflow";
+import { Box, Card, CardActions, CardContent, Typography } from '@mui/material';
+import { useSelector } from 'react-redux';
+import { grey } from '@mui/material/colors';
+import DataField from './DataField';
+import CustomHandle from '../Handles/CustomHandle';
+import { positionHandle } from '../../utils/functions';
 
 
 const ExitNodeEdit: React.FC<{ id: string, data: any }> = (
@@ -12,15 +15,8 @@ const ExitNodeEdit: React.FC<{ id: string, data: any }> = (
     const colorMode = useSelector((state: any) => state.colorMode.value);
 
     const listDataOut = () => {
-        return data.dataOut.map((inputField: { name: string ; type: string[]; }, index: number) =>
-            <Box sx={{display: "flex", width: "100%", alignItems: "center"}} key={inputField.name}>
-                <Box sx={{display: "flex", flexDirection: "column", justifyContent: "center", width: "100%"}} key={index}>
-                    <Typography variant={"body1"}>{inputField.name} </Typography>
-                    <Box sx={{display:"flex"}}>
-                        {inputField.type.map((type: string) => <Typography variant={"body2"} key={`${inputField.name}${type}`}>{type} &nbsp;</Typography>)}
-                    </Box>
-                </Box>
-            </Box>
+        return data.dataOut.map((inputField: { name: string; type: string[]; }, index: number) =>
+            <DataField key={index} inputField={inputField} index={index} data={data.dataOut}/>
         );
     }
 
@@ -42,19 +38,16 @@ const ExitNodeEdit: React.FC<{ id: string, data: any }> = (
             >
                 <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "10em"}}>
                     <Typography variant={"subtitle1"} color={"primary"}
-                                sx={{justifyContent: "center", display: "flex", mb: 2 }}
+                                sx={{justifyContent: "center", display: "flex", mb: 2}}
                     >
                         {data.label}
                     </Typography>
 
                     {data.dataOut.length !== 0 ?
-                        <Box sx={{width: "100%"}}>
-                            <Box sx={{display: "flex", width: "100%", justifyContent: "center"}}>
-                                <Typography variant={"body1"}> Pipeline Output </Typography>
-                            </Box>
+                        <Box sx={{width: "100%", mb: -1}}>
                             {listDataOut()}
                         </Box>
-                    : false}
+                        : false}
                 </CardContent>
                 <CardActions></CardActions>
             </Card>

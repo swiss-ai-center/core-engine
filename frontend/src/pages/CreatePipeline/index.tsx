@@ -1,7 +1,16 @@
 import ItemGrid from "../../components/ItemGrid/ItemGrid";
-import {Box, Button, Container, SelectChangeEvent, TextField, Typography} from "@mui/material";
-import {Tag} from "../../models/Tag";
-import {useSearchParams} from "react-router-dom";
+import {
+    Box,
+    Button,
+    Container,
+    SelectChangeEvent,
+    TextField,
+    Toolbar,
+    Typography,
+    Grid, Link as URLLink
+} from "@mui/material";
+import { Tag } from "../../models/Tag";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import ReactFlow, {
     addEdge,
     Background,
@@ -14,30 +23,42 @@ import ReactFlow, {
     useEdgesState,
     useNodesState,
 } from "reactflow";
-import {ArrowUpward} from "@mui/icons-material";
+import { ArrowBack, ArrowUpward, DescriptionTwoTone } from "@mui/icons-material";
 import ScrollToTop from "react-scroll-to-top";
-import {useSelector} from "react-redux";
+import { useSelector } from "react-redux";
 import EntryNodeEdit from "../../components/Nodes/EntryNodeEdit";
-import {FieldDescription} from "../../models/ExecutionUnit";
-import ServiceNode from "../../components/Nodes/ServiceNode";
-import {handleAIToggle, handleNoFilter, handleOrder, handleSearch, handleTags} from "../../utils/functions";
+import { FieldDescription } from "../../models/ExecutionUnit";
+import StepNodeEdit from "../../components/Nodes/StepNodeEdit";
+import {
+    handleAIToggle,
+    handleNoFilter,
+    handleOrder,
+    handleSearch,
+    handleTags, isSmartphone
+} from "../../utils/functions";
 import React from "react";
 import ExitNodeEdit from "../../components/Nodes/ExitNodeEdit";
-import EditEdge from "../../components/Edges/EditEdge";
-import {toast} from "react-toastify";
-import {FilterDrawer} from "../../components/FilterDrawer/FilterDrawer";
+import EditEdge from "../../components/Edges/EdgeEdit";
+import { toast } from "react-toastify";
+import { FilterDrawer } from "../../components/FilterDrawer/FilterDrawer";
 import CreatePipelineServiceCard from "../../components/Cards/CreatePipelineServiceCard";
-import Grid from "@mui/material/Unstable_Grid2";
-import {checkPipelineValidity, createPipeline} from "../../utils/api";
+import { checkPipelineValidity, createPipeline } from "../../utils/api";
+import Copyright from '../../components/Copyright/Copyright';
+import { PerPage } from '../../utils/reducers/perPageSlice';
 
 let id = 0;
 const getId = () => `${id++}`;
 
+const entryNodeMinWidth = 400;
+const nodeWidth = 200;
+const nodeHeight = 200;
+const nodeSpacing = 100;
+
 const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     {mobileOpen, handleOpen}) => {
-
+    const navigate = useNavigate();
     const nodeTypes = React.useMemo(() => ({
-        entryNodeEdit: EntryNodeEdit, serviceNode: ServiceNode, exitNodeEdit: ExitNodeEdit
+        entryNodeEdit: EntryNodeEdit, serviceNode: StepNodeEdit, exitNodeEdit: ExitNodeEdit
     }), []);
 
     const edgeTypes = React.useMemo(() => ({
@@ -74,6 +95,9 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
     const handleNoFilterWrapper = () => handleNoFilter(searchParams, history)
 
+    const navigateHome = () => {
+        navigate("/home");
+    }
 
     const onEdgeDelete = (deletedEdges: Edge[]) => {
         deletedEdges.forEach((edge) => {
@@ -115,7 +139,6 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         })
     }
 
-
     const onConnect = (params: Edge | Connection) => {
         if (params.target === params.source) return;
         const targetNode = nodesRef.current.find((node) => node.id === params.target);
@@ -147,7 +170,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             const dataTypes: string [] = sourceNodeDataOut[sourceDataIndex]?.type;
 
             if (sourceHandle === null || dataTypes.length === 0) {
-                toast("The data must be named and have a type to be connected", {type: "info"});
+                toast("The data must be named and have a type to be connected", {type: "warning"});
                 return;
             }
             const allowedTypes: string[] = targetNode.data.dataIn[dataInIndex].type;
@@ -157,7 +180,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             })
 
             if (!compatible) {
-                toast("Incompatible types", {type: "info"});
+                toast("Incompatible types", {type: "warning"});
                 return;
             }
 
@@ -269,7 +292,6 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         );
     }
 
-
     const setNodeDataIn = (affectedNode: Node, dataIn: FieldDescription[]) => {
         setNodesRef.current((nds) =>
             nds.map((node) => {
@@ -288,7 +310,6 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         );
     }
 
-
     const createExitNode = () => {
         const dataOut: FieldDescription[] = [];
         const id = getId();
@@ -299,9 +320,9 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             data: {
                 identifier: "exit",
                 dataOut: dataOut,
-                label: "Exit",
+                label: "pipeline-exit",
             },
-            position: {x: 550, y: 200},
+            position: {x: 2 * nodeSpacing + nodeWidth + entryNodeMinWidth, y: 200},
         }
     }
 
@@ -309,23 +330,21 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         let counter = 2;
         const selectedDataIn = new Array<string>(dataIn.length);
         let identifier = serviceSlug
-        let label = serviceName;
+        let label = serviceSlug;
         const doesIdentifierExist = (node: Node) => node.data.identifier === identifier;
 
         while (nodesRef.current.find(doesIdentifierExist)) {
-            identifier = `${serviceSlug}-${counter}`;
-            label = `${serviceName} ${counter}`;
+            identifier = label = `${serviceSlug}-${counter}`;
             counter++;
         }
-
 
         const newNode = {
             id: identifier,
             type: "serviceNode",
 
             position: {
-                x: 150,
-                y: 150,
+                x: nodeSpacing + entryNodeMinWidth,
+                y: 200 + (nodesRef.current.length - 2) * (nodeHeight + nodeSpacing),
             },
             data: {
                 identifier: identifier,
@@ -364,9 +383,10 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         createPipeline(json)
             .then((answer) => {
                 if (answer?.errorBody) {
-                    toast(`Error: ${answer?.errorBody}`)
+                    toast(`Error: ${answer?.errorBody}`, {type: "error"})
                 } else {
-                    toast("Pipeline created")
+                    toast("Pipeline created", {type: "success"})
+                    navigateHome();
                 }
             })
             .catch(error => {
@@ -374,16 +394,15 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             })
     }
 
-
     const checkPipeline = async (): Promise<boolean> => {
 
         if (pipeName === '' || pipeSlug === '' || pipeSummary === '' || pipeDescription === '') {
-            toast("Please fill in the Pipeline information")
+            toast("The pipeline information must be filled", {type: "warning"})
             return false;
         }
 
         if (!checkInputsAreConnected()) {
-            toast("Invalid: Make sure every service input is connected")
+            toast("Invalid: Every service input must be connected", {type: "warning"})
             return false;
         }
 
@@ -395,14 +414,14 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             const answer = await checkPipelineValidity(json);
 
             if (answer && answer?.valid) {
-                toast("Pipeline is valid");
+                toast("Pipeline is valid", {type: "info"});
                 return true;
             } else {
-                toast(`Invalid: ${answer?.errorBody}`);
+                toast(`Invalid: ${answer?.errorBody}`, {type: "warning"});
                 return false;
             }
         } catch (error) {
-            toast("Could not check validity")
+            toast("Could not check validity", {type: "error"})
             console.log("Error checking validity: ", error);
             return false;
         }
@@ -444,7 +463,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         nodesInStepOrder.forEach((nodeId) => {
             const incomingEdges = edgesRef.current.filter((edge) => edge.target === nodeId)
             let condition: string = "";
-            incomingEdges.forEach((edge, index) => {
+            incomingEdges.forEach((edge, _) => {
                 if (edge.data.condition !== "")
                     condition = condition === "" ? condition.concat(`(${edge.data.condition})`) : condition.concat(` and  (${edge.data.condition})`)
             })
@@ -482,7 +501,6 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             steps: steps
         })
     }
-
 
     React.useEffect(() => {
         const onAddEntryInput = (defaultName: string) => {
@@ -556,13 +574,14 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                     onDeleteEntryInput: onDeleteEntryInput,
                     identifier: "entry",
                     dataIn: dataIn,
-                    label: "Pipeline entry",
+                    label: "pipeline-entry",
+                    minWidth: entryNodeMinWidth,
                 },
                 position: {x: 50, y: 200},
             }
         }
 
-        const initialNodes: Node<any>[] = []
+        const initialNodes: Node[] = []
         initialNodes.push(createEntryNode())
         initialNodes.push(createExitNode())
         setNodes(() => initialNodes);
@@ -597,18 +616,55 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                 handleAIToggle={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleAIToggle(event, setAI, searchParams, history, handleNoFilterWrapper)}
             />
-            <Box component={"main"} sx={{flexGrow: 1, py: 10}}>
+            <Box component={"main"} sx={{flexGrow: 1, mb: 0}}>
+                <Toolbar/>
+                <Container sx={{my: 2}} maxWidth={false}>
+                    <Grid container spacing={2} justifyContent={"space-between"}
+                          sx={{py: isSmartphone() ? 0 : 1}}>
+                        <Grid item>
+                            <Link to={"/home"} style={{textDecoration: "none"}}>
+                                <Button variant={"outlined"} color={"secondary"} startIcon={<ArrowBack/>}>
+                                    Back
+                                </Button>
+                            </Link>
+                        </Grid>
+                        <Grid item>
+                            <URLLink
+                                href={"https://docs.swiss-ai-center.ch/tutorials/create-a-pipeline-that-blurs-faces-in-an-image/#create-the-pipeline"}
+                                target={"_blank"}>
+                                <Button color={"secondary"} variant={"outlined"}
+                                        startIcon={<DescriptionTwoTone/>}>
+                                    Docs
+                                </Button>
+                            </URLLink>
+                        </Grid>
+                    </Grid>
+                </Container>
+                <Container maxWidth={false} sx={{mb: 3}}>
+                    <ItemGrid filter={search} orderBy={orderBy} tags={tags} ai={ai}
+                              itemFunctions={{addService: addServiceNode}}
+                              items={{service: CreatePipelineServiceCard}}
+                              handleTags={(event: SelectChangeEvent, newValue: Tag[]) =>
+                                  handleTags(event, newValue, setTags, searchParams, history, handleNoFilterWrapper)}
+
+                              handleAIToggle={(event: React.ChangeEvent<HTMLInputElement>) =>
+                                  handleAIToggle(event, setAI, searchParams, history, handleNoFilterWrapper)}
+                              paginationPositions={["top"]} paginationOptions={[PerPage['4']]}
+                    />
+                </Container>
                 <Container maxWidth={false}>
                     <Box sx={{
-                        height: 500,
+                        height: 600,
                         width: "100%",
                         border: 2,
                         borderRadius: "5px",
                         borderColor: "primary.main"
                     }}
+                         mt={1}
                     >
                         <ReactFlowProvider>
                             <ReactFlow
+                                id={"board"}
                                 nodes={nodes}
                                 edges={edges}
                                 onNodesChange={onNodesChange}
@@ -618,59 +674,71 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                                 nodeTypes={nodeTypes}
                                 edgeTypes={edgeTypes}
                                 onConnect={onConnect}
+                                fitView
+                                snapToGrid
+                                about={colorMode}
+                                style={{
+                                    backgroundColor: colorMode === 'dark' ? '#121212' : '#fff',
+                                    borderRadius: 3,
+                                }}
                             >
+                                <Background/>
                                 <Controls/>
-                                <Background gap={12} size={1}/>
                             </ReactFlow>
                         </ReactFlowProvider>
                     </Box>
                 </Container>
-                <Container sx={{mt: "1em", paddingRight: 0, paddingLeft: 0, "!important": {pr: 0, pl: 0}}}>
-                    <Typography variant={"h4"} component={"h2"} sx={{mt: 5, mb: 4}}>
-                        Pipeline information
+                <Container maxWidth={false}>
+                    <Typography variant={"h4"} component={"h2"} my={4}>
+                        Pipeline Information
                     </Typography>
-                    <Grid container spacing={2} justifyContent={"flex-start"}>
-                        <Grid xs={12} md={6} justifyContent={"center"} sx={{mb: 2}}>
-                            <TextField sx={{height: "100%", width: "100%"}} variant={"outlined"}
-                                       placeholder={"Pipeline Name"}
-                                       onChange={(event) => setPipeName(event.target.value)}>
-                            </TextField>
+                    <Grid container spacing={2} justifyContent={"flex-start"} sx={{height: "100%"}}
+                          alignItems={"stretch"}>
+                        <Grid container item xs={12} md={6} justifyContent={"flex-start"} spacing={2}
+                              alignItems={"stretch"}>
+                            <Grid container item spacing={2} justifyContent={"space-between"}>
+                                <Grid item xs={12} md={6}>
+                                    <TextField variant={"outlined"} sx={{width: "100%"}}
+                                               placeholder={"Pipeline Name"} label={"Pipeline Name"}
+                                               onChange={(event) => setPipeName(event.target.value)}>
+                                    </TextField>
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <TextField variant={"outlined"} sx={{width: "100%"}}
+                                               placeholder={"in kebab case (e.g. pipeline-slug)"}
+                                               label={"Pipeline Slug"}
+                                               onChange={(event) => setPipeSlug(event.target.value)}>
+                                    </TextField>
+                                </Grid>
+                            </Grid>
+                            <Grid xs={12} item alignContent={"flex-end"} flexDirection={"column"}>
+                                <TextField sx={{width: "100%"}} variant={"outlined"} multiline rows={2}
+                                           placeholder={"Phrase defining the pipeline"} label={"Summary"}
+                                           onChange={(event) => setPipeSummary(event.target.value)}>
+                                </TextField>
+                            </Grid>
                         </Grid>
-                        <Grid xs={12} md={6}>
-                            <TextField sx={{height: "100%", width: "100%"}} variant={"outlined"}
-                                       placeholder={"Pipeline-slug"}
-                                       onChange={(event) => setPipeSlug(event.target.value)}>
-                            </TextField>
-                        </Grid>
-                        <Grid xs={12} md={12}>
-                            <TextField sx={{height: "100%", width: "100%"}} variant={"outlined"} multiline rows={2}
-                                       placeholder={"Summary"}
-                                       onChange={(event) => setPipeSummary(event.target.value)}>
-                            </TextField>
-                        </Grid>
-                        <Grid xs={12} md={12}>
-                            <TextField sx={{height: "100%", width: "100%"}} variant={"outlined"} multiline rows={4}
-                                       placeholder={"The pipeline's description ..."}
-                                       onChange={(event) => setPipeDescription(event.target.value)}>
-                            </TextField>
+                        <Grid xs={12} md={6} pl={2} pt={2} container item alignItems={"stretch"}>
+                            <Grid item sx={{width: "100%"}} alignItems={"stretch"}>
+                                <TextField variant={"outlined"} multiline rows={6} sx={{width: "100%"}}
+                                           placeholder={"Full pipeline description (markdown compatible)"}
+                                           label={"Description"}
+                                           onChange={(event) => setPipeDescription(event.target.value)}>
+                                </TextField>
+                            </Grid>
                         </Grid>
                     </Grid>
-                    <Box sx={{display: 'flex', justifyContent: 'flex-end', width: '100%', alignItems: 'center', mt: 3}}>
-                        <Button sx={{mr: 2}} size={"small"} variant={"contained"} onClick={checkPipeline}>Check
-                            Validity</Button>
-                        <Button size={"small"} variant={"contained"} onClick={postPipeline}>Create pipeline</Button>
+                    <Box sx={{display: 'flex', justifyContent: 'flex-end', width: '100%'}} my={2}>
+                        <Button sx={{mr: 2}} variant={"contained"} onClick={checkPipeline} disableElevation={true}>
+                            Check Validity
+                        </Button>
+                        <Button variant={"contained"} onClick={postPipeline} disableElevation={true}>
+                            Create pipeline
+                        </Button>
                     </Box>
                 </Container>
-                <Container maxWidth={false}>
-                    <ItemGrid filter={search} orderBy={orderBy} tags={tags} ai={ai}
-                              itemFunctions={{addService: addServiceNode}}
-                              items={{service: CreatePipelineServiceCard}}
-                              handleTags={(event: SelectChangeEvent, newValue: Tag[]) =>
-                                  handleTags(event, newValue, setTags, searchParams, history, handleNoFilterWrapper)}
-
-                              handleAIToggle={(event: React.ChangeEvent<HTMLInputElement>) =>
-                                  handleAIToggle(event, setAI, searchParams, history, handleNoFilterWrapper)}
-                    />
+                <Container>
+                    <Copyright/>
                 </Container>
             </Box>
         </Box>

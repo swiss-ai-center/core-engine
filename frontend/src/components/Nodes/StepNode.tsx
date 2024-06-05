@@ -11,7 +11,7 @@ import { ProgressNodeData } from '../../models/NodeData';
 import CustomHandle from '../Handles/CustomHandle';
 
 
-const ProgressNode = ({data}: NodeProps<ProgressNodeData>) => {
+const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
     const lightgrey = grey[400];
     const mediumgrey = grey[500];
     const darkgrey = grey[800];
@@ -177,4 +177,4 @@ const ProgressNode = ({data}: NodeProps<ProgressNodeData>) => {
     );
 };
 
-export default ProgressNode;
+export default StepNode;

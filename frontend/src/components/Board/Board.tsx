@@ -9,7 +9,7 @@ import ReactFlow, {
 } from 'reactflow';
 import EntryNode from '../Nodes/EntryNode';
 import ExitNode from '../Nodes/ExitNode';
-import ProgressNode from '../Nodes/ProgressNode';
+import StepNode from '../Nodes/StepNode';
 import { useDispatch, useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
 import DrawGraph from './DrawGraph';
@@ -46,7 +46,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
     const darkgrey = grey[500];
     const dispatch = useDispatch();
     const nodeTypes = React.useMemo(() => ({
-        entryNode: EntryNode, progressNode: ProgressNode, exitNode: ExitNode
+        entryNode: EntryNode, progressNode: StepNode, exitNode: ExitNode
     }), []);
     const colorMode = useSelector((state: any) => state.colorMode.value);
     const taskArray = useSelector((state: any) => state.runState.taskArray);
@@ -252,7 +252,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
             const message: Message = Object.assign(new Message(), lastJsonMessage);
             handleMessage(message);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch, lastJsonMessage]);
 
     return (
