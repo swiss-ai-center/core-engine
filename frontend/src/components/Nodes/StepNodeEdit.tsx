@@ -24,7 +24,7 @@ const StepNodeEdit: React.FC<{ id: string, data: any }> = (
 
     const listDataIn = () => {
         return data.dataIn.map((inputField: { name: string; type: string[]; }, index: number) =>
-            <DataField inputField={inputField} data={data.dataIn} index={index}/>
+            <DataField inputField={inputField} data={data.dataIn} index={index} key={`${data.label}-${index}`}/>
         );
     }
 

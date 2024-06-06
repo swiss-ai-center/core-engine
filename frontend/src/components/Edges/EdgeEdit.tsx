@@ -36,6 +36,7 @@ export default function CustomEdge({
 
 
     const handleConditionInput = (value: string) => {
+        console.log(value);
         if (value.length === 0) {
             setIsEditing(false);
             return;
@@ -96,7 +97,6 @@ export default function CustomEdge({
                         borderColor: colorMode === "light" ? lightgrey : darkgrey,
                         borderWidth: isEditing ? 2 : 0,
                         borderStyle: isEditing ? "solid" : "none",
-                        backgroundColor: 'white',
                         borderRadius: 6,
                         zIndex: 10,
                     }}
@@ -107,10 +107,15 @@ export default function CustomEdge({
                             (
                                 <TextField
                                     autoFocus
-                                    sx={{borderRadius: 10}}
+                                    sx={{borderRadius: 1, backgroundColor: colorMode === "light" ? "white" : darkgrey}}
                                     variant={"outlined"}
                                     size={"small"}
                                     onBlur={(event) => handleConditionInput(event.target.value)}
+                                    onKeyDown={(event) => {
+                                        if (event.key === 'Enter') {
+                                            handleConditionInput((event.target as HTMLInputElement).value);
+                                        }
+                                    }}
                                 />
                             ) : (
                                 edgeLabel()

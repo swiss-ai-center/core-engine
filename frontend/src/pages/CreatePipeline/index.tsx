@@ -46,8 +46,6 @@ import { checkPipelineValidity, createPipeline } from "../../utils/api";
 import Copyright from '../../components/Copyright/Copyright';
 import { PerPage } from '../../utils/reducers/perPageSlice';
 
-let id = 0;
-const getId = () => `${id++}`;
 
 const entryNodeMinWidth = 400;
 const nodeWidth = 200;
@@ -75,6 +73,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const [pipeName, setPipeName] = React.useState('')
     const [pipeSlug, setPipeSlug] = React.useState('')
+    const [pipeNameSlugLinked, setPipeNameSlugLinked] = React.useState(true);
     const [pipeSummary, setPipeSummary] = React.useState('')
     const [pipeDescription, setPipeDescription] = React.useState('')
     const [search, setSearch] = React.useState('');
@@ -92,11 +91,21 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     const edgesRef = React.useRef(edges)
     const setEdgesRef = React.useRef(setEdges)
 
-
     const handleNoFilterWrapper = () => handleNoFilter(searchParams, history)
 
     const navigateHome = () => {
         navigate("/home");
+    }
+
+    const handlePipeSlug = (value: string) => {
+        setPipeNameSlugLinked(false);
+        setPipeSlug(value);
+    }
+
+    const handlePipeName = (value: string) => {
+        setPipeName(value);
+        // use the pipe name to create a slug in kebab case
+        if (pipeNameSlugLinked) setPipeSlug(value.toLowerCase().replace(/\s+/g, '-'));
     }
 
     const onEdgeDelete = (deletedEdges: Edge[]) => {
@@ -312,9 +321,8 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
     const createExitNode = () => {
         const dataOut: FieldDescription[] = [];
-        const id = getId();
         return {
-            id: `exit${id}`,
+            id: `exit`,
             type: "exitNodeEdit",
             deletable: false,
             data: {
@@ -359,6 +367,14 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             },
         };
         setNodesRef.current((nodes) => nodes.concat(newNode));
+        // find the class "react-flow__controls-fitview" and click it
+        const elem = document.querySelector('[title="fit view"]') as HTMLElement;
+        if (elem) {
+            // wait for the next render cycle to click the button
+            setTimeout(() => {
+                elem.click();
+            }, 0);
+        }
     };
 
     const checkInputsAreConnected = (): boolean => {
@@ -562,9 +578,8 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
         const createEntryNode = () => {
             const dataIn: FieldDescription[] = [];
-            const id = getId();
             return {
-                id: `entry${id}`,
+                id: `entry`,
                 type: "entryNodeEdit",
                 deletable: false,
                 data: {
@@ -700,14 +715,16 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                                 <Grid item xs={12} md={6}>
                                     <TextField variant={"outlined"} sx={{width: "100%"}}
                                                placeholder={"Pipeline Name"} label={"Pipeline Name"}
-                                               onChange={(event) => setPipeName(event.target.value)}>
+                                               onChange={(event) => handlePipeName(event.target.value)}>
                                     </TextField>
                                 </Grid>
                                 <Grid item xs={12} md={6}>
                                     <TextField variant={"outlined"} sx={{width: "100%"}}
                                                placeholder={"in kebab case (e.g. pipeline-slug)"}
                                                label={"Pipeline Slug"}
-                                               onChange={(event) => setPipeSlug(event.target.value)}>
+                                               value={pipeSlug}
+                                               onChange={(event) => handlePipeSlug(event.target.value)}
+                                    >
                                     </TextField>
                                 </Grid>
                             </Grid>

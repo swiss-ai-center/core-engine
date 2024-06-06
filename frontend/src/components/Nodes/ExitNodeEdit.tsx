@@ -4,8 +4,6 @@ import { Box, Card, CardActions, CardContent, Typography } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
 import DataField from './DataField';
-import CustomHandle from '../Handles/CustomHandle';
-import { positionHandle } from '../../utils/functions';
 
 
 const ExitNodeEdit: React.FC<{ id: string, data: any }> = (
@@ -16,7 +14,7 @@ const ExitNodeEdit: React.FC<{ id: string, data: any }> = (
 
     const listDataOut = () => {
         return data.dataOut.map((inputField: { name: string; type: string[]; }, index: number) =>
-            <DataField key={index} inputField={inputField} index={index} data={data.dataOut}/>
+            <DataField key={`${data.label}-${index}`} inputField={inputField} index={index} data={data.dataOut}/>
         );
     }
 
