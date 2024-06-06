@@ -11,11 +11,9 @@ import {
 } from "@mui/material";
 import { Tag } from "../../models/Tag";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import ReactFlow, {
+import {
     addEdge,
-    Background,
     Connection,
-    Controls,
     Edge,
     getOutgoers,
     Node,
@@ -26,9 +24,7 @@ import ReactFlow, {
 import { ArrowBack, ArrowUpward, DescriptionTwoTone } from "@mui/icons-material";
 import ScrollToTop from "react-scroll-to-top";
 import { useSelector } from "react-redux";
-import EntryNodeEdit from "../../components/Nodes/EntryNodeEdit";
 import { FieldDescription } from "../../models/ExecutionUnit";
-import StepNodeEdit from "../../components/Nodes/StepNodeEdit";
 import {
     handleAIToggle,
     handleNoFilter,
@@ -37,14 +33,13 @@ import {
     handleTags, isSmartphone
 } from "../../utils/functions";
 import React from "react";
-import ExitNodeEdit from "../../components/Nodes/ExitNodeEdit";
-import EditEdge from "../../components/Edges/EdgeEdit";
 import { toast } from "react-toastify";
 import { FilterDrawer } from "../../components/FilterDrawer/FilterDrawer";
-import CreatePipelineServiceCard from "../../components/Cards/CreatePipelineServiceCard";
+import PipelineEditorServiceCard from "../../components/Cards/PipelineEditorServiceCard";
 import { checkPipelineValidity, createPipeline } from "../../utils/api";
 import Copyright from '../../components/Copyright/Copyright';
 import { PerPage } from '../../utils/reducers/perPageSlice';
+import BoardEdit from '../../components/Board/BoardEdit';
 
 
 const entryNodeMinWidth = 400;
@@ -52,16 +47,9 @@ const nodeWidth = 200;
 const nodeHeight = 200;
 const nodeSpacing = 100;
 
-const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
+const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     {mobileOpen, handleOpen}) => {
     const navigate = useNavigate();
-    const nodeTypes = React.useMemo(() => ({
-        entryNodeEdit: EntryNodeEdit, serviceNode: StepNodeEdit, exitNodeEdit: ExitNodeEdit
-    }), []);
-
-    const edgeTypes = React.useMemo(() => ({
-        editEdge: EditEdge,
-    }), []);
 
     const orderByList = [
         {value: 'name-asc', label: 'Name (A-Z)'},
@@ -334,7 +322,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         }
     }
 
-    const addServiceNode = (serviceName: string, serviceId: string, tags: any[], serviceSlug: string, dataIn: FieldDescription[], dataOut: FieldDescription[]) => {
+    const addServiceNode = (serviceId: string, tags: any[], serviceSlug: string, dataIn: FieldDescription[], dataOut: FieldDescription[]) => {
         let counter = 2;
         const selectedDataIn = new Array<string>(dataIn.length);
         let identifier = serviceSlug
@@ -658,7 +646,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                 <Container maxWidth={false} sx={{mb: 3}}>
                     <ItemGrid filter={search} orderBy={orderBy} tags={tags} ai={ai}
                               itemFunctions={{addService: addServiceNode}}
-                              items={{service: CreatePipelineServiceCard}}
+                              items={{service: PipelineEditorServiceCard}}
                               handleTags={(event: SelectChangeEvent, newValue: Tag[]) =>
                                   handleTags(event, newValue, setTags, searchParams, history, handleNoFilterWrapper)}
 
@@ -678,28 +666,15 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                          mt={1}
                     >
                         <ReactFlowProvider>
-                            <ReactFlow
-                                id={"board"}
+                            <BoardEdit
                                 nodes={nodes}
                                 edges={edges}
+                                onConnect={onConnect}
+                                onEdgeDelete={onEdgeDelete}
+                                isValidConnection={isValidConnection}
                                 onNodesChange={onNodesChange}
                                 onEdgesChange={onEdgesChange}
-                                onEdgesDelete={onEdgeDelete}
-                                isValidConnection={isValidConnection}
-                                nodeTypes={nodeTypes}
-                                edgeTypes={edgeTypes}
-                                onConnect={onConnect}
-                                fitView
-                                snapToGrid
-                                about={colorMode}
-                                style={{
-                                    backgroundColor: colorMode === 'dark' ? '#121212' : '#fff',
-                                    borderRadius: 3,
-                                }}
-                            >
-                                <Background/>
-                                <Controls/>
-                            </ReactFlow>
+                            />
                         </ReactFlowProvider>
                     </Box>
                 </Container>
@@ -750,7 +725,7 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                             Check Validity
                         </Button>
                         <Button variant={"contained"} onClick={postPipeline} disableElevation={true}>
-                            Create pipeline
+                            Submit
                         </Button>
                     </Box>
                 </Container>
@@ -762,4 +737,4 @@ const CreatePipeline: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     );
 }
 
-export default CreatePipeline;
+export default PipelineEditor;

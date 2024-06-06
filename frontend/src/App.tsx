@@ -6,7 +6,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Showcase from './pages/Showcase';
 import Home from './pages/Home';
 import Info from './pages/Info';
-import CreatePipeline from "./pages/CreatePipeline";
+import PipelineEditor from "./pages/PipelineEditor";
 import CssBaseline from '@mui/material/CssBaseline';
 import {
     MenuRounded as MenuIcon,
@@ -164,8 +164,8 @@ function App() {
                     <Route path={"/showcase"} element={<Info/>}/>
                     <Route path={"/home"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
                     <Route path={"*"} element={<Info/>}/>
-                    <Route path={"/create-pipeline"}
-                           element={<CreatePipeline mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
+                    <Route path={"/pipeline-editor"}
+                           element={<PipelineEditor mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
                 </Routes>
             </Router>
             {/* End Main content */}

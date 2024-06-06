@@ -135,6 +135,7 @@ const EntryNodeEdit: React.FC<{ id: string, data: any }> = (
                     borderRadius: 2,
                     boxShadow: "none",
                 }}
+                key={id}
             >
                 <CardContent sx={{flexGrow: 1}}>
                     <Typography variant={"subtitle1"} color={"primary"}

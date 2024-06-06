@@ -23,6 +23,8 @@ const ExitNodeEdit: React.FC<{ id: string, data: any }> = (
             <Handle
                 type={"target"}
                 position={Position.Left}
+                className={"custom-handle"}
+                about={colorMode}
             />
             <Card
                 sx={{
@@ -33,6 +35,7 @@ const ExitNodeEdit: React.FC<{ id: string, data: any }> = (
                     borderRadius: 2,
                     boxShadow: "none",
                 }}
+                key={id}
             >
                 <CardContent sx={{flexGrow: 1, mb: -1, minWidth: "10em"}}>
                     <Typography variant={"subtitle1"} color={"primary"}

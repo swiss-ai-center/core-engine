@@ -56,8 +56,8 @@ const ItemGrid: React.FC<{
     const [services, setServices] = React.useState([]);
     const navigate = useNavigate();
 
-    const navigateToCreatePipeline = () => {
-        navigate("/create-pipeline");
+    const navigateToPipelineEditor = () => {
+        navigate("/pipeline-editor");
     }
 
     const setServicesPerPage = (value: number) => {
@@ -294,10 +294,10 @@ const ItemGrid: React.FC<{
                             variant={"contained"}
                             disableElevation
                             color={"secondary"}
-                            onClick={navigateToCreatePipeline}
+                            onClick={navigateToPipelineEditor}
                             hidden={isSmartphone()}
                         >
-                            Create a new Pipeline
+                            Create Pipeline
                         </Button>
                     </Box>
                     {((isReady && pipelines.length > 0) || !isReady) && paginationPositions.includes("top") ? pipelinePagination() : <></>}

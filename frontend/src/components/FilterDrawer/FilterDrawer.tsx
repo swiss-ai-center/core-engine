@@ -59,6 +59,42 @@ export const FilterDrawer: React.FC<{
           handleAIToggle,
       }) => {
 
+    const MaterialUISwitch = styled(Switch)(({ theme }) => ({
+        width: 82,
+        height: 40,
+        padding: 7,
+        '& .MuiSwitch-switchBase': {
+            margin: 1,
+            padding: 0,
+            transform: 'translateX(6px)',
+            '&.Mui-checked': {
+                color: theme.palette.primary.main,
+                transform: 'translateX(22px)',
+                '& .MuiSwitch-thumb:before': {
+                    backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path fill="${encodeURIComponent(
+                        '#fff',
+                    )}" d="M4.2 2.5l-.7 1.8-1.8.7 1.8.7.7 1.8.6-1.8L6.7 5l-1.9-.7-.6-1.8zm15 8.3a6.7 6.7 0 11-6.6-6.6 5.8 5.8 0 006.6 6.6z"/></svg>')`,
+                },
+                '& + .MuiSwitch-track': {
+                    opacity: 1,
+                    backgroundColor: theme.palette.mode === 'dark' ? '#8796A5' : '#aab4be',
+                },
+            },
+        },
+        '& .MuiSwitch-thumb': {
+            backgroundColor: theme.palette.mode === 'dark' ? '#003892' : '#001e3c',
+            width: 32,
+            height: 32,
+            marginTop: 3,
+        },
+        '& .MuiSwitch-track': {
+            opacity: 1,
+            paddingTop: 15,
+            backgroundColor: theme.palette.mode === 'dark' ? '#8796A5' : '#aab4be',
+            borderRadius: 26 / 2,
+        },
+    }));
+
     const CustomSwitch = styled(Switch)(({ theme }) => ({
         padding: 8,
         '& .MuiSwitch-track': {
@@ -89,6 +125,46 @@ export const FilterDrawer: React.FC<{
             width: 16,
             height: 16,
             margin: 2,
+        },
+    }));
+
+    const AntSwitch = styled(Switch)(({ theme }) => ({
+        width: 48,
+        height: 28,
+        padding: 0,
+        display: 'flex',
+        '&:active': {
+            '& .MuiSwitch-thumb': {
+                width: 25,
+            },
+            '& .MuiSwitch-switchBase.Mui-checked': {
+                transform: 'translateX(17px)',
+            },
+        },
+        '& .MuiSwitch-switchBase': {
+            padding: 3,
+            '&.Mui-checked': {
+                transform: 'translateX(20px)',
+                color: '#fff',
+                '& + .MuiSwitch-track': {
+                    opacity: 1,
+                },
+            },
+        },
+        '& .MuiSwitch-thumb': {
+            width: 22,
+            height: 22,
+            borderRadius: 12,
+            transition: theme.transitions.create(['width'], {
+                duration: 200,
+            }),boxShadow: 'none',
+        },
+        '& .MuiSwitch-track': {
+            borderRadius: 30 / 2,
+            opacity: 1,
+            backgroundColor:
+                theme.palette.mode === 'dark' ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.25)',
+            boxSizing: 'border-box',
         },
     }));
 
@@ -161,7 +237,7 @@ export const FilterDrawer: React.FC<{
                                 </Typography>
                             </Grid>
                             <Grid item>
-                                <CustomSwitch
+                                <AntSwitch inputProps={{ 'aria-label': 'ant design' }}
                                     checked={ai}
                                     onChange={() => {
                                         handleAIToggle({target: {checked: !ai}});

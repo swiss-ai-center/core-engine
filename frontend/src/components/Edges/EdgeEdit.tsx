@@ -12,7 +12,7 @@ import { grey } from '@mui/material/colors';
 import { useSelector } from 'react-redux';
 
 
-export default function CustomEdge({
+export default function EdgeEdit({
                                        id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data,
                                        style = {}, markerEnd,
                                    }: EdgeProps) {
