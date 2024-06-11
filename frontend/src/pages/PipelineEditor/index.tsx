@@ -611,6 +611,7 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         initialNodes.push(createEntryNode())
         initialNodes.push(createExitNode())
         setNodes(() => initialNodes);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [setNodes]);
 
     React.useMemo(() => {

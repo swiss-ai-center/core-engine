@@ -3,7 +3,7 @@ import { Tooltip, Typography } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { Tag } from 'models/Tag';
 import React, { ReactNode } from 'react';
-import CardBase from './CardBase';
+import CardBase from 'components/Cards/CardBase';
 
 const ServiceCardBase: React.FC<{
     item: any, tags: Tag[], handleTags: any, handleAIToggle: any, children: ReactNode

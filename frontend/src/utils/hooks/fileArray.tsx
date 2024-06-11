@@ -1,4 +1,4 @@
 import { useContext } from 'react';
-import { FileArrayContext } from '../contexts/fileArray';
+import { FileArrayContext } from 'utils/contexts/fileArray';
 
 export const useFileArray = () => useContext(FileArrayContext);

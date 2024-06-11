@@ -20,7 +20,7 @@ import { toast } from 'react-toastify';
 import { getPipelines, getServices } from 'utils/api';
 import { isSmartphone } from 'utils/functions';
 import { setPipelinePerPage, setServicePerPage } from 'utils/reducers/perPageSlice';
-import LoadingGrid from '../LoadingGrid/LoadingGrid';
+import LoadingGrid from 'components/LoadingGrid/LoadingGrid';
 
 // min width is 100% for mobile, 50% for tablet, 33% for desktop
 const minWidth = isSmartphone() ? '100%' : (window.innerWidth < 900) ? '50%' : '33%';

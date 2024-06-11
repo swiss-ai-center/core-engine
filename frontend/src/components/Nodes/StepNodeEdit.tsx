@@ -6,8 +6,8 @@ import React, { useCallback } from "react";
 import { useSelector } from 'react-redux';
 import { Position, useReactFlow } from "reactflow";
 import { positionHandle } from "utils/functions";
-import CustomHandle from "../Handles/CustomHandle";
-import DataField from './DataField';
+import CustomHandle from "components/Handles/CustomHandle";
+import DataField from 'components/Nodes/DataField';
 
 
 const StepNodeEdit: React.FC<{ id: string, data: any }> = (

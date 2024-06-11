@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { NodeProps, Position } from "reactflow";
 import { download, positionHandle } from 'utils/functions';
 import { RunState, } from 'utils/reducers/runStateSlice';
-import CustomHandle from '../Handles/CustomHandle';
+import CustomHandle from 'components/Handles/CustomHandle';
 
 
 const ExitNode = ({data}: NodeProps<ExitNodeData>) => {

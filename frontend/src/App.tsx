@@ -16,8 +16,8 @@ import Showcase from 'pages/Showcase';
 import React, { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { EngineStats } from './components/EngineStats/EngineStats';
-import { toggleColorMode } from './utils/reducers/colorModeSlice';
+import { EngineStats } from 'components/EngineStats/EngineStats';
+import { toggleColorMode } from 'utils/reducers/colorModeSlice';
 import "typeface-inter";
 
 

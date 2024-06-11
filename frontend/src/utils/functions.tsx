@@ -1,8 +1,8 @@
 import { SelectChangeEvent } from "@mui/material";
 import React from "react";
 import { toast } from 'react-toastify';
-import { Tag } from "../models/Tag";
-import { getResult } from './api';
+import { Tag } from "models/Tag";
+import { getResult } from 'utils/api';
 
 export async function download(resultIdList: string[]) {
     for (const id of resultIdList) {

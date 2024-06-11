@@ -3,7 +3,7 @@ import { grey } from '@mui/material/colors';
 import React from "react";
 import { useSelector } from 'react-redux';
 import { Handle, Position } from "reactflow";
-import DataField from './DataField';
+import DataField from 'components/Nodes/DataField';
 
 
 const ExitNodeEdit: React.FC<{ id: string, data: any }> = (

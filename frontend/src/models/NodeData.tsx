@@ -1,5 +1,5 @@
 import { Node } from 'reactflow';
-import { FieldDescription } from './ExecutionUnit';
+import { FieldDescription } from 'models/ExecutionUnit';
 
 export type ElkNodeData = {
     label: string;

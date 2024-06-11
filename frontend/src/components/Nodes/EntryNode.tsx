@@ -30,7 +30,7 @@ import {
     setTaskArray,
 } from 'utils/reducers/runStateSlice';
 import { useWebSocketConnection } from 'utils/useWebSocketConnection';
-import CustomHandle from '../Handles/CustomHandle';
+import CustomHandle from 'components/Handles/CustomHandle';
 
 function createAllowedTypesString(allowedTypes: string[]) {
     return allowedTypes.join(', ');

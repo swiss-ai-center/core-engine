@@ -19,7 +19,7 @@ import { useSelector } from 'react-redux';
 import { toast } from "react-toastify";
 import { Position, useUpdateNodeInternals } from "reactflow";
 import { positionHandle } from "utils/functions";
-import CustomHandle from "../Handles/CustomHandle";
+import CustomHandle from "components/Handles/CustomHandle";
 
 
 const EntryNodeEdit: React.FC<{ id: string, data: any }> = (

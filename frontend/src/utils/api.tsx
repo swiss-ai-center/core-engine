@@ -1,4 +1,4 @@
-import { FieldDescriptionWithSetAndValue } from '../models/ExecutionUnit';
+import { FieldDescriptionWithSetAndValue } from 'models/ExecutionUnit';
 
 // Allow all origins
 const HEADERS = {

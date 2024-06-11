@@ -6,9 +6,9 @@ import React from "react";
 import { useSelector } from 'react-redux';
 import { NodeProps, Position } from "reactflow";
 import { displayTimer, download, positionHandle } from 'utils/functions';
-import "../Board/styles.css";
+import "components/Board/styles.css";
 import { RunState } from 'utils/reducers/runStateSlice';
-import CustomHandle from '../Handles/CustomHandle';
+import CustomHandle from 'components/Handles/CustomHandle';
 
 
 const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
