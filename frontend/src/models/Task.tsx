@@ -1,6 +1,6 @@
 import { RunState } from '../utils/reducers/runStateSlice';
-import { Service } from './Service';
 import { PipelineExecution } from './PipelineExecution';
+import { Service } from './Service';
 
 export class Task {
     id: string;

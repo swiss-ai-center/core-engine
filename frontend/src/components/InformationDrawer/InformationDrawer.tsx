@@ -1,27 +1,27 @@
+import { ExpandMore, Psychology } from '@mui/icons-material';
 import {
-    Box,
-    Drawer,
-    Toolbar,
-    Typography,
-    Grid,
-    Tooltip,
-    Chip,
+    AccordionDetails,
     AccordionSummary,
-    AccordionDetails
+    Box,
+    Chip,
+    Drawer,
+    Grid,
+    Toolbar,
+    Tooltip,
+    Typography
 } from '@mui/material';
-import React from 'react';
-import { Tags } from '../../enums/tagEnums';
-import { Psychology, ExpandMore } from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
 import MuiAccordion, { AccordionProps } from '@mui/material/Accordion';
-import { useSelector } from 'react-redux';
-import { isSmartphone } from '../../utils/functions';
+import { grey } from '@mui/material/colors';
+import { styled } from '@mui/material/styles';
+import { Tags } from 'enums/tagEnums';
+import React from 'react';
 import Markdown, { defaultUrlTransform } from 'react-markdown';
+import { useSelector } from 'react-redux';
 import rehypeKatex from 'rehype-katex'
 import remarkMath from 'remark-math'
 import 'katex/dist/katex.min.css'
 import './styles.css';
-import { grey } from '@mui/material/colors';
+import { isSmartphone } from 'utils/functions';
 
 const drawerWidth = isSmartphone() ? '100%' : 500;
 

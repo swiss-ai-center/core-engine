@@ -1,8 +1,8 @@
-import { Handle, HandleType, Position } from 'reactflow';
 import { Tooltip } from '@mui/material';
 import React from 'react';
 import './styles.css';
 import { useSelector } from 'react-redux';
+import { Handle, HandleType, Position } from 'reactflow';
 
 const CustomHandle: React.FC<{ id: string, type: HandleType, position: Position, label: string, style: any }> = (
     {

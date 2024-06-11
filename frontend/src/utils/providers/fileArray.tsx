@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react";
+import { FieldDescriptionWithSetAndValue } from 'models/ExecutionUnit';
+import React, { useMemo, useState } from "react";
 import { FileArrayContext } from "../contexts/fileArray";
-import { FieldDescriptionWithSetAndValue } from '../../models/ExecutionUnit';
 
 export const FileArrayProvider = ({children}: any) => {
     const [fileArray, setFileArray] = useState<FieldDescriptionWithSetAndValue[]>([]);

@@ -1,12 +1,12 @@
-import {Button, Typography} from "@mui/material";
-import {Link} from "react-router-dom";
-import React from "react";
-import {Tag} from "../../models/Tag";
-import CardBase from "./CardBase";
+import { Button, Typography } from '@mui/material';
+import CardBase from 'components/Cards/CardBase';
+import { Tag } from 'models/Tag';
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 const PipelineCard: React.FC<{
-    index: number, item: any, tags: Tag[], handleTags: any, searchParams: URLSearchParams
-}> = ({index, item, tags, handleTags, searchParams}) => {
+    item: any, tags: Tag[], handleTags: any, searchParams: URLSearchParams
+}> = ({item, tags, handleTags, searchParams}) => {
 
     const cardActions = () =>
         <>
@@ -31,7 +31,7 @@ const PipelineCard: React.FC<{
         </Typography>
 
     return (
-        <CardBase index={index} item={item} tags={tags} handleTags={handleTags} cardActions={cardActions()}
+        <CardBase item={item} tags={tags} handleTags={handleTags} cardActions={cardActions()}
                   cardName={cardName()} summary={summary()}></CardBase>
     );
 }

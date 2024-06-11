@@ -1,24 +1,17 @@
+import { ApiRounded, ArrowBack, ArrowUpward, DescriptionTwoTone } from '@mui/icons-material';
+import { Box, Button, CircularProgress, Container, Grid, Link as URLLink, Toolbar, } from '@mui/material';
+import Board from 'components/Board/Board';
+import Copyright from 'components/Copyright/Copyright';
+import { InformationDrawer } from 'components/InformationDrawer/InformationDrawer';
 import React from 'react';
-import {
-    Box,
-    Button,
-    Container,
-    CircularProgress,
-    Toolbar,
-    Link as URLLink, Grid,
-} from '@mui/material';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import Board from '../../components/Board/Board';
-import { getPipelineDescription, getServiceDescription, getServiceDescriptionById } from '../../utils/api';
-import { DescriptionTwoTone, ApiRounded, ArrowBack, ArrowUpward } from '@mui/icons-material';
-import Copyright from '../../components/Copyright/Copyright';
-import { InformationDrawer } from '../../components/InformationDrawer/InformationDrawer';
-import { toast } from 'react-toastify';
-import ScrollToTop from 'react-scroll-to-top';
 import { useDispatch, useSelector } from 'react-redux';
-import { isSmartphone } from '../../utils/functions';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import ScrollToTop from 'react-scroll-to-top';
+import { toast } from 'react-toastify';
 import { ReactFlowProvider } from 'reactflow';
-import { setMenuIcon } from '../../utils/reducers/menuIconSlice';
+import { getPipelineDescription, getServiceDescription, getServiceDescriptionById } from 'utils/api';
+import { isSmartphone } from 'utils/functions';
+import { setMenuIcon } from 'utils/reducers/menuIconSlice';
 
 
 const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {

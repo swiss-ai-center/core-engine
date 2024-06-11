@@ -1,24 +1,22 @@
-import React, { useCallback } from 'react';
 import {
-    AppBar, Toolbar, Link, Grid, IconButton, Tooltip, PaletteMode
-} from '@mui/material';
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Showcase from './pages/Showcase';
-import Home from './pages/Home';
-import Info from './pages/Info';
-import PipelineEditor from "./pages/PipelineEditor";
-import CssBaseline from '@mui/material/CssBaseline';
-import {
-    MenuRounded as MenuIcon,
-    MenuOpenRounded as CloseIcon,
-    LightModeTwoTone,
     DarkModeTwoTone,
+    LightModeTwoTone,
+    MenuOpenRounded as CloseIcon,
+    MenuRounded as MenuIcon,
     QueryStatsTwoTone
 } from '@mui/icons-material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { EngineStats } from './components/EngineStats/EngineStats';
+import { AppBar, Grid, IconButton, Link, PaletteMode, Toolbar, Tooltip } from '@mui/material';
 import { grey } from '@mui/material/colors';
+import CssBaseline from '@mui/material/CssBaseline';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import Home from 'pages/Home';
+import Info from 'pages/Info';
+import PipelineEditor from "pages/PipelineEditor";
+import Showcase from 'pages/Showcase';
+import React, { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { EngineStats } from './components/EngineStats/EngineStats';
 import { toggleColorMode } from './utils/reducers/colorModeSlice';
 import "typeface-inter";
 

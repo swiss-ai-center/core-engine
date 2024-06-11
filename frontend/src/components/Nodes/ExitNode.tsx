@@ -1,16 +1,12 @@
-import React from "react";
-import { NodeProps, Position } from "reactflow";
-import {
-    Button, Card, CardActions, CardContent, Tooltip, Typography
-} from '@mui/material';
 import { DownloadForOfflineTwoTone } from '@mui/icons-material';
-import {
-    RunState,
-} from '../../utils/reducers/runStateSlice';
-import { useSelector } from 'react-redux';
+import { Button, Card, CardActions, CardContent, Tooltip, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import { download, positionHandle } from '../../utils/functions';
-import { ExitNodeData } from '../../models/NodeData';
+import { ExitNodeData } from 'models/NodeData';
+import React from "react";
+import { useSelector } from 'react-redux';
+import { NodeProps, Position } from "reactflow";
+import { download, positionHandle } from 'utils/functions';
+import { RunState, } from 'utils/reducers/runStateSlice';
 import CustomHandle from '../Handles/CustomHandle';
 
 

@@ -1,18 +1,17 @@
-import Grid from "@mui/material/Unstable_Grid2";
-import {Card, CardActions, CardContent, Chip, Tooltip} from "@mui/material";
-import {Tags} from "../../enums/tagEnums";
-import React, {ReactNode} from "react";
-import {Tag} from "../../models/Tag";
+import { Card, CardActions, CardContent, Chip, Tooltip } from '@mui/material';
+import Grid from '@mui/material/Grid';
+import { Tags } from 'enums/tagEnums';
+import { Tag } from 'models/Tag';
+import React, { ReactNode } from 'react';
 
 const CardBase: React.FC<{
-    index: number,
     item: any,
     tags: Tag[],
     handleTags: any,
     cardActions: ReactNode,
     cardName: ReactNode,
     summary: ReactNode
-}> = ({index, item, tags, handleTags, cardActions, cardName, summary}) => {
+}> = ({item, tags, handleTags, cardActions, cardName, summary}) => {
 
 
     return (
@@ -22,10 +21,10 @@ const CardBase: React.FC<{
         >
             <CardContent sx={{flexGrow: 1}}>
                 {cardName}
-                <Grid container spacing={1} sx={{p: 0, mb: 2}}>
+                <Grid container spacing={1} sx={{mb: 2}}>
                     {item.tags ? item.tags.map((tag: any, index: number) => {
                         return (
-                            <Grid key={`pipeline-tag-${index}`}>
+                            <Grid key={`pipeline-tag-${index}`} item>
                                 <Tooltip title={tag.name}>
                                     <Chip
                                         className={"acronym-chip"}

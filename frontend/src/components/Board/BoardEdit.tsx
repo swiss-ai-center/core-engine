@@ -1,14 +1,12 @@
+import EditEdge from 'components/Edges/EdgeEdit';
+import EntryNodeEdit from 'components/Nodes/EntryNodeEdit';
+import ExitNodeEdit from 'components/Nodes/ExitNodeEdit'
+import StepNodeEdit from 'components/Nodes/StepNodeEdit';
 import React from 'react';
-import ReactFlow, {
-    Background, Controls,
-} from 'reactflow';
 import { useSelector } from 'react-redux';
-import "./styles.css";
+import 'components/Board/styles.css';
 import 'reactflow/dist/style.css';
-import EntryNodeEdit from '../Nodes/EntryNodeEdit';
-import StepNodeEdit from '../Nodes/StepNodeEdit';
-import ExitNodeEdit from '../Nodes/ExitNodeEdit'
-import EditEdge from '../Edges/EdgeEdit';
+import ReactFlow, { Background, Controls, } from 'reactflow';
 
 const BoardEdit: React.FC<{
     nodes: any,
@@ -50,7 +48,7 @@ const BoardEdit: React.FC<{
                 borderRadius: 3,
             }}
         >
-            <Background />
+            <Background/>
             <Controls/>
         </ReactFlow>
     );

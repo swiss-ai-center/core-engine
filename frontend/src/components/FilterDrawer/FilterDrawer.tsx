@@ -1,4 +1,11 @@
 import {
+    ApiRounded,
+    CheckBox as CheckBoxIcon,
+    CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
+    Clear as ClearIcon,
+    Psychology,
+} from '@mui/icons-material';
+import {
     Autocomplete,
     Box,
     Button,
@@ -18,16 +25,10 @@ import {
     Toolbar,
     Typography,
 } from '@mui/material';
+import { TagObjects } from 'enums/tagEnums';
+import { Tag } from 'models/Tag';
 import React from 'react';
-import {
-    ApiRounded,
-    CheckBox as CheckBoxIcon,
-    CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
-    Clear as ClearIcon, Psychology,
-} from '@mui/icons-material';
-import { TagObjects } from '../../enums/tagEnums';
-import { Tag } from '../../models/Tag';
-import { isSmartphone } from '../../utils/functions';
+import { isSmartphone } from 'utils/functions';
 
 const icon = <CheckBoxOutlineBlankIcon fontSize={"small"}/>;
 const checkedIcon = <CheckBoxIcon fontSize={"small"}/>;

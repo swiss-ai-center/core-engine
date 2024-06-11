@@ -1,8 +1,8 @@
-import { FieldDescription } from '../../models/ExecutionUnit';
-import { Service } from '../../models/Service';
-import { Pipeline } from '../../models/Pipeline';
-import { Edge } from 'reactflow';
 import { ElkNode } from 'elkjs';
+import { FieldDescription } from 'models/ExecutionUnit';
+import { Pipeline } from 'models/Pipeline';
+import { Service } from 'models/Service';
+import { Edge } from 'reactflow';
 
 const nodeWidth = 250;
 const nodeHeight = 200;

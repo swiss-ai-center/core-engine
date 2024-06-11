@@ -1,21 +1,15 @@
-import React from 'react';
-import {
-    BaseEdge,
-    EdgeLabelRenderer,
-    EdgeProps,
-    getBezierPath,
-} from 'reactflow';
-
-import { Add, CancelRounded as CloseIcon } from "@mui/icons-material";
-import { Box, Fab, IconButton, Paper, TextField, Tooltip, Typography } from "@mui/material";
+import { Add, CancelRounded as CloseIcon } from '@mui/icons-material';
+import { Box, Fab, IconButton, Paper, TextField, Tooltip, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
+import React from 'react';
 import { useSelector } from 'react-redux';
+import { BaseEdge, EdgeLabelRenderer, EdgeProps, getBezierPath, } from 'reactflow';
 
 
 export default function EdgeEdit({
-                                       id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data,
-                                       style = {}, markerEnd,
-                                   }: EdgeProps) {
+                                     id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data,
+                                     style = {}, markerEnd,
+                                 }: EdgeProps) {
     const [edgePath, labelX, labelY] = getBezierPath({
         sourceX,
         sourceY,

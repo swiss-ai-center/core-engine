@@ -1,5 +1,5 @@
-import { Task } from './Task';
 import { Pipeline } from './Pipeline';
+import { Task } from './Task';
 
 export class PipelineExecution {
     id: string;

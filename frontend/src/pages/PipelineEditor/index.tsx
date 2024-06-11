@@ -1,16 +1,27 @@
-import ItemGrid from "../../components/ItemGrid/ItemGrid";
+import { ArrowBack, ArrowUpward, DescriptionTwoTone } from "@mui/icons-material";
 import {
     Box,
     Button,
     Container,
+    Grid,
+    Link as URLLink,
     SelectChangeEvent,
     TextField,
     Toolbar,
-    Typography,
-    Grid, Link as URLLink
+    Typography
 } from "@mui/material";
-import { Tag } from "../../models/Tag";
+import BoardEdit from 'components/Board/BoardEdit';
+import PipelineEditorServiceCard from "components/Cards/PipelineEditorServiceCard";
+import Copyright from 'components/Copyright/Copyright';
+import { FilterDrawer } from "components/FilterDrawer/FilterDrawer";
+import ItemGrid from "components/ItemGrid/ItemGrid";
+import { FieldDescription } from "models/ExecutionUnit";
+import { Tag } from "models/Tag";
+import React from "react";
+import { useSelector } from "react-redux";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import ScrollToTop from "react-scroll-to-top";
+import { toast } from "react-toastify";
 import {
     addEdge,
     Connection,
@@ -21,25 +32,9 @@ import {
     useEdgesState,
     useNodesState,
 } from "reactflow";
-import { ArrowBack, ArrowUpward, DescriptionTwoTone } from "@mui/icons-material";
-import ScrollToTop from "react-scroll-to-top";
-import { useSelector } from "react-redux";
-import { FieldDescription } from "../../models/ExecutionUnit";
-import {
-    handleAIToggle,
-    handleNoFilter,
-    handleOrder,
-    handleSearch,
-    handleTags, isSmartphone
-} from "../../utils/functions";
-import React from "react";
-import { toast } from "react-toastify";
-import { FilterDrawer } from "../../components/FilterDrawer/FilterDrawer";
-import PipelineEditorServiceCard from "../../components/Cards/PipelineEditorServiceCard";
-import { checkPipelineValidity, createPipeline } from "../../utils/api";
-import Copyright from '../../components/Copyright/Copyright';
-import { PerPage } from '../../utils/reducers/perPageSlice';
-import BoardEdit from '../../components/Board/BoardEdit';
+import { checkPipelineValidity, createPipeline } from "utils/api";
+import { handleAIToggle, handleNoFilter, handleOrder, handleSearch, handleTags, isSmartphone } from "utils/functions";
+import { PerPage } from 'utils/reducers/perPageSlice';
 
 
 const entryNodeMinWidth = 400;
@@ -71,9 +66,6 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     const [searchParams] = useSearchParams();
     const history = window.history;
 
-    // TODO - explain why this is necessary. There really should be a better way to do this.
-    // TODO - This involves putting nodes and edges as dependencies of a UseEffect hook which is a bad idea
-    // TODO - since it will be executed for every single movement of a node in the chart.
     const nodesRef = React.useRef(nodes)
     const setNodesRef = React.useRef(setNodes)
     const edgesRef = React.useRef(edges)
@@ -172,9 +164,16 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             }
             const allowedTypes: string[] = targetNode.data.dataIn[dataInIndex].type;
             let compatible = false;
-            dataTypes.forEach((type: string) => {
-                if (allowedTypes.includes(type)) compatible = true;
-            })
+            // Check if the source data type is compatible with the target data type
+            // by checking if the source data type is a subset of the target data type
+            // and has not an extra type not present in the target data type
+            for (let i = 0; i < dataTypes.length; i++) {
+                if (!allowedTypes.includes(dataTypes[i])) {
+                    compatible = false;
+                    break;
+                }
+                compatible = true;
+            }
 
             if (!compatible) {
                 toast("Incompatible types", {type: "warning"});
@@ -413,12 +412,11 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
         try {
             const json = getJSONRepresentation();
-            console.log(json);
 
             const answer = await checkPipelineValidity(json);
 
             if (answer && answer?.valid) {
-                toast("Pipeline is valid", {type: "info"});
+                toast("Pipeline is valid", {type: "success"});
                 return true;
             } else {
                 toast(`Invalid: ${answer?.errorBody}`, {type: "warning"});
@@ -506,6 +504,22 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         })
     }
 
+    const itemGrid = () => {
+        return(
+            <ItemGrid filter={search} orderBy={orderBy} tags={tags} ai={ai}
+                      itemFunctions={{addService: addServiceNode}}
+                      items={{service: PipelineEditorServiceCard}}
+                      handleTags={(event: SelectChangeEvent, newValue: Tag[]) =>
+                          handleTags(event, newValue, setTags, searchParams, history, handleNoFilterWrapper)}
+
+                      handleAIToggle={(event: React.ChangeEvent<HTMLInputElement>) =>
+                          handleAIToggle(event, setAI, searchParams, history, handleNoFilterWrapper)}
+                      paginationPositions={["top"]} paginationOptions={[PerPage['4']]}
+            />);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const MemoizedItemGrid = React.useMemo(() => itemGrid(), [search, orderBy, tags, ai]);
+
     React.useEffect(() => {
         const onAddEntryInput = (defaultName: string) => {
             const entryNode = nodesRef.current.find((node) => node.type === "entryNodeEdit")
@@ -529,6 +543,15 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         const onSelectEntryInput = (inputIndex: number, type: string[]) => {
             const entryNode = nodesRef.current.find((node) => node.type === "entryNodeEdit")
             if (entryNode === undefined) return;
+
+            // remove edges that are connected to the input
+            const inputName = entryNode.data.dataIn[inputIndex].name;
+            const edgesToRemove = edgesRef.current.filter((edge) => edge.sourceHandle === inputName)
+            onEdgeDelete(edgesToRemove);
+
+            // update edges refs to remove the edges
+            setEdgesRef.current((edges) => edges.filter((edge) => !edgesToRemove.includes(edge)))
+
             const dataIn = [...entryNode.data.dataIn];
             dataIn[inputIndex].type = type;
             setNodeDataIn(entryNode, dataIn);
@@ -644,16 +667,7 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                     </Grid>
                 </Container>
                 <Container maxWidth={false} sx={{mb: 3}}>
-                    <ItemGrid filter={search} orderBy={orderBy} tags={tags} ai={ai}
-                              itemFunctions={{addService: addServiceNode}}
-                              items={{service: PipelineEditorServiceCard}}
-                              handleTags={(event: SelectChangeEvent, newValue: Tag[]) =>
-                                  handleTags(event, newValue, setTags, searchParams, history, handleNoFilterWrapper)}
-
-                              handleAIToggle={(event: React.ChangeEvent<HTMLInputElement>) =>
-                                  handleAIToggle(event, setAI, searchParams, history, handleNoFilterWrapper)}
-                              paginationPositions={["top"]} paginationOptions={[PerPage['4']]}
-                    />
+                    {MemoizedItemGrid}
                 </Container>
                 <Container maxWidth={false}>
                     <Box sx={{

@@ -1,4 +1,3 @@
-import React, { ReactNode } from 'react';
 import {
     Box,
     Button,
@@ -12,15 +11,16 @@ import {
     Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { getPipelines, getServices } from '../../utils/api';
+import { Tag } from 'models/Tag';
+import React, { ReactNode } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import "./styles.css";
-import { Tag } from '../../models/Tag';
-import { useDispatch, useSelector } from 'react-redux';
-import { setServicePerPage, setPipelinePerPage } from '../../utils/reducers/perPageSlice';
 import { toast } from 'react-toastify';
+import { getPipelines, getServices } from 'utils/api';
+import { isSmartphone } from 'utils/functions';
+import { setPipelinePerPage, setServicePerPage } from 'utils/reducers/perPageSlice';
 import LoadingGrid from '../LoadingGrid/LoadingGrid';
-import { isSmartphone } from '../../utils/functions';
 
 // min width is 100% for mobile, 50% for tablet, 33% for desktop
 const minWidth = isSmartphone() ? '100%' : (window.innerWidth < 900) ? '50%' : '33%';

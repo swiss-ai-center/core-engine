@@ -1,32 +1,34 @@
-import React from 'react';
 import {
-    Box,
-    Container,
-    Toolbar,
-    Grid,
-    Typography,
-    Card,
-    CardContent,
-    Divider,
-    Stack,
-    styled,
-    Paper,
-    Link as URLLink, Button, CardHeader,
-} from '@mui/material';
-import {
+    AllInclusiveTwoTone,
+    ArrowForward,
     ArrowUpward,
-    PublicTwoTone,
     DescriptionTwoTone,
     GitHub,
-    AllInclusiveTwoTone,
-    ArrowForward
+    PublicTwoTone
 } from '@mui/icons-material';
-import Copyright from '../../components/Copyright/Copyright';
-import ScrollToTop from 'react-scroll-to-top';
+import {
+    Box,
+    Button,
+    Card,
+    CardContent,
+    CardHeader,
+    Container,
+    Divider,
+    Grid,
+    Link as URLLink,
+    Paper,
+    Stack,
+    styled,
+    Toolbar,
+    Typography,
+} from '@mui/material';
+import Copyright from 'components/Copyright/Copyright';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { isSmartphone } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom';
-import { setMenuIcon } from '../../utils/reducers/menuIconSlice';
+import ScrollToTop from 'react-scroll-to-top';
+import { isSmartphone } from 'utils/functions';
+import { setMenuIcon } from 'utils/reducers/menuIconSlice';
 
 const Item = styled(Paper)(({theme}) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',

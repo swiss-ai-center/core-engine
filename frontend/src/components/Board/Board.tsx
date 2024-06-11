@@ -1,38 +1,31 @@
-import React from 'react';
-import ReactFlow, {
-    Background,
-    Controls,
-    useNodesState,
-    useEdgesState,
-    useReactFlow,
-    Edge,
-} from 'reactflow';
-import EntryNode from '../Nodes/EntryNode';
-import ExitNode from '../Nodes/ExitNode';
-import StepNode from '../Nodes/StepNode';
-import { useDispatch, useSelector } from 'react-redux';
+import { Box, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import DrawGraph from './DrawGraph';
-import { Service } from '../../models/Service';
-import { Pipeline } from '../../models/Pipeline';
-import { useWebSocketConnection } from '../../utils/useWebSocketConnection';
+import DrawGraph from 'components/Board/DrawGraph';
+import EntryNode from 'components/Nodes/EntryNode';
+import ExitNode from 'components/Nodes/ExitNode';
+import StepNode from 'components/Nodes/StepNode';
+import ELK from 'elkjs/lib/elk.bundled';
+import 'components/Board/styles.css';
+import { ConnectionData } from 'models/ConnectionData';
+import { Message, MessageSubject } from 'models/Message';
+import { ElkNode, EntryNodeData, ExitNodeData, ProgressNodeData } from 'models/NodeData';
+import { Pipeline } from 'models/Pipeline';
+import { Service } from 'models/Service';
+import { Task } from 'models/Task';
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { Message, MessageSubject } from '../../models/Message';
+import ReactFlow, { Background, Controls, Edge, useEdgesState, useNodesState, useReactFlow, } from 'reactflow';
+import { displayTimer } from 'utils/functions';
 import {
-    RunState,
     incrementTimer,
+    RunState,
     setCurrentTask,
     setGeneralStatus,
     setResultIdList,
     setTaskArray
-} from '../../utils/reducers/runStateSlice';
-import { Task } from '../../models/Task';
-import { ConnectionData } from '../../models/ConnectionData';
-import { Box, Typography } from '@mui/material';
-import { displayTimer } from '../../utils/functions';
-import { ElkNode, EntryNodeData, ExitNodeData, ProgressNodeData } from '../../models/NodeData';
-import ELK from 'elkjs/lib/elk.bundled';
-import "./styles.css";
+} from 'utils/reducers/runStateSlice';
+import { useWebSocketConnection } from 'utils/useWebSocketConnection';
 import 'reactflow/dist/style.css';
 
 const layoutOptions = {

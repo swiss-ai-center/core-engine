@@ -1,23 +1,25 @@
-import React from "react";
-import { Position, useUpdateNodeInternals } from "reactflow";
+import { Add, Close as CloseIcon } from '@mui/icons-material';
 import {
     Autocomplete,
     Card,
     CardActions,
     CardContent,
-    Fab, Grid,
+    Fab,
+    Grid,
     IconButton,
-    TextField, Tooltip,
+    TextField,
+    Tooltip,
     Typography
 } from '@mui/material';
-import { Add, Close as CloseIcon } from '@mui/icons-material';
-import { useSelector } from 'react-redux';
 import { grey } from '@mui/material/colors';
-import { dataTypeOptions } from "../../enums/dataTypeEnum";
-import { FieldDescription } from "../../models/ExecutionUnit";
-import CustomHandle from "../Handles/CustomHandle";
-import { positionHandle } from "../../utils/functions";
+import { dataTypeOptions } from "enums/dataTypeEnum";
+import { FieldDescription } from "models/ExecutionUnit";
+import React from "react";
+import { useSelector } from 'react-redux';
 import { toast } from "react-toastify";
+import { Position, useUpdateNodeInternals } from "reactflow";
+import { positionHandle } from "utils/functions";
+import CustomHandle from "../Handles/CustomHandle";
 
 
 const EntryNodeEdit: React.FC<{ id: string, data: any }> = (

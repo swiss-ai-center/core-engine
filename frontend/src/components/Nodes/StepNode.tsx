@@ -1,13 +1,13 @@
-import React from "react";
-import { NodeProps, Position } from "reactflow";
-import { Box, Button, Card, CardActions, CardContent, Link as URLLink, Tooltip, Typography } from '@mui/material';
 import { DownloadForOfflineTwoTone, ErrorTwoTone } from '@mui/icons-material';
-import { RunState } from '../../utils/reducers/runStateSlice';
-import { useSelector } from 'react-redux';
+import { Box, Button, Card, CardActions, CardContent, Link as URLLink, Tooltip, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import { displayTimer, download, positionHandle } from '../../utils/functions';
+import { ProgressNodeData } from 'models/NodeData';
+import React from "react";
+import { useSelector } from 'react-redux';
+import { NodeProps, Position } from "reactflow";
+import { displayTimer, download, positionHandle } from 'utils/functions';
 import "../Board/styles.css";
-import { ProgressNodeData } from '../../models/NodeData';
+import { RunState } from 'utils/reducers/runStateSlice';
 import CustomHandle from '../Handles/CustomHandle';
 
 

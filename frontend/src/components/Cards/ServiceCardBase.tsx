@@ -1,13 +1,13 @@
-import Grid from "@mui/material/Unstable_Grid2";
-import {Tooltip, Typography} from "@mui/material";
-import {Psychology} from "@mui/icons-material";
-import React, {ReactNode} from "react";
-import {Tag} from "../../models/Tag";
-import CardBase from "./CardBase";
+import { Psychology } from '@mui/icons-material';
+import { Tooltip, Typography } from '@mui/material';
+import Grid from '@mui/material/Unstable_Grid2';
+import { Tag } from 'models/Tag';
+import React, { ReactNode } from 'react';
+import CardBase from './CardBase';
 
 const ServiceCardBase: React.FC<{
-    index: number, item: any, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any, children: ReactNode
-}> = ({index, item, tags, handleTags, ai, handleAIToggle, children}) => {
+    item: any, tags: Tag[], handleTags: any, handleAIToggle: any, children: ReactNode
+}> = ({item, tags, handleTags, handleAIToggle, children}) => {
 
 
     const cardName = () =>
@@ -50,7 +50,7 @@ const ServiceCardBase: React.FC<{
         </Typography>
 
     return (
-        <CardBase index={index} item={item} tags={tags} handleTags={handleTags} cardActions={children}
+        <CardBase item={item} tags={tags} handleTags={handleTags} cardActions={children}
                   cardName={cardName()} summary={summary()}></CardBase>
     );
 }
