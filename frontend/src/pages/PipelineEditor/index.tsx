@@ -744,7 +744,8 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                                 onClick={() => setJsonModalOpen(true)} disableElevation={true}>
                             Show JSON
                         </Button>
-                        <Button sx={{mr: 2}} variant={"contained"} onClick={checkPipeline} disableElevation={true}>
+                        <Button sx={{mr: 2}} color={"secondary"} variant={"contained"} onClick={checkPipeline}
+                                disableElevation={true}>
                             Check Validity
                         </Button>
                         <Button variant={"contained"} onClick={postPipeline} disableElevation={true}>

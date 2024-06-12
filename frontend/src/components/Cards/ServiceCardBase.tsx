@@ -1,6 +1,5 @@
 import { Psychology } from '@mui/icons-material';
-import { Tooltip, Typography } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import { Tooltip, Typography, Grid } from '@mui/material';
 import { Tag } from 'models/Tag';
 import React, { ReactNode } from 'react';
 import CardBase from 'components/Cards/CardBase';

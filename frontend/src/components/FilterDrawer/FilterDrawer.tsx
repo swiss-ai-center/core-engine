@@ -32,7 +32,7 @@ import { isSmartphone } from 'utils/functions';
 
 const icon = <CheckBoxOutlineBlankIcon fontSize={"small"}/>;
 const checkedIcon = <CheckBoxIcon fontSize={"small"}/>;
-const drawerWidth = isSmartphone() ? '100%' : 500;
+const drawerWidth = isSmartphone() ? '100%' : 400;
 
 export const FilterDrawer: React.FC<{
     mobileOpen: boolean,

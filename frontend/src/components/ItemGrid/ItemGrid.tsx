@@ -9,8 +9,8 @@ import {
     Pagination,
     Select,
     Typography,
+    Grid
 } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
 import { Tag } from 'models/Tag';
 import React, { ReactNode } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -23,10 +23,12 @@ import { setPipelinePerPage, setServicePerPage } from 'utils/reducers/perPageSli
 import LoadingGrid from 'components/LoadingGrid/LoadingGrid';
 
 // min width is 100% for mobile, 50% for tablet, 33% for desktop
-const minWidth = isSmartphone() ? '100%' : (window.innerWidth < 900) ? '50%' : '33%';
+const minWidth = isSmartphone() ? '100%' : (window.innerWidth < 900) ? '82%' : '66%';
 
 // align center for mobile, left for tablet and desktop
 const align = isSmartphone() ? 'center' : 'left';
+
+const distance = isSmartphone() ? 2 : 3;
 
 const ItemGrid: React.FC<{
     filter: string, orderBy: string, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any,
@@ -72,8 +74,8 @@ const ItemGrid: React.FC<{
 
     const servicePagination = () => {
         return (
-            <Grid container sx={{py: 1}} spacing={4} alignItems={"center"} justifyContent={"center"}>
-                <Grid xs={12} md={6} lg={4} alignItems={"left"} justifyContent={"left"}>
+            <Grid container sx={{py: distance}} spacing={4} alignItems={"center"} justifyContent={"center"}>
+                <Grid xs={12} sm={9} alignItems={"left"} justifyContent={"left"} item>
                     <Box sx={{display: 'flex', alignItems: align, justifyContent: align}}>
                         <Pagination
                             page={pageService}
@@ -85,10 +87,11 @@ const ItemGrid: React.FC<{
                             count={Math.ceil(serviceCount / servicesPerPage) || 1}
                             shape={"rounded"}
                             disabled={!isReady || services.length <= 0}
+                            siblingCount={0}
                         />
                     </Box>
                 </Grid>
-                <Grid xs={12} md={6} lg={4} mdOffset={"auto"} alignItems={"right"} justifyContent={"right"}>
+                <Grid xs={12} sm={3} alignItems={"right"} justifyContent={"right"} item>
                     <Box sx={{display: 'flex', alignItems: 'right', justifyContent: 'right'}}>
                         <FormControl sx={{minWidth: minWidth}}>
                             <InputLabel id={"services-per-page-label"} htmlFor={"services-per-page"}>Per
@@ -118,8 +121,8 @@ const ItemGrid: React.FC<{
 
     const pipelinePagination = () => {
         return (
-            <Grid container sx={{py: 1}} spacing={4} alignItems={"center"} justifyContent={"center"}>
-                <Grid xs={12} md={6} lg={4} alignItems={"left"} justifyContent={"left"}>
+            <Grid container sx={{py: distance}} spacing={4} alignItems={"center"} justifyContent={"center"}>
+                <Grid xs={12} sm={9} alignItems={"left"} justifyContent={"left"} item>
                     <Box sx={{display: 'flex', alignItems: align, justifyContent: align}}>
                         <Pagination
                             page={pagePipeline}
@@ -131,10 +134,11 @@ const ItemGrid: React.FC<{
                             count={Math.ceil(pipelineCount / pipelinesPerPage) || 1}
                             shape={"rounded"}
                             disabled={!isReady || pipelines.length <= 0}
+                            siblingCount={0}
                         />
                     </Box>
                 </Grid>
-                <Grid xs={12} md={6} lg={4} mdOffset={"auto"} alignItems={"right"} justifyContent={"right"}>
+                <Grid xs={12} sm={3} alignItems={"right"} justifyContent={"right"} item>
                     <Box sx={{display: 'flex', alignItems: 'right', justifyContent: 'right'}}>
                         <FormControl sx={{minWidth: minWidth}}>
                             <InputLabel id={"pipelines-per-page-label"} htmlFor={"pipelines-per-page"}>Per
@@ -244,9 +248,9 @@ const ItemGrid: React.FC<{
     }, [filter, pageService, pagePipeline, orderBy, tags, ai, servicesPerPage, pipelinesPerPage, items]);
 
     return (
-        <>
+        <Box>
             {items?.service &&
-                <>
+                <Box>
                     <Typography gutterBottom variant={"h4"} component={"h2"}>
                         Services <Chip label={isReady ? serviceCount : 0} variant={"outlined"} color={"secondary"}
                                        size={"small"} style={{marginTop: "-2px"}}/>
@@ -255,9 +259,9 @@ const ItemGrid: React.FC<{
                     {!isReady ?
                         <LoadingGrid/>
                         :
-                        <Grid container spacing={isSmartphone() ? 2 : 3}>
+                        <Grid container spacing={distance} >
                             {services.length === 0 ? (
-                                <Grid xs={6} md={8}>
+                                <Grid xs={6} md={8} item>
                                     <Typography gutterBottom variant={"h6"} component={"h2"}>
                                         No service found
                                     </Typography>
@@ -265,7 +269,7 @@ const ItemGrid: React.FC<{
                             ) : (
                                 services.map((item: any, index: number) => {
                                     return (
-                                        <Grid xs={12} sm={6} lg={4} xl={3} key={index}
+                                        <Grid xs={12} sm={6} lg={4} xl={3} key={index} item
                                               sx={{height: 'auto', minHeight: '250px'}}>
                                             {serviceCard(item, index)}
                                         </Grid>
@@ -275,7 +279,7 @@ const ItemGrid: React.FC<{
                         </Grid>
                     }
                     {((isReady && services.length > 0) || !isReady) && paginationPositions.includes("bottom") ? servicePagination() : <></>}
-                </>
+                </Box>
             }
             {items?.service && items?.pipeline ?
                 <Divider sx={{mt: 2, mb: 2}}>
@@ -284,7 +288,7 @@ const ItemGrid: React.FC<{
                 : false
             }
             {items?.pipeline &&
-                <>
+                <Box>
                     <Box sx={{display: "flex", justifyContent: "space-between", alignItems: "center", mb: "5px"}}>
                         <Typography gutterBottom variant={"h4"} component={"h2"}>
                             Pipelines <Chip label={isReady ? pipelineCount : 0} variant={"outlined"} color={"secondary"}
@@ -304,9 +308,9 @@ const ItemGrid: React.FC<{
                     {!isReady ?
                         <LoadingGrid/>
                         :
-                        <Grid container spacing={isSmartphone() ? 2 : 3}>
+                        <Grid container spacing={distance}>
                             {pipelines.length === 0 ? (
-                                <Grid xs={6} md={8}>
+                                <Grid xs={6} md={8} item>
                                     <Typography gutterBottom variant={"h6"} component={"h2"}>
                                         No pipeline found
                                     </Typography>
@@ -315,7 +319,7 @@ const ItemGrid: React.FC<{
                                 pipelines.map((item: any, index: number) => {
                                     return (
 
-                                        <Grid xs={12} sm={6} lg={4} xl={3} key={index}
+                                        <Grid xs={12} sm={6} lg={4} xl={3} key={index} item
                                               sx={{height: 'auto', minHeight: '250px'}}>
                                             {pipelineCard(item, index)}
                                         </Grid>
@@ -324,10 +328,10 @@ const ItemGrid: React.FC<{
                         </Grid>
                     }
                     {((isReady && pipelines.length > 0) || !isReady) && paginationPositions.includes("bottom") ? pipelinePagination() : <></>}
-                </>
+                </Box>
             }
 
-        </>
+        </Box>
     );
 }
 
