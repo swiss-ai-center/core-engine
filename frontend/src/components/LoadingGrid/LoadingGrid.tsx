@@ -1,7 +1,7 @@
-import React from 'react';
-import { Skeleton, Card, CardContent, CardActions } from "@mui/material";
+import { Card, CardActions, CardContent, Skeleton } from "@mui/material";
 import Grid from '@mui/material/Unstable_Grid2';
-import { isSmartphone } from '../../utils/functions';
+import React from 'react';
+import { isSmartphone } from 'utils/functions';
 
 
 const LoadingGrid: React.FC = () => {

@@ -1,7 +1,7 @@
+import { AllInclusiveTwoTone, DescriptionTwoTone, GitHub, PublicTwoTone } from '@mui/icons-material';
 import { Grid, IconButton, Link, Tooltip, Typography } from '@mui/material';
 import React from 'react';
-import { AllInclusiveTwoTone, DescriptionTwoTone, GitHub, PublicTwoTone } from '@mui/icons-material';
-import { isSmartphone } from '../../utils/functions';
+import { isSmartphone } from 'utils/functions';
 
 const chooseJustify = (isMobile: boolean): string => {
     return isMobile ? "center" : "space-between";

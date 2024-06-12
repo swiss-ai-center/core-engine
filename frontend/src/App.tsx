@@ -1,24 +1,23 @@
-import React, { useCallback } from 'react';
 import {
-    AppBar, Toolbar, Link, Grid, IconButton, Tooltip, PaletteMode
-} from '@mui/material';
-import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
-import Showcase from './pages/Showcase';
-import Home from './pages/Home';
-import Info from './pages/Info';
-import CssBaseline from '@mui/material/CssBaseline';
-import {
-    MenuRounded as MenuIcon,
-    MenuOpenRounded as CloseIcon,
-    LightModeTwoTone,
     DarkModeTwoTone,
+    LightModeTwoTone,
+    MenuOpenRounded as CloseIcon,
+    MenuRounded as MenuIcon,
     QueryStatsTwoTone
 } from '@mui/icons-material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { EngineStats } from './components/EngineStats/EngineStats';
+import { AppBar, Grid, IconButton, Link, PaletteMode, Toolbar, Tooltip } from '@mui/material';
 import { grey } from '@mui/material/colors';
+import CssBaseline from '@mui/material/CssBaseline';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import Home from 'pages/Home';
+import Info from 'pages/Info';
+import PipelineEditor from "pages/PipelineEditor";
+import Showcase from 'pages/Showcase';
+import React, { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { toggleColorMode } from './utils/reducers/colorModeSlice';
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { EngineStats } from 'components/EngineStats/EngineStats';
+import { toggleColorMode } from 'utils/reducers/colorModeSlice';
 import "typeface-inter";
 
 
@@ -28,7 +27,7 @@ function App() {
     const colorMode = useSelector((state: any) => state.colorMode.value);
     const lightgrey = grey[300];
     const darkgrey = grey[900];
-    const [mobileOpen, setMobileOpen] = React.useState(false)
+    const [mobileOpen, setMobileOpen] = React.useState(false);
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
@@ -71,7 +70,21 @@ function App() {
         },
         typography: {
             fontFamily: ["Neue Haas Grotesk Display Pro, sans-serif", "Helvetica now, sans-serif"].join(','),
-        }
+        },
+        components: {
+            MuiFab: {
+                styleOverrides: {
+                    sizeSmall: {
+                        width: 24,
+                        height: 24,
+                        minHeight: 'unset',
+                        '& .MuiSvgIcon-root': {
+                            fontSize: 16,
+                        },
+                    },
+                },
+            },
+        },
     }), [darkgrey, lightgrey]);
 
     const theme = React.useMemo(
@@ -103,15 +116,15 @@ function App() {
             }}>
                 <Toolbar>
                     {menuIcon ?
-                    <IconButton
-                        color={"inherit"}
-                        aria-label={"open drawer"}
-                        edge={"start"}
-                        onClick={handleDrawerToggle}
-                        sx={{mr: 2, display: {md: 'none'}}}
-                    >
-                        {mobileOpen ? <CloseIcon/> : <MenuIcon/>}
-                    </IconButton> : <></>}
+                        <IconButton
+                            color={"inherit"}
+                            aria-label={"open drawer"}
+                            edge={"start"}
+                            onClick={handleDrawerToggle}
+                            sx={{mr: 2, display: {md: 'none'}}}
+                        >
+                            {mobileOpen ? <CloseIcon/> : <MenuIcon/>}
+                        </IconButton> : <></>}
                     <Grid container justifyContent={"space-between"} alignItems={"center"} sx={{height: "100%"}}>
                         <Grid item>
                             <Link color={"inherit"} href={"/"} underline={"none"}>
@@ -129,12 +142,12 @@ function App() {
                             </Tooltip>
                             {/* if page is Info, hide stats button */}
                             {window.location.pathname === "/" ? <></> :
-                            <Tooltip title={"Engine stats"}>
-                                <IconButton sx={{marginLeft: "auto"}} color={"inherit"} size={"large"}
-                                            onClick={() => handleOpenStats()}>
-                                    <QueryStatsTwoTone/>
-                                </IconButton>
-                            </Tooltip>}
+                                <Tooltip title={"Engine stats"}>
+                                    <IconButton sx={{marginLeft: "auto"}} color={"inherit"} size={"large"}
+                                                onClick={() => handleOpenStats()}>
+                                        <QueryStatsTwoTone/>
+                                    </IconButton>
+                                </Tooltip>}
                         </Grid>
                     </Grid>
                 </Toolbar>
@@ -146,9 +159,11 @@ function App() {
             <Router>
                 <Routes>
                     <Route path={"/showcase/:type/:slug"} element={<Showcase mobileOpen={mobileOpen}/>}/>
-                    <Route path={"/showcase"} element={<Info />}/>
+                    <Route path={"/showcase"} element={<Info/>}/>
                     <Route path={"/home"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
-                    <Route path={"*"} element={<Info />}/>
+                    <Route path={"*"} element={<Info/>}/>
+                    <Route path={"/pipeline-editor"}
+                           element={<PipelineEditor mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
                 </Routes>
             </Router>
             {/* End Main content */}

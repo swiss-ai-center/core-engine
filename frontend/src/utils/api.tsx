@@ -1,4 +1,4 @@
-import { FieldDescriptionWithSetAndValue } from '../models/ExecutionUnit';
+import { FieldDescriptionWithSetAndValue } from 'models/ExecutionUnit';
 
 // Allow all origins
 const HEADERS = {
@@ -95,6 +95,64 @@ export const getPipelines = async (filter: string, skip: number, limit: number, 
     } catch (error: any) {
         return {error: error.message};
     }
+}
+
+
+export const checkPipelineValidity = async (jsonDescription: string)=> {
+    /*
+     * Function used to check if a pipeline is valid (using a Json representation of said pipeline)
+     * jsonDescription: string - the pipeline's description, in json format.
+     */
+
+    const headers : any = HEADERS
+    headers['accept'] = 'application/json';
+    headers['Content-Type'] = 'application/json'
+
+    try {
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipeline/check/`, {
+            headers: headers,
+            method: 'POST',
+            body: jsonDescription
+            });
+        if (response.status === 200) {
+            return await response.json();
+        }
+        if (!response.ok) {
+            const errorBody = await response.text();
+            return {errorBody: errorBody};
+        }
+    } catch (error: any) {
+        return {error: error.message}
+    }
+
+}
+
+export const createPipeline = async (jsonDescription: string)=> {
+    /*
+     * Function used to check if a pipeline is valid (using a Json representation of said pipeline)
+     * jsonDescription: string - the pipeline's description, in json format.
+     */
+    const headers : any = HEADERS
+    headers['accept'] = 'application/json';
+    headers['Content-Type'] = 'application/json'
+
+    try {
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines`, {
+            headers: headers,
+            method: 'POST',
+            body: jsonDescription
+        });
+        if (response.status === 200) {
+            return await response.json();
+        }
+        if (!response.ok) {
+            const errorBody = await response.text();
+            return {errorBody: errorBody};
+        }
+    } catch (error: any) {
+        return {error: error.message}
+    }
+
 }
 
 export const getServiceDescriptionById = async (id: string) => {

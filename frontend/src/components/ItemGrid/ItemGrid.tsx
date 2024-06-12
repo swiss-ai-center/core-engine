@@ -1,10 +1,6 @@
-import React from 'react';
 import {
     Box,
     Button,
-    Card,
-    CardActions,
-    CardContent,
     Chip,
     Divider,
     FormControl,
@@ -12,21 +8,19 @@ import {
     MenuItem,
     Pagination,
     Select,
-    Tooltip,
     Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { getPipelines, getServices } from '../../utils/api';
-import { Link, useSearchParams } from 'react-router-dom';
-import "./styles.css";
-import { Tags } from '../../enums/tagEnums';
-import { Tag } from '../../models/Tag';
+import { Tag } from 'models/Tag';
+import React, { ReactNode } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setServicePerPage, setPipelinePerPage } from '../../utils/reducers/perPageSlice';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import "./styles.css";
 import { toast } from 'react-toastify';
-import LoadingGrid from '../LoadingGrid/LoadingGrid';
-import { Psychology } from '@mui/icons-material';
-import { isSmartphone } from '../../utils/functions';
+import { getPipelines, getServices } from 'utils/api';
+import { isSmartphone } from 'utils/functions';
+import { setPipelinePerPage, setServicePerPage } from 'utils/reducers/perPageSlice';
+import LoadingGrid from 'components/LoadingGrid/LoadingGrid';
 
 // min width is 100% for mobile, 50% for tablet, 33% for desktop
 const minWidth = isSmartphone() ? '100%' : (window.innerWidth < 900) ? '50%' : '33%';
@@ -35,8 +29,20 @@ const minWidth = isSmartphone() ? '100%' : (window.innerWidth < 900) ? '50%' : '
 const align = isSmartphone() ? 'center' : 'left';
 
 const ItemGrid: React.FC<{
-    filter: string, orderBy: string, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any
-}> = ({filter, orderBy, tags, handleTags, ai, handleAIToggle}) => {
+    filter: string, orderBy: string, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any,
+    items: any, itemFunctions: any, paginationOptions: number[], paginationPositions: string[]
+}> = ({
+          filter,
+          orderBy,
+          tags,
+          handleTags,
+          ai,
+          handleAIToggle,
+          items,
+          itemFunctions,
+          paginationOptions,
+          paginationPositions
+      }) => {
     const dispatch = useDispatch();
     const servicesPerPage = useSelector((state: any) => state.perPage.value.services);
     const pipelinesPerPage = useSelector((state: any) => state.perPage.value.pipelines);
@@ -48,6 +54,11 @@ const ItemGrid: React.FC<{
     const [searchParams] = useSearchParams();
     const [pipelines, setPipelines] = React.useState([]);
     const [services, setServices] = React.useState([]);
+    const navigate = useNavigate();
+
+    const navigateToPipelineEditor = () => {
+        navigate("/pipeline-editor");
+    }
 
     const setServicesPerPage = (value: number) => {
         setPageService(1);
@@ -92,10 +103,11 @@ const ItemGrid: React.FC<{
                                 }}
                                 disabled={!isReady || services.length <= 0}
                             >
-                                <MenuItem value={6}>6</MenuItem>
-                                <MenuItem value={15}>15</MenuItem>
-                                <MenuItem value={30}>30</MenuItem>
-                                <MenuItem value={60}>60</MenuItem>
+                                {paginationOptions.map((option: number) => {
+                                    return (
+                                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                                    );
+                                })}
                             </Select>
                         </FormControl>
                     </Box>
@@ -137,10 +149,11 @@ const ItemGrid: React.FC<{
                                 }}
                                 disabled={!isReady || pipelines.length <= 0}
                             >
-                                <MenuItem value={6}>6</MenuItem>
-                                <MenuItem value={15}>15</MenuItem>
-                                <MenuItem value={30}>30</MenuItem>
-                                <MenuItem value={60}>60</MenuItem>
+                                {paginationOptions.map((option: number) => {
+                                    return (
+                                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                                    );
+                                })}
                             </Select>
                         </FormControl>
                     </Box>
@@ -148,6 +161,24 @@ const ItemGrid: React.FC<{
             </Grid>
         );
     };
+
+    const serviceCard = (item: any, index: number): ReactNode => {
+        const ServiceCard = items?.service
+        return (
+            <ServiceCard index={index} item={item} tags={tags} handleTags={handleTags} ai={ai}
+                         handleAIToggle={handleAIToggle}
+                         functions={itemFunctions}></ServiceCard>
+        )
+    }
+
+
+    const pipelineCard = (item: any, index: number): ReactNode => {
+        const PipelineCard = items?.pipeline;
+        return (
+            <PipelineCard index={index} item={item} tags={tags} handleTags={handleTags} searchParams={searchParams}
+                          functions={itemFunctions}></PipelineCard>
+        )
+    }
 
     React.useEffect(() => {
         setPageService(1);
@@ -199,8 +230,8 @@ const ItemGrid: React.FC<{
         }
 
         const listElements = async (filter: string, orderBy: string, tags: string[]) => {
-            await listServices(filter, orderBy, tags);
-            await listPipelines(filter, orderBy, tags);
+            if (items?.service) await listServices(filter, orderBy, tags);
+            if (items?.pipeline) await listPipelines(filter, orderBy, tags);
             setIsReady(true);
         }
 
@@ -210,184 +241,92 @@ const ItemGrid: React.FC<{
             listElements(filter, orderBy, tags.map(t => t.acronym));
         }, 300);
         return () => clearTimeout(timeout);
-    }, [filter, pageService, pagePipeline, orderBy, tags, ai, servicesPerPage, pipelinesPerPage]);
+    }, [filter, pageService, pagePipeline, orderBy, tags, ai, servicesPerPage, pipelinesPerPage, items]);
 
     return (
         <>
-            <Typography gutterBottom variant={"h4"} component={"h2"}>
-                Services <Chip label={isReady ? serviceCount : 0} variant={"outlined"} color={"secondary"}
-                               size={"small"} style={{marginTop: "-2px"}}/>
-            </Typography>
-            {(isReady && services.length > 0) || !isReady ? servicePagination() : <></>}
-            {!isReady ?
-                <LoadingGrid/>
-                :
-                <Grid container spacing={isSmartphone() ? 2 : 3}>
-                    {services.length === 0 ? (
-                        <Grid xs={6} md={8}>
-                            <Typography gutterBottom variant={"h6"} component={"h2"}>
-                                No service found
-                            </Typography>
-                        </Grid>
-                    ) : (
-                        services.map((item: any, index: number) => {
-                            return (
-                                <Grid xs={12} sm={6} lg={4} xl={3} key={index}
-                                      sx={{height: 'auto', minHeight: '250px'}}>
-                                    <Card
-                                        sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
-                                        variant={"outlined"}
-                                    >
-                                        <CardContent sx={{flexGrow: 1}}>
-                                            <Grid container>
-                                                {item.has_ai ? (
-                                                    <>
-                                                        <Grid xs={11} sm={10} padding={0}>
-                                                            <Typography variant={"h5"} component={"h2"} gutterBottom>
-                                                                {item.name}
-                                                            </Typography>
-                                                        </Grid><Grid xs={1} sm={2}
-                                                                     sx={{display: 'flex', justifyContent: 'flex-end'}}
-                                                                     padding={0}>
-                                                        <Tooltip title={"AI Service"}>
-                                                            <Psychology sx={{color: "primary.main", fontSize: "1.5rem"}}
-                                                                        onClick={() => {
-                                                                            handleAIToggle({
-                                                                                target: {
-                                                                                    checked: true
-                                                                                }
-                                                                            });
-                                                                        }}/>
-                                                        </Tooltip>
-                                                    </Grid>
-                                                    </>
-                                                ) : (
-                                                    <Typography variant={"h5"} component={"h2"} gutterBottom>
-                                                        {item.name}
-                                                    </Typography>
-                                                )}
-                                            </Grid>
-                                            <Grid container spacing={1} sx={{p: 0, mb: 2}}>
-                                                {item.tags ? item.tags.map((tag: any, index: number) => {
-                                                    return (
-                                                        <Grid key={`service-tag-${index}`}>
-                                                            <Tooltip title={tag.name}>
-                                                                <Chip
-                                                                    className={"acronym-chip"}
-                                                                    label={tag.acronym}
-                                                                    style={
-                                                                        Tags.filter((t) =>
-                                                                            t.acronym === tag.acronym)[0].colors
-                                                                    }
-                                                                    variant={"outlined"}
-                                                                    size={"small"}
-                                                                    onClick={() => {
-                                                                        handleTags(null, [...tags, tag]);
-                                                                    }}
-                                                                />
-                                                            </Tooltip>
-                                                        </Grid>
-                                                    )
-                                                }) : ''}
-                                            </Grid>
-                                            <Typography>
-                                                {
-                                                    item.summary.length > 80 ?
-                                                        item.summary.substring(0, 75) + "..." :
-                                                        item.summary
-                                                }
-                                            </Typography>
-                                        </CardContent>
-                                        <CardActions sx={{p: 2}}>
-                                            <Link
-                                                to={"/showcase/service/" + item.slug}>
-                                                <Button size={"small"} variant={"contained"} disableElevation>
-                                                    View
-                                                </Button>
-                                            </Link>
-                                        </CardActions>
-                                    </Card>
+            {items?.service &&
+                <>
+                    <Typography gutterBottom variant={"h4"} component={"h2"}>
+                        Services <Chip label={isReady ? serviceCount : 0} variant={"outlined"} color={"secondary"}
+                                       size={"small"} style={{marginTop: "-2px"}}/>
+                    </Typography>
+                    {((isReady && services.length > 0) || !isReady) && paginationPositions.includes("top") ? servicePagination() : <></>}
+                    {!isReady ?
+                        <LoadingGrid/>
+                        :
+                        <Grid container spacing={isSmartphone() ? 2 : 3}>
+                            {services.length === 0 ? (
+                                <Grid xs={6} md={8}>
+                                    <Typography gutterBottom variant={"h6"} component={"h2"}>
+                                        No service found
+                                    </Typography>
                                 </Grid>
-                            );
-                        }))}
-                </Grid>
-            }
-            {(isReady && services.length > 0) || !isReady ? servicePagination() : <></>}
-            <Divider sx={{mt: 2, mb: 2}}>
-                ○
-            </Divider>
-            <Typography gutterBottom variant={"h4"} component={"h2"}>
-                Pipelines <Chip label={isReady ? pipelineCount : 0} variant={"outlined"} color={"secondary"}
-                                size={"small"} style={{marginTop: "-2px"}}/>
-            </Typography>
-            {(isReady && pipelines.length > 0) || !isReady ? pipelinePagination() : <></>}
-            {!isReady ?
-                <LoadingGrid/>
-                :
-                <Grid container spacing={isSmartphone() ? 2 : 3}>
-                    {pipelines.length === 0 ? (
-                        <Grid xs={6} md={8}>
-                            <Typography gutterBottom variant={"h6"} component={"h2"}>
-                                No pipeline found
-                            </Typography>
+                            ) : (
+                                services.map((item: any, index: number) => {
+                                    return (
+                                        <Grid xs={12} sm={6} lg={4} xl={3} key={index}
+                                              sx={{height: 'auto', minHeight: '250px'}}>
+                                            {serviceCard(item, index)}
+                                        </Grid>
+
+                                    );
+                                }))}
                         </Grid>
-                    ) : (
-                        pipelines.map((item: any, index: number) => {
-                            return (
-                                <Grid xs={12} sm={6} lg={4} xl={3} key={index}
-                                      sx={{height: 'auto', minHeight: '250px'}}>
-                                    <Card
-                                        sx={{height: '100%', display: 'flex', flexDirection: 'column'}}
-                                        variant={"outlined"}
-                                    >
-                                        <CardContent sx={{flexGrow: 1}}>
-                                            <Typography gutterBottom variant={"h5"} component={"h2"}>
-                                                {item.name}
-                                            </Typography>
-                                            <Grid container spacing={1} sx={{p: 0, mb: 2}}>
-                                                {item.tags ? item.tags.map((tag: any, index: number) => {
-                                                    return (
-                                                        <Grid key={`pipeline-tag-${index}`}>
-                                                            <Tooltip title={tag.name}>
-                                                                <Chip
-                                                                    className={"acronym-chip"}
-                                                                    label={tag.acronym}
-                                                                    style={
-                                                                        Tags.filter((t) =>
-                                                                            t.acronym === tag.acronym)[0].colors
-                                                                    }
-                                                                    variant={"outlined"}
-                                                                    size={"small"}
-                                                                    onClick={() => {
-                                                                        handleTags(null, [...tags, tag]);
-                                                                    }}
-                                                                />
-                                                            </Tooltip>
-                                                        </Grid>
-                                                    )
-                                                }) : ''}
-                                            </Grid>
-                                            <Typography>
-                                                {item.summary}
-                                            </Typography>
-                                        </CardContent>
-                                        <CardActions sx={{p: 2}}>
-                                            <Link
-                                                to={"/showcase/pipeline/" + item.slug}
-                                                state={{back: searchParams.toString()}}
-                                            >
-                                                <Button size={"small"} variant={"contained"} disableElevation>
-                                                    View
-                                                </Button>
-                                            </Link>
-                                        </CardActions>
-                                    </Card>
-                                </Grid>
-                            );
-                        }))}
-                </Grid>
+                    }
+                    {((isReady && services.length > 0) || !isReady) && paginationPositions.includes("bottom") ? servicePagination() : <></>}
+                </>
             }
-            {(isReady && pipelines.length > 0) || !isReady ? pipelinePagination() : <></>}
+            {items?.service && items?.pipeline ?
+                <Divider sx={{mt: 2, mb: 2}}>
+                    ○
+                </Divider>
+                : false
+            }
+            {items?.pipeline &&
+                <>
+                    <Box sx={{display: "flex", justifyContent: "space-between", alignItems: "center", mb: "5px"}}>
+                        <Typography gutterBottom variant={"h4"} component={"h2"}>
+                            Pipelines <Chip label={isReady ? pipelineCount : 0} variant={"outlined"} color={"secondary"}
+                                            size={"small"} style={{marginTop: "-2px"}}/>
+                        </Typography>
+                        <Button
+                            variant={"contained"}
+                            disableElevation
+                            color={"secondary"}
+                            onClick={navigateToPipelineEditor}
+                            hidden={isSmartphone()}
+                        >
+                            Create Pipeline
+                        </Button>
+                    </Box>
+                    {((isReady && pipelines.length > 0) || !isReady) && paginationPositions.includes("top") ? pipelinePagination() : <></>}
+                    {!isReady ?
+                        <LoadingGrid/>
+                        :
+                        <Grid container spacing={isSmartphone() ? 2 : 3}>
+                            {pipelines.length === 0 ? (
+                                <Grid xs={6} md={8}>
+                                    <Typography gutterBottom variant={"h6"} component={"h2"}>
+                                        No pipeline found
+                                    </Typography>
+                                </Grid>
+                            ) : (
+                                pipelines.map((item: any, index: number) => {
+                                    return (
+
+                                        <Grid xs={12} sm={6} lg={4} xl={3} key={index}
+                                              sx={{height: 'auto', minHeight: '250px'}}>
+                                            {pipelineCard(item, index)}
+                                        </Grid>
+                                    );
+                                }))}
+                        </Grid>
+                    }
+                    {((isReady && pipelines.length > 0) || !isReady) && paginationPositions.includes("bottom") ? pipelinePagination() : <></>}
+                </>
+            }
+
         </>
     );
 }

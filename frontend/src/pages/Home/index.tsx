@@ -1,21 +1,19 @@
-import {
-    Box,
-    Container,
-    SelectChangeEvent,
-    Toolbar,
-} from '@mui/material';
-import React, { useCallback } from 'react';
-import ItemGrid from '../../components/ItemGrid/ItemGrid';
-import { FilterDrawer } from '../../components/FilterDrawer/FilterDrawer';
-import { useSearchParams } from 'react-router-dom';
-import Copyright from '../../components/Copyright/Copyright';
-import { Tag } from '../../models/Tag';
-import { TagObjects } from '../../enums/tagEnums';
-import ScrollToTop from 'react-scroll-to-top';
 import { ArrowUpward } from '@mui/icons-material';
+import { Box, Container, SelectChangeEvent, Toolbar, } from '@mui/material';
+import HomeServiceCard from "components/Cards/HomeServiceCard";
+import PipelineCard from "components/Cards/PipelineCard";
+import Copyright from 'components/Copyright/Copyright';
+import { FilterDrawer } from 'components/FilterDrawer/FilterDrawer';
+import ItemGrid from 'components/ItemGrid/ItemGrid';
+import { TagObjects } from 'enums/tagEnums';
+import { Tag } from 'models/Tag';
+import React, { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useFileArray } from '../../utils/hooks/fileArray';
-import { setMenuIcon } from '../../utils/reducers/menuIconSlice';
+import { useSearchParams } from 'react-router-dom';
+import ScrollToTop from 'react-scroll-to-top';
+import { useFileArray } from 'utils/hooks/fileArray';
+import { setMenuIcon } from 'utils/reducers/menuIconSlice';
+import { PerPage } from 'utils/reducers/perPageSlice';
 
 
 const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
@@ -104,8 +102,6 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         handleNoFilter();
     }
 
-    // rewrite last useEffect in a clean way
-    // the same logic but with a cleaner code
     React.useEffect(() => {
         setFileArray([]);
         setSearch(searchParams.get('filter') || '');
@@ -142,7 +138,11 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                 <Toolbar/>
                 <Container maxWidth={false}>
                     <ItemGrid filter={search} orderBy={orderBy} tags={tags} handleTags={handleTags}
-                              ai={ai} handleAIToggle={handleAIToggle}/>
+                              ai={ai} handleAIToggle={handleAIToggle}
+                              items={{service: HomeServiceCard, pipeline: PipelineCard}}
+                              itemFunctions={null}
+                              paginationPositions={["top", "bottom"]} paginationOptions={Object.values(PerPage)}
+                              />
                 </Container>
                 <Container maxWidth={false}>
                     <Copyright/>

@@ -1,4 +1,11 @@
 import {
+    ApiRounded,
+    CheckBox as CheckBoxIcon,
+    CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
+    Clear as ClearIcon,
+    Psychology,
+} from '@mui/icons-material';
+import {
     Autocomplete,
     Box,
     Button,
@@ -18,16 +25,10 @@ import {
     Toolbar,
     Typography,
 } from '@mui/material';
+import { TagObjects } from 'enums/tagEnums';
+import { Tag } from 'models/Tag';
 import React from 'react';
-import {
-    ApiRounded,
-    CheckBox as CheckBoxIcon,
-    CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
-    Clear as ClearIcon, Psychology,
-} from '@mui/icons-material';
-import { TagObjects } from '../../enums/tagEnums';
-import { Tag } from '../../models/Tag';
-import { isSmartphone } from '../../utils/functions';
+import { isSmartphone } from 'utils/functions';
 
 const icon = <CheckBoxOutlineBlankIcon fontSize={"small"}/>;
 const checkedIcon = <CheckBoxIcon fontSize={"small"}/>;
@@ -59,36 +60,43 @@ export const FilterDrawer: React.FC<{
           handleAIToggle,
       }) => {
 
-    const CustomSwitch = styled(Switch)(({ theme }) => ({
-        padding: 8,
-        '& .MuiSwitch-track': {
-            borderRadius: 22 / 2,
-            '&::before, &::after': {
-                content: '""',
-                position: 'absolute',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: 16,
-                height: 16,
+    const AntSwitch = styled(Switch)(({theme}) => ({
+        width: 48,
+        height: 28,
+        padding: 0,
+        display: 'flex',
+        '&:active': {
+            '& .MuiSwitch-thumb': {
+                width: 25,
             },
-            '&::before': {
-                backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24"><path fill="${encodeURIComponent(
-                    theme.palette.getContrastText(theme.palette.primary.main),
-                )}" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>')`,
-                left: 12,
+            '& .MuiSwitch-switchBase.Mui-checked': {
+                transform: 'translateX(17px)',
             },
-            '&::after': {
-                backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24"><path fill="${encodeURIComponent(
-                    theme.palette.getContrastText(theme.palette.primary.main),
-                )}" d="M19,13H5V11H19V13Z" /></svg>')`,
-                right: 12,
+        },
+        '& .MuiSwitch-switchBase': {
+            padding: 3,
+            '&.Mui-checked': {
+                transform: 'translateX(20px)',
+                color: '#fff',
+                '& + .MuiSwitch-track': {
+                    opacity: 1,
+                },
             },
         },
         '& .MuiSwitch-thumb': {
-            boxShadow: 'none',
-            width: 16,
-            height: 16,
-            margin: 2,
+            width: 22,
+            height: 22,
+            borderRadius: 12,
+            transition: theme.transitions.create(['width'], {
+                duration: 200,
+            }), boxShadow: 'none',
+        },
+        '& .MuiSwitch-track': {
+            borderRadius: 30 / 2,
+            opacity: 1,
+            backgroundColor:
+                theme.palette.mode === 'dark' ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.25)',
+            boxSizing: 'border-box',
         },
     }));
 
@@ -156,17 +164,17 @@ export const FilterDrawer: React.FC<{
                                 <Typography component={Stack} direction={"row"} alignItems={"center"} paragraph
                                             sx={{fontSize: "0.9rem"}}
                                 >
-                                    <Psychology sx={{fontSize: "1.6rem", marginRight: "0.5rem"}} />
+                                    <Psychology sx={{fontSize: "1.6rem", marginRight: "0.5rem"}}/>
                                     All Services
                                 </Typography>
                             </Grid>
                             <Grid item>
-                                <CustomSwitch
-                                    checked={ai}
-                                    onChange={() => {
-                                        handleAIToggle({target: {checked: !ai}});
-                                    }}
-                                    value={ai}
+                                <AntSwitch inputProps={{'aria-label': 'ant design'}}
+                                           checked={ai}
+                                           onChange={() => {
+                                               handleAIToggle({target: {checked: !ai}});
+                                           }}
+                                           value={ai}
                                 />
                             </Grid>
                             <Grid item sx={{mt: 2}}>

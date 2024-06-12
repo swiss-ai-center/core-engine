@@ -1,17 +1,17 @@
-import React from "react";
-import { NodeProps, Position } from "reactflow";
-import { Box, Button, Card, CardActions, CardContent, Link as URLLink, Tooltip, Typography } from '@mui/material';
 import { DownloadForOfflineTwoTone, ErrorTwoTone } from '@mui/icons-material';
-import { RunState } from '../../utils/reducers/runStateSlice';
-import { useSelector } from 'react-redux';
+import { Box, Button, Card, CardActions, CardContent, Link as URLLink, Tooltip, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import { displayTimer, download, positionHandle } from '../../utils/functions';
-import "./styles.css";
-import { ProgressNodeData } from '../../models/NodeData';
-import CustomHandle from './CustomHandle';
+import { ProgressNodeData } from 'models/NodeData';
+import React from "react";
+import { useSelector } from 'react-redux';
+import { NodeProps, Position } from "reactflow";
+import { displayTimer, download, positionHandle } from 'utils/functions';
+import "components/Board/styles.css";
+import { RunState } from 'utils/reducers/runStateSlice';
+import CustomHandle from 'components/Handles/CustomHandle';
 
 
-const ProgressNode = ({data}: NodeProps<ProgressNodeData>) => {
+const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
     const lightgrey = grey[400];
     const mediumgrey = grey[500];
     const darkgrey = grey[800];
@@ -177,4 +177,4 @@ const ProgressNode = ({data}: NodeProps<ProgressNodeData>) => {
     );
 };
 
-export default ProgressNode;
+export default StepNode;

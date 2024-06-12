@@ -1,4 +1,4 @@
-import { ExecutionUnit } from './ExecutionUnit';
+import { ExecutionUnit } from 'models/ExecutionUnit';
 
 export class Service extends ExecutionUnit {
     url: string;

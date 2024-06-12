@@ -1,4 +1,4 @@
-import { RunState } from '../utils/reducers/runStateSlice';
+import { RunState } from 'utils/reducers/runStateSlice';
 
 class StatusCount {
     status: RunState;

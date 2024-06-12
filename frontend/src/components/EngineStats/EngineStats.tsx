@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { alpha, Box, CircularProgress, Grid, IconButton, Modal, styled, Typography } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
+import { alpha, Box, CircularProgress, Grid, IconButton, Modal, styled, Typography } from '@mui/material';
 import { DataGrid, gridClasses } from '@mui/x-data-grid';
-import { getStats } from '../../utils/api';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import { getStats } from 'utils/api';
 
 const style = {
     position: 'absolute' as 'absolute',

@@ -1,5 +1,5 @@
-import { Task } from './Task';
-import { Pipeline } from './Pipeline';
+import { Pipeline } from 'models/Pipeline';
+import { Task } from 'models/Task';
 
 export class PipelineExecution {
     id: string;

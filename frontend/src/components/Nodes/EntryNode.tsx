@@ -1,26 +1,36 @@
-import React from "react";
-import { NodeProps, Position } from "reactflow";
-import {
-    Box, Button, Card, CardActions, CardContent, Divider, Input, LinearProgress, Tooltip, Typography
-} from '@mui/material';
 import { PlayCircleTwoTone, UploadFileTwoTone, UploadTwoTone } from '@mui/icons-material';
 import {
-    resetRunState,
-    RunState, setCurrentTask,
-    setGeneralStatus,
-    resetTimer,
-    setTaskArray,
-} from '../../utils/reducers/runStateSlice';
-import { useDispatch, useSelector } from 'react-redux';
-import { postToEngine } from '../../utils/api';
-import { FieldDescription, FieldDescriptionWithSetAndValue } from '../../models/ExecutionUnit';
-import { useFileArray } from '../../utils/hooks/fileArray';
-import { useWebSocketConnection } from '../../utils/useWebSocketConnection';
-import { toast } from 'react-toastify';
+    Box,
+    Button,
+    Card,
+    CardActions,
+    CardContent,
+    Divider,
+    Input,
+    LinearProgress,
+    Tooltip,
+    Typography
+} from '@mui/material';
 import { grey } from '@mui/material/colors';
-import { EntryNodeData } from '../../models/NodeData';
-import CustomHandle from './CustomHandle';
-import { positionHandle } from '../../utils/functions';
+import { FieldDescription, FieldDescriptionWithSetAndValue } from 'models/ExecutionUnit';
+import { EntryNodeData } from 'models/NodeData';
+import React from "react";
+import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
+import { NodeProps, Position } from "reactflow";
+import { postToEngine } from 'utils/api';
+import { positionHandle } from 'utils/functions';
+import { useFileArray } from 'utils/hooks/fileArray';
+import {
+    resetRunState,
+    resetTimer,
+    RunState,
+    setCurrentTask,
+    setGeneralStatus,
+    setTaskArray,
+} from 'utils/reducers/runStateSlice';
+import { useWebSocketConnection } from 'utils/useWebSocketConnection';
+import CustomHandle from 'components/Handles/CustomHandle';
 
 function createAllowedTypesString(allowedTypes: string[]) {
     return allowedTypes.join(', ');

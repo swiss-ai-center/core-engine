@@ -1,4 +1,4 @@
-import { Tag } from '../models/Tag';
+import { Tag } from 'models/Tag';
 
 // each tag has an acronym, name, and a unique set of colors
 export const Tags = [
@@ -60,55 +60,117 @@ export const Tags = [
         "acronym": "C",
         "name": "Clustering",
         "colors": {
-            "backgroundColor": "rgba(4,176,0, 0.2)",
-            "color": "rgba(4,176,0, 1)",
-            "borderColor": "rgba(4,176,0, 1)"
-
+            "backgroundColor": "rgba(4, 176, 0, 0.2)",
+            "color": "rgba(4, 176, 0, 1)",
+            "borderColor": "rgba(4, 176, 0, 1)"
         }
     },
     {
         "acronym": "S",
         "name": "Segmentation",
         "colors": {
-            "backgroundColor": "rgba(0,72,255, 0.2)",
-            "color": "rgb(0,72,255)",
-            "borderColor": "rgba(0,72,255, 1)"
+            "backgroundColor": "rgba(0, 72, 255, 0.2)",
+            "color": "rgba(0, 72, 255, 1)",
+            "borderColor": "rgba(0, 72, 255, 1)"
         }
     },
     {
         "acronym": "SR",
         "name": "Speech Recognition",
         "colors": {
-            "backgroundColor": "rgba(255,0,0, 0.2)",
-            "color": "rgba(255,0,0, 1)",
-            "borderColor": "rgba(255,0,0, 1)"
+            "backgroundColor": "rgba(255, 0, 0, 0.2)",
+            "color": "rgba(255, 0, 0, 1)",
+            "borderColor": "rgba(255, 0, 0, 1)"
         }
     },
     {
-        "acronym": "DP",
+        "acronym": "DPP",
         "name": "Data Preprocessing",
         "colors": {
-            "backgroundColor": "rgba(0,255,0, 0.2)",
-            "color": "rgba(0,255,0, 1)",
-            "borderColor": "rgba(0,255,0, 1)"
+            "backgroundColor": "rgba(0, 255, 0, 0.2)",
+            "color": "rgba(0, 255, 0, 1)",
+            "borderColor": "rgba(0, 255, 0, 1)"
         }
     },
     {
         "acronym": "SA",
         "name": "Sentiment Analysis",
         "colors": {
-            "backgroundColor": "rgba(255,0,255, 0.2)",
-            "color": "rgba(255,0,255, 1)",
-            "borderColor": "rgba(255,0,255, 1)"
+            "backgroundColor": "rgba(255, 0, 255, 0.2)",
+            "color": "rgba(255, 0, 255, 1)",
+            "borderColor": "rgba(255, 0, 255, 1)"
         }
     },
     {
         "acronym": "NN",
         "name": "Neural Networks",
         "colors": {
-            "backgroundColor": "rgba(78,231,255, 0.2)",
-            "color": "rgba(78,231,255, 1)",
-            "borderColor": "rgba(78,231,255, 1)"
+            "backgroundColor": "rgba(78, 231, 255, 0.2)",
+            "color": "rgba(78, 231, 255, 1)",
+            "borderColor": "rgba(78, 231, 255, 1)"
+        }
+    },
+    {
+        "acronym": "AP",
+        "name": "Audio Processing",
+        "colors": {
+            "backgroundColor": "rgba(255, 0, 128, 0.2)",
+            "color": "rgba(255, 0, 128, 1)",
+            "borderColor": "rgba(255, 0, 128, 1)"
+        }
+    },
+    {
+        "acronym": "VP",
+        "name": "Video Processing",
+        "colors": {
+            "backgroundColor": "rgba(0, 128, 128, 0.2)",
+            "color": "rgba(0, 128, 128, 1)",
+            "borderColor": "rgba(0, 128, 128, 1)"
+        }
+    },
+    {
+        "acronym": "AG",
+        "name": "Audio Generation",
+        "colors": {
+            "backgroundColor": "rgba(128, 0, 255, 0.2)",
+            "color": "rgba(128, 0, 255, 1)",
+            "borderColor": "rgba(128, 0, 255, 1)"
+        }
+    },
+    {
+        "acronym": "VG",
+        "name": "Video Generation",
+        "colors": {
+            "backgroundColor": "rgba(255, 128, 0, 0.2)",
+            "color": "rgba(255, 128, 0, 1)",
+            "borderColor": "rgba(255, 128, 0, 1)"
+        }
+    },
+    {
+        "acronym": "DG",
+        "name": "Document Generation",
+        "colors": {
+            "backgroundColor": "rgba(0, 255, 255, 0.2)",
+            "color": "rgba(0, 255, 255, 1)",
+            "borderColor": "rgba(0, 255, 255, 1)"
+        }
+    },
+    {
+        "acronym": "DP",
+        "name": "Document Processing",
+        "colors": {
+            "backgroundColor": "rgba(128, 128, 0, 0.2)",
+            "color": "rgba(128, 128, 0, 1)",
+            "borderColor": "rgba(128, 128, 0, 1)"
+        }
+    },
+    {
+        "acronym": "GNR",
+        "name": "Generic",
+        "colors": {
+            "backgroundColor": "rgba(128, 0, 128, 0.2)",
+            "color": "rgba(128, 0, 128, 1)",
+            "borderColor": "rgba(128, 0, 128, 1)"
         }
     }
 ];

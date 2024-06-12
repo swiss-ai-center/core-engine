@@ -1,5 +1,5 @@
-import { ExecutionUnit } from './ExecutionUnit';
-import { Service } from './Service';
+import { ExecutionUnit } from 'models/ExecutionUnit';
+import { Service } from 'models/Service';
 
 export class PipelineStep {
     identifier: string;
