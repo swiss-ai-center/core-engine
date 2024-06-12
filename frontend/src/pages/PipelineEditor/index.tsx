@@ -15,6 +15,7 @@ import PipelineEditorServiceCard from "components/Cards/PipelineEditorServiceCar
 import Copyright from 'components/Copyright/Copyright';
 import { FilterDrawer } from "components/FilterDrawer/FilterDrawer";
 import ItemGrid from "components/ItemGrid/ItemGrid";
+import { JsonModal } from 'components/JsonModal/JsonModal';
 import { FieldDescription } from "models/ExecutionUnit";
 import { Tag } from "models/Tag";
 import React from "react";
@@ -63,6 +64,7 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     const [orderBy, setOrderBy] = React.useState(orderByList[0].value);
     const [tags, setTags] = React.useState<Tag[]>([]);
     const [ai, setAI] = React.useState(false);
+    const [jsonModalOpen, setJsonModalOpen] = React.useState(false);
     const [searchParams] = useSearchParams();
     const history = window.history;
 
@@ -441,6 +443,8 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         const exitNode = nodesRef.current.find((node) => node.type === "exitNodeEdit");
         const lastEdge = edgesRef.current.find((edge) => edge.target === exitNode?.id);
 
+        if (!(entryNode && exitNode && lastEdge)) return "{}";
+
         const data_in_fields = entryNode?.data.dataIn;
         const data_out_fields = exitNode?.data.dataOut;
         const queue: string[] = [lastEdge!.source];
@@ -505,7 +509,7 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     }
 
     const itemGrid = () => {
-        return(
+        return (
             <ItemGrid filter={search} orderBy={orderBy} tags={tags} ai={ai}
                       itemFunctions={{addService: addServiceNode}}
                       items={{service: PipelineEditorServiceCard}}
@@ -611,7 +615,7 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         initialNodes.push(createEntryNode())
         initialNodes.push(createExitNode())
         setNodes(() => initialNodes);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [setNodes]);
 
     React.useMemo(() => {
@@ -672,7 +676,7 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                 </Container>
                 <Container maxWidth={false}>
                     <Box sx={{
-                        height: 600,
+                        height: 500,
                         width: "100%",
                         border: 2,
                         borderRadius: "5px",
@@ -736,6 +740,10 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                         </Grid>
                     </Grid>
                     <Box sx={{display: 'flex', justifyContent: 'flex-end', width: '100%'}} my={2}>
+                        <Button sx={{mr: 2}} color={"secondary"} variant={"contained"}
+                                onClick={() => setJsonModalOpen(true)} disableElevation={true}>
+                            Show JSON
+                        </Button>
                         <Button sx={{mr: 2}} variant={"contained"} onClick={checkPipeline} disableElevation={true}>
                             Check Validity
                         </Button>
@@ -748,6 +756,7 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                     <Copyright/>
                 </Container>
             </Box>
+            <JsonModal trigger={jsonModalOpen} onClose={() => setJsonModalOpen(false)} json={getJSONRepresentation()}/>
         </Box>
     );
 }
