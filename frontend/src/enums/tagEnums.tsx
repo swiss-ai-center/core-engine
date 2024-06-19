@@ -180,7 +180,6 @@ export const Tags = [
             "backgroundColor": "rgba(0, 0, 255, 0.2)",
             "color": "rgba(0, 0, 255, 1)",
             "borderColor": "rgba(0, 0, 255, 1)"
-        
         }
     }
 ];

@@ -99,7 +99,7 @@ const ItemGrid: React.FC<{
                             <Select
                                 labelId={"services-per-page-label"}
                                 id={"services-per-page"}
-                                value={servicesPerPage}
+                                value={paginationOptions.includes(servicesPerPage) ? servicesPerPage : paginationOptions[0]}
                                 label={"Per page"}
                                 onChange={(event) => {
                                     setServicesPerPage(event.target.value as number);
@@ -146,7 +146,7 @@ const ItemGrid: React.FC<{
                             <Select
                                 labelId={"pipelines-per-page"}
                                 id={"pipelines-per-page"}
-                                value={pipelinesPerPage}
+                                value={paginationOptions.includes(pipelinesPerPage) ? pipelinesPerPage : paginationOptions[0]}
                                 label={"Per page"}
                                 onChange={(event) => {
                                     setPipelinesPerPage(event.target.value as number);
