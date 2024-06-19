@@ -172,6 +172,16 @@ export const Tags = [
             "color": "rgba(128, 0, 128, 1)",
             "borderColor": "rgba(128, 0, 128, 1)"
         }
+    },
+    {
+        "acronym": "IG",
+        "name": "Image Generation",
+        "colors": {
+            "backgroundColor": "rgba(0, 0, 255, 0.2)",
+            "color": "rgba(0, 0, 255, 1)",
+            "borderColor": "rgba(0, 0, 255, 1)"
+        
+        }
     }
 ];
 
