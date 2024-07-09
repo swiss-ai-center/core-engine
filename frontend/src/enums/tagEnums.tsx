@@ -181,6 +181,15 @@ export const Tags = [
             "color": "rgba(0, 0, 255, 1)",
             "borderColor": "rgba(0, 0, 255, 1)"
         }
+    },
+    {
+        "acronym": "XAI",
+        "name": "Explainable AI",
+        "colors": {
+            "backgroundColor": "rgba(27, 94, 32, 0.2)",
+            "color": "rgba(102, 187, 106, 1)",
+            "borderColor": "rgba(102, 187, 106, 1)"
+        }
     }
 ];
 
