@@ -109,7 +109,7 @@ export const checkPipelineValidity = async (jsonDescription: string)=> {
     headers['Content-Type'] = 'application/json'
 
     try {
-        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipeline/check/`, {
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipeline/check`, {
             headers: headers,
             method: 'POST',
             body: jsonDescription
