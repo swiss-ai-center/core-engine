@@ -31,7 +31,7 @@ connection_manager: ConnectionManager = get_connection_manager()
 api_description = """
 Swiss AI Center's Core Engine API - The **best** API in the world.
 """
-VERSION = "1.0.0"
+VERSION = "1.2.0"
 
 if settings.sentry_dsn:
     sentry_init(
