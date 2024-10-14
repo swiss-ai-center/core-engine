@@ -21,7 +21,7 @@ function Copyright() {
                     </Link>
                 </Tooltip>
                 <Tooltip title={"Documentation"}>
-                    <Link color={"inherit"} href={"https://swiss-ai-center.github.io/core-engine/"}
+                    <Link color={"inherit"} href={"https://docs.swiss-ai-center.ch/reference/core-engine/"}
                           underline={"none"} target={"_blank"}>
                         <IconButton sx={{marginLeft: "auto"}} color={"primary"} size={"large"}>
                             <DescriptionTwoTone/>
