@@ -42,7 +42,7 @@ const ServiceCardBase: React.FC<{
     const summary = () =>
         <Typography>
             {
-                item.summary.length > 80 ?
+                item.summary.length > 100 ?
                     item.summary.substring(0, 75) + "..." :
                     item.summary
             }

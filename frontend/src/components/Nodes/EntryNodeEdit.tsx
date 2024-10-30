@@ -34,6 +34,10 @@ const EntryNodeEdit: React.FC<{ id: string, data: any }> = (
         return newName.replace(/-/g, "_");
     }
 
+    const replaceSpacesWithUnderscores = (newName: string) => {
+        return newName.replace(/ /g, "_");
+    }
+
     const onSelectInputName = (newName: string, prevName: string, index: number) => {
         if (inputNames[index] === newName) return;
         if (inputNames.includes(newName)) {
@@ -82,7 +86,8 @@ const EntryNodeEdit: React.FC<{ id: string, data: any }> = (
                 <TextField label={"Input name"} variant={"outlined"} defaultValue={inputField.name} size={"small"}
                            onFocus={(event) => event.target.select()}
                            onBlur={(event) => {
-                               const val = replaceHyphensWithUnderscores(event.target.value);
+                               let val = replaceHyphensWithUnderscores(event.target.value);
+                                 val = replaceSpacesWithUnderscores(val);
                                onSelectInputName(val, inputField.name, index);
                                // set value of text field to the new name
                                event.target.value = val;
