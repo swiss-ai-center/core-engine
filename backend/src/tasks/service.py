@@ -45,12 +45,15 @@ def create_message(task: Task) -> Message:
     elif task.status == TaskStatus.ERROR:
         message_type = MessageType.ERROR
         message_text = f"Task for {task.service.slug} failed"
+        if hasattr(task, 'error_message'):
+            message_text += f"\n{task.error_message}"
     elif task.status == TaskStatus.SKIPPED:
         message_type = MessageType.INFO
         message_text = f"Task for {task.service.slug} skipped due to condition evaluation"
     else:
         message_type = MessageType.WARNING
         message_text = f"Task for {task.service.slug} unknown status"
+    print(f'----------------- {message_text} ---------------------')
     return Message(
         message={
             "text": message_text,

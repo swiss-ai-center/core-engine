@@ -32,7 +32,7 @@ class Task(TaskBase, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     service: Service = Relationship(back_populates="tasks")
     pipeline_execution: Optional["PipelineExecution"] = Relationship(back_populates="tasks")
-
+    error_message: Optional[str]
 
 class TaskRead(TaskBase):
     """
