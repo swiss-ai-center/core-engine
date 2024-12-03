@@ -17,8 +17,8 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column('Task', sa.Column('error_message', sa.String(), nullable = True))
+    op.add_column('tasks', sa.Column('error_message', sa.String(), nullable = True))
 
 
 def downgrade():
-    op.drop_column("Task", "error_message")
+    op.drop_column("tasks", "error_message")
