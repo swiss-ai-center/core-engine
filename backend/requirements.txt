@@ -1,5 +1,7 @@
 common-code[test] @ git+https://github.com/swiss-ai-center/common-code.git@main
+alembic==1.14
 makefun==1.15.2
+pg8000==1.31.2
 psycopg2-binary==2.9.9
 python-multipart==0.0.9
 sentry-sdk[fastapi]==1.42.0
@@ -8,4 +10,3 @@ testcontainers-core==0.0.1rc1
 testcontainers-minio==0.0.1rc1
 testcontainers-postgres==0.0.1rc1
 websockets==12.0
-alembic==1.14
