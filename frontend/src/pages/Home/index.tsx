@@ -142,6 +142,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                               items={{service: HomeServiceCard, pipeline: PipelineCard}}
                               itemFunctions={null}
                               paginationPositions={["top", "bottom"]} paginationOptions={Object.values(PerPage)}
+                              displayedPage={"home"}
                               />
                 </Container>
                 <Container maxWidth={false}>

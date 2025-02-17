@@ -10,6 +10,7 @@ export const PerPage = {
 const initialState = {
     value: {
         services: PerPage[12],
+        servicesPipelineEditor: PerPage[4],
         pipelines: PerPage[12],
     }
 }
@@ -41,6 +42,10 @@ export const perPageSlice = createSlice({
             state.value.services = action.payload;
             saveToLocalStorage(state);
         },
+        setServicePipelineEditorPerPage: (state, action) => {
+            state.value.servicesPipelineEditor = action.payload;
+            saveToLocalStorage(state);
+        },
         setPipelinePerPage: (state, action) => {
             state.value.pipelines = action.payload;
             saveToLocalStorage(state);
@@ -49,6 +54,6 @@ export const perPageSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const {setServicePerPage, setPipelinePerPage} = perPageSlice.actions
+export const {setServicePerPage, setServicePipelineEditorPerPage, setPipelinePerPage} = perPageSlice.actions
 
 export default perPageSlice.reducer

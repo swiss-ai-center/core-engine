@@ -518,7 +518,8 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
                       handleAIToggle={(event: React.ChangeEvent<HTMLInputElement>) =>
                           handleAIToggle(event, setAI, searchParams, history, handleNoFilterWrapper)}
-                      paginationPositions={["top"]} paginationOptions={[PerPage['4']]}
+                      paginationPositions={["top"]} paginationOptions={[PerPage['4'], PerPage['12']]}
+                      displayedPage={"pipeline-editor"}
             />);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -672,6 +673,7 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                     </Grid>
                 </Container>
                 <Container maxWidth={false} sx={{mb: 3}}>
+                    {}
                     {MemoizedItemGrid}
                 </Container>
                 <Container maxWidth={false}>

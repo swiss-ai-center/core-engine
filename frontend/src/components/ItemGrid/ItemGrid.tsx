@@ -19,7 +19,7 @@ import "./styles.css";
 import { toast } from 'react-toastify';
 import { getPipelines, getServices } from 'utils/api';
 import { isSmartphone } from 'utils/functions';
-import { setPipelinePerPage, setServicePerPage } from 'utils/reducers/perPageSlice';
+import { setPipelinePerPage, setServicePipelineEditorPerPage, setServicePerPage } from 'utils/reducers/perPageSlice';
 import LoadingGrid from 'components/LoadingGrid/LoadingGrid';
 
 // min width is 100% for mobile, 50% for tablet, 33% for desktop
@@ -32,7 +32,7 @@ const distance = isSmartphone() ? 2 : 3;
 
 const ItemGrid: React.FC<{
     filter: string, orderBy: string, tags: Tag[], handleTags: any, ai: boolean, handleAIToggle: any,
-    items: any, itemFunctions: any, paginationOptions: number[], paginationPositions: string[]
+    items: any, itemFunctions: any, paginationOptions: number[], paginationPositions: string[], displayedPage: string
 }> = ({
           filter,
           orderBy,
@@ -43,10 +43,12 @@ const ItemGrid: React.FC<{
           items,
           itemFunctions,
           paginationOptions,
-          paginationPositions
+          paginationPositions,
+          displayedPage,
       }) => {
     const dispatch = useDispatch();
     const servicesPerPage = useSelector((state: any) => state.perPage.value.services);
+    const servicesPipelineEditorPerPage = useSelector((state: any) => state.perPage.value.servicesPipelineEditor);
     const pipelinesPerPage = useSelector((state: any) => state.perPage.value.pipelines);
     const [serviceCount, setServiceCount] = React.useState(0);
     const [pipelineCount, setPipelineCount] = React.useState(0);
@@ -64,7 +66,8 @@ const ItemGrid: React.FC<{
 
     const setServicesPerPage = (value: number) => {
         setPageService(1);
-        dispatch(setServicePerPage(value));
+        if (displayedPage === "home") dispatch(setServicePerPage(value));
+        if (displayedPage === "pipeline-editor") dispatch(setServicePipelineEditorPerPage(value));
     };
 
     const setPipelinesPerPage = (value: number) => {
@@ -99,7 +102,13 @@ const ItemGrid: React.FC<{
                             <Select
                                 labelId={"services-per-page-label"}
                                 id={"services-per-page"}
-                                value={paginationOptions.includes(servicesPerPage) ? servicesPerPage : paginationOptions[0]}
+                                value={
+                                    displayedPage === "home" && paginationOptions.includes(servicesPerPage) ?
+                                        servicesPerPage :
+                                        displayedPage === "pipeline-editor" && paginationOptions.includes(servicesPipelineEditorPerPage) ?
+                                            servicesPipelineEditorPerPage :
+                                            paginationOptions[0]
+                                }
                                 label={"Per page"}
                                 onChange={(event) => {
                                     setServicesPerPage(event.target.value as number);
@@ -259,7 +268,7 @@ const ItemGrid: React.FC<{
                     {!isReady ?
                         <LoadingGrid/>
                         :
-                        <Grid container spacing={distance} >
+                        <Grid container spacing={distance}>
                             {services.length === 0 ? (
                                 <Grid xs={6} md={8} item>
                                     <Typography gutterBottom variant={"h6"} component={"h2"}>
