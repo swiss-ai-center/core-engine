@@ -66,8 +66,11 @@ const ItemGrid: React.FC<{
 
     const setServicesPerPage = (value: number) => {
         setPageService(1);
-        if (displayedPage === "home") dispatch(setServicePerPage(value));
-        if (displayedPage === "pipeline-editor") dispatch(setServicePipelineEditorPerPage(value));
+        if (displayedPage === "home") {
+            dispatch(setServicePerPage(value));
+        } else if (displayedPage === "pipeline-editor") {
+            dispatch(setServicePipelineEditorPerPage(value));
+        }
     };
 
     const setPipelinesPerPage = (value: number) => {
@@ -87,7 +90,11 @@ const ItemGrid: React.FC<{
                                 setPageService(page);
                             }}
                             sx={{alignItems: 'center', justifyContent: 'center'}}
-                            count={Math.ceil(serviceCount / servicesPerPage) || 1}
+                            count={
+                                displayedPage === "home" ?
+                                    Math.ceil(serviceCount / servicesPerPage) || 1 :
+                                    Math.ceil(serviceCount / servicesPipelineEditorPerPage) || 1
+                            }
                             shape={"rounded"}
                             disabled={!isReady || services.length <= 0}
                             siblingCount={0}
@@ -195,8 +202,9 @@ const ItemGrid: React.FC<{
 
     React.useEffect(() => {
         setPageService(1);
+        setServicePipelineEditorPerPage(1);
         setPagePipeline(1);
-    }, [servicesPerPage, pipelinesPerPage]);
+    }, [servicesPerPage, servicesPipelineEditorPerPage, pipelinesPerPage]);
 
     React.useEffect(() => {
         setPageService(1);
@@ -205,8 +213,14 @@ const ItemGrid: React.FC<{
 
     React.useEffect(() => {
         const listServices = async (filter: string, orderBy: string, tags: string[]) => {
-            const skip = (pageService - 1) * servicesPerPage;
-            const servicesList = await getServices(filter, skip, servicesPerPage, orderBy, tags, ai);
+            let servicesList, skip;
+            if (displayedPage === "pipeline-editor") {
+                skip = (pageService - 1) * servicesPipelineEditorPerPage;
+                servicesList = await getServices(filter, skip, servicesPipelineEditorPerPage, orderBy, tags, ai);
+            } else {
+                skip = (pageService - 1) * servicesPerPage;
+                servicesList = await getServices(filter, skip, servicesPerPage, orderBy, tags, ai);
+            }
             if (servicesList.services) {
                 if (servicesList.services.length === 0) {
                     setServices([]);
@@ -254,7 +268,7 @@ const ItemGrid: React.FC<{
             listElements(filter, orderBy, tags.map(t => t.acronym));
         }, 300);
         return () => clearTimeout(timeout);
-    }, [filter, pageService, pagePipeline, orderBy, tags, ai, servicesPerPage, pipelinesPerPage, items]);
+    }, [filter, pageService, pagePipeline, orderBy, tags, ai, servicesPerPage, servicesPipelineEditorPerPage, pipelinesPerPage, items]);
 
     return (
         <Box>
