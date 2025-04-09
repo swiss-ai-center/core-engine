@@ -51,13 +51,13 @@ jobs:
         shell: bash
         working-directory: backend/kubernetes
         env:
-          HOST: "https://monitor-swiss-ai-center.kube.isc.heia-fr.ch"
+          HOST: "https://monitor-swiss-ai-center.kube-ext.isc.heia-fr.ch"
           ENABLE_USER_REGISTRATION: '"False"'
           DATABASE_URL: '"${{ secrets.GLITCHTIP_DATABASE_URL }}"'
           SECRET_KEY: '"${{ secrets.GLITCHTIP_SECRET_KEY }}"'
           PORT: '"8000"'
           EMAIL_URL: '"${{ secrets.GLITCHTIP_SMTP_CONFIG }}"'
-          GLITCHTIP_DOMAIN: '"https://monitor-swiss-ai-center.kube.isc.heia-fr.ch"'
+          GLITCHTIP_DOMAIN: '"https://monitor-swiss-ai-center.kube-ext.isc.heia-fr.ch"'
           DEFAULT_FROM_EMAIL: '"info@swiss-ai-center.ch"'
           CELERY_WORKER_AUTOSCALE: '"1,10"'
           CELERY_WORKER_MAX_TASKS_PER_CHILD: '"10000"'

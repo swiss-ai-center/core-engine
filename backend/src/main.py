@@ -46,7 +46,6 @@ if settings.sentry_dsn:
 @asynccontextmanager
 async def lifespan(api: FastAPI):
     # Startup
-    global connection_manager
     # Manual instances because startup events doesn't support Dependency Injection
     # https://github.com/tiangolo/fastapi/issues/2057
     # https://github.com/tiangolo/fastapi/issues/425
@@ -173,7 +172,6 @@ async def root():
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    global connection_manager
     await connection_manager.connect(websocket)
     try:
         while True:
