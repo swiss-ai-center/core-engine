@@ -161,10 +161,10 @@ jobs:
 
           # Set core engine backend configuration (Ingress)
           yq -i "del(.metadata.annotations.cert-manager\.io/cluster-issuer)" core-engine-backend.ingress.yml
-          yq -i "del(.spec.ingressClassName)" core-engine-backend.ingress.yml
           yq -i ".spec.rules[0].host = \"${HOST#*://}\"" core-engine-backend.ingress.yml
-          yq -i ".spec.tls[0].hosts[0] = \"${HOST#*://}\"" core-engine-backend.ingress.yml
-          yq -i "del(.spec.tls[0].secretName)" core-engine-backend.ingress.yml
+          yq -i "del(.spec.tls)" core-engine-backend.ingress.yml
+          # Change ingress class name to nginx-ext
+          yq -i ".spec.ingressClassName = \"nginx-ext\"" core-engine-backend.ingress.yml
 
       - name: Deploy service on the Kubernetes cluster
         uses: swiss-ai-center/common-code/.github/actions/execute-command-on-kubernetes-cluster@main

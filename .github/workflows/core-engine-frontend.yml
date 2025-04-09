@@ -98,10 +98,10 @@ jobs:
 
           # Set core engine frontend configuration (Ingress)
           yq -i "del(.metadata.annotations.cert-manager\.io/cluster-issuer)" core-engine-frontend.ingress.yml
-          yq -i "del(.spec.ingressClassName)" core-engine-frontend.ingress.yml
           yq -i ".spec.rules[0].host = \"${DEV_FRONTEND_HOST#*://}\"" core-engine-frontend.ingress.yml
-          yq -i ".spec.tls[0].hosts[0] = \"${DEV_FRONTEND_HOST#*://}\"" core-engine-frontend.ingress.yml
-          yq -i "del(.spec.tls[0].secretName)" core-engine-frontend.ingress.yml
+          yq -i "del(.spec.tls)" core-engine-frontend.ingress.yml
+          # Change ingress class name to nginx-ext
+          yq -i ".spec.ingressClassName = \"nginx-ext\"" core-engine-frontend.ingress.yml
 
       - name: Deploy Frontend on the Kubernetes cluster
         if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_DEV == 'true' }}
