@@ -5,8 +5,9 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
 spec:
+  ingressClassName: nginx-ext
   rules:
-  - host: minio-swiss-ai-center.kube.isc.heia-fr.ch
+  - host: minio-swiss-ai-center.kube-ext.isc.heia-fr.ch
     http:
       paths:
       - path: /
@@ -16,7 +17,7 @@ spec:
             name: minio-service
             port:
               number: 9000
-  - host: console-minio-swiss-ai-center.kube.isc.heia-fr.ch
+  - host: console-minio-swiss-ai-center.kube-ext.isc.heia-fr.ch
     http:
       paths:
       - path: /
@@ -26,7 +27,3 @@ spec:
             name: minio-service
             port:
               number: 9001
-  tls:
-  - hosts:
-      - minio-swiss-ai-center.kube.isc.heia-fr.ch
-      - console-minio-swiss-ai-center.kube.isc.heia-fr.ch

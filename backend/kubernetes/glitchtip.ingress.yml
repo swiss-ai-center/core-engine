@@ -3,8 +3,9 @@ kind: Ingress
 metadata:
   name: glitchtip-ingress
 spec:
+  ingressClassName: nginx-ext
   rules:
-    - host: monitor-swiss-ai-center.kube.isc.heia-fr.ch
+    - host: monitor-swiss-ai-center.kube-ext.isc.heia-fr.ch
       http:
         paths:
           - backend:
@@ -14,6 +15,3 @@ spec:
                   number: 80
             path: /
             pathType: Prefix
-  tls:
-    - hosts:
-        - monitor-swiss-ai-center.kube.isc.heia-fr.ch
