@@ -19,6 +19,7 @@ class TaskBase(CoreModel):
     status: TaskStatus = TaskStatus.PENDING
     service_id: UUID = Field(foreign_key="services.id")
     pipeline_execution_id: Optional[UUID] = Field(default=None, foreign_key="pipeline_executions.id")
+    error_message: Optional[str] = Field(default=None, nullable=True)
 
 
 class Task(TaskBase, table=True):
@@ -32,7 +33,6 @@ class Task(TaskBase, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     service: Service = Relationship(back_populates="tasks")
     pipeline_execution: Optional["PipelineExecution"] = Relationship(back_populates="tasks")
-    error_message: Optional[str]
 
 
 class TaskRead(TaskBase):
