@@ -70,6 +70,7 @@ class TaskUpdate(SQLModel):
 
     data_out: List[str]
     status: Optional[TaskStatus]
+    error_message: Optional[str]
 
 
 from pipeline_executions.models import PipelineExecution  # noqa: E402
