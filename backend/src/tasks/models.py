@@ -34,6 +34,7 @@ class Task(TaskBase, table=True):
     pipeline_execution: Optional["PipelineExecution"] = Relationship(back_populates="tasks")
     error_message: Optional[str]
 
+
 class TaskRead(TaskBase):
     """
     Task read model

@@ -12,3 +12,7 @@ code {
 .scroll-to-top {
     background-color: #d41367 !important;
 }
+
+.Toastify__toast-body {
+    white-space: pre-line;
+}

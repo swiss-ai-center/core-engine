@@ -45,15 +45,14 @@ def create_message(task: Task) -> Message:
     elif task.status == TaskStatus.ERROR:
         message_type = MessageType.ERROR
         message_text = f"Task for {task.service.slug} failed"
-        if hasattr(task, 'error_message'):
-            message_text += f"\n{task.error_message}"
+        if task.error_message is not None:
+            message_text += f"\n\n {task.error_message}"
     elif task.status == TaskStatus.SKIPPED:
         message_type = MessageType.INFO
         message_text = f"Task for {task.service.slug} skipped due to condition evaluation"
     else:
         message_type = MessageType.WARNING
         message_text = f"Task for {task.service.slug} unknown status"
-    print(f'----------------- {message_text} ---------------------')
     return Message(
         message={
             "text": message_text,
@@ -209,17 +208,7 @@ class TasksService:
         else:
             try:
                 connection = self.connection_manager.find_by_linked_id(task_id)
-                if connection:
-                    if connection.websocket:
-                        await asyncio.ensure_future(
-                            self.connection_manager.send_json(message, task_id))
-                    else:
-                        self.logger.debug(
-                            f"Task {task_id} has no client to send message to. Probably using API.")
-                else:
-                    self.logger.debug(
-                        f"Task {task_id} has no client to send message to. Probably using API.")
-                if self.connection_manager.find_by_linked_id(task_id):
+                if connection and connection.websocket:
                     await asyncio.ensure_future(self.connection_manager.send_json(message, task_id))
                 else:
                     self.logger.debug(f"Task {task_id} has no client to send message to. Probably using API.")

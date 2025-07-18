@@ -180,7 +180,6 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                     if (subject === MessageSubject.EXECUTION) {
                         // cast data to Task to be able to access properties
                         const dataObject = data as Task;
-                        let str;
                         // check if general_status is set. In this case, the execution is finished
                         if (dataObject.general_status) {
                             if (dataObject.data_out) {
@@ -190,18 +189,14 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                             }
                             dispatch(setGeneralStatus(dataObject.general_status));
                             dispatch(setCurrentTask(null));
-                            str = `${text}`;
-                            // check if pipeline_execution_id is not set. In this case, the execution is finished but for a task
+                            // Check if pipeline_execution_id is not set. In this case, the execution is finished but for a task
                         } else if (!dataObject.pipeline_execution_id) {
                             dispatch(setResultIdList(dataObject.data_out));
                             dispatch(setGeneralStatus(dataObject.status));
                             dispatch(setCurrentTask(null));
-                            str = `${text}, status: ${dataObject.status}`;
-                        } else {
-                            str = `${text}, status: ${dataObject.status}`;
                         }
                         // display message in a toast
-                        toast(str, {type: type});
+                        toast(text, {type: type});
 
                         // update taskArray and currentTask according to the message
                         if (taskArray) {
@@ -252,7 +247,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
             const message: Message = Object.assign(new Message(), lastJsonMessage);
             handleMessage(message);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch, lastJsonMessage]);
 
     return (
