@@ -183,7 +183,8 @@ def test_update_task(client: TestClient, service_instance: HTTPServer):
             "status": "processing",
             "data_out": [
                 "http://test-service-1.local/test_out",
-            ]
+            ],
+            "error_message": None,
         }
     )
     task_response_data = task_response.json()
@@ -228,6 +229,7 @@ def test_patch_task_non_existent(client: TestClient):
             "data_out": [
                 "http://test-service-1.local/test_out",
             ],
+            "error_message": None,
         },
     )
 

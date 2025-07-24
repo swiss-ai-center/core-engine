@@ -19,6 +19,7 @@ class TaskBase(CoreModel):
     status: TaskStatus = TaskStatus.PENDING
     service_id: UUID = Field(foreign_key="services.id")
     pipeline_execution_id: Optional[UUID] = Field(default=None, foreign_key="pipeline_executions.id")
+    error_message: Optional[str] = Field(default=None, nullable=True)
 
 
 class Task(TaskBase, table=True):
@@ -70,6 +71,7 @@ class TaskUpdate(SQLModel):
 
     data_out: List[str]
     status: Optional[TaskStatus]
+    error_message: Optional[str]
 
 
 from pipeline_executions.models import PipelineExecution  # noqa: E402

@@ -157,6 +157,7 @@ def test_stats(client: TestClient, service_instance: HTTPServer):
         "data_out": [
           "http://test-service-1.local/test_out",
         ],
+        "error_message": None,
       },
     )
 
@@ -185,6 +186,7 @@ def test_stats(client: TestClient, service_instance: HTTPServer):
         "data_out": [
             "http://test-service-1.local/test_out",
         ],
+        "error_message": None,
       },
     )
 
@@ -212,6 +214,7 @@ def test_stats(client: TestClient, service_instance: HTTPServer):
         "data_out": [
             "http://test-service-1.local/test_out",
         ],
+        "error_message": "An error occurred",
       },
     )
 
@@ -239,6 +242,7 @@ def test_stats(client: TestClient, service_instance: HTTPServer):
         "data_out": [
             "http://test-service-1.local/test_out",
         ],
+        "error_message": "Service is unavailable",
       },
     )
 
@@ -266,6 +270,7 @@ def test_stats(client: TestClient, service_instance: HTTPServer):
             "data_out": [
                 "http://test-service-1.local/test_out",
             ],
+            "error_message": None,
         },
     )
 
@@ -293,6 +298,7 @@ def test_stats(client: TestClient, service_instance: HTTPServer):
             "data_out": [
                 "http://test-service-1.local/test_out",
             ],
+            "error_message": None,
         },
     )
 
