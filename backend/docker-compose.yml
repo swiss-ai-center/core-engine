@@ -77,7 +77,11 @@ services:
       - MINIO_ROOT_PASSWORD=minio123
     entrypoint: >
       sh -c "
-        mc config host rm local;
-        mc config host add --api s3v4 local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD};
+        echo 'Waiting for MinIO...';
+        until mc alias set local http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD; do
+          echo 'Retrying...';
+          sleep 2;
+        done;
+        echo 'Connected. Creating bucket...';
         mc mb --ignore-existing local/engine;
       "
