@@ -62,7 +62,9 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
-    db_config = {"sqlalchemy.url": data_base_url} if data_base_url else config.get_section(config.config_ini_section)
+    db_config = config.get_section(config.config_ini_section)
+    if data_base_url:
+        db_config["sqlalchemy.url"] = data_base_url
 
     connectable = engine_from_config(
         db_config,
