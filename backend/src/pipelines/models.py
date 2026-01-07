@@ -1,9 +1,9 @@
 from typing import List, Optional
 from uuid import UUID, uuid4
-from pydantic import BaseModel
-from sqlmodel import SQLModel, Relationship, Field, Column, JSON
+from pydantic import BaseModel, field_validator, field_serializer
+from sqlmodel import SQLModel, Relationship, Field, Column
 from common_code.common.models import FieldDescription, ExecutionUnitTag
-from common.models import CoreModel
+from common.models import CoreModel, PydanticJSON
 from execution_units.enums import ExecutionUnitStatus
 from pipeline_steps.models import PipelineStep, PipelineStepCreate
 from pydantic_settings import SettingsConfigDict
@@ -21,9 +21,35 @@ class PipelineBase(CoreModel):
     summary: str
     description: Optional[str] = None
     status: ExecutionUnitStatus = ExecutionUnitStatus.AVAILABLE
-    data_in_fields: Optional[List[FieldDescription]] = Field(sa_column=Column(JSON), default=None)
-    data_out_fields: Optional[List[FieldDescription]] = Field(sa_column=Column(JSON), default=None)
-    tags: Optional[List[ExecutionUnitTag]] = Field(sa_column=Column(JSON), default=None)
+    data_in_fields: Optional[List[FieldDescription]] = Field(sa_column=Column(PydanticJSON), default=None)
+    data_out_fields: Optional[List[FieldDescription]] = Field(sa_column=Column(PydanticJSON), default=None)
+    tags: Optional[List[ExecutionUnitTag]] = Field(sa_column=Column(PydanticJSON), default=None)
+
+    @field_validator('data_in_fields', 'data_out_fields', mode='before')
+    @classmethod
+    def validate_field_descriptions(cls, v):
+        if v is None:
+            return v
+        return [FieldDescription(**item) if isinstance(item, dict) else item for item in v]
+
+    @field_validator('tags', mode='before')
+    @classmethod
+    def validate_tags(cls, v):
+        if v is None:
+            return v
+        return [ExecutionUnitTag(**item) if isinstance(item, dict) else item for item in v]
+
+    @field_serializer('data_in_fields', 'data_out_fields', when_used='json')
+    def serialize_field_descriptions(self, v):
+        if v is None:
+            return v
+        return [item.model_dump(mode='json') if hasattr(item, 'model_dump') else item for item in v]
+
+    @field_serializer('tags', when_used='json')
+    def serialize_tags(self, v):
+        if v is None:
+            return v
+        return [item.model_dump(mode='json') if hasattr(item, 'model_dump') else item for item in v]
 
 
 class Pipeline(PipelineBase, table=True):

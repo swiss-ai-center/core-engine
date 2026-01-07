@@ -17,7 +17,8 @@ const CustomHandle: React.FC<{ id: string, type: HandleType, position: Position,
 
     return (
         <Tooltip title={label}>
-            <Handle type={type} position={position} id={id} style={style} className={"custom-handle"} about={colorMode}/>
+            <Handle type={type} position={position} id={id} style={style} className={"custom-handle"}
+                    about={colorMode}/>
         </Tooltip>
     );
 };

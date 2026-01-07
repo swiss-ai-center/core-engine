@@ -1,7 +1,12 @@
+.custom-handle {
+    width: 10px !important;
+    height: 10px !important;
+}
+
 .custom-handle[about='light'] {
-  border-color: lightgrey;
+    border-color: lightgrey;
 }
 
 .custom-handle[about='dark'] {
-  border-color: #9e9e9e;
+    border-color: #9e9e9e;
 }

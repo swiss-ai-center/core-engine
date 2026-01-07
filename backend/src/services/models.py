@@ -1,17 +1,17 @@
 from typing import List, Optional
 from uuid import UUID, uuid4
-from pydantic import BaseModel, AnyHttpUrl
-from sqlmodel import SQLModel, Relationship, Field, Column, JSON, String
+from pydantic import BaseModel, AnyHttpUrl, field_validator, field_serializer, TypeAdapter
+from sqlmodel import SQLModel, Relationship, Field, Column, String
 from common_code.common.models import FieldDescription, ExecutionUnitTag
-from common.models import CoreModel
+from common.models import CoreModel, PydanticJSON
 from execution_units.enums import ExecutionUnitStatus
 from pydantic_settings import SettingsConfigDict
 
 
 class ServiceBase(CoreModel):
     """
-    Base class for a Service
-    This model is used in subclasses
+    Base class for a Service.
+    Uses PydanticJSON to handle DB serialization of complex objects.
     """
     model_config = SettingsConfigDict(arbitrary_types_allowed=True)
 
@@ -20,15 +20,60 @@ class ServiceBase(CoreModel):
     summary: str
     description: Optional[str] = None
     status: ExecutionUnitStatus = ExecutionUnitStatus.AVAILABLE
-    data_in_fields: Optional[List[FieldDescription]] = Field(sa_column=Column(JSON), default=None)
-    data_out_fields: Optional[List[FieldDescription]] = Field(sa_column=Column(JSON), default=None)
-    tags: Optional[List[ExecutionUnitTag]] = Field(sa_column=Column(JSON), default=None)
+
+    # Updated to use PydanticJSON
+    data_in_fields: Optional[List[FieldDescription]] = Field(
+        sa_column=Column(PydanticJSON),
+        default=None
+    )
+    data_out_fields: Optional[List[FieldDescription]] = Field(
+        sa_column=Column(PydanticJSON),
+        default=None
+    )
+    tags: Optional[List[ExecutionUnitTag]] = Field(
+        sa_column=Column(PydanticJSON),
+        default=None
+    )
+
     url: AnyHttpUrl = Field(sa_column=Column(String))
     docs_url: Optional[AnyHttpUrl] = Field(
         sa_column=Column(String),
         default="https://docs.swiss-ai-center.ch/reference/core-concepts/service"
     )
     has_ai: Optional[bool] = False
+
+    @field_validator('data_in_fields', 'data_out_fields', mode='before')
+    @classmethod
+    def validate_field_descriptions(cls, v):
+        if v is None:
+            return v
+        return [FieldDescription(**item) if isinstance(item, dict) else item for item in v]
+
+    @field_validator('tags', mode='before')
+    @classmethod
+    def validate_tags(cls, v):
+        if v is None:
+            return v
+        return [ExecutionUnitTag(**item) if isinstance(item, dict) else item for item in v]
+
+    @field_serializer('data_in_fields', 'data_out_fields', when_used='json')
+    def serialize_field_descriptions(self, v):
+        if v is None:
+            return v
+        return [item.model_dump(mode='json') if hasattr(item, 'model_dump') else item for item in v]
+
+    @field_serializer('tags', when_used='json')
+    def serialize_tags(self, v):
+        if v is None:
+            return v
+        return [item.model_dump(mode='json') if hasattr(item, 'model_dump') else item for item in v]
+
+    @field_validator('url', 'docs_url', mode='before')
+    @classmethod
+    def validate_urls(cls, v):
+        if v is None or isinstance(v, AnyHttpUrl):
+            return v
+        return TypeAdapter(AnyHttpUrl).validate_python(v)
 
 
 class Service(ServiceBase, table=True):
@@ -55,7 +100,6 @@ class ServiceRead(ServiceBase):
     """
 
     id: UUID
-    docs_url: str
 
 
 class ServiceReadWithTasks(ServiceRead):
