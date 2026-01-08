@@ -222,29 +222,29 @@ class PipelinesService:
 
         return self.session.exec(select(Pipeline).where(Pipeline.slug == pipeline_slug)).first()
 
-    def create(self, pipeline: PipelineCreate, app: FastAPI):
+    def create(self, pipeline_create: PipelineCreate, app: FastAPI):
         """
         Create a pipeline
-        :param pipeline: Pipeline to create
+        :param pipeline_create: Pipeline to create
         :param app: FastAPI app
         :return: Created pipeline
         """
         self.logger.debug("Creating pipeline")
 
-        found_pipeline = self.session.exec(select(Pipeline).where(Pipeline.slug == pipeline.slug)).first()
+        found_pipeline = self.session.exec(select(Pipeline).where(Pipeline.slug == pipeline_create.slug)).first()
 
         # Check if pipeline already exists
         if found_pipeline:
             raise ConflictException(f"Pipeline with slug '{found_pipeline.slug}' already exists.")
 
         # Backup the pipeline steps
-        pipeline_steps = pipeline.steps
+        pipeline_steps = pipeline_create.steps
 
         # Set the pipeline steps to an empty list - will be filled later
-        pipeline.steps = []
+        pipeline_create.steps = []
 
         # Create the pipeline
-        pipeline = Pipeline.model_validate(pipeline)
+        pipeline = Pipeline.model_validate(pipeline_create)
         self.session.add(pipeline)
         self.session.flush()
         self.session.refresh(pipeline)
@@ -262,12 +262,11 @@ class PipelinesService:
                 needs=step.needs,
                 condition=step.condition,
                 inputs=step.inputs,
-                pipeline=pipeline,
-                service=service,
+                pipeline_id=pipeline.id,
+                service_id=service.id,
             )
 
-            pipeline_step = PipelineStep.model_validate(new_pipeline_step)
-            self.session.add(pipeline_step)
+            self.session.add(new_pipeline_step)
             self.session.flush()
 
         # Check if pipeline is consistent
@@ -498,14 +497,24 @@ class PipelinesService:
                     # Get the accepted content types for the file
                     accepted_file_content_types = pipeline.data_in_fields[param_index]["type"]
 
+                    # Normalize enums to their string values for comparison
+                    try:
+                        accepted_types_values = [
+                            t.value if hasattr(t, "value") else str(t) for t in accepted_file_content_types
+                        ]
+                    except TypeError:
+                        # In case it's a single enum, not a list
+                        t = accepted_file_content_types
+                        accepted_types_values = [t.value if hasattr(t, "value") else str(t)]
+
                     # Check if the content type of the uploaded file is accepted
-                    if file_content_type not in accepted_file_content_types:
+                    if file_content_type not in accepted_types_values:
                         return JSONResponse(
                             status_code=400,
                             content={
                                 "error": "Invalid Content Type",
-                                "message": f"The content type of the file '{file_part_name}' must be of type "
-                                           f"{accepted_file_content_types}."
+                                "message": f"The content type of the file '{file_part_name}'"
+                                           f"must be of type {accepted_types_values}."
                             }
                         )
 
@@ -546,27 +555,7 @@ class PipelinesService:
                 # Save the pipeline execution
                 pipeline_execution = self.pipeline_executions_service.create(pipeline_execution)
 
-                # Get the first task of the pipeline
-                task = None
-                for task_elem in pipeline_execution.tasks:
-                    if task_elem.service_id == pipeline_steps[0].service_id:
-                        task = task_elem
-                        break
-
-                if not task:
-                    raise NotFoundException("Task not found")
-
-                service = self.services_service.find_one(task.service_id)
-
-                if not service:
-                    raise NotFoundException("Service not found")
-
-                data_in = []
-
-                for index, file in enumerate(service.data_in_fields):
-                    pipeline_file = pipeline_execution.files[index]
-                    data_in.append(pipeline_file["file_key"])
-
+                # Launch all initial ready steps (those with no needs) — enable parallel start
                 async def clean_up(cause: str):
                     self.logger.debug("Removing files from storage...")
 
@@ -587,113 +576,105 @@ class PipelinesService:
                         detail=f"Could not execute pipeline '{pipeline.slug}', cause: {cause}"
                     )
 
-                should_post_task = True
+                # Determine identifiers of ready (initial) steps: no needs or empty needs
+                initial_steps = [s for s in pipeline_steps if not s.needs]
 
-                # Check if a condition is set for the pipeline step
-                if pipeline.steps[0].condition:
-                    condition = pipeline.steps[0].condition
-                    files_mapping = {}
-                    # Extract the files needed from the condition
-                    # If files found, download the required files (text and JSON only) from S3 and update the condition
-                    # to match a variable to a file
-                    for file in pipeline_execution.files:
-                        # Get the file key
-                        file_key = file["file_key"]
-
-                        # Get the file reference
-                        file_reference = file["reference"]
-
-                        # Get the file extension
-                        file_extension = file_key.split(".")[-1]
-
-                        # Check if file key is in task_files
-                        if file_key in data_in:
-                            file_reference_one_word = re.sub(r"[-.]", "_", file_reference)
-
-                            # Check if file is a text file
-                            if file_extension == "txt":
-                                try:
-                                    # Download the file from S3
-                                    file_content = await self.storage_service.get_file_as_bytes(file_key)
-
-                                    # Add the file to the files mapping
-                                    files_mapping[file_reference_one_word] = file_content.decode("utf-8")
-
-                                    # Update the condition
-                                    condition = condition.replace(
-                                        file_reference,
-                                        file_reference_one_word
-                                    )
-                                except Exception as e:
-                                    self.logger.error(f"Could not download file {file_key} from S3.: {e}")
-
-                            # Check if file is a JSON file
-                            elif file_extension == "json":
-                                try:
-                                    # Download the file from S3
-                                    file_content = await self.storage_service.get_file_as_bytes(file_key)
-
-                                    # Add the file to the files mapping as a JSON object
-                                    files_mapping[file_reference_one_word] = json.loads(file_content.decode("utf-8"))
-
-                                    # Update the condition
-                                    condition = condition.replace(
-                                        file_reference,
-                                        file_reference_one_word
-                                    )
-                                except Exception as e:
-                                    self.logger.error(f"Could not download file {file_key} from S3.: {e}")
-                            else:
-                                self.logger.warning(f"File {file_key} is not a text or JSON file. "
-                                                    f"It will not be used in the condition.")
-
-                    # Evaluate the condition
-                    condition_clean = sanitize(condition)
-                    if not eval(condition_clean, {}, files_mapping):
-                        self.logger.info(f"Condition {condition_clean} evaluated to False. "
-                                         f"Not launching the pipeline execution.")
-                        should_post_task = False
-
-                if should_post_task:
-                    task.status = TaskStatus.PENDING
-                    task.data_in = data_in
-                    task.data_out = None
-
-                    task = await self.tasks_service.update(task.id, task)
-
-                    # Create the service task
-                    service_task = ServiceTask(
-                        s3_access_key_id=self.settings.s3_access_key_id,
-                        s3_secret_access_key=self.settings.s3_secret_access_key,
-                        s3_region=self.settings.s3_region,
-                        s3_host=self.settings.s3_host,
-                        s3_bucket=self.settings.s3_bucket,
-                        task=task,
-                        callback_url=f"{self.settings.host}/tasks/{task.id}"
-                    )
-
-                    # Submit the service task to the remote service
+                # For each initial step, find corresponding task (tasks were created in same order as steps)
+                for init_step in initial_steps:
+                    # find the index of the pipeline step in pipeline.steps to pick matching task
                     try:
-                        res = await self.http_client.post(f"{service.url}/compute", json=jsonable_encoder(service_task))
+                        idx = next(i for i, s in enumerate(pipeline.steps) if s.identifier == init_step.identifier)
+                    except StopIteration:
+                        continue
 
-                        if res.status_code != 200:
-                            raise HTTPException(status_code=res.status_code, detail=res.text)
-                    except HTTPException as e:
-                        self.logger.warning(f"Service {service.name} returned an error: {str(e)}")
-                        await clean_up(cause=str(e))
-                        raise e
-                    except HTTPError as e:
-                        self.logger.error(f"Sending request to the service {service.name} failed: {str(e)}")
-                        await clean_up(cause=str(e))
-                        raise HTTPException(
-                            status_code=500,
-                            detail=f"Sending request to the service {service.name} failed: {str(e)}",
+                    task = pipeline_execution.tasks[idx]
+
+                    service = self.services_service.find_one(task.service_id)
+                    if not service:
+                        await clean_up(cause="Service not found")
+
+                    # compute data_in for this service from pipeline_execution.files
+                    data_in = []
+                    for index, _ in enumerate(service.data_in_fields):
+                        # match by order: pipeline.data_in_fields order corresponds to files order created earlier
+                        pipeline_file = pipeline_execution.files[index]
+                        data_in.append(pipeline_file["file_key"])
+
+                    # Apply condition if present on the pipeline step
+                    should_post_task = True
+                    if init_step.condition:
+                        condition = init_step.condition
+                        files_mapping = {}
+                        for file in pipeline_execution.files:
+                            file_key = file["file_key"]
+                            file_reference = file["reference"]
+                            file_extension = file_key.split(".")[-1]
+                            if file_key in data_in:
+                                file_reference_one_word = re.sub(r"[-.]", "_", file_reference)
+                                if file_extension == "txt":
+                                    try:
+                                        file_content = await self.storage_service.get_file_as_bytes(file_key)
+                                        files_mapping[file_reference_one_word] = file_content.decode("utf-8")
+                                        condition = condition.replace(file_reference, file_reference_one_word)
+                                    except Exception as e:
+                                        self.logger.error(f"Could not download file {file_key} from S3.: {e}")
+                                elif file_extension == "json":
+                                    try:
+                                        file_content = await self.storage_service.get_file_as_bytes(file_key)
+                                        files_mapping[file_reference_one_word] = json.loads(
+                                            file_content.decode("utf-8"))
+                                        condition = condition.replace(file_reference, file_reference_one_word)
+                                    except Exception as e:
+                                        self.logger.error(f"Could not download file {file_key} from S3.: {e}")
+                                else:
+                                    self.logger.warning(
+                                        f"File {file_key} is not a text or JSON file. "
+                                        f"It will not be used in the condition.")
+
+                        condition_clean = sanitize(condition)
+                        if not eval(condition_clean, {}, files_mapping):
+                            should_post_task = False
+
+                    if should_post_task:
+                        task.status = TaskStatus.PENDING
+                        task.data_in = data_in
+                        task.data_out = None
+                        task = await self.tasks_service.update(task.id, task)
+
+                        # Create and submit service task
+                        service_task = ServiceTask(
+                            s3_access_key_id=self.settings.s3_access_key_id,
+                            s3_secret_access_key=self.settings.s3_secret_access_key,
+                            s3_region=self.settings.s3_region,
+                            s3_host=self.settings.s3_host,
+                            s3_bucket=self.settings.s3_bucket,
+                            task=task,
+                            callback_url=f"{self.settings.host}/tasks/{task.id}"
                         )
+
+                        try:
+                            res = await self.http_client.post(f"{service.url}/compute",
+                                                              json=jsonable_encoder(service_task))
+                            if res.status_code != 200:
+                                raise HTTPException(status_code=res.status_code, detail=res.text)
+                        except HTTPException as e:
+                            self.logger.warning(f"Service {service.name} returned an error: {str(e)}")
+                            await clean_up(cause=str(e))
+                            raise e
+                        except HTTPError as e:
+                            self.logger.error(f"Sending request to the service {service.name} failed: {str(e)}")
+                            await clean_up(cause=str(e))
+                            raise HTTPException(status_code=500,
+                                                detail=f"Sending request to the service {service.name} failed: "
+                                                       f"{str(e)}")
                     else:
-                        # Return the created pipeline execution to the end-user
-                        return pipeline_execution
-                else:
-                    await clean_up(cause="First step's condition evaluated to False")
+                        # skip the task if condition evaluated to False
+                        task.status = TaskStatus.SKIPPED
+                        task.data_in = data_in
+                        await self.tasks_service.update(task.id, task)
+
+                # Return the created pipeline execution to the end-user
+                return pipeline_execution
 
             app.add_api_route(
                 f"/{pipeline.slug}",

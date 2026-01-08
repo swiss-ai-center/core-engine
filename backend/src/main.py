@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from connection_manager.connection_manager import ConnectionManager, get_connection_manager
 from connection_manager.models import ConnectionData, Message, MessageType, MessageSubject
-from database import get_session
+from database import get_session, get_engine
 from common_code.logger.logger import get_logger
 from pipelines.controller import router as pipelines_router
 from pipeline_executions.controller import router as pipeline_executions_router
@@ -17,7 +17,6 @@ from pipelines.service import PipelinesService
 from pipeline_executions.service import PipelineExecutionsService
 from storage.service import StorageService
 from config import get_settings
-from database import initialize_db
 from timer import Timer
 from http_client import HttpClient
 from sentry_sdk import init as sentry_init
@@ -49,11 +48,11 @@ async def lifespan(api: FastAPI):
     # Manual instances because startup events doesn't support Dependency Injection
     # https://github.com/tiangolo/fastapi/issues/2057
     # https://github.com/tiangolo/fastapi/issues/425
-    engine = initialize_db(settings=settings)
+    logger = get_logger(settings)
+    engine = get_engine(settings)
     session_generator = get_session(engine)
     session = next(session_generator)
     http_client = HttpClient()
-    logger = get_logger(settings)
 
     storage_service = StorageService(
         logger=logger,

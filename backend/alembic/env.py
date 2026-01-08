@@ -1,5 +1,7 @@
 import os
+import sys
 from logging.config import fileConfig
+from pathlib import Path
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
@@ -7,25 +9,37 @@ from sqlalchemy import pool
 from alembic import context
 from dotenv import load_dotenv
 
+# Add src directory to path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+# Import SQLModel
+from sqlmodel import SQLModel  # noqa: E402 F401 F403
+
+# Import all models so they're registered with SQLModel.metadata
+from common.models import *  # noqa: E402 F401 F403
+from services.models import *  # noqa: E402 F401 F403
+from connection_manager.models import *  # noqa: E402 F401 F403
+from execution_units.models import *  # noqa: E402 F401 F403
+from pipeline_executions.models import *  # noqa: E402 F401 F403
+from pipeline_steps.models import *  # noqa: E402 F401 F403
+from pipelines.models import *  # noqa: E402 F401 F403
+from stats.models import *  # noqa: E402 F401 F403
+from storage.models import *  # noqa: E402 F401 F403
+from tasks.models import *  # noqa: E402 F401 F403
+
 load_dotenv()
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 data_base_url = os.getenv("DATABASE_URL")
+
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = None
-
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+# Set target_metadata for autogenerate support
+target_metadata = SQLModel.metadata
 
 
 def run_migrations_offline():
