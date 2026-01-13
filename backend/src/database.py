@@ -13,7 +13,7 @@ def get_engine(settings: Settings = Depends(get_settings)):
         _engine = create_engine(
             settings.database_url,
             connect_args=settings.database_connect_args,
-            echo=settings.environment == "development",  # Optional: log SQL in dev
+            # echo=settings.environment == "development",  # Optional: log SQL in dev
         )
 
     return _engine

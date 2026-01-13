@@ -1,3 +1,4 @@
+import asyncio
 import json
 import re
 import graphlib
@@ -5,6 +6,8 @@ from fastapi import FastAPI, UploadFile, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from inspect import Parameter, Signature
 from makefun import with_signature
+from sqlalchemy import Enum
+
 from execution_units.enums import ExecutionUnitStatus
 from services.models import Service, ServiceTask
 from storage.service import StorageService
@@ -579,57 +582,53 @@ class PipelinesService:
                 # Determine identifiers of ready (initial) steps: no needs or empty needs
                 initial_steps = [s for s in pipeline_steps if not s.needs]
 
-                # For each initial step, find corresponding task (tasks were created in same order as steps)
+                # Precompute a mapping from pipeline reference -> file_key for O(1) lookup
+                files_by_ref = {f["reference"]: f["file_key"] for f in pipeline_execution.files}
+
+                post_coroutines = []
+                skip_updates = []
+
                 for init_step in initial_steps:
-                    # find the index of the pipeline step in pipeline.steps to pick matching task
+                    # find the index of the step in pipeline.steps to pick matching task
                     try:
                         idx = next(i for i, s in enumerate(pipeline.steps) if s.identifier == init_step.identifier)
                     except StopIteration:
                         continue
 
                     task = pipeline_execution.tasks[idx]
-
                     service = self.services_service.find_one(task.service_id)
                     if not service:
                         await clean_up(cause="Service not found")
+                        continue
 
-                    # compute data_in for this service from pipeline_execution.files
+                    # Build data_in by resolving each input reference to file_key
                     data_in = []
-                    for index, _ in enumerate(service.data_in_fields):
-                        # match by order: pipeline.data_in_fields order corresponds to files order created earlier
-                        pipeline_file = pipeline_execution.files[index]
-                        data_in.append(pipeline_file["file_key"])
+                    for ref in init_step.inputs:
+                        # only pipeline.* inputs are available at start
+                        if ref.startswith("pipeline."):
+                            fk = files_by_ref.get(ref)
+                            if fk:
+                                data_in.append(fk)
 
-                    # Apply condition if present on the pipeline step
+                    # Evaluate optional condition
                     should_post_task = True
                     if init_step.condition:
                         condition = init_step.condition
                         files_mapping = {}
-                        for file in pipeline_execution.files:
-                            file_key = file["file_key"]
-                            file_reference = file["reference"]
-                            file_extension = file_key.split(".")[-1]
-                            if file_key in data_in:
-                                file_reference_one_word = re.sub(r"[-.]", "_", file_reference)
-                                if file_extension == "txt":
-                                    try:
-                                        file_content = await self.storage_service.get_file_as_bytes(file_key)
-                                        files_mapping[file_reference_one_word] = file_content.decode("utf-8")
-                                        condition = condition.replace(file_reference, file_reference_one_word)
-                                    except Exception as e:
-                                        self.logger.error(f"Could not download file {file_key} from S3.: {e}")
-                                elif file_extension == "json":
-                                    try:
-                                        file_content = await self.storage_service.get_file_as_bytes(file_key)
-                                        files_mapping[file_reference_one_word] = json.loads(
-                                            file_content.decode("utf-8"))
-                                        condition = condition.replace(file_reference, file_reference_one_word)
-                                    except Exception as e:
-                                        self.logger.error(f"Could not download file {file_key} from S3.: {e}")
-                                else:
-                                    self.logger.warning(
-                                        f"File {file_key} is not a text or JSON file. "
-                                        f"It will not be used in the condition.")
+                        for ref, fk in files_by_ref.items():
+                            if fk in data_in:
+                                file_ref_one_word = re.sub(r"[-.]", "_", ref)
+                                ext = fk.split(".")[-1]
+                                try:
+                                    content_bytes = await self.storage_service.get_file_as_bytes(fk)
+                                    if ext == "txt":
+                                        files_mapping[file_ref_one_word] = content_bytes.decode("utf-8")
+                                        condition = condition.replace(ref, file_ref_one_word)
+                                    elif ext == "json":
+                                        files_mapping[file_ref_one_word] = json.loads(content_bytes.decode("utf-8"))
+                                        condition = condition.replace(ref, file_ref_one_word)
+                                except Exception as e:
+                                    self.logger.error(f"Could not download file {fk} from S3: {e}")
 
                         condition_clean = sanitize(condition)
                         if not eval(condition_clean, {}, files_mapping):
@@ -641,7 +640,6 @@ class PipelinesService:
                         task.data_out = None
                         task = await self.tasks_service.update(task.id, task)
 
-                        # Create and submit service task
                         service_task = ServiceTask(
                             s3_access_key_id=self.settings.s3_access_key_id,
                             s3_secret_access_key=self.settings.s3_secret_access_key,
@@ -652,26 +650,42 @@ class PipelinesService:
                             callback_url=f"{self.settings.host}/tasks/{task.id}"
                         )
 
-                        try:
-                            res = await self.http_client.post(f"{service.url}/compute",
-                                                              json=jsonable_encoder(service_task))
-                            if res.status_code != 200:
-                                raise HTTPException(status_code=res.status_code, detail=res.text)
-                        except HTTPException as e:
-                            self.logger.warning(f"Service {service.name} returned an error: {str(e)}")
-                            await clean_up(cause=str(e))
-                            raise e
-                        except HTTPError as e:
-                            self.logger.error(f"Sending request to the service {service.name} failed: {str(e)}")
-                            await clean_up(cause=str(e))
-                            raise HTTPException(status_code=500,
-                                                detail=f"Sending request to the service {service.name} failed: "
-                                                       f"{str(e)}")
+                        # Serialize enums to values to avoid warnings
+                        payload = jsonable_encoder(service_task, custom_encoder={Enum: lambda e: e.value})
+
+                        # Collect coroutine for concurrent execution
+                        post_coroutines.append(
+                            self.http_client.post(f"{service.url}/compute", json=payload)
+                        )
                     else:
-                        # skip the task if condition evaluated to False
+                        # collect skip updates to apply after concurrent posts
                         task.status = TaskStatus.SKIPPED
                         task.data_in = data_in
-                        await self.tasks_service.update(task.id, task)
+                        skip_updates.append(self.tasks_service.update(task.id, task))
+
+                # Run all service requests concurrently
+                try:
+                    if post_coroutines:
+                        results = await asyncio.gather(*post_coroutines, return_exceptions=True)
+                        for res in results:
+                            if isinstance(res, Exception):
+                                self.logger.error(f"Parallel service call failed: {res}")
+                                await clean_up(cause=str(res))
+                                raise HTTPException(status_code=500, detail=str(res))
+                            if res.status_code != 200:
+                                raise HTTPException(status_code=res.status_code, detail=res.text)
+                except HTTPException as e:
+                    self.logger.warning(f"One parallel service returned an error: {e}")
+                    await clean_up(cause=str(e))
+                    raise e
+                except HTTPError as e:
+                    self.logger.error(f"Parallel requests failed: {e}")
+                    await clean_up(cause=str(e))
+                    raise HTTPException(status_code=500, detail=str(e))
+
+                # Apply skip updates after posts
+                if skip_updates:
+                    await asyncio.gather(*skip_updates)
 
                 # Return the created pipeline execution to the end-user
                 return pipeline_execution
