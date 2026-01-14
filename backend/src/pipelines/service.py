@@ -582,7 +582,7 @@ class PipelinesService:
                 for init_step in initial_steps:
                     # Find the task index by identifier
                     try:
-                        idx = next(i for i, s in enumerate(pipeline.steps) if s.identifier == init_step.identifier)
+                        idx = next(i for i, s in enumerate(pipeline_steps) if s.identifier == init_step.identifier)
                     except StopIteration:
                         continue
 
