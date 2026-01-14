@@ -297,16 +297,16 @@ class TasksService:
         self.logger.debug("Launch next step(s) in pipeline")
 
         pipeline_execution = self.session.get(PipelineExecution, task.pipeline_execution_id)
-
-        # Check if pipeline execution exists
         if not pipeline_execution:
             raise NotFoundException("Pipeline Execution Not Found")
 
-        # Expect task to be finished (or skipped) to trigger next launches
-        if task.status != TaskStatus.FINISHED and task.status != TaskStatus.SKIPPED:
-            self.logger.error(f"Task {task.id} status is {task.status}. Expected status is {TaskStatus.FINISHED}")
+        # Expect FINISHED or SKIPPED to trigger downstream work
+        if task.status not in {TaskStatus.FINISHED, TaskStatus.SKIPPED}:
+            self.logger.error(
+                f"Task {task.id} status is {task.status}. Expected {TaskStatus.FINISHED} or {TaskStatus.SKIPPED}"
+            )
 
-        # Find which pipeline step corresponds to this task by matching task id in pipeline_execution.tasks.
+        # Find task index in execution
         try:
             task_index = next(i for i, t in enumerate(pipeline_execution.tasks) if t.id == task.id)
         except StopIteration:
@@ -319,24 +319,25 @@ class TasksService:
 
         current_pipeline_step = pipeline.steps[task_index]
 
-        # Append produced files from the finished task into pipeline_execution.files
+        # Append produced files (if any) from finished task
         service = self.session.get(Service, task.service_id)
         if not service:
             raise NotFoundException("Associated Service Not Found")
 
-        if task.data_out:
-            files = (pipeline_execution.files or []).copy()
-            for index, file in enumerate(task.data_out):
-                service_data_out_field_name = service.data_out_fields[index]["name"]
-                reference = f"{current_pipeline_step.identifier}.{service_data_out_field_name}"
-                files.append(FileKeyReference(reference=reference, file_key=file))
+        if task.status == TaskStatus.FINISHED and task.data_out:
+            files = list(pipeline_execution.files or [])
+            for index, file_key in enumerate(task.data_out):
+                # service.data_out_fields can be a list of dicts or pydantic models; use name accordingly
+                field_def = service.data_out_fields[index]
+                field_name = field_def["name"] if isinstance(field_def, dict) else getattr(field_def, "name",
+                                                                                           f"out_{index}")
+                reference = f"{current_pipeline_step.identifier}.{field_name}"
+                files.append(FileKeyReference(reference=reference, file_key=file_key))
             pipeline_execution.files = files
 
-        # Determine if pipeline has finished: all tasks are in final states (FINISHED or SKIPPED)
+        # Pipeline finished if all tasks are in a final state
         final_states = {TaskStatus.FINISHED, TaskStatus.SKIPPED}
-        all_final = all(t.status in final_states for t in pipeline_execution.tasks)
-        if all_final:
-            # send final message for the task that triggered this, and end pipeline
+        if all(t.status in final_states for t in pipeline_execution.tasks):
             self.logger.debug(f"Sending task {task} to client")
             message = create_message(task)
             message.message.text = "Execution finished"
@@ -348,79 +349,89 @@ class TasksService:
             self.logger.debug(f"Pipeline execution finished with id: {pipeline_execution.id}")
             return pipeline_execution
 
-        # Build set of completed identifiers (finished or skipped steps)
-        completed_identifiers = set()
-        for idx, t in enumerate(pipeline_execution.tasks):
-            if t.status in final_states:
-                completed_identifiers.add(pipeline.steps[idx].identifier)
+        # Build completed identifiers set
+        completed_identifiers = {
+            pipeline.steps[idx].identifier
+            for idx, t in enumerate(pipeline_execution.tasks)
+            if t.status in final_states
+        }
 
-        # Find ready steps: their task is still SCHEDULED and all needs are satisfied
+        # Find steps ready to start: task still SCHEDULED and all needs satisfied
         ready_indices = []
         for idx, step in enumerate(pipeline.steps):
             if pipeline_execution.tasks[idx].status != TaskStatus.SCHEDULED:
                 continue
             needs = step.needs or []
-            # all needs must be in completed_identifiers
             if all(n in completed_identifiers for n in needs):
                 ready_indices.append(idx)
 
-        # Launch all ready steps
+        # Collect coroutines to post ready tasks concurrently
+        post_coroutines = []
+        post_context = []  # tuples: (next_task, next_service)
+
+        # Helper to get reference/file\_key from FileKeyReference or dict
+        def get_ref(fkr) -> str | None:
+            return getattr(fkr, "reference", None) if not isinstance(fkr, dict) else fkr.get("reference")
+
+        def get_key(fkr) -> str | None:
+            return getattr(fkr, "file_key", None) if not isinstance(fkr, dict) else fkr.get("file_key")
+
         for idx in ready_indices:
             next_step = pipeline.steps[idx]
             next_task = pipeline_execution.tasks[idx]
 
-            # collect input files for the next step
+            # Resolve input files by matching references already present in pipeline\_execution.files
             task_files = []
-            for file_input in next_step.inputs:
-                for file in pipeline_execution.files or []:
-                    if file["reference"] == file_input:
-                        task_files.append(file["file_key"])
+            for file_input in next_step.inputs or []:
+                for f in (pipeline_execution.files or []):
+                    if get_ref(f) == file_input:
+                        fk = get_key(f)
+                        if fk:
+                            task_files.append(fk)
                         break
 
             # Evaluate condition if present
             if next_step.condition:
                 condition = next_step.condition
                 files_mapping = {}
-                for file in pipeline_execution.files or []:
-                    file_key = file["file_key"]
-                    file_reference = file["reference"]
-                    file_extension = file_key.split(".")[-1]
-                    if file_key in task_files:
-                        file_reference_one_word = re.sub(r"[-.]", "_", file_reference)
-                        if file_extension == "txt":
-                            try:
-                                file_content = await self.storage_service.get_file_as_bytes(file_key)
-                                files_mapping[file_reference_one_word] = file_content.decode("utf-8")
-                                condition = condition.replace(file_reference, file_reference_one_word)
-                            except Exception as e:
-                                self.logger.error(f"Could not download file {file_key} from S3.: {e}")
-                        elif file_extension == "json":
-                            try:
-                                file_content = await self.storage_service.get_file_as_bytes(file_key)
-                                files_mapping[file_reference_one_word] = json.loads(file_content.decode("utf-8"))
-                                condition = condition.replace(file_reference, file_reference_one_word)
-                            except Exception as e:
-                                self.logger.error(f"Could not download file {file_key} from S3.: {e}")
+                for f in (pipeline_execution.files or []):
+                    fk = get_key(f)
+                    ref = get_ref(f)
+                    if not fk or not ref or fk not in task_files:
+                        continue
+                    alias = re.sub(r"[-.]", "_", ref)
+                    ext = fk.rsplit(".", 1)[-1].lower() if "." in fk else ""
+                    try:
+                        content_bytes = await self.storage_service.get_file_as_bytes(fk)
+                        if ext == "txt":
+                            files_mapping[alias] = content_bytes.decode("utf-8")
+                            condition = condition.replace(ref, alias)
+                        elif ext == "json":
+                            files_mapping[alias] = json.loads(content_bytes.decode("utf-8"))
+                            condition = condition.replace(ref, alias)
                         else:
-                            self.logger.warning(
-                                f"File {file_key} is not a text or JSON file. It will not be used in the condition.")
+                            self.logger.debug(f"Condition input {fk} ignored (unsupported ext \'{ext}\')")
+                    except Exception as e:
+                        self.logger.error(f"Could not download file {fk} from storage: {e}")
 
                 condition_clean = sanitize(condition)
                 if not eval(condition_clean, {}, files_mapping):
                     self.logger.info(
-                        f"Condition {condition_clean} evaluated to False for step {next_step.identifier}. Skipping.")
+                        f"Condition {condition_clean} evaluated to False for step {next_step.identifier}. Skipping."
+                    )
                     next_task.status = TaskStatus.SKIPPED
                     next_task.data_in = task_files
                     self.session.add(next_task)
                     self.session.commit()
                     self.session.refresh(next_task)
+
                     # notify client about skipped task
                     self.logger.debug(f"Sending task {next_task} to client")
                     message = create_message(next_task)
                     await self.send_message(message, pipeline_execution, next_task, general_status=TaskStatus.FINISHED)
                     continue
 
-            # Prepare and dispatch the task
+            # Prepare task to run
             next_task.data_in = task_files
             next_task.service_id = next_step.service_id
             next_task.status = TaskStatus.PENDING
@@ -428,7 +439,7 @@ class TasksService:
             self.session.commit()
             self.session.refresh(next_task)
 
-            # Prepare service task payload and post to remote service
+            # Prepare service task payload and request
             next_service = self.session.get(Service, next_step.service_id)
             service_task = ServiceTask(
                 s3_access_key_id=self.settings.s3_access_key_id,
@@ -440,36 +451,42 @@ class TasksService:
                 callback_url=f"{self.settings.host}/tasks/{next_task.id}"
             )
 
-            try:
-                res = await self.http_client.post(f"{next_service.url}/compute", json=jsonable_encoder(service_task))
-                if res.status_code != 200:
-                    raise HTTPException(status_code=res.status_code, detail=res.text)
+            post_coroutines.append(
+                self.http_client.post(f"{next_service.url}/compute", json=jsonable_encoder(service_task)))
+            post_context.append((next_task, next_service))
 
-                # notify client that task is launched
-                self.logger.debug(f"Sending task {next_task} to client")
-                message = create_message(next_task)
-                await self.send_message(message, pipeline_execution, next_task)
+        # Fire all ready tasks concurrently
+        if post_coroutines:
+            results = await asyncio.gather(*post_coroutines, return_exceptions=True)
+            for (res, (launched_task, launched_service)) in zip(results, post_context):
+                try:
+                    if isinstance(res, Exception):
+                        raise res
+                    if res.status_code != 200:
+                        raise HTTPException(status_code=res.status_code, detail=res.text)
 
-            except HTTPException as e:
-                self.logger.warning(f"Service {next_service.name} returned an error: {str(e)}")
-                set_error_state(pipeline_execution, next_task.id)
-                self.skip_remaining_tasks(pipeline_execution)
-                end_pipeline_execution(pipeline_execution)
-                self.logger.debug(f"Sending task {next_task} to client")
-                message = create_message(next_task)
-                await self.send_message(message, pipeline_execution, next_task, general_status=TaskStatus.ERROR)
-                break
-            except HTTPError as e:
-                self.logger.error(f"Sending request to the service {next_service.name} failed: {str(e)}")
-                set_error_state(pipeline_execution, next_task.id)
-                self.skip_remaining_tasks(pipeline_execution)
-                end_pipeline_execution(pipeline_execution)
-                self.logger.debug(f"Sending task {next_task} to client")
-                message = create_message(next_task)
-                await self.send_message(message, pipeline_execution, next_task, general_status=TaskStatus.ERROR)
-                break
+                    # notify client that task is launched
+                    self.logger.debug(f"Sending task {launched_task} to client")
+                    message = create_message(launched_task)
+                    await self.send_message(message, pipeline_execution, launched_task)
 
-        # Persist pipeline_execution updates
+                except (HTTPException, HTTPError, Exception) as e:
+                    # On error, mark error and terminate pipeline
+                    self.logger.error(f"Sending request to the service {launched_service.name} failed: {str(e)}")
+                    set_error_state(pipeline_execution, launched_task.id)
+                    self.skip_remaining_tasks(pipeline_execution)
+                    end_pipeline_execution(pipeline_execution)
+
+                    self.logger.debug(f"Sending task {launched_task} to client")
+                    message = create_message(launched_task)
+                    await self.send_message(message, pipeline_execution, launched_task, general_status=TaskStatus.ERROR)
+
+                    self.session.add(pipeline_execution)
+                    self.session.commit()
+                    self.session.refresh(pipeline_execution)
+                    return pipeline_execution
+
+        # Persist pipeline\_execution updates
         self.session.add(pipeline_execution)
         self.session.commit()
         self.session.refresh(pipeline_execution)
