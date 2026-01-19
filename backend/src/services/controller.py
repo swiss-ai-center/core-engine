@@ -1,5 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import PlainTextResponse
 from common.exceptions import NotFoundException, ConflictException, ConstraintException
 from execution_units.enums import ExecutionUnitStatus
 from services.service import ServicesService
@@ -7,6 +8,7 @@ from common.query_parameters import QueryParameters
 from services.models import ServiceRead, ServiceUpdate, ServiceCreate, Service, ServicesWithCount
 from uuid import UUID
 from sqlalchemy.exc import CompileError
+import textwrap
 
 router = APIRouter()
 
@@ -51,6 +53,32 @@ def get_one_by_slug(
         raise HTTPException(status_code=404, detail="Service Not Found")
 
     return service
+
+
+@router.get(
+    "/services/slug/{service_slug}/code-snippet",
+    summary="Get one code snippet by slug to use the service externally",
+    responses={
+        404: {"detail": "Service Not Found"},
+        400: {"detail": "Bad Request"},
+        500: {"detail": "Internal Server Error"},
+    },
+    response_class=PlainTextResponse,
+)
+async def get_code_snippet_by_slug(
+        service_slug: str,
+        services_service: ServicesService = Depends()
+):
+    service = services_service.find_one_by_slug(service_slug)
+    if not service:
+        raise HTTPException(status_code=404, detail="Service Not Found")
+
+    raw_snippet = services_service.generate_code_snippet(service)
+
+    # Format the code snippet
+    formatted_snippet = textwrap.dedent(raw_snippet).strip()
+
+    return formatted_snippet
 
 
 @router.get(
