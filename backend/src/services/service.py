@@ -589,3 +589,271 @@ class ServicesService:
                     self.logger.info(f"Service {service.name} ({service.slug}) reachable and OK")
                     updated_service = self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.AVAILABLE))
                     self.enable_service(app, updated_service)
+
+    def generate_code_snippet(self, service: Service):
+        """
+        Generate a code snippet for a service using input and output data fields.
+        :param service: The service to generate the code snippet for.
+        :return: The code snippet as python string to paste.
+        """
+        self.logger.debug(f"Generating code snippet for service {service.name}")
+
+        # Prepare base url (use configured host, fall back to localhost)
+        base_url = str(getattr(self.settings, "host", "http://localhost:8000")).rstrip("/")
+
+        # Prepare function name derived from slug
+        func_name = f"execute_{service.slug.replace('-', '_')}_workflow"
+
+        # Prepare input fields (name and content-type)
+        inputs = service.data_in_fields or []
+        if not inputs:
+            # fallback generic single file input
+            inputs = [{"name": "file", "type": ["application/octet-stream"]}]
+
+        # Determine if we need multiple file parameters
+        has_multiple_inputs = len(inputs) > 1
+
+        # Build function parameters based on inputs
+        if has_multiple_inputs:
+            param_list = ", ".join([
+                f"{field.get('name') if isinstance(field, dict) else getattr(field, 'name', f'input{idx}')}_path"
+                for idx, field in enumerate(inputs)
+            ])
+            first_param = f"{inputs[0].get('name') if isinstance(inputs[0], dict) else getattr(inputs[0], 'name', 'input0')}_path"
+        else:
+            param_list = "file_path"
+            first_param = "file_path"
+
+        # Build files dict
+        file_entries = []
+        file_open_statements = []
+
+        for idx, field in enumerate(inputs):
+            field_name = field.get("name") if isinstance(field, dict) else getattr(field, "name", f"input{idx}")
+            accepted = field.get("type") if isinstance(field, dict) else getattr(field, "type", None)
+
+            # Get the first accepted content type
+            if isinstance(accepted, (list, tuple)) and len(accepted) > 0:
+                content_type = accepted[0]
+            elif isinstance(accepted, str):
+                content_type = accepted
+            else:
+                content_type = "application/octet-stream"
+
+            param_name = f"{field_name}_path" if has_multiple_inputs else "file_path"
+            file_var = f"f{idx}" if has_multiple_inputs else "f"
+
+            file_open_statements.append(f"open({param_name}, 'rb') as {file_var}")
+
+            # Determine filename from path
+            file_entries.append(
+                f"                '{field_name}': (os.path.basename({param_name}), {file_var}, '{content_type}')"
+            )
+
+        # Build with statement and files dict
+        if has_multiple_inputs:
+            with_statement = f"with {', '.join(file_open_statements)}:"
+            files_block = "        files = {\n" + ",\n".join(file_entries) + "\n            }"
+        else:
+            with_statement = f"with {file_open_statements[0]}:"
+            files_block = "        files = {\n" + "\n".join(file_entries) + "\n            }"
+
+        # Build docstring args section
+        if has_multiple_inputs:
+            args_doc_lines = [
+                f"        {field.get('name') if isinstance(field, dict) else getattr(field, 'name', f'input{idx}')}_path: Path to the {field.get('name') if isinstance(field, dict) else getattr(field, 'name', f'input{idx}')} file"
+                for idx, field in enumerate(inputs)
+            ]
+            args_doc = "\n".join(args_doc_lines)
+        else:
+            args_doc = "        file_path: Path to the input file"
+
+        # Determine output handling based on output types
+        outputs = service.data_out_fields or []
+
+        # Check if outputs might be binary (non-JSON)
+        has_binary_output = False
+        if outputs:
+            for output in outputs:
+                output_types = output.get("type") if isinstance(output, dict) else getattr(output, "type", [])
+                if isinstance(output_types, (list, tuple)):
+                    output_types = list(output_types)
+                elif isinstance(output_types, str):
+                    output_types = [output_types]
+                else:
+                    output_types = []
+
+                # Check if any output type is binary
+                binary_types = [
+                    "image/jpeg", "image/png", "application/pdf", "application/zip",
+                    "audio/mpeg", "audio/ogg", "application/octet-stream"
+                ]
+                if any(ot in binary_types for ot in output_types):
+                    has_binary_output = True
+                    break
+
+        # Build download logic based on output types
+        if has_binary_output:
+            download_logic = """            # Step 3: Download all output files
+                results = []
+                for output_id in data_out:
+                    print(f"Downloading result: {output_id}")
+                    response = requests.get(
+                        f"{base_url}/storage/{output_id}"
+                    )
+        
+                    if response.status_code == 200:
+                        # Try to parse as JSON first, otherwise keep raw content
+                        try:
+                            results.append(response.json())
+                        except:
+                            results.append(response.content)
+                    else:
+                        print(f"Error downloading {output_id}: {response.status_code}")"""
+        else:
+            download_logic = """            # Step 3: Download all output files
+                results = []
+                for output_id in data_out:
+                    print(f"Downloading result: {output_id}")
+                    response = requests.get(
+                        f"{base_url}/storage/{output_id}",
+                        headers={'accept': 'application/json'}
+                    )
+        
+                    if response.status_code == 200:
+                        results.append(response.json())
+                    else:
+                        print(f"Error downloading {output_id}: {response.status_code}")"""
+
+        # Get example filename for the main usage example
+        example_files = []
+        for idx, field in enumerate(inputs):
+            example_files.append(f'"{self._get_example_filename(field)}"')
+
+        example_call = f"{func_name}({', '.join(example_files)})"
+
+        # Build the final snippet string
+        snippet = f"""
+    import requests
+    import time
+    import json
+    import os
+    
+    
+    def {func_name}({param_list}):
+        \"\"\"
+        Execute {service.name} workflow: upload inputs, poll for completion, download results.
+    
+        Args:
+    {args_doc}
+    
+        Returns:
+            dict or bytes: The downloaded result data, or None if error
+        \"\"\"
+        base_url = "{base_url}"
+    
+        # Step 1: Launch execution
+        print(f"Uploading file(s): {{{first_param}}}")
+        {with_statement}
+    {files_block}
+    
+            response = requests.post(
+                f"{{base_url}}/{service.slug}",
+                files=files,
+                headers={{'accept': 'application/json'}}
+            )
+    
+        if response.status_code not in [200, 201]:
+            print(f"Error uploading file: {{response.status_code}}")
+            return None
+    
+        task_data = response.json()
+        task_id = task_data.get('id')
+        print(f"Task created: {{task_id}}")
+    
+        # Step 2: Poll for task completion
+        max_attempts = 60  # Maximum polling attempts
+        poll_interval = 2  # Seconds between polls
+    
+        for attempt in range(max_attempts):
+            print(f"Polling task status (attempt {{attempt + 1}}/{{max_attempts}})...")
+            response = requests.get(
+                f"{{base_url}}/tasks/{{task_id}}",
+                headers={{'accept': 'application/json'}}
+            )
+    
+            if response.status_code != 200:
+                print(f"Error fetching task status: {{response.status_code}}")
+                return None
+    
+            task_status = response.json()
+            status = task_status.get('status', '').lower()
+    
+            print(f"Current status: {{status}}")
+    
+            if status == 'finished':
+                print("Task completed successfully!")
+                data_out = task_status.get('data_out', [])
+    
+                if not data_out:
+                    print("No output data found")
+                    return None
+    
+    {download_logic}
+    
+                # Return single result if only one output, otherwise return list
+                return results[0] if len(results) == 1 else results
+    
+            elif status == 'error':
+                error_msg = task_status.get('error_message', 'Unknown error')
+                print(f"Task failed with error: {{error_msg}}")
+                return None
+    
+            # Wait before next poll
+            time.sleep(poll_interval)
+    
+        print("Timeout: Task did not complete within expected time")
+        return None
+    
+    
+    # Example usage
+    if __name__ == "__main__":
+        result = {example_call}
+    
+        if result:
+            print("=== Result ===")
+            if isinstance(result, bytes):
+                print(f"Binary result: {{len(result)}} bytes")
+            else:
+                print(json.dumps(result, indent=2))
+        else:
+            print("Failed to get result")
+    """
+        return snippet
+
+    def _get_example_filename(self, field):
+        """
+        Helper to generate example filename based on field type.
+        """
+        field_types = field.get("type") if isinstance(field, dict) else getattr(field, "type", [])
+        if isinstance(field_types, (list, tuple)) and len(field_types) > 0:
+            content_type = field_types[0]
+        elif isinstance(field_types, str):
+            content_type = field_types
+        else:
+            content_type = "application/octet-stream"
+
+        # Map content types to example filenames
+        examples = {
+            "image/jpeg": "example.jpg",
+            "image/png": "example.png",
+            "text/plain": "example.txt",
+            "text/csv": "data.csv",
+            "application/json": "data.json",
+            "application/pdf": "document.pdf",
+            "application/zip": "archive.zip",
+            "audio/mpeg": "audio.mp3",
+            "audio/ogg": "audio.ogg",
+        }
+
+        return examples.get(content_type, "input.file")

@@ -1,8 +1,9 @@
-import { ExpandMore, Psychology } from '@mui/icons-material';
+import { ContentCopyTwoTone, ExpandMore, Psychology } from '@mui/icons-material';
 import {
     AccordionDetails,
     AccordionSummary,
     Box,
+    Button,
     Chip,
     Drawer,
     Grid,
@@ -22,6 +23,8 @@ import remarkMath from 'remark-math'
 import 'katex/dist/katex.min.css'
 import './styles.css';
 import { isSmartphone } from 'utils/functions';
+import { getCodeSnippet } from 'utils/api';
+import { toast } from 'react-toastify';
 
 const drawerWidth = isSmartphone() ? '100%' : 500;
 
@@ -53,6 +56,18 @@ export const InformationDrawer: React.FC<{
     const colorMode = useSelector((state: any) => state.colorMode.value);
     const lightgrey = colorMode === 'light' ? grey[100] : grey[900];
     const darkgrey = colorMode === 'light' ? grey[400] : grey[800];
+
+    const handleCodeSnippet = async () => {
+        console.log(description.slug);
+        const response = await getCodeSnippet(description.slug);
+        if (response && response.code_snippet) {
+            console.log(response);
+            await navigator.clipboard.writeText(response.code_snippet);
+            toast("Python Code Snippet copied to clipboard", {type: "info"});
+        } else {
+            toast("Error while getting the code snippet" + response.error, {type: "error"});
+        }
+    }
 
     const drawer = (
         <>
@@ -198,6 +213,27 @@ export const InformationDrawer: React.FC<{
                             </Accordion>
                         </>
                         : <></>}
+                </Box>
+                <Box
+                    mt={isSmartphone() ? 2 : 3}
+                >
+
+                    <Tooltip title={"Copy the Python code snippet to use this service externally"}>
+                        <Button
+                            id={"code-snippet"}
+                            variant={"outlined"}
+                            disableElevation
+                            color={"secondary"}
+                            fullWidth
+                            size={"large"}
+                            startIcon={<ContentCopyTwoTone/>}
+                            onClick={() => {
+                                handleCodeSnippet();
+                            }}
+                        >
+                            Copy Code Snippet to Clipboard
+                        </Button>
+                    </Tooltip>
                 </Box>
             </Box>
         </>

@@ -1,3 +1,5 @@
 [flake8]
 exclude = .git,__pycache__,venv,.venv
 max-line-length = 120
+per-file-ignores =
+    src/services/service.py:E501,W293

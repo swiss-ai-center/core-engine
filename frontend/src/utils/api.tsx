@@ -98,13 +98,13 @@ export const getPipelines = async (filter: string, skip: number, limit: number, 
 }
 
 
-export const checkPipelineValidity = async (jsonDescription: string)=> {
+export const checkPipelineValidity = async (jsonDescription: string) => {
     /*
      * Function used to check if a pipeline is valid (using a Json representation of said pipeline)
      * jsonDescription: string - the pipeline's description, in json format.
      */
 
-    const headers : any = HEADERS
+    const headers: any = HEADERS
     headers['accept'] = 'application/json';
     headers['Content-Type'] = 'application/json'
 
@@ -113,7 +113,7 @@ export const checkPipelineValidity = async (jsonDescription: string)=> {
             headers: headers,
             method: 'POST',
             body: jsonDescription
-            });
+        });
         if (response.status === 200) {
             return await response.json();
         }
@@ -127,12 +127,12 @@ export const checkPipelineValidity = async (jsonDescription: string)=> {
 
 }
 
-export const createPipeline = async (jsonDescription: string)=> {
+export const createPipeline = async (jsonDescription: string) => {
     /*
      * Function used to check if a pipeline is valid (using a Json representation of said pipeline)
      * jsonDescription: string - the pipeline's description, in json format.
      */
-    const headers : any = HEADERS
+    const headers: any = HEADERS
     headers['accept'] = 'application/json';
     headers['Content-Type'] = 'application/json'
 
@@ -275,6 +275,23 @@ export const postToEngine = async (serviceSlug: string, parts: FieldDescriptionW
             return await response.json();
         }
         return {error: `${response.status} ${response.statusText}`};
+    } catch (error: any) {
+        return {error: error.message}
+    }
+}
+
+export const getCodeSnippet = async (serviceSlug: string) => {
+    /*
+     * Function to fetch a code snippet from the engine
+     * serviceSlug: string - the slug of the service
+     */
+    try {
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/slug/${serviceSlug}/code-snippet`, {headers: HEADERS});
+        if (response.status === 200) {
+            const code_snippet = await response.text();
+            return {"code_snippet": code_snippet};
+        }
+        return {code_snippet: ""};
     } catch (error: any) {
         return {error: error.message}
     }
