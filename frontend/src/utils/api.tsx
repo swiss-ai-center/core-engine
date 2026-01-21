@@ -280,13 +280,15 @@ export const postToEngine = async (serviceSlug: string, parts: FieldDescriptionW
     }
 }
 
-export const getCodeSnippet = async (serviceSlug: string) => {
+export const getCodeSnippet = async (slug: string, isPipeline: boolean = false) => {
     /*
      * Function to fetch a code snippet from the engine
-     * serviceSlug: string - the slug of the service
+     * slug: string - the slug of the service or pipeline
+     * isPipeline: boolean - whether the slug is for a pipeline or a service
      */
     try {
-        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/slug/${serviceSlug}/code-snippet`, {headers: HEADERS});
+        const type = isPipeline ? 'pipelines' : 'services';
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/${type}/slug/${slug}/code-snippet`, {headers: HEADERS});
         if (response.status === 200) {
             const code_snippet = await response.text();
             return {"code_snippet": code_snippet};

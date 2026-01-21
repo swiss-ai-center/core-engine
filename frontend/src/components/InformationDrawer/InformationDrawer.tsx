@@ -58,14 +58,12 @@ export const InformationDrawer: React.FC<{
     const darkgrey = colorMode === 'light' ? grey[400] : grey[800];
 
     const handleCodeSnippet = async () => {
-        console.log(description.slug);
-        const response = await getCodeSnippet(description.slug);
+        const response = await getCodeSnippet(description.slug, description.steps !== undefined ? true : false);
         if (response && response.code_snippet) {
-            console.log(response);
             await navigator.clipboard.writeText(response.code_snippet);
             toast("Python Code Snippet copied to clipboard", {type: "info"});
         } else {
-            toast("Error while getting the code snippet" + response.error, {type: "error"});
+            toast("Error while getting the code snippet \n" + response.error, {type: "error"});
         }
     }
 
