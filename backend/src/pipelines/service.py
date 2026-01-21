@@ -6,6 +6,7 @@ from fastapi import FastAPI, UploadFile, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from inspect import Parameter, Signature
 from makefun import with_signature
+from common.functions import get_example_filename
 from execution_units.enums import ExecutionUnitStatus
 from services.models import Service, ServiceTask
 from storage.service import StorageService
@@ -459,9 +460,10 @@ class PipelinesService:
             # Create the `handler` signature from pipeline's `data_in_fields`
             handler_params = []
             for data_in_field in pipeline.data_in_fields:
+                field_name = data_in_field.get("name") if isinstance(data_in_field, dict) else data_in_field.name
                 handler_params.append(
                     Parameter(
-                        data_in_field["name"],
+                        field_name,
                         kind=Parameter.POSITIONAL_OR_KEYWORD,
                         annotation=UploadFile,
                     )
@@ -494,8 +496,11 @@ class PipelinesService:
                 # Upload inputs
                 for param_index, (_, file) in enumerate(kwargs.items()):
                     file_content_type = file.content_type
-                    file_part_name = pipeline.data_in_fields[param_index]["name"]
-                    accepted_file_content_types = pipeline.data_in_fields[param_index]["type"]
+                    data_in_field = pipeline.data_in_fields[param_index]
+                    file_part_name = data_in_field.get("name") if isinstance(data_in_field,
+                                                                             dict) else data_in_field.name
+                    accepted_file_content_types = data_in_field.get("type") if isinstance(data_in_field,
+                                                                                          dict) else data_in_field.type
 
                     # Normalize enums to their string values for comparison
                     try:
@@ -765,7 +770,10 @@ class PipelinesService:
                     # Check if the identifier is the pipeline
                     if identifier == "pipeline":
                         # Check if the variable is available in the pipeline
-                        variables_found = [v for v in pipeline.data_in_fields if v["name"] == variable]
+                        variables_found = [
+                            v for v in pipeline.data_in_fields
+                            if (v.get("name") if isinstance(v, dict) else v.name) == variable
+                        ]
                     else:
                         # Check if the identifier is a predecessor
                         if identifier not in predecessors:
@@ -788,7 +796,10 @@ class PipelinesService:
                             raise NotFoundException("Execution Unit Not Found")
 
                         # Check if the variable is available in the execution unit
-                        variables_found = [v for v in execution_unit.data_out_fields if v["name"] == variable]
+                        variables_found = [
+                            v for v in execution_unit.data_out_fields
+                            if (v.get("name") if isinstance(v, dict) else v.name) == variable
+                        ]
 
                     if len(variables_found) == 0:
                         raise InconsistentPipelineException(
@@ -797,7 +808,9 @@ class PipelinesService:
                         raise InconsistentPipelineException(
                             f"The variable {variable} is set multiple times in the execution unit.")
 
-                    variable_types_to_check = [v["type"] for v in variables_found][0]
+                    # Handle both dict and FieldDescription object
+                    found_var = variables_found[0]
+                    variable_types_to_check = found_var.get("type") if isinstance(found_var, dict) else found_var.type
 
                     # Get the data_in_fields of the current step
                     current_execution_unit = self.session.get(Service, step_found.service_id)
@@ -805,7 +818,9 @@ class PipelinesService:
                         raise NotFoundException("Execution Unit Not Found")
 
                     # Check if the type of the variable is compatible with the input of the remote execution unit
-                    input_types = current_execution_unit.data_in_fields[index]["type"]
+                    # Handle both dict and FieldDescription object
+                    current_field = current_execution_unit.data_in_fields[index]
+                    input_types = current_field.get("type") if isinstance(current_field, dict) else current_field.type
 
                     # For each input type, create a FieldDescriptionType
                     input_types = [FieldDescriptionType(v) for v in input_types]
@@ -831,3 +846,264 @@ class PipelinesService:
 
         self.logger.debug("Pipeline is consistent")
         return True
+
+    def generate_code_snippet(self, pipeline: Pipeline):
+        """
+        Generate a code snippet for a pipeline using input and output data fields.
+        :param pipeline: The pipeline to generate the code snippet for.
+        :return: The code snippet as python string to paste.
+        """
+        self.logger.debug(f"Generating code snippet for pipeline {pipeline.name}")
+
+        # Prepare base url (use configured host, fall back to localhost)
+        base_url = str(getattr(self.settings, "host", "http://localhost:8000")).rstrip("/")
+
+        # Prepare function name derived from slug
+        func_name = f"execute_{pipeline.slug.replace('-', '_')}_workflow"
+
+        # Prepare input fields (name and content-type)
+        inputs = pipeline.data_in_fields or []
+        if not inputs:
+            # fallback generic single file input
+            inputs = [{"name": "file", "type": ["application/octet-stream"]}]
+
+        # Determine if we need multiple file parameters
+        has_multiple_inputs = len(inputs) > 1
+
+        # Build function parameters based on inputs
+        if has_multiple_inputs:
+            param_list = ", ".join([
+                f"{field.get('name') if isinstance(field, dict) else getattr(field, 'name', f'input{idx}')}_path"
+                for idx, field in enumerate(inputs)
+            ])
+            first_param = f"{inputs[0].get('name') if isinstance(inputs[0], dict) else getattr(inputs[0], 'name', 'input0')}_path"
+        else:
+            param_list = "file_path"
+            first_param = "file_path"
+
+        # Build files dict
+        file_entries = []
+        file_open_statements = []
+
+        for idx, field in enumerate(inputs):
+            field_name = field.get("name") if isinstance(field, dict) else getattr(field, "name", f"input{idx}")
+            accepted = field.get("type") if isinstance(field, dict) else getattr(field, "type", None)
+
+            # Get the first accepted content type
+            if isinstance(accepted, (list, tuple)) and len(accepted) > 0:
+                content_type = accepted[0]
+            elif isinstance(accepted, str):
+                content_type = accepted
+            else:
+                content_type = "application/octet-stream"
+
+            param_name = f"{field_name}_path" if has_multiple_inputs else "file_path"
+            file_var = f"f{idx}" if has_multiple_inputs else "f"
+
+            file_open_statements.append(f"open({param_name}, 'rb') as {file_var}")
+
+            # Determine filename from path
+            file_entries.append(
+                f"                '{field_name}': (os.path.basename({param_name}), {file_var}, '{content_type}')"
+            )
+
+        # Build with statement and files dict
+        if has_multiple_inputs:
+            with_statement = f"with {', '.join(file_open_statements)}:"
+            files_block = "        files = {\n" + ",\n".join(file_entries) + "\n            }"
+        else:
+            with_statement = f"with {file_open_statements[0]}:"
+            files_block = "        files = {\n" + "\n".join(file_entries) + "\n            }"
+
+        # Build docstring args section
+        if has_multiple_inputs:
+            args_doc_lines = [
+                f"        {field.get('name') if isinstance(field, dict) else getattr(field, 'name', f'input{idx}')}_path: Path to the {field.get('name') if isinstance(field, dict) else getattr(field, 'name', f'input{idx}')} file"
+                for idx, field in enumerate(inputs)
+            ]
+            args_doc = "\n".join(args_doc_lines)
+        else:
+            args_doc = "        file_path: Path to the input file"
+
+        # Determine output handling based on output types
+        outputs = pipeline.data_out_fields or []
+
+        # Check if outputs might be binary (non-JSON)
+        has_binary_output = False
+        if outputs:
+            for output in outputs:
+                output_types = output.get("type") if isinstance(output, dict) else getattr(output, "type", [])
+                if isinstance(output_types, (list, tuple)):
+                    output_types = list(output_types)
+                elif isinstance(output_types, str):
+                    output_types = [output_types]
+                else:
+                    output_types = []
+
+                # Check if any output type is binary
+                binary_types = [
+                    "image/jpeg", "image/png", "application/pdf", "application/zip",
+                    "audio/mpeg", "audio/ogg", "application/octet-stream"
+                ]
+                if any(ot in binary_types for ot in output_types):
+                    has_binary_output = True
+                    break
+
+        # Build download logic based on output types
+        if has_binary_output:
+            download_logic = """            # Step 3: Download all output files
+                results = []
+                for file_key in files:
+                    print(f"Downloading result: {file_key}")
+                    response = requests.get(
+                        f"{base_url}/storage/{file_key}"
+                    )
+        
+                    if response.status_code == 200:
+                        # Try to parse as JSON first, otherwise keep raw content
+                        try:
+                            results.append(response.json())
+                        except:
+                            results.append(response.content)
+                    else:
+                        print(f"Error downloading {file_key}: {response.status_code}")"""
+        else:
+            download_logic = """            # Step 3: Download all output files
+                results = []
+                for file_key in files:
+                    print(f"Downloading result: {file_key}")
+                    response = requests.get(
+                        f"{base_url}/storage/{file_key}",
+                        headers={'accept': 'application/json'}
+                    )
+        
+                    if response.status_code == 200:
+                        results.append(response.json())
+                    else:
+                        print(f"Error downloading {file_key}: {response.status_code}")"""
+
+        # Get example filename for the main usage example
+        example_files = []
+        for idx, field in enumerate(inputs):
+            example_files.append(f'"{get_example_filename(field)}"')
+
+        example_call = f"{func_name}({', '.join(example_files)})"
+
+        # Build the final snippet string
+        snippet = f"""
+    import requests
+    import time
+    import json
+    import os
+    
+    
+    def {func_name}({param_list}):
+        \"\"\"
+        Execute {pipeline.name} pipeline: upload inputs, poll for completion, download results.
+    
+        Args:
+    {args_doc}
+    
+        Returns:
+            dict or bytes: The downloaded result data, or None if error
+        \"\"\"
+        base_url = "{base_url}"
+    
+        # Step 1: Launch pipeline execution
+        print(f"Uploading file(s): {{{first_param}}}")
+        {with_statement}
+    {files_block}
+    
+            response = requests.post(
+                f"{{base_url}}/{pipeline.slug}",
+                files=files,
+                headers={{'accept': 'application/json'}}
+            )
+    
+        if response.status_code not in [200, 201]:
+            print(f"Error uploading file: {{response.status_code}}")
+            return None
+    
+        execution_data = response.json()
+        execution_id = execution_data.get('id')
+        print(f"Pipeline execution created: {{execution_id}}")
+    
+        # Step 2: Poll for pipeline execution completion
+        max_attempts = 120  # Maximum polling attempts (pipelines can take longer)
+        poll_interval = 3  # Seconds between polls
+    
+        for attempt in range(max_attempts):
+            print(f"Polling execution status (attempt {{attempt + 1}}/{{max_attempts}})...")
+            response = requests.get(
+                f"{{base_url}}/pipeline-executions/{{execution_id}}",
+                headers={{'accept': 'application/json'}}
+            )
+    
+            if response.status_code != 200:
+                print(f"Error fetching execution status: {{response.status_code}}")
+                return None
+    
+            execution_status = response.json()
+            
+            # Get current pipeline step information
+            current_step = execution_status.get('current_pipeline_step')
+            if current_step:
+                service_name = current_step.get('service', {{}}).get('name', 'Unknown')
+                print(f"Current service: {{service_name}}")
+            
+            # Check all tasks to determine overall status
+            tasks = execution_status.get('tasks', [])
+            if not tasks:
+                print("No tasks found in execution")
+                return None
+            
+            all_finished = all(task.get('status', '').lower() == 'finished' for task in tasks)
+            any_error = any(task.get('status', '').lower() == 'error' for task in tasks)
+            
+            # Print individual task statuses
+            for idx, task in enumerate(tasks):
+                task_status = task.get('status', 'unknown')
+                service_name = task.get('service', {{}}).get('name', f'Task {{idx}}')
+                print(f"  - {{service_name}}: {{task_status}}")
+            
+            if all_finished:
+                print("Pipeline execution completed successfully!")
+                last_task = tasks[-1]
+                files = last_task.get('data_out', [])
+
+                if not files:
+                    print("No output files found")
+                    return None
+
+    {download_logic}
+
+                # Return single result if only one output, otherwise return list
+                return results[0] if len(results) == 1 else results
+
+            elif any_error:
+                error_tasks = [t for t in tasks if t.get('status', '').lower() == 'error']
+                error_msgs = [t.get('error_message', 'Unknown error') for t in error_tasks]
+                print(f"Pipeline execution failed with errors: {{', '.join(error_msgs)}}")
+                return None
+
+            # Wait before next poll
+            time.sleep(poll_interval)
+
+        print("Timeout: Pipeline execution did not complete within expected time")
+        return None
+    
+    
+    # Example usage
+    if __name__ == "__main__":
+        result = {example_call}
+
+        if result:
+            print("=== Result ===")
+            if isinstance(result, bytes):
+                print(f"Binary result: {{len(result)}} bytes")
+            else:
+                print(json.dumps(result, indent=2))
+        else:
+            print("Failed to get result")
+    """
+        return snippet

@@ -6,6 +6,7 @@ from fastapi import FastAPI, UploadFile, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from makefun import with_signature
 from uuid import UUID
+from common.functions import get_example_filename
 from execution_units.enums import ExecutionUnitStatus
 from storage.service import StorageService
 from tasks.service import TasksService
@@ -341,9 +342,10 @@ class ServicesService:
             # Create the `handler` signature from service's `data_in_fields`
             handler_params = []
             for data_in_field in service.data_in_fields:
+                field_name = data_in_field.get("name") if isinstance(data_in_field, dict) else data_in_field.name
                 handler_params.append(
                     Parameter(
-                        data_in_field["name"],
+                        field_name,
                         kind=Parameter.POSITIONAL_OR_KEYWORD,
                         annotation=UploadFile,
                     )
@@ -373,11 +375,11 @@ class ServicesService:
                     # Get the content type of the file
                     file_content_type = file.content_type
 
-                    # Get the file name of the part
-                    file_part_name = service.data_in_fields[param_index]["name"]
-
-                    # Get the accepted content types for the file
-                    accepted_file_content_types = service.data_in_fields[param_index]["type"]
+                    data_in_field = service.data_in_fields[param_index]
+                    file_part_name = data_in_field.get("name") if isinstance(data_in_field,
+                                                                             dict) else data_in_field.name
+                    accepted_file_content_types = data_in_field.get("type") if isinstance(data_in_field,
+                                                                                          dict) else data_in_field.type
 
                     # Check if the content type of the uploaded file is accepted
                     if file_content_type not in accepted_file_content_types:
@@ -728,7 +730,7 @@ class ServicesService:
         # Get example filename for the main usage example
         example_files = []
         for idx, field in enumerate(inputs):
-            example_files.append(f'"{self._get_example_filename(field)}"')
+            example_files.append(f'"{get_example_filename(field)}"')
 
         example_call = f"{func_name}({', '.join(example_files)})"
 
@@ -830,30 +832,3 @@ class ServicesService:
             print("Failed to get result")
     """
         return snippet
-
-    def _get_example_filename(self, field):
-        """
-        Helper to generate example filename based on field type.
-        """
-        field_types = field.get("type") if isinstance(field, dict) else getattr(field, "type", [])
-        if isinstance(field_types, (list, tuple)) and len(field_types) > 0:
-            content_type = field_types[0]
-        elif isinstance(field_types, str):
-            content_type = field_types
-        else:
-            content_type = "application/octet-stream"
-
-        # Map content types to example filenames
-        examples = {
-            "image/jpeg": "example.jpg",
-            "image/png": "example.png",
-            "text/plain": "example.txt",
-            "text/csv": "data.csv",
-            "application/json": "data.json",
-            "application/pdf": "document.pdf",
-            "application/zip": "archive.zip",
-            "audio/mpeg": "audio.mp3",
-            "audio/ogg": "audio.ogg",
-        }
-
-        return examples.get(content_type, "input.file")
