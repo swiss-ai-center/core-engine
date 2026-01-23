@@ -34,6 +34,49 @@ def get_one(
     return service
 
 
+@router.post(
+    "/services/{service_id}/wake-up",
+    summary="Wake up a service",
+    responses={
+        404: {"detail": "Service Not Found"},
+        500: {"detail": "Internal Server Error"},
+    },
+    status_code=204
+)
+async def wake_up_service(
+        service_id: UUID,
+        services_service: ServicesService = Depends()
+):
+    service = services_service.find_one(service_id)
+    if not service:
+        raise HTTPException(status_code=404, detail="Service Not Found")
+
+    await services_service.wake_up_service(service)
+
+
+@router.get(
+    "/services/{service_id}/code-snippet",
+    summary="Get one code snippet by id to use the service externally",
+    responses={
+        404: {"detail": "Service Not Found"},
+        400: {"detail": "Bad Request"},
+        500: {"detail": "Internal Server Error"},
+    },
+    response_class=PlainTextResponse
+)
+async def get_code_snippet(
+        service_id: UUID,
+        services_service: ServicesService = Depends()
+):
+    service = services_service.find_one(service_id)
+    if not service:
+        raise HTTPException(status_code=404, detail="Service Not Found")
+    raw_snippet = services_service.generate_code_snippet(service)
+    # Format the code snippet
+    formatted_snippet = textwrap.dedent(raw_snippet).strip()
+    return formatted_snippet
+
+
 @router.get(
     "/services/slug/{service_slug}",
     summary="Get one service by slug",
@@ -53,6 +96,26 @@ def get_one_by_slug(
         raise HTTPException(status_code=404, detail="Service Not Found")
 
     return service
+
+
+@router.post(
+    "/services/slug{service_slug}/wake-up",
+    summary="Wake up a service",
+    responses={
+        404: {"detail": "Service Not Found"},
+        500: {"detail": "Internal Server Error"},
+    },
+    status_code=204
+)
+async def wake_up_service_by_slug(
+        service_slug: str,
+        services_service: ServicesService = Depends()
+):
+    service = services_service.find_one_by_slug(service_slug)
+    if not service:
+        raise HTTPException(status_code=404, detail="Service Not Found")
+
+    await services_service.wake_up_service(service)
 
 
 @router.get(
@@ -92,6 +155,7 @@ def get_many_services(
         services_service: ServicesService = Depends(),
 ):
     try:
+        print(query_parameters.status)
         if query_parameters.search:
             query_parameters.search = query_parameters.search.lower()
         if with_count:

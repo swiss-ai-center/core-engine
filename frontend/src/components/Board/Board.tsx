@@ -259,7 +259,7 @@ const Board: React.FC<{ description: any }> = ({description}) => {
             about={colorMode}
             style={{
                 backgroundColor: colorMode === 'dark' ? '#121212' : '#fff',
-                borderRadius: 3,
+                borderRadius: 8,
             }}
         >
             <Box id={"timer-general"} className={"timer-general"} zIndex={99} about={colorMode}>

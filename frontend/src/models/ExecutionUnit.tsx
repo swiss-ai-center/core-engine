@@ -1,3 +1,5 @@
+import { ServiceStatus } from '../enums/serviceStatusEnum';
+
 export class FieldDescription {
     name: string;
     type: string[];
@@ -14,7 +16,7 @@ export class ExecutionUnit {
     slug: string;
     summary: string;
     description: string;
-    status: string;
+    status: ServiceStatus;
     data_in_fields: FieldDescription[];
     data_out_fields: FieldDescription[];
 }

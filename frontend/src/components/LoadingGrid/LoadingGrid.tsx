@@ -1,4 +1,4 @@
-import { Card, CardActions, CardContent, Skeleton, Grid } from "@mui/material";
+import { Card, CardActions, CardContent, Grid, Skeleton } from "@mui/material";
 import React from 'react';
 import { isSmartphone } from 'utils/functions';
 

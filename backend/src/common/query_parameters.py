@@ -1,3 +1,6 @@
+from fastapi import Query
+
+
 class QueryParameters:
     def __init__(
             self,
@@ -6,7 +9,7 @@ class QueryParameters:
             limit: int = 100,
             order_by: str = None,
             order: str = None,
-            status: str = None,
+            status: str = Query(None),
             tags: str = None,
             ai: bool = None
     ):

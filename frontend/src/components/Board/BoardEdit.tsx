@@ -45,7 +45,7 @@ const BoardEdit: React.FC<{
             about={colorMode}
             style={{
                 backgroundColor: colorMode === 'dark' ? '#121212' : '#fff',
-                borderRadius: 3,
+                borderRadius: 8,
             }}
         >
             <Background/>

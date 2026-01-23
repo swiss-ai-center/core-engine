@@ -4,12 +4,12 @@ import {
     Chip,
     Divider,
     FormControl,
+    Grid,
     InputLabel,
     MenuItem,
     Pagination,
     Select,
-    Typography,
-    Grid
+    Typography
 } from '@mui/material';
 import { Tag } from 'models/Tag';
 import React, { ReactNode } from 'react';
@@ -19,7 +19,7 @@ import "./styles.css";
 import { toast } from 'react-toastify';
 import { getPipelines, getServices } from 'utils/api';
 import { isSmartphone } from 'utils/functions';
-import { setPipelinePerPage, setServicePipelineEditorPerPage, setServicePerPage } from 'utils/reducers/perPageSlice';
+import { setPipelinePerPage, setServicePerPage, setServicePipelineEditorPerPage } from 'utils/reducers/perPageSlice';
 import LoadingGrid from 'components/LoadingGrid/LoadingGrid';
 
 // min width is 100% for mobile, 50% for tablet, 33% for desktop
@@ -47,6 +47,7 @@ const ItemGrid: React.FC<{
           displayedPage,
       }) => {
     const dispatch = useDispatch();
+    const colorMode = useSelector((state: any) => state.colorMode.value);
     const servicesPerPage = useSelector((state: any) => state.perPage.value.services);
     const servicesPipelineEditorPerPage = useSelector((state: any) => state.perPage.value.servicesPipelineEditor);
     const pipelinesPerPage = useSelector((state: any) => state.perPage.value.pipelines);
@@ -80,7 +81,8 @@ const ItemGrid: React.FC<{
 
     const servicePagination = () => {
         return (
-            <Grid container sx={{py: distance}} spacing={4} alignItems={"center"} justifyContent={"center"}>
+            <Grid container my={distance} alignItems={"center"} justifyContent={"center"}
+                  sx={{marginLeft: '-3px', width: 'calc(100% + 3px)'}}>
                 <Grid xs={12} sm={9} alignItems={"left"} justifyContent={"left"} item>
                     <Box sx={{display: 'flex', alignItems: align, justifyContent: align}}>
                         <Pagination
@@ -98,14 +100,17 @@ const ItemGrid: React.FC<{
                             shape={"rounded"}
                             disabled={!isReady || services.length <= 0}
                             siblingCount={0}
+                            variant={"outlined"}
+                            color={colorMode === 'light' ? "primary" : "secondary"}
                         />
                     </Box>
                 </Grid>
                 <Grid xs={12} sm={3} alignItems={"right"} justifyContent={"right"} item>
                     <Box sx={{display: 'flex', alignItems: 'right', justifyContent: 'right'}}>
                         <FormControl sx={{minWidth: minWidth}}>
-                            <InputLabel id={"services-per-page-label"} htmlFor={"services-per-page"}>Per
-                                page</InputLabel>
+                            <InputLabel id={"services-per-page-label"} htmlFor={"services-per-page"}>
+                                Per page
+                            </InputLabel>
                             <Select
                                 labelId={"services-per-page-label"}
                                 id={"services-per-page"}
@@ -121,6 +126,7 @@ const ItemGrid: React.FC<{
                                     setServicesPerPage(event.target.value as number);
                                 }}
                                 disabled={!isReady || services.length <= 0}
+                                size={"small"}
                             >
                                 {paginationOptions.map((option: number) => {
                                     return (
@@ -137,7 +143,8 @@ const ItemGrid: React.FC<{
 
     const pipelinePagination = () => {
         return (
-            <Grid container sx={{py: distance}} spacing={4} alignItems={"center"} justifyContent={"center"}>
+            <Grid container my={distance} alignItems={"center"} justifyContent={"center"}
+                  sx={{marginLeft: '-3px', width: 'calc(100% + 3px)'}}>
                 <Grid xs={12} sm={9} alignItems={"left"} justifyContent={"left"} item>
                     <Box sx={{display: 'flex', alignItems: align, justifyContent: align}}>
                         <Pagination
@@ -151,14 +158,17 @@ const ItemGrid: React.FC<{
                             shape={"rounded"}
                             disabled={!isReady || pipelines.length <= 0}
                             siblingCount={0}
+                            variant={"outlined"}
+                            color={colorMode === 'light' ? "primary" : "secondary"}
                         />
                     </Box>
                 </Grid>
                 <Grid xs={12} sm={3} alignItems={"right"} justifyContent={"right"} item>
                     <Box sx={{display: 'flex', alignItems: 'right', justifyContent: 'right'}}>
                         <FormControl sx={{minWidth: minWidth}}>
-                            <InputLabel id={"pipelines-per-page-label"} htmlFor={"pipelines-per-page"}>Per
-                                page</InputLabel>
+                            <InputLabel id={"pipelines-per-page-label"} htmlFor={"pipelines-per-page"}>
+                                Per page
+                            </InputLabel>
                             <Select
                                 labelId={"pipelines-per-page"}
                                 id={"pipelines-per-page"}
@@ -168,6 +178,7 @@ const ItemGrid: React.FC<{
                                     setPipelinesPerPage(event.target.value as number);
                                 }}
                                 disabled={!isReady || pipelines.length <= 0}
+                                size={"small"}
                             >
                                 {paginationOptions.map((option: number) => {
                                     return (
