@@ -3,7 +3,9 @@ import {
     CheckBox as CheckBoxIcon,
     CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
     Clear as ClearIcon,
-    Psychology,
+    HighlightOffTwoTone,
+    PsychologyTwoTone,
+    TuneTwoTone,
 } from '@mui/icons-material';
 import {
     Autocomplete,
@@ -32,7 +34,7 @@ import { isSmartphone } from 'utils/functions';
 
 const icon = <CheckBoxOutlineBlankIcon fontSize={"small"}/>;
 const checkedIcon = <CheckBoxIcon fontSize={"small"}/>;
-const drawerWidth = isSmartphone() ? '100%' : 400;
+const drawerWidth = isSmartphone() ? '100%' : 450;
 
 export const FilterDrawer: React.FC<{
     mobileOpen: boolean,
@@ -105,7 +107,10 @@ export const FilterDrawer: React.FC<{
             <Toolbar/>
             <Box sx={{overflow: 'auto'}}>
                 <Box sx={{ml: 3}}>
-                    <h3>Filters</h3>
+                    <h3>
+                        <TuneTwoTone color={"primary"} sx={{mr: 1, mb: -0.6, fontSize: "1.5rem"}}/>
+                        Filters
+                    </h3>
                 </Box>
                 <Box sx={{mx: 3, pb: 2}}>
                     <TextField sx={{mb: 2}} name={"search-field"} label={"Search"}
@@ -159,16 +164,18 @@ export const FilterDrawer: React.FC<{
                         </Select>
                     </FormControl>
                     <FormControl fullWidth sx={{mb: 2}}>
-                        <Grid component={"label"} container alignItems={"center"} spacing={1}>
-                            <Grid item sx={{mt: 2}}>
-                                <Typography component={Stack} direction={"row"} alignItems={"center"} paragraph
+                        <Grid container alignItems={"center"} justifyContent={"space-between"} display={"flex"}>
+
+                            <Grid>
+                                <Typography component={Stack} direction={"row"} alignItems={"center"}
                                             sx={{fontSize: "0.9rem"}}
                                 >
-                                    <Psychology sx={{fontSize: "1.6rem", marginRight: "0.5rem"}}/>
-                                    All Services
+                                    AI Services Only
+                                    <PsychologyTwoTone sx={{fontSize: "1.6rem", marginLeft: "0.5rem"}}
+                                                       color={"primary"}/>
                                 </Typography>
                             </Grid>
-                            <Grid item>
+                            <Grid>
                                 <AntSwitch inputProps={{'aria-label': 'ant design'}}
                                            checked={ai}
                                            onChange={() => {
@@ -177,14 +184,6 @@ export const FilterDrawer: React.FC<{
                                            value={ai}
                                 />
                             </Grid>
-                            <Grid item sx={{mt: 2}}>
-                                <Typography component={Stack} direction={"row"} alignItems={"center"} paragraph
-                                            sx={{fontSize: "0.9rem"}}
-                                >
-                                    AI Services Only
-                                    <Psychology sx={{fontSize: "1.6rem", marginLeft: "0.5rem"}} color={"primary"}/>
-                                </Typography>
-                            </Grid>
                         </Grid>
                     </FormControl>
                     <Button
@@ -192,6 +191,7 @@ export const FilterDrawer: React.FC<{
                         variant={"contained"}
                         disableElevation
                         color={"secondary"}
+                        startIcon={<HighlightOffTwoTone/>}
                         fullWidth
                         size={"large"}
                         onClick={() => {

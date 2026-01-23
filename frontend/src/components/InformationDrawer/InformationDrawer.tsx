@@ -1,4 +1,4 @@
-import { ContentCopyTwoTone, ExpandMore, Psychology } from '@mui/icons-material';
+import { ContentCopyTwoTone, EnergySavingsLeafTwoTone, ExpandMore, PsychologyTwoTone } from '@mui/icons-material';
 import {
     AccordionDetails,
     AccordionSummary,
@@ -25,8 +25,9 @@ import './styles.css';
 import { isSmartphone } from 'utils/functions';
 import { getCodeSnippet } from 'utils/api';
 import { toast } from 'react-toastify';
+import { ServiceStatus } from '../../enums/serviceStatusEnum';
 
-const drawerWidth = isSmartphone() ? '100%' : 500;
+const drawerWidth = isSmartphone() ? '100%' : 450;
 
 const Accordion = styled((props: AccordionProps) => (
     <MuiAccordion disableGutters elevation={0} square {...props} children={props.children}/>
@@ -58,7 +59,7 @@ export const InformationDrawer: React.FC<{
     const darkgrey = colorMode === 'light' ? grey[400] : grey[800];
 
     const handleCodeSnippet = async () => {
-        const response = await getCodeSnippet(description.slug, description.steps !== undefined ? true : false);
+        const response = await getCodeSnippet(description.slug, description.steps !== undefined);
         if (response && response.code_snippet) {
             await navigator.clipboard.writeText(response.code_snippet);
             toast("Python Code Snippet copied to clipboard", {type: "info"});
@@ -90,7 +91,9 @@ export const InformationDrawer: React.FC<{
                         {description ? description.name : ''}
                     </Typography>
                     <Grid container mb={3}>
-                        <Grid item xs={description.has_ai ? 11 : 12} sm={description.has_ai ? 10 : 12}>
+                        <Grid item
+                              xs={description.has_ai ? 10 : 11}
+                              sm={description.has_ai ? 9 : 10}>
                             <Grid container>
                                 {description.tags ? description.tags.map((tag: any, index: number) => {
                                     return (
@@ -112,13 +115,27 @@ export const InformationDrawer: React.FC<{
                                 }) : ''}
                             </Grid>
                         </Grid>
-                        {description.has_ai ? (
-                            <Grid item xs={1} sm={2} sx={{display: 'flex', justifyContent: 'flex-end'}}>
+                        <Grid item xs={description.has_ai ? 2 : 1}
+                              sm={description.has_ai ? 3 : 2}
+                              sx={{display: 'flex', justifyContent: 'flex-end', gap: 0.5}}>
+                            {description.has_ai && (
                                 <Tooltip title={"AI Service"}>
-                                    <Psychology sx={{color: "primary.main", fontSize: "1.5rem"}}/>
+                                    <PsychologyTwoTone sx={{color: "primary.main", fontSize: "1.5rem"}}/>
                                 </Tooltip>
-                            </Grid>
-                        ) : <></>}
+                            )}
+                            <Tooltip title={
+                                description.status === ServiceStatus.SLEEPING ? "Service is sleeping" :
+                                    description.status === ServiceStatus.AVAILABLE ? "Service is running" :
+                                        "Service status"
+                            }>
+                                <EnergySavingsLeafTwoTone sx={{
+                                    color: description.status === ServiceStatus.SLEEPING ? "success.main" :
+                                        description.status === ServiceStatus.AVAILABLE ? "primary.main" :
+                                            "text.disabled",
+                                    fontSize: "1.5rem"
+                                }}/>
+                            </Tooltip>
+                        </Grid>
                     </Grid>
                     <Box sx={{
                         px: 2,
@@ -216,10 +233,11 @@ export const InformationDrawer: React.FC<{
                     mt={isSmartphone() ? 2 : 3}
                 >
 
-                    <Tooltip title={"Copy the Python code snippet to use this service externally"}>
+                    <Tooltip
+                        title={`Copy the Python code snippet to use this ${description.steps ? 'pipeline' : 'service'} in your own scripts`}>
                         <Button
                             id={"code-snippet"}
-                            variant={"outlined"}
+                            variant={"contained"}
                             disableElevation
                             color={"secondary"}
                             fullWidth

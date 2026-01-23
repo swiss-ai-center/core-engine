@@ -1,4 +1,5 @@
 import { FieldDescriptionWithSetAndValue } from 'models/ExecutionUnit';
+import { ServiceStatus } from '../enums/serviceStatusEnum';
 
 // Allow all origins
 const HEADERS = {
@@ -12,7 +13,8 @@ const createQuery = (
     limit: number,
     orderBy: string,
     tags: string[],
-    ai?: boolean
+    ai?: boolean,
+    statuses?: string[] // optional array of statuses
 ) => {
     /*
      * Function to create the query string for the engine
@@ -23,6 +25,7 @@ const createQuery = (
      * orderBy: string - the order by string
      * tags: string[] - the tags to filter by
      * ai: boolean - whether to filter by AI or not
+     * statuses: string[] - optional array of statuses to filter by
      */
     const infos = orderBy.split('-');
     const prop = infos[0];
@@ -49,10 +52,15 @@ const createQuery = (
         query += `&ai=${ai}`;
     }
 
-    return query + '&with_count=True&status=AVAILABLE';
+    const statusParam = (statuses && statuses.length > 0) ? `&status=${statuses.join(',')}` : `&status=${ServiceStatus.AVAILABLE}`;
+    return (statuses && statuses.length > 0) ? query + '&with_count=True' + statusParam : query + '&with_count=True';
 }
 
-export const getServices = async (filter: string, skip: number, limit: number, orderBy: string, tags: string[], ai: boolean) => {
+export const getServices = async (
+    filter: string,
+    skip: number, limit: number, orderBy: string, tags: string[], ai: boolean,
+    statuses: string[] = [ServiceStatus.AVAILABLE, ServiceStatus.SLEEPING]
+) => {
     /*
      * Function to fetch services from the engine
      * filter: string - the search string
@@ -63,8 +71,9 @@ export const getServices = async (filter: string, skip: number, limit: number, o
      * ai: boolean - whether to filter by AI or not
      */
     try {
-        const query = createQuery('services', filter, skip, limit, orderBy, tags, ai);
+        const query = createQuery('services', filter, skip, limit, orderBy, tags, ai, statuses);
 
+        console.log(query);
         const response = await fetch(query, {headers: HEADERS});
         if (response.status === 200) {
             return await response.json();
@@ -294,6 +303,25 @@ export const getCodeSnippet = async (slug: string, isPipeline: boolean = false) 
             return {"code_snippet": code_snippet};
         }
         return {code_snippet: ""};
+    } catch (error: any) {
+        return {error: error.message}
+    }
+}
+
+export const wakeUp = async (serviceId: string) => {
+    /*
+     * Function to send a wake up request to the engine
+     * serviceId: string - the id of the service
+     */
+    try {
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/${serviceId}/wake-up`, {
+            headers: HEADERS,
+            method: 'POST',
+        });
+        if (response.status === 204) {
+            return {message: 'Service woken up successfully', status: response.status};
+        }
+        return {error: `${response.status} ${response.statusText}`};
     } catch (error: any) {
         return {error: error.message}
     }

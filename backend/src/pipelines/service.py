@@ -952,35 +952,49 @@ class PipelinesService:
         # Build download logic based on output types
         if has_binary_output:
             download_logic = """            # Step 3: Download all output files
-                results = []
-                for file_key in files:
-                    print(f"Downloading result: {file_key}")
-                    response = requests.get(
-                        f"{base_url}/storage/{file_key}"
-                    )
-        
-                    if response.status_code == 200:
-                        # Try to parse as JSON first, otherwise keep raw content
-                        try:
-                            results.append(response.json())
-                        except:
-                            results.append(response.content)
-                    else:
-                        print(f"Error downloading {file_key}: {response.status_code}")"""
+                    results = []
+                    download_urls = []
+                    for file_key in files:
+                        download_url = f"{base_url}/storage/{file_key}"
+                        download_urls.append(download_url)
+                        print(f"Downloading result: {file_key}")
+                        response = requests.get(download_url)
+            
+                        if response.status_code == 200:
+                            # Try to parse as JSON first, otherwise keep raw content
+                            try:
+                                results.append(response.json())
+                            except:
+                                results.append(response.content)
+                        else:
+                            print(f"Error downloading {file_key}: {response.status_code}")
+                    
+                    # Print download URLs
+                    print("\\n=== Download URLs ===")
+                    for idx, url in enumerate(download_urls, 1):
+                        print(f"Output {idx}: {url}")"""
         else:
             download_logic = """            # Step 3: Download all output files
-                results = []
-                for file_key in files:
-                    print(f"Downloading result: {file_key}")
-                    response = requests.get(
-                        f"{base_url}/storage/{file_key}",
-                        headers={'accept': 'application/json'}
-                    )
-        
-                    if response.status_code == 200:
-                        results.append(response.json())
-                    else:
-                        print(f"Error downloading {file_key}: {response.status_code}")"""
+                    results = []
+                    download_urls = []
+                    for file_key in files:
+                        download_url = f"{base_url}/storage/{file_key}"
+                        download_urls.append(download_url)
+                        print(f"Downloading result: {file_key}")
+                        response = requests.get(
+                            download_url,
+                            headers={'accept': 'application/json'}
+                        )
+            
+                        if response.status_code == 200:
+                            results.append(response.json())
+                        else:
+                            print(f"Error downloading {file_key}: {response.status_code}")
+                    
+                    # Print download URLs
+                    print("\\n=== Download URLs ===")
+                    for idx, url in enumerate(download_urls, 1):
+                        print(f"Output {idx}: {url}")"""
 
         # Get example filename for the main usage example
         example_files = []
@@ -991,119 +1005,119 @@ class PipelinesService:
 
         # Build the final snippet string
         snippet = f"""
-    import requests
-    import time
-    import json
-    import os
-    
-    
-    def {func_name}({param_list}):
-        \"\"\"
-        Execute {pipeline.name} pipeline: upload inputs, poll for completion, download results.
-    
-        Args:
-    {args_doc}
-    
-        Returns:
-            dict or bytes: The downloaded result data, or None if error
-        \"\"\"
-        base_url = "{base_url}"
-    
-        # Step 1: Launch pipeline execution
-        print(f"Uploading file(s): {{{first_param}}}")
-        {with_statement}
-    {files_block}
-    
-            response = requests.post(
-                f"{{base_url}}/{pipeline.slug}",
-                files=files,
-                headers={{'accept': 'application/json'}}
-            )
-    
-        if response.status_code not in [200, 201]:
-            print(f"Error uploading file: {{response.status_code}}")
-            return None
-    
-        execution_data = response.json()
-        execution_id = execution_data.get('id')
-        print(f"Pipeline execution created: {{execution_id}}")
-    
-        # Step 2: Poll for pipeline execution completion
-        max_attempts = 120  # Maximum polling attempts (pipelines can take longer)
-        poll_interval = 3  # Seconds between polls
-    
-        for attempt in range(max_attempts):
-            print(f"Polling execution status (attempt {{attempt + 1}}/{{max_attempts}})...")
-            response = requests.get(
-                f"{{base_url}}/pipeline-executions/{{execution_id}}",
-                headers={{'accept': 'application/json'}}
-            )
-    
-            if response.status_code != 200:
-                print(f"Error fetching execution status: {{response.status_code}}")
+        import requests
+        import time
+        import json
+        import os
+        
+        
+        def {func_name}({param_list}):
+            \"\"\"
+            Execute {pipeline.name} pipeline: upload inputs, poll for completion, download results.
+        
+            Args:
+        {args_doc}
+        
+            Returns:
+                dict or bytes: The downloaded result data, or None if error
+            \"\"\"
+            base_url = "{base_url}"
+        
+            # Step 1: Launch pipeline execution
+            print(f"Uploading file(s): {{{first_param}}}")
+            {with_statement}
+        {files_block}
+        
+                response = requests.post(
+                    f"{{base_url}}/{pipeline.slug}",
+                    files=files,
+                    headers={{'accept': 'application/json'}}
+                )
+        
+            if response.status_code not in [200, 201]:
+                print(f"Error uploading file: {{response.status_code}}")
                 return None
-    
-            execution_status = response.json()
-            
-            # Get current pipeline step information
-            current_step = execution_status.get('current_pipeline_step')
-            if current_step:
-                service_name = current_step.get('service', {{}}).get('name', 'Unknown')
-                print(f"Current service: {{service_name}}")
-            
-            # Check all tasks to determine overall status
-            tasks = execution_status.get('tasks', [])
-            if not tasks:
-                print("No tasks found in execution")
-                return None
-            
-            all_finished = all(task.get('status', '').lower() == 'finished' for task in tasks)
-            any_error = any(task.get('status', '').lower() == 'error' for task in tasks)
-            
-            # Print individual task statuses
-            for idx, task in enumerate(tasks):
-                task_status = task.get('status', 'unknown')
-                service_name = task.get('service', {{}}).get('name', f'Task {{idx}}')
-                print(f"  - {{service_name}}: {{task_status}}")
-            
-            if all_finished:
-                print("Pipeline execution completed successfully!")
-                last_task = tasks[-1]
-                files = last_task.get('data_out', [])
-
-                if not files:
-                    print("No output files found")
+        
+            execution_data = response.json()
+            execution_id = execution_data.get('id')
+            print(f"Pipeline execution created: {{execution_id}}")
+        
+            # Step 2: Poll for pipeline execution completion
+            max_attempts = 120  # Maximum polling attempts (pipelines can take longer)
+            poll_interval = 3  # Seconds between polls
+        
+            for attempt in range(max_attempts):
+                print(f"Polling execution status (attempt {{attempt + 1}}/{{max_attempts}})...")
+                response = requests.get(
+                    f"{{base_url}}/pipeline-executions/{{execution_id}}",
+                    headers={{'accept': 'application/json'}}
+                )
+        
+                if response.status_code != 200:
+                    print(f"Error fetching execution status: {{response.status_code}}")
                     return None
-
-    {download_logic}
-
-                # Return single result if only one output, otherwise return list
-                return results[0] if len(results) == 1 else results
-
-            elif any_error:
-                error_tasks = [t for t in tasks if t.get('status', '').lower() == 'error']
-                error_msgs = [t.get('error_message', 'Unknown error') for t in error_tasks]
-                print(f"Pipeline execution failed with errors: {{', '.join(error_msgs)}}")
-                return None
-
-            # Wait before next poll
-            time.sleep(poll_interval)
-
-        print("Timeout: Pipeline execution did not complete within expected time")
-        return None
+        
+                execution_status = response.json()
+                
+                # Get current pipeline step information
+                current_step = execution_status.get('current_pipeline_step')
+                if current_step:
+                    service_name = current_step.get('service', {{}}).get('name', 'Unknown')
+                    print(f"Current service: {{service_name}}")
+                
+                # Check all tasks to determine overall status
+                tasks = execution_status.get('tasks', [])
+                if not tasks:
+                    print("No tasks found in execution")
+                    return None
+                
+                all_finished = all(task.get('status', '').lower() == 'finished' for task in tasks)
+                any_error = any(task.get('status', '').lower() == 'error' for task in tasks)
+                
+                # Print individual task statuses
+                for idx, task in enumerate(tasks):
+                    task_status = task.get('status', 'unknown')
+                    service_name = task.get('service', {{}}).get('name', f'Task {{idx}}')
+                    print(f"  - {{service_name}}: {{task_status}}")
+                
+                if all_finished:
+                    print("Pipeline execution completed successfully!")
+                    last_task = tasks[-1]
+                    files = last_task.get('data_out', [])
     
+                    if not files:
+                        print("No output files found")
+                        return None
     
-    # Example usage
-    if __name__ == "__main__":
-        result = {example_call}
-
-        if result:
-            print("=== Result ===")
-            if isinstance(result, bytes):
-                print(f"Binary result: {{len(result)}} bytes")
+        {download_logic}
+    
+                    # Return single result if only one output, otherwise return list
+                    return results[0] if len(results) == 1 else results
+    
+                elif any_error:
+                    error_tasks = [t for t in tasks if t.get('status', '').lower() == 'error']
+                    error_msgs = [t.get('error_message', 'Unknown error') for t in error_tasks]
+                    print(f"Pipeline execution failed with errors: {{', '.join(error_msgs)}}")
+                    return None
+    
+                # Wait before next poll
+                time.sleep(poll_interval)
+    
+            print("Timeout: Pipeline execution did not complete within expected time")
+            return None
+        
+        
+        # Example usage
+        if __name__ == "__main__":
+            result = {example_call}
+    
+            if result:
+                print("\\n=== Result ===")
+                if isinstance(result, bytes):
+                    print(f"Binary result: {{len(result)}} bytes")
+                else:
+                    print(json.dumps(result, indent=2))
             else:
-                print(json.dumps(result, indent=2))
-        else:
-            print("Failed to get result")
-    """
+                print("Failed to get result")
+        """
         return snippet

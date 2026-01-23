@@ -1,4 +1,4 @@
-import { DownloadForOfflineTwoTone, ErrorTwoTone } from '@mui/icons-material';
+import { DownloadForOfflineTwoTone, ErrorTwoTone, NotificationsPausedTwoTone } from '@mui/icons-material';
 import { Box, Button, Card, CardActions, CardContent, Link as URLLink, Tooltip, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import { ProgressNodeData } from 'models/NodeData';
@@ -9,6 +9,9 @@ import { displayTimer, download, positionHandle } from 'utils/functions';
 import "components/Board/styles.css";
 import { RunState } from 'utils/reducers/runStateSlice';
 import CustomHandle from 'components/Handles/CustomHandle';
+import { wakeUp } from 'utils/api';
+import { ServiceStatus } from '../../enums/serviceStatusEnum';
+import { toast } from 'react-toastify';
 
 
 const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
@@ -20,6 +23,8 @@ const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
     const taskArray = useSelector((state: any) => state.runState.taskArray);
     const timer = useSelector((state: any) => state.runState.timer);
     const [selfTimer, setSelfTimer] = React.useState(0.0);
+    const [sleeping, setSleeping] = React.useState(false);
+    const [serviceStatus, setServiceStatus] = React.useState<ServiceStatus>(data.status);
 
     const getStatus = () => {
         if (currentTask && currentTask.service_id === data.service_id) {
@@ -44,6 +49,26 @@ const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
         const resultIdList = taskArray.filter((task: any) => task.service_id === data.service_id)[0].data_out;
         await download(resultIdList);
     }
+
+    const wakeUpService = async () => {
+        try {
+            toast("Sending wake up request...", {type: "info"});
+            setSleeping(true);
+            wakeUp(data.service_id).then((response: any) => {
+                if (response.status === 204) {
+                    toast(response.message, {type: "success"});
+                    setSleeping(false);
+                    setServiceStatus(ServiceStatus.UNAVAILABLE);
+                } else {
+                    toast(response.error, {type: "error"});
+                    setSleeping(false);
+                }
+            });
+        } catch (e: any) {
+            toast("Error while sending wake up request: " + e.message, {type: "error"});
+            setSleeping(false);
+        }
+    };
 
     // Timer increments when the task is being executed and then fixed to last value after execution
     React.useEffect(() => {
@@ -101,10 +126,28 @@ const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
                     )}
                 </CardContent>
                 <CardActions
-                    // if type is service, hide download button
-                    sx={{display: data.type === "service" ? "none" : "flex", width: "100%", justifyContent: "center"}}
+                    sx={{width: "100%", justifyContent: "center"}}
                 >
-                    {getStatus() === RunState.SKIPPED ? (
+                    {serviceStatus === ServiceStatus.SLEEPING ? (
+                        <Tooltip title={"Wake up service"} placement={"bottom"}>
+                            <span style={{width: "100%"}}>
+                                <Button
+                                    disabled={sleeping}
+                                    sx={{
+                                        width: "100%",
+                                        minHeight: 32,
+                                    }}
+                                    variant={"outlined"}
+                                    color={"secondary"}
+                                    size={"small"}
+                                    startIcon={<NotificationsPausedTwoTone/>}
+                                    onClick={wakeUpService}
+                                >
+                                    Wake up
+                                </Button>
+                            </span>
+                        </Tooltip>
+                    ) : getStatus() === RunState.SKIPPED ? (
                         <Tooltip title={"Step was skipped"} placement={"bottom"}>
                         <span>
                             <Button
@@ -123,7 +166,8 @@ const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
                             </Button>
                         </span>
                         </Tooltip>) : (
-                        <Tooltip title={"Download intermediate result"} placement={"bottom"}>
+                        data.type === "pipeline" && (
+                            <Tooltip title={"Download intermediate result"} placement={"bottom"}>
                             <span>
                                 <Button
                                     disabled={getStatus() !== RunState.FINISHED}
@@ -141,8 +185,8 @@ const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
                                     Download
                                 </Button>
                             </span>
-                        </Tooltip>
-                    )}
+                            </Tooltip>
+                        ))}
                 </CardActions>
             </Card>
             <div className="handles targets">

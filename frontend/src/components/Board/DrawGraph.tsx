@@ -3,6 +3,7 @@ import { FieldDescription } from 'models/ExecutionUnit';
 import { Pipeline } from 'models/Pipeline';
 import { Service } from 'models/Service';
 import { Edge } from 'reactflow';
+import { ServiceStatus } from '../../enums/serviceStatusEnum';
 
 const nodeWidth = 250;
 const nodeHeight = 200;
@@ -14,7 +15,7 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
 
     if (entity && entity instanceof Service) {
         const entryNode = generateEntryNode("service", entity.slug, entity.data_in_fields);
-        const serviceNode = generateNode(entity.slug, "service", entity.id, entity.data_in_fields, entity.data_out_fields);
+        const serviceNode = generateNode(entity.slug, "service", entity.status, entity.id, entity.data_in_fields, entity.data_out_fields);
         const exitNode = generateExitNode(entity.slug, entity.data_out_fields);
         nodes = [entryNode, serviceNode, exitNode];
         for (let i = 0; i < entity.data_in_fields.length; i++) {
@@ -49,7 +50,7 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
 
         for (let i = 0; i < entity.steps.length; i++) {
             const step = entity.steps[i];
-            const node = generateNode(step.identifier, "pipeline", step.service_id, step.service.data_in_fields, step.service.data_out_fields);
+            const node = generateNode(step.identifier, "pipeline", step.service.status, step.service_id, step.service.data_in_fields, step.service.data_out_fields);
             nodes.push(node);
         }
 
@@ -132,7 +133,7 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
     return {nodes: [], edges: []};
 }
 
-const generateNode = (slug: string, type: string, service_id: string, data_in_fields: FieldDescription[], data_out_fields: FieldDescription[]) => {
+const generateNode = (slug: string, type: string, status: ServiceStatus, service_id: string, data_in_fields: FieldDescription[], data_out_fields: FieldDescription[]) => {
     const targetHandles = data_in_fields.map((field) => {
         return {id: slug + "-" + field.name, label: field.name};
     });
@@ -147,6 +148,7 @@ const generateNode = (slug: string, type: string, service_id: string, data_in_fi
             type: type,
             service_id: service_id,
             service_slug: slug,
+            status: status,
             sourceHandles: sourceHandles,
             targetHandles: targetHandles,
         },

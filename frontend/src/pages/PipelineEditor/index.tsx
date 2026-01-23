@@ -2,6 +2,7 @@ import { ArrowBack, ArrowUpward, DescriptionTwoTone } from "@mui/icons-material"
 import {
     Box,
     Button,
+    Card,
     Container,
     Grid,
     Link as URLLink,
@@ -648,9 +649,9 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                 handleAIToggle={(event: React.ChangeEvent<HTMLInputElement>) =>
                     handleAIToggle(event, setAI, searchParams, history, handleNoFilterWrapper)}
             />
-            <Box component={"main"} sx={{flexGrow: 1, mb: 0}}>
+            <Box component={"main"} sx={{display: 'flex', flexDirection: 'column', minHeight: '100vh', flexGrow: 1}}>
                 <Toolbar/>
-                <Container sx={{my: 2}} maxWidth={false}>
+                <Container maxWidth={false} sx={{py: 2}}>
                     <Grid container spacing={2} justifyContent={"space-between"}
                           sx={{py: isSmartphone() ? 0 : 1}}>
                         <Grid item>
@@ -678,13 +679,12 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                 </Container>
                 <Container maxWidth={false}>
                     <Box sx={{
-                        height: 500,
+                        height: 700,
                         width: "100%",
                         border: 2,
-                        borderRadius: "5px",
+                        borderRadius: 1,
                         borderColor: "primary.main"
                     }}
-                         mt={1}
                     >
                         <ReactFlowProvider>
                             <BoardEdit
@@ -700,62 +700,71 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                     </Box>
                 </Container>
                 <Container maxWidth={false}>
-                    <Typography variant={"h4"} component={"h2"} my={4}>
-                        Pipeline Information
-                    </Typography>
-                    <Grid container spacing={2} justifyContent={"flex-start"} sx={{height: "100%"}}
-                          alignItems={"stretch"}>
-                        <Grid container item xs={12} md={6} justifyContent={"flex-start"} spacing={2}
-                              alignItems={"stretch"}>
-                            <Grid container item spacing={2} justifyContent={"space-between"}>
-                                <Grid item xs={12} md={6}>
-                                    <TextField variant={"outlined"} sx={{width: "100%"}}
-                                               placeholder={"Pipeline Name"} label={"Pipeline Name"}
-                                               onChange={(event) => handlePipeName(event.target.value)}>
-                                    </TextField>
+                    <Box mt={isSmartphone() ? 2 : 3}>
+                        <Card variant="outlined">
+                            <Typography variant={"h4"} component={"h2"} m={isSmartphone() ? 2 : 3}>
+                                Pipeline Information
+                            </Typography>
+                            <Grid container spacing={isSmartphone() ? 2 : 3} justifyContent={"flex-start"}
+                                  sx={{height: "100%"}}
+                                  alignItems={"stretch"} px={isSmartphone() ? 2 : 3}>
+                                <Grid container item xs={12} md={6} justifyContent={"flex-start"} spacing={2}
+                                      alignItems={"stretch"}>
+                                    <Grid container item spacing={isSmartphone() ? 2 : 3}
+                                          justifyContent={"space-between"}>
+                                        <Grid item xs={12} md={6}>
+                                            <TextField variant={"outlined"} sx={{width: "100%"}}
+                                                       placeholder={"Pipeline Name"} label={"Pipeline Name"}
+                                                       onChange={(event) => handlePipeName(event.target.value)}>
+                                            </TextField>
+                                        </Grid>
+                                        <Grid item xs={12} md={6}>
+                                            <TextField variant={"outlined"} sx={{width: "100%"}}
+                                                       placeholder={"in kebab case (e.g. pipeline-slug)"}
+                                                       label={"Pipeline Slug"}
+                                                       value={pipeSlug}
+                                                       onChange={(event) => handlePipeSlug(event.target.value)}
+                                            >
+                                            </TextField>
+                                        </Grid>
+                                    </Grid>
+                                    <Grid xs={12} item alignContent={"flex-end"} flexDirection={"column"}>
+                                        <TextField sx={{width: "100%"}} variant={"outlined"} multiline rows={2}
+                                                   placeholder={"Phrase defining the pipeline"} label={"Summary"}
+                                                   onChange={(event) => setPipeSummary(event.target.value)}>
+                                        </TextField>
+                                    </Grid>
                                 </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <TextField variant={"outlined"} sx={{width: "100%"}}
-                                               placeholder={"in kebab case (e.g. pipeline-slug)"}
-                                               label={"Pipeline Slug"}
-                                               value={pipeSlug}
-                                               onChange={(event) => handlePipeSlug(event.target.value)}
-                                    >
-                                    </TextField>
+                                <Grid xs={12} md={6} pl={2} pt={2} container item alignItems={"stretch"}>
+                                    <Grid item sx={{width: "100%"}} alignItems={"stretch"}>
+                                        <TextField variant={"outlined"} multiline rows={6} sx={{width: "100%"}}
+                                                   placeholder={"Full pipeline description (markdown compatible)"}
+                                                   label={"Description"}
+                                                   onChange={(event) => setPipeDescription(event.target.value)}>
+                                        </TextField>
+                                    </Grid>
                                 </Grid>
                             </Grid>
-                            <Grid xs={12} item alignContent={"flex-end"} flexDirection={"column"}>
-                                <TextField sx={{width: "100%"}} variant={"outlined"} multiline rows={2}
-                                           placeholder={"Phrase defining the pipeline"} label={"Summary"}
-                                           onChange={(event) => setPipeSummary(event.target.value)}>
-                                </TextField>
-                            </Grid>
-                        </Grid>
-                        <Grid xs={12} md={6} pl={2} pt={2} container item alignItems={"stretch"}>
-                            <Grid item sx={{width: "100%"}} alignItems={"stretch"}>
-                                <TextField variant={"outlined"} multiline rows={6} sx={{width: "100%"}}
-                                           placeholder={"Full pipeline description (markdown compatible)"}
-                                           label={"Description"}
-                                           onChange={(event) => setPipeDescription(event.target.value)}>
-                                </TextField>
-                            </Grid>
-                        </Grid>
-                    </Grid>
-                    <Box sx={{display: 'flex', justifyContent: 'flex-end', width: '100%'}} my={2}>
-                        <Button sx={{mr: 2}} color={"secondary"} variant={"contained"}
-                                onClick={() => setJsonModalOpen(true)} disableElevation={true}>
-                            Show JSON
-                        </Button>
-                        <Button sx={{mr: 2}} color={"secondary"} variant={"contained"} onClick={checkPipeline}
-                                disableElevation={true}>
-                            Check Validity
-                        </Button>
-                        <Button variant={"contained"} onClick={postPipeline} disableElevation={true}>
-                            Submit
-                        </Button>
+                            <Box sx={{display: 'flex', justifyContent: 'flex-end', width: '100%'}}
+                                 p={isSmartphone() ? 2 : 3}>
+                                <Button sx={{mr: isSmartphone() ? 2 : 3}} color={"secondary"} variant={"contained"}
+                                        onClick={() => setJsonModalOpen(true)} disableElevation={true}>
+                                    Show JSON
+                                </Button>
+                                <Button sx={{mr: isSmartphone() ? 2 : 3}} color={"secondary"} variant={"contained"}
+                                        onClick={checkPipeline}
+                                        disableElevation={true}>
+                                    Check Validity
+                                </Button>
+                                <Button variant={"contained"} onClick={postPipeline} disableElevation={true}>
+                                    Submit
+                                </Button>
+                            </Box>
+                        </Card>
                     </Box>
                 </Container>
                 <Container>
+                    <Box sx={{flexGrow: 1}}/>
                     <Copyright/>
                 </Container>
             </Box>

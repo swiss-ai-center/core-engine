@@ -76,10 +76,15 @@ class ServicesService:
             Service.status == ExecutionUnitStatus.AVAILABLE,
             Service.status == ExecutionUnitStatus.UNAVAILABLE,
             Service.status == ExecutionUnitStatus.DISABLED,
+            Service.status == ExecutionUnitStatus.SLEEPING
         )
+        print(status)
 
         if status:
-            filter_statement = Service.status == status
+            # status can be a comma separated list of statuses
+            status_list = status.split(",")
+            status_enums = [ExecutionUnitStatus[status_str.upper()] for status_str in status_list]
+            filter_statement = and_(filter_statement, Service.status.in_(status_enums))
 
         if ai:
             filter_statement = and_(filter_statement, Service.has_ai == ai)
@@ -592,6 +597,23 @@ class ServicesService:
                     updated_service = self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.AVAILABLE))
                     self.enable_service(app, updated_service)
 
+    async def wake_up_service(self, service: Service):
+        """
+        Wake up a service by sending a request to its /status endpoint.
+        :param app: The FastAPI app reference
+        :param service: The service to wake up
+        """
+        self.logger.info(f"Waking up service {service.name}")
+
+        try:
+            result = await self.http_client.get(f"{service.url}/status")
+            if result.status_code != 200:
+                raise HTTPException(status_code=result.status_code, detail=result.text)
+        except HTTPError as e:
+            self.logger.error(f"Waking up service {service.name} failed: {str(e)}")
+        else:
+            self.logger.info(f"Service {service.name} woke up successfully")
+
     def generate_code_snippet(self, service: Service):
         """
         Generate a code snippet for a service using input and output data fields.
@@ -697,35 +719,49 @@ class ServicesService:
         # Build download logic based on output types
         if has_binary_output:
             download_logic = """            # Step 3: Download all output files
-                results = []
-                for output_id in data_out:
-                    print(f"Downloading result: {output_id}")
-                    response = requests.get(
-                        f"{base_url}/storage/{output_id}"
-                    )
-        
-                    if response.status_code == 200:
-                        # Try to parse as JSON first, otherwise keep raw content
-                        try:
-                            results.append(response.json())
-                        except:
-                            results.append(response.content)
-                    else:
-                        print(f"Error downloading {output_id}: {response.status_code}")"""
+                    results = []
+                    download_urls = []
+                    for output_id in data_out:
+                        download_url = f"{base_url}/storage/{output_id}"
+                        download_urls.append(download_url)
+                        print(f"Downloading result: {output_id}")
+                        response = requests.get(download_url)
+            
+                        if response.status_code == 200:
+                            # Try to parse as JSON first, otherwise keep raw content
+                            try:
+                                results.append(response.json())
+                            except:
+                                results.append(response.content)
+                        else:
+                            print(f"Error downloading {output_id}: {response.status_code}")
+                    
+                    # Print download URLs
+                    print("\\n=== Download URLs ===")
+                    for idx, url in enumerate(download_urls, 1):
+                        print(f"Output {idx}: {url}")"""
         else:
             download_logic = """            # Step 3: Download all output files
-                results = []
-                for output_id in data_out:
-                    print(f"Downloading result: {output_id}")
-                    response = requests.get(
-                        f"{base_url}/storage/{output_id}",
-                        headers={'accept': 'application/json'}
-                    )
-        
-                    if response.status_code == 200:
-                        results.append(response.json())
-                    else:
-                        print(f"Error downloading {output_id}: {response.status_code}")"""
+                    results = []
+                    download_urls = []
+                    for output_id in data_out:
+                        download_url = f"{base_url}/storage/{output_id}"
+                        download_urls.append(download_url)
+                        print(f"Downloading result: {output_id}")
+                        response = requests.get(
+                            download_url,
+                            headers={'accept': 'application/json'}
+                        )
+            
+                        if response.status_code == 200:
+                            results.append(response.json())
+                        else:
+                            print(f"Error downloading {output_id}: {response.status_code}")
+                    
+                    # Print download URLs
+                    print("\\n=== Download URLs ===")
+                    for idx, url in enumerate(download_urls, 1):
+                        print(f"Output {idx}: {url}")"""
 
         # Get example filename for the main usage example
         example_files = []
@@ -736,99 +772,99 @@ class ServicesService:
 
         # Build the final snippet string
         snippet = f"""
-    import requests
-    import time
-    import json
-    import os
-    
-    
-    def {func_name}({param_list}):
-        \"\"\"
-        Execute {service.name} workflow: upload inputs, poll for completion, download results.
-    
-        Args:
-    {args_doc}
-    
-        Returns:
-            dict or bytes: The downloaded result data, or None if error
-        \"\"\"
-        base_url = "{base_url}"
-    
-        # Step 1: Launch execution
-        print(f"Uploading file(s): {{{first_param}}}")
-        {with_statement}
-    {files_block}
-    
-            response = requests.post(
-                f"{{base_url}}/{service.slug}",
-                files=files,
-                headers={{'accept': 'application/json'}}
-            )
-    
-        if response.status_code not in [200, 201]:
-            print(f"Error uploading file: {{response.status_code}}")
-            return None
-    
-        task_data = response.json()
-        task_id = task_data.get('id')
-        print(f"Task created: {{task_id}}")
-    
-        # Step 2: Poll for task completion
-        max_attempts = 60  # Maximum polling attempts
-        poll_interval = 2  # Seconds between polls
-    
-        for attempt in range(max_attempts):
-            print(f"Polling task status (attempt {{attempt + 1}}/{{max_attempts}})...")
-            response = requests.get(
-                f"{{base_url}}/tasks/{{task_id}}",
-                headers={{'accept': 'application/json'}}
-            )
-    
-            if response.status_code != 200:
-                print(f"Error fetching task status: {{response.status_code}}")
+        import requests
+        import time
+        import json
+        import os
+        
+        
+        def {func_name}({param_list}):
+            \"\"\"
+            Execute {service.name} workflow: upload inputs, poll for completion, download results.
+        
+            Args:
+        {args_doc}
+        
+            Returns:
+                dict or bytes: The downloaded result data, or None if error
+            \"\"\"
+            base_url = "{base_url}"
+        
+            # Step 1: Launch execution
+            print(f"Uploading file(s): {{{first_param}}}")
+            {with_statement}
+        {files_block}
+        
+                response = requests.post(
+                    f"{{base_url}}/{service.slug}",
+                    files=files,
+                    headers={{'accept': 'application/json'}}
+                )
+        
+            if response.status_code not in [200, 201]:
+                print(f"Error uploading file: {{response.status_code}}")
                 return None
-    
-            task_status = response.json()
-            status = task_status.get('status', '').lower()
-    
-            print(f"Current status: {{status}}")
-    
-            if status == 'finished':
-                print("Task completed successfully!")
-                data_out = task_status.get('data_out', [])
-    
-                if not data_out:
-                    print("No output data found")
+        
+            task_data = response.json()
+            task_id = task_data.get('id')
+            print(f"Task created: {{task_id}}")
+        
+            # Step 2: Poll for task completion
+            max_attempts = 60  # Maximum polling attempts
+            poll_interval = 2  # Seconds between polls
+        
+            for attempt in range(max_attempts):
+                print(f"Polling task status (attempt {{attempt + 1}}/{{max_attempts}})...")
+                response = requests.get(
+                    f"{{base_url}}/tasks/{{task_id}}",
+                    headers={{'accept': 'application/json'}}
+                )
+        
+                if response.status_code != 200:
+                    print(f"Error fetching task status: {{response.status_code}}")
                     return None
-    
-    {download_logic}
-    
-                # Return single result if only one output, otherwise return list
-                return results[0] if len(results) == 1 else results
-    
-            elif status == 'error':
-                error_msg = task_status.get('error_message', 'Unknown error')
-                print(f"Task failed with error: {{error_msg}}")
-                return None
-    
-            # Wait before next poll
-            time.sleep(poll_interval)
-    
-        print("Timeout: Task did not complete within expected time")
-        return None
-    
-    
-    # Example usage
-    if __name__ == "__main__":
-        result = {example_call}
-    
-        if result:
-            print("=== Result ===")
-            if isinstance(result, bytes):
-                print(f"Binary result: {{len(result)}} bytes")
+        
+                task_status = response.json()
+                status = task_status.get('status', '').lower()
+        
+                print(f"Current status: {{status}}")
+        
+                if status == 'finished':
+                    print("Task completed successfully!")
+                    data_out = task_status.get('data_out', [])
+        
+                    if not data_out:
+                        print("No output data found")
+                        return None
+        
+        {download_logic}
+        
+                    # Return single result if only one output, otherwise return list
+                    return results[0] if len(results) == 1 else results
+        
+                elif status == 'error':
+                    error_msg = task_status.get('error_message', 'Unknown error')
+                    print(f"Task failed with error: {{error_msg}}")
+                    return None
+        
+                # Wait before next poll
+                time.sleep(poll_interval)
+        
+            print("Timeout: Task did not complete within expected time")
+            return None
+        
+        
+        # Example usage
+        if __name__ == "__main__":
+            result = {example_call}
+        
+            if result:
+                print("\\n=== Result ===")
+                if isinstance(result, bytes):
+                    print(f"Binary result: {{len(result)}} bytes")
+                else:
+                    print(json.dumps(result, indent=2))
             else:
-                print(json.dumps(result, indent=2))
-        else:
-            print("Failed to get result")
-    """
+                print("Failed to get result")
+        """
         return snippet

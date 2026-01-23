@@ -134,17 +134,18 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                 tags={tags} handleTags={handleTags}
                 ai={ai} handleAIToggle={handleAIToggle}
             />
-            <Box component={"main"} sx={{flexGrow: 1, py: 4}}>
+            <Box component={"main"} sx={{display: 'flex', flexDirection: 'column', minHeight: '100vh', flexGrow: 1}}>
                 <Toolbar/>
-                <Container maxWidth={false}>
+                <Container maxWidth={false} sx={{py: 4}}>
                     <ItemGrid filter={search} orderBy={orderBy} tags={tags} handleTags={handleTags}
                               ai={ai} handleAIToggle={handleAIToggle}
                               items={{service: HomeServiceCard, pipeline: PipelineCard}}
                               itemFunctions={null}
                               paginationPositions={["top", "bottom"]} paginationOptions={Object.values(PerPage)}
                               displayedPage={"home"}
-                              />
+                    />
                 </Container>
+                <Box sx={{flexGrow: 1}}/>
                 <Container maxWidth={false}>
                     <Copyright/>
                 </Container>

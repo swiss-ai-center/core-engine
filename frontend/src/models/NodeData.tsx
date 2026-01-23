@@ -1,5 +1,6 @@
 import { Node } from 'reactflow';
 import { FieldDescription } from 'models/ExecutionUnit';
+import { ServiceStatus } from '../enums/serviceStatusEnum';
 
 export type ElkNodeData = {
     label: string;
@@ -11,6 +12,7 @@ export type ProgressNodeData = ElkNodeData & {
     type: string;
     service_id: string;
     service_slug: string;
+    status: ServiceStatus;
 };
 
 export type EntryNodeData = ElkNodeData & {
