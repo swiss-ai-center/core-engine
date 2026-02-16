@@ -99,7 +99,7 @@ def get_one_by_slug(
 
 
 @router.post(
-    "/services/slug{service_slug}/wake-up",
+    "/services/slug/{service_slug}/wake-up",
     summary="Wake up a service",
     responses={
         404: {"detail": "Service Not Found"},
