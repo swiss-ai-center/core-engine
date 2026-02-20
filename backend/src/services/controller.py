@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import PlainTextResponse
@@ -259,3 +260,23 @@ def delete(
         raise HTTPException(status_code=404, detail=str(e))
     except ConstraintException as e:
         raise HTTPException(status_code=409, detail=str(e))
+
+
+@router.post(
+    "/services/{service_slug}/ping",
+    summary="Services health check endpoint",
+    responses={
+        200: {"detail": "Service is healthy"},
+        503: {"detail": "Service is unhealthy"},
+    },
+    status_code=200
+)
+def heartbeat_endpoint(
+        service_slug: str,
+        services_service: ServicesService = Depends(),
+):
+    service = services_service.find_one_by_slug(service_slug)
+    now = datetime.now()
+    services_service.update(service.id, ServiceUpdate(latest_ping=now))
+
+

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 from uuid import UUID, uuid4
 from pydantic import BaseModel, AnyHttpUrl, field_validator, field_serializer, TypeAdapter
@@ -41,6 +42,9 @@ class ServiceBase(CoreModel):
         default="https://docs.swiss-ai-center.ch/reference/core-concepts/service"
     )
     has_ai: Optional[bool] = False
+
+    latest_ping : Optional[datetime] = None
+
 
     @field_validator('data_in_fields', 'data_out_fields', mode='before')
     @classmethod
@@ -137,6 +141,7 @@ class ServiceUpdate(SQLModel):
     data_out_fields: Optional[List[FieldDescription]] = None
     tags: Optional[List[ExecutionUnitTag]] = None
     has_ai: Optional[bool] = None
+    latest_ping : Optional[datetime] = None
 
 
 class ServiceTaskBase(BaseModel):

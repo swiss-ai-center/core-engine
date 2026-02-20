@@ -1,3 +1,4 @@
+from datetime import datetime
 from inspect import Parameter, Signature
 from sqlalchemy.exc import IntegrityError
 from common_code.common.models import ExecutionUnitTag
@@ -585,17 +586,44 @@ class ServicesService:
                     self.logger.info(f"Service {service.name} ({service.slug}) is disabled, skipping...")
                     continue
                 try:
-                    await self.check_if_service_is_reachable_and_ok(service)
+                    await self.check_service_last_heartbeat(service)
                 except HTTPException as e:
+                    # Todo: decide if we want to set the service as unavailable or sleeping.
                     self.logger.warning(f"Service {service.name} ({service.slug}) did not return an OK: {str(e)}")
-                    self.disable_service(app, service)
+                    #self.disable_service(app, service)
                 except UnreachableException as e:
+                    # Todo: decide if we want to set the service as unavailable or sleeping.
                     self.logger.warning(f"Service {service.name} ({service.slug}) unreachable: {str(e)}")
-                    self.disable_service(app, service)
+                    #self.disable_service(app, service)
                 else:
                     self.logger.info(f"Service {service.name} ({service.slug}) reachable and OK")
                     updated_service = self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.AVAILABLE))
                     self.enable_service(app, updated_service)
+
+    async  def check_service_last_heartbeat(self, service: Service):
+        """
+        Check the last heartbeat of a service and set it as sleeping if the heartbeat is too old.
+        :param service: The service to check.
+        """
+        self.logger.debug(f"Checking last heartbeat of service {service.name}")
+
+        if not service.latest_ping:
+            self.logger.warning(f"Service {service.name} has no heartbeat, setting it as sleeping")
+            self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.DISABLED))
+            return
+
+        time_since_last_heartbeat = (datetime.now() - service.latest_ping).total_seconds()
+
+        if time_since_last_heartbeat > self.settings.check_services_availability_interval + 20:
+            self.logger.warning(
+                f"Service {service.name} last heartbeat is too old ({time_since_last_heartbeat} seconds), "
+                f"setting it as sleeping"
+            )
+            self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.SLEEPING))
+            raise HTTPException(status_code=503, detail="Service heartbeat too old")
+        else:
+            self.logger.debug(f"Service {service.name} last heartbeat is recent ({time_since_last_heartbeat} seconds)")
+
 
     async def wake_up_service(self, service: Service):
         """
@@ -612,6 +640,7 @@ class ServicesService:
         except HTTPError as e:
             self.logger.error(f"Waking up service {service.name} failed: {str(e)}")
         else:
+            self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.AVAILABLE))
             self.logger.info(f"Service {service.name} woke up successfully")
 
     def generate_code_snippet(self, service: Service):
