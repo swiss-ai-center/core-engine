@@ -14,7 +14,7 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
     let edges: Edge[] = [];
 
     if (entity && entity instanceof Service) {
-        const entryNode = generateEntryNode("service", entity.slug, entity.data_in_fields);
+        const entryNode = generateEntryNode("service", entity.slug, entity.data_in_fields, entity.status);
         const serviceNode = generateNode(entity.slug, "service", entity.status, entity.id, entity.data_in_fields, entity.data_out_fields);
         const exitNode = generateExitNode(entity.slug, entity.data_out_fields);
         nodes = [entryNode, serviceNode, exitNode];
@@ -45,7 +45,7 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
         return {nodes: nodes, edges: edges};
 
     } else if (entity) {
-        const entryNode = generateEntryNode("pipeline", entity.slug, entity.data_in_fields);
+        const entryNode = generateEntryNode("pipeline", entity.slug, entity.data_in_fields, ServiceStatus.AVAILABLE);
         nodes.push(entryNode);
 
         for (let i = 0; i < entity.steps.length; i++) {
@@ -160,7 +160,8 @@ const generateNode = (slug: string, type: string, status: ServiceStatus, service
 const generateEntryNode = (
     executionType: string,
     slug: string,
-    data_in_fields: FieldDescription[]
+    data_in_fields: FieldDescription[],
+    status: ServiceStatus
 ) => {
     const id = slug + "-entry";
     const sourceHandles = data_in_fields.map((field) => {
@@ -173,6 +174,7 @@ const generateEntryNode = (
             label: slug + "-entry",
             executionType: executionType,
             data_in_fields: data_in_fields,
+            status: status,
             sourceHandles: sourceHandles,
             targetHandles: [],
         },

@@ -18,6 +18,7 @@ export type ProgressNodeData = ElkNodeData & {
 export type EntryNodeData = ElkNodeData & {
     executionType: string;
     data_in_fields: FieldDescription[];
+    status: ServiceStatus;
 };
 
 export type ExitNodeData = ElkNodeData & {
