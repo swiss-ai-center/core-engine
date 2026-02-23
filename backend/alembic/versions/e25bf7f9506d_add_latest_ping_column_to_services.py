@@ -20,6 +20,5 @@ def upgrade():
     op.add_column('services', sa.Column('latest_ping', sa.DateTime(timezone=True), nullable=True))
 
 
-
 def downgrade():
     op.drop_column('services', 'latest_ping')

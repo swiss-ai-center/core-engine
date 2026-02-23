@@ -278,5 +278,3 @@ def heartbeat_endpoint(
     service = services_service.find_one_by_slug(service_slug)
     now = datetime.now()
     services_service.update(service.id, ServiceUpdate(latest_ping=now))
-
-

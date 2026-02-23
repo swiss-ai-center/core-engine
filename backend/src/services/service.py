@@ -590,17 +590,17 @@ class ServicesService:
                 except HTTPException as e:
                     # Todo: decide if we want to set the service as unavailable or sleeping.
                     self.logger.warning(f"Service {service.name} ({service.slug}) did not return an OK: {str(e)}")
-                    #self.disable_service(app, service)
+                    # self.disable_service(app, service)
                 except UnreachableException as e:
                     # Todo: decide if we want to set the service as unavailable or sleeping.
                     self.logger.warning(f"Service {service.name} ({service.slug}) unreachable: {str(e)}")
-                    #self.disable_service(app, service)
+                    # self.disable_service(app, service)
                 else:
                     self.logger.info(f"Service {service.name} ({service.slug}) reachable and OK")
                     updated_service = self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.AVAILABLE))
                     self.enable_service(app, updated_service)
 
-    async  def check_service_last_heartbeat(self, service: Service):
+    async def check_service_last_heartbeat(self, service: Service):
         """
         Check the last heartbeat of a service and set it as sleeping if the heartbeat is too old.
         :param service: The service to check.
@@ -623,7 +623,6 @@ class ServicesService:
             raise HTTPException(status_code=503, detail="Service heartbeat too old")
         else:
             self.logger.debug(f"Service {service.name} last heartbeat is recent ({time_since_last_heartbeat} seconds)")
-
 
     async def wake_up_service(self, service: Service):
         """

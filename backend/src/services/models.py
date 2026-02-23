@@ -43,8 +43,7 @@ class ServiceBase(CoreModel):
     )
     has_ai: Optional[bool] = False
 
-    latest_ping : Optional[datetime] = None
-
+    latest_ping: Optional[datetime] = None
 
     @field_validator('data_in_fields', 'data_out_fields', mode='before')
     @classmethod
@@ -141,7 +140,7 @@ class ServiceUpdate(SQLModel):
     data_out_fields: Optional[List[FieldDescription]] = None
     tags: Optional[List[ExecutionUnitTag]] = None
     has_ai: Optional[bool] = None
-    latest_ping : Optional[datetime] = None
+    latest_ping: Optional[datetime] = None
 
 
 class ServiceTaskBase(BaseModel):
