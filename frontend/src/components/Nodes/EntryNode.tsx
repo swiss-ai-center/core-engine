@@ -31,6 +31,7 @@ import {
 } from 'utils/reducers/runStateSlice';
 import { useWebSocketConnection } from 'utils/useWebSocketConnection';
 import CustomHandle from 'components/Handles/CustomHandle';
+import { ServiceStatus } from '../../enums/serviceStatusEnum';
 
 function createAllowedTypesString(allowedTypes: string[]) {
     return allowedTypes.join(', ');
@@ -83,6 +84,8 @@ const EntryNode = ({data}: NodeProps<EntryNodeData>) => {
             generalStatus === RunState.FINISHED ||
             generalStatus === RunState.ERROR;
     }
+
+    const isSleeping = () => data.status === ServiceStatus.SLEEPING;
 
     const launchExecution = async (serviceSlug: string) => {
         dispatch(setGeneralStatus(RunState.UPLOADING));
@@ -176,26 +179,29 @@ const EntryNode = ({data}: NodeProps<EntryNodeData>) => {
                                         (<Input key={`input-${index}`} placeholder={"Enter text"}/>)
                                         :
                                         (<Tooltip title={"type(s): " + item.type} placement={"right"}>
-                                            <Button key={`btn-${index}`}
-                                                    variant={"outlined"}
-                                                    component={"label"}
-                                                    size={"small"}
-                                                    sx={{mb: (index !== fileArray.length - 1) ? 1 : 0, mt: 1}}
-                                                    color={item.isSet ? "success" : "secondary"}
-                                                    endIcon={<UploadFileTwoTone/>}
-                                            >
-                                                Upload
-                                                <label htmlFor={"upload-file-input-" + index}/>
-                                                <input
-                                                    id={"upload-file-input-" + index}
-                                                    accept={createAllowedTypesString(item.type)}
-                                                    type={"file"}
-                                                    hidden
-                                                    onChange={
-                                                        (event) => handleUpload(item.name, event.target.files)
-                                                    }
-                                                />
-                                            </Button>
+                                            <span>
+                                                <Button key={`btn-${index}`}
+                                                        variant={"outlined"}
+                                                        component={"label"}
+                                                        size={"small"}
+                                                        sx={{mb: (index !== fileArray.length - 1) ? 1 : 0, mt: 1}}
+                                                        color={item.isSet ? "success" : "secondary"}
+                                                        endIcon={<UploadFileTwoTone/>}
+                                                        disabled={isSleeping()}
+                                                >
+                                                    Upload
+                                                    <label htmlFor={"upload-file-input-" + index}/>
+                                                    <input
+                                                        id={"upload-file-input-" + index}
+                                                        accept={createAllowedTypesString(item.type)}
+                                                        type={"file"}
+                                                        hidden
+                                                        onChange={
+                                                            (event) => handleUpload(item.name, event.target.files)
+                                                        }
+                                                    />
+                                                </Button>
+                                            </span>
                                         </Tooltip>)}
                                     {(index !== fileArray.length - 1) ? <Divider/> : null}
                                 </div>
