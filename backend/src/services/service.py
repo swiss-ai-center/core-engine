@@ -609,8 +609,8 @@ class ServicesService:
 
         if not service.latest_ping:
             self.logger.warning(f"Service {service.name} has no heartbeat, setting it as sleeping")
-            self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.DISABLED))
-            return
+            self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.SLEEPING))
+            raise HTTPException(status_code=503, detail="Service has no heartbeat")
 
         time_since_last_heartbeat = (datetime.now() - service.latest_ping).total_seconds()
 
