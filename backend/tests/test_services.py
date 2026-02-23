@@ -346,14 +346,14 @@ def test_service_compute(client: TestClient, service_instance: HTTPServer):
     assert service_data == service_task_service_data
     assert len(service_task_data["data_in"]) == 1
 
+
 def test_service_heartbeat(client: TestClient, service_instance: HTTPServer):
-    import time
     # Change the URL of the service to match the mocked service
     service_copy = service_1.copy()
     service_copy["url"] = service_instance.url_for("")
 
     # Create the service on the Engine
-    service_response = client.post("/services", json=service_copy)
+    client.post("/services", json=service_copy)
 
     # Send a heartbeat request to the mocked service through the Engine
     heartbeat_response = client.post(f"/services/{service_copy['slug']}/ping")
