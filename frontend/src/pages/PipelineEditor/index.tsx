@@ -393,6 +393,47 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         return inputConnected;
     }
 
+    const checkExitOutputsAreValid = (): boolean => {
+        const exitNode = nodesRef.current.find((node) => node.type === "exitNodeEdit");
+        if (!exitNode) return false;
+
+        const outputs: FieldDescription[] = exitNode.data.dataOut ?? [];
+        const connectedHandles = new Set(
+            edgesRef.current
+                .filter((edge) => edge.target === exitNode.id && edge.targetHandle)
+                .map((edge) => edge.targetHandle as string)
+        );
+        const outputNameSet = new Set<string>();
+
+        for (let index = 0; index < outputs.length; index++) {
+            const output = outputs[index];
+            const outputName = output.name?.trim();
+
+            if (!outputName) {
+                toast(`Invalid: Output #${index + 1} must have a name`, {type: "warning"});
+                return false;
+            }
+
+            if (outputNameSet.has(outputName)) {
+                toast(`Invalid: Output name "${outputName}" must be unique`, {type: "warning"});
+                return false;
+            }
+            outputNameSet.add(outputName);
+
+            if (!output.type || output.type.length === 0) {
+                toast(`Invalid: Output "${outputName}" must be connected to resolve its type`, {type: "warning"});
+                return false;
+            }
+
+            if (!connectedHandles.has(outputName)) {
+                toast(`Invalid: Output "${outputName}" must be connected`, {type: "warning"});
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     const postPipeline = async () => {
         if (!(await checkPipeline())) return;
 
@@ -420,6 +461,10 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
         if (!checkInputsAreConnected()) {
             toast("Invalid: Every service input must be connected", {type: "warning"})
+            return false;
+        }
+
+        if (!checkExitOutputsAreValid()) {
             return false;
         }
 
@@ -586,8 +631,9 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             const edgesToRemove = edgesRef.current.filter(
                 (e) => e.target === exitNode.id && e.targetHandle === removedName
             );
+            const edgeIdsToRemove = new Set(edgesToRemove.map((edge) => edge.id));
             onEdgeDelete(edgesToRemove);
-            setEdgesRef.current((eds) => eds.filter((e) => !edgesToRemove.includes(e)));
+            setEdgesRef.current((eds) => eds.filter((e) => !edgeIdsToRemove.has(e.id)));
 
             dataOut.splice(index, 1);
 
@@ -605,10 +651,11 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             // remove edges that are connected to the input
             const inputName = entryNode.data.dataIn[inputIndex].name;
             const edgesToRemove = edgesRef.current.filter((edge) => edge.sourceHandle === inputName)
+            const edgeIdsToRemove = new Set(edgesToRemove.map((edge) => edge.id));
             onEdgeDelete(edgesToRemove);
 
             // update edges refs to remove the edges
-            setEdgesRef.current((edges) => edges.filter((edge) => !edgesToRemove.includes(edge)))
+            setEdgesRef.current((edges) => edges.filter((edge) => !edgeIdsToRemove.has(edge.id)))
 
             const dataIn = [...entryNode.data.dataIn];
             dataIn[inputIndex].type = type;

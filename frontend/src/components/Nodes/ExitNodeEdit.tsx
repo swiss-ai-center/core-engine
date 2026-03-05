@@ -37,6 +37,15 @@ const ExitNodeEdit: React.FC<{ id: string; data: any }> = ({id, data}) => {
     }, []);
 
     const onSelectOutputName = (newName: string, prevName: string, index: number) => {
+        if (newName.trim().length === 0) {
+            toast("Output name cannot be empty", {type: "warning"});
+            setOutputNames(outputNames.map((name, nameIndex) => {
+                if (nameIndex !== index) return name;
+                return prevName;
+            }));
+            return;
+        }
+
         if (outputNames[index] === newName) return;
 
         if (outputNames.includes(newName)) {
@@ -101,10 +110,18 @@ const ExitNodeEdit: React.FC<{ id: string; data: any }> = ({id, data}) => {
                         size={"small"}
                         onFocus={(event) => event.target.select()}
                         onBlur={(event) => {
-                            let val = replaceHyphensWithUnderscores(event.target.value);
+                            const previousName = outputNames[index] ?? outputField.name;
+                            let val = event.target.value.trim();
+                            val = replaceHyphensWithUnderscores(val);
                             val = replaceSpacesWithUnderscores(val);
 
-                            onSelectOutputName(val, outputField.name, index);
+                            if (val.length === 0) {
+                                toast("Output name cannot be empty", {type: "warning"});
+                                event.target.value = previousName;
+                                return;
+                            }
+
+                            onSelectOutputName(val, previousName, index);
 
                             // set value of text field to the (sanitized) new name
                             event.target.value = val;
