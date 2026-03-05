@@ -1,9 +1,9 @@
-import { ElkNode } from 'elkjs';
-import { FieldDescription } from 'models/ExecutionUnit';
-import { Pipeline } from 'models/Pipeline';
-import { Service } from 'models/Service';
-import { Edge } from 'reactflow';
-import { ServiceStatus } from '../../enums/serviceStatusEnum';
+import {ElkNode} from 'elkjs';
+import {FieldDescription} from 'models/ExecutionUnit';
+import {Pipeline} from 'models/Pipeline';
+import {Service} from 'models/Service';
+import {Edge} from 'reactflow';
+import {ServiceStatus} from '../../enums/serviceStatusEnum';
 
 const nodeWidth = 250;
 const nodeHeight = 200;
@@ -109,21 +109,49 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
                 }
             }
         }
+
+        const terminalOutputs: { stepIdentifier: string, field: FieldDescription }[] = [];
         for (let i = 0; i < entity.steps.length; i++) {
             const step = entity.steps[i];
             if (!requiredSteps.has(step.identifier)) {
                 for (let j = 0; j < step.service.data_out_fields.length; j++) {
-                    edges.push({
-                        id: `${step.identifier}-${step.service.data_out_fields[j].name}-${exitNode.id}-${step.service.data_out_fields[j].name}`,
-                        source: step.identifier,
-                        sourceHandle: `${step.identifier}-${step.service.data_out_fields[j].name}`,
-                        target: exitNode.id,
-                        targetHandle: `${exitNode.id}-${step.service.data_out_fields[j].name}`,
-                        animated: false,
-                        type: edgeType,
+                    terminalOutputs.push({
+                        stepIdentifier: step.identifier,
+                        field: step.service.data_out_fields[j],
                     });
                 }
             }
+        }
+
+        const usedTerminalOutputIndex = new Set<number>();
+        for (let i = 0; i < entity.data_out_fields.length; i++) {
+            const pipelineOutput = entity.data_out_fields[i];
+            let sourceIndex = terminalOutputs.findIndex(
+                (candidate, candidateIndex) =>
+                    !usedTerminalOutputIndex.has(candidateIndex) &&
+                    candidate.field.name === pipelineOutput.name
+            );
+
+            if (sourceIndex === -1) {
+                sourceIndex = terminalOutputs.findIndex((_, candidateIndex) =>
+                    !usedTerminalOutputIndex.has(candidateIndex)
+                );
+            }
+
+            if (sourceIndex === -1) continue;
+
+            usedTerminalOutputIndex.add(sourceIndex);
+            const selectedOutput = terminalOutputs[sourceIndex];
+
+            edges.push({
+                id: `${selectedOutput.stepIdentifier}-${selectedOutput.field.name}-${exitNode.id}-${pipelineOutput.name}`,
+                source: selectedOutput.stepIdentifier,
+                sourceHandle: `${selectedOutput.stepIdentifier}-${selectedOutput.field.name}`,
+                target: exitNode.id,
+                targetHandle: `${exitNode.id}-${pipelineOutput.name}`,
+                animated: false,
+                type: edgeType,
+            });
         }
 
         edges = edges.flat()
