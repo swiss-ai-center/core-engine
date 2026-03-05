@@ -36,17 +36,17 @@ const ExitNodeEdit: React.FC<{ id: string; data: any }> = ({id, data}) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const onSelectOutputName = (newName: string, prevName: string, index: number) => {
+    const onSelectOutputName = (newName: string, prevName: string, index: number): boolean => {
         if (newName.trim().length === 0) {
             toast("Output name cannot be empty", {type: "warning"});
             setOutputNames(outputNames.map((name, nameIndex) => {
                 if (nameIndex !== index) return name;
                 return prevName;
             }));
-            return;
+            return false;
         }
 
-        if (outputNames[index] === newName) return;
+        if (outputNames[index] === newName) return true;
 
         if (outputNames.includes(newName)) {
             toast("Output name must be unique", {type: "warning"});
@@ -55,7 +55,7 @@ const ExitNodeEdit: React.FC<{ id: string; data: any }> = ({id, data}) => {
                 if (nameIndex !== index) return name;
                 return prevName;
             }));
-            return;
+            return false;
         }
 
         // IMPORTANT: same pattern: send prev name as what is currently stored
@@ -67,6 +67,7 @@ const ExitNodeEdit: React.FC<{ id: string; data: any }> = ({id, data}) => {
         }));
 
         updateNodeInternals(id);
+        return true;
     };
 
     const onDeleteOutput = (index: number) => {
@@ -115,16 +116,10 @@ const ExitNodeEdit: React.FC<{ id: string; data: any }> = ({id, data}) => {
                             val = replaceHyphensWithUnderscores(val);
                             val = replaceSpacesWithUnderscores(val);
 
-                            if (val.length === 0) {
-                                toast("Output name cannot be empty", {type: "warning"});
-                                event.target.value = previousName;
-                                return;
-                            }
+                            const updated = onSelectOutputName(val, previousName, index);
 
-                            onSelectOutputName(val, previousName, index);
-
-                            // set value of text field to the (sanitized) new name
-                            event.target.value = val;
+                            // keep displayed value aligned with accepted state
+                            event.target.value = updated ? val : previousName;
                         }}
                     />
                 </Grid>
