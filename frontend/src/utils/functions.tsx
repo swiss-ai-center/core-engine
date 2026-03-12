@@ -107,9 +107,8 @@ export const handleNoFilter = (
     searchParams: URLSearchParams,
     windowHistory: History) => {
     if (searchParams.toString() === '') {
-        windowHistory.pushState({}, '', window.location.pathname);
+        windowHistory.replaceState({}, '', window.location.pathname);
     }
 }
-
 
 

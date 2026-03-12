@@ -38,7 +38,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
     const handleNoFilter = useCallback(() => {
         if (searchParams.toString() === '') {
-            history.pushState({}, '', window.location.pathname);
+            history.replaceState({}, '', window.location.pathname);
         }
     }, [searchParams, history]);
 
@@ -114,7 +114,7 @@ const Home: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         } else {
             searchParams.delete('orderBy');
             setOrderBy('name-asc');
-            history.pushState({}, '', `?${searchParams.toString()}`);
+            history.replaceState({}, '', `?${searchParams.toString()}`);
         }
         handleNoFilter();
     }, [searchParams, setFileArray, history, orderByList, handleNoFilter]);
