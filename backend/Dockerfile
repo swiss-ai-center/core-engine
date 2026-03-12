@@ -1,15 +1,23 @@
 # Base image
+FROM ghcr.io/astral-sh/uv:0.8.15 AS uv
 FROM python:3.11
 
 # Work directory
 WORKDIR /app
 
-# Copy requirements files
-COPY ./requirements.txt .
-COPY ./requirements-all.txt .
+# Install uv
+COPY --from=uv /uv /uvx /bin/
 
-# Install dependencies
-RUN pip install --requirement requirements.txt --requirement requirements-all.txt
+# Keep the virtual environment outside the project tree
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+
+# Copy dependency definition and lockfile
+COPY ./pyproject.toml .
+COPY ./uv.lock .
+
+# Install dependencies in a local virtual environment
+RUN uv sync --frozen --no-dev --no-install-project
 
 # Copy sources
 COPY src src
@@ -33,4 +41,4 @@ EXPOSE 80
 WORKDIR "/app/src"
 
 # Command to run on start
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]

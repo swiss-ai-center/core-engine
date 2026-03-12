@@ -80,10 +80,25 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v4
 
-      - name: Lint Python app
-        uses: swiss-ai-center/common-code/.github/actions/lint-python-app@main
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-app-path: ./backend
+          python-version: "3.11"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Check lockfile consistency
+        working-directory: backend
+        run: uv lock --check
+
+      - name: Install dependencies
+        working-directory: backend
+        run: uv sync --frozen --all-groups
+
+      - name: Lint Python app
+        working-directory: backend
+        run: uv run flake8 src tests
 
   test:
     needs: review
@@ -93,11 +108,21 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v4
 
-      - name: Test Python app
-        uses: swiss-ai-center/common-code/.github/actions/test-python-app@main
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-app-path: ./backend
-          token: ${{ secrets.GITHUB_TOKEN }}
+          python-version: "3.11"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        working-directory: backend
+        run: uv sync --frozen --all-groups
+
+      - name: Test Python app
+        working-directory: backend
+        run: uv run pytest
 
   release:
     needs: test

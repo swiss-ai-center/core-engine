@@ -6,22 +6,12 @@ services:
       dockerfile: development.Dockerfile
     command: |
       bash -c "
-        # Create the virtual environment
-        if [ -d .venv ]; 
-        then 
-          echo '.venv exists and is not empty'; 
-        else 
-          echo '.venv does not exist or is empty'; 
-          python3.11 -m venv .venv; 
-        fi &&
-        # Activate the virtual environment
-        source .venv/bin/activate &&
-        # Install the dependencies
-        pip install -r requirements.txt -r requirements-all.txt &&
-        alembic upgrade head || echo '✅ Alembic already up to date.' &&
+        # Install dependencies and run migrations using uv
+        uv sync --frozen --all-groups &&
+        uv run alembic upgrade head &&
         # Run the backend
         cd src &&
-        uvicorn --reload --host 0.0.0.0 --port 8080 main:app
+        uv run uvicorn --reload --host 0.0.0.0 --port 8080 main:app
       "
     depends_on:
       - db
@@ -30,6 +20,7 @@ services:
       - HOST=http://host.docker.internal:8080
       - S3_HOST=http://host.docker.internal:9000
       - DATABASE_URL=sqlite:////workspaces/core-engine-backend/core-engine.db
+      - UV_PROJECT_ENVIRONMENT=/opt/venv
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -37,6 +28,7 @@ services:
     working_dir: /workspaces/core-engine-backend
     volumes:
       - .:/workspaces/core-engine-backend
+      - backend_venv:/opt/venv
 
   db:
     container_name: db
@@ -87,3 +79,6 @@ services:
         echo 'Connected. Creating bucket...';
         mc mb --ignore-existing local/engine;
       "
+
+volumes:
+  backend_venv:
