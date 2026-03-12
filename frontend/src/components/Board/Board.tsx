@@ -1,22 +1,22 @@
-import { Box, Typography } from '@mui/material';
-import { grey } from '@mui/material/colors';
+import {Box, Typography} from '@mui/material';
+import {grey} from '@mui/material/colors';
 import DrawGraph from 'components/Board/DrawGraph';
 import EntryNode from 'components/Nodes/EntryNode';
 import ExitNode from 'components/Nodes/ExitNode';
 import StepNode from 'components/Nodes/StepNode';
 import ELK from 'elkjs/lib/elk.bundled';
 import 'components/Board/styles.css';
-import { ConnectionData } from 'models/ConnectionData';
-import { Message, MessageSubject } from 'models/Message';
-import { ElkNode, EntryNodeData, ExitNodeData, ProgressNodeData } from 'models/NodeData';
-import { Pipeline } from 'models/Pipeline';
-import { Service } from 'models/Service';
-import { Task } from 'models/Task';
+import {ConnectionData} from 'models/ConnectionData';
+import {Message, MessageSubject} from 'models/Message';
+import {ElkNode, EntryNodeData, ExitNodeData, ProgressNodeData} from 'models/NodeData';
+import {Pipeline} from 'models/Pipeline';
+import {Service} from 'models/Service';
+import {Task} from 'models/Task';
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'react-toastify';
-import ReactFlow, { Background, Controls, Edge, useEdgesState, useNodesState, useReactFlow, } from 'reactflow';
-import { displayTimer } from 'utils/functions';
+import {useDispatch, useSelector} from 'react-redux';
+import {toast} from 'react-toastify';
+import ReactFlow, {Background, Controls, Edge, useEdgesState, useNodesState, useReactFlow,} from 'reactflow';
+import {displayTimer} from 'utils/functions';
 import {
     incrementTimer,
     RunState,
@@ -25,7 +25,7 @@ import {
     setResultIdList,
     setTaskArray
 } from 'utils/reducers/runStateSlice';
-import { useWebSocketConnection } from 'utils/useWebSocketConnection';
+import {useWebSocketConnection} from 'utils/useWebSocketConnection';
 import 'reactflow/dist/style.css';
 
 const layoutOptions = {
@@ -62,6 +62,13 @@ const Board: React.FC<{ description: any }> = ({description}) => {
     React.useEffect(() => {
         // uses elkjs to give each node a layouted position
         const getLayoutedNodes = async (nodes: ElkNode[], edges: Edge[]) => {
+            const validPortIds = new Set<string>();
+            nodes.forEach((node) => {
+                validPortIds.add(node.id);
+                node.data.targetHandles.forEach((targetHandle) => validPortIds.add(targetHandle.id));
+                node.data.sourceHandles.forEach((sourceHandle) => validPortIds.add(sourceHandle.id));
+            });
+
             const graph = {
                 id: 'root',
                 layoutOptions,
@@ -95,11 +102,16 @@ const Board: React.FC<{ description: any }> = ({description}) => {
                         ports: [{id: n.id}, ...targetPorts, ...sourcePorts],
                     };
                 }),
-                edges: edges.map((e) => ({
-                    id: e.id,
-                    sources: [e.sourceHandle || e.source],
-                    targets: [e.targetHandle || e.target],
-                })),
+                edges: edges.map((e) => {
+                    const sourceId = e.sourceHandle && validPortIds.has(e.sourceHandle) ? e.sourceHandle : e.source;
+                    const targetId = e.targetHandle && validPortIds.has(e.targetHandle) ? e.targetHandle : e.target;
+
+                    return {
+                        id: e.id,
+                        sources: [sourceId],
+                        targets: [targetId],
+                    };
+                }),
             };
             const layoutedGraph = await elk.layout(graph);
             return nodes.map((node) => {

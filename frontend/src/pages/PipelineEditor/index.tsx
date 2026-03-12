@@ -1,4 +1,4 @@
-import { ArrowBack, ArrowUpward, DescriptionTwoTone } from "@mui/icons-material";
+import {ArrowBack, ArrowUpward, DescriptionTwoTone} from "@mui/icons-material";
 import {
     Box,
     Button,
@@ -14,16 +14,16 @@ import {
 import BoardEdit from 'components/Board/BoardEdit';
 import PipelineEditorServiceCard from "components/Cards/PipelineEditorServiceCard";
 import Copyright from 'components/Copyright/Copyright';
-import { FilterDrawer } from "components/FilterDrawer/FilterDrawer";
+import {FilterDrawer} from "components/FilterDrawer/FilterDrawer";
 import ItemGrid from "components/ItemGrid/ItemGrid";
-import { JsonModal } from 'components/JsonModal/JsonModal';
-import { FieldDescription } from "models/ExecutionUnit";
-import { Tag } from "models/Tag";
+import {JsonModal} from 'components/JsonModal/JsonModal';
+import {FieldDescription} from "models/ExecutionUnit";
+import {Tag} from "models/Tag";
 import React from "react";
-import { useSelector } from "react-redux";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import {useSelector} from "react-redux";
+import {Link, useNavigate, useSearchParams} from "react-router-dom";
 import ScrollToTop from "react-scroll-to-top";
-import { toast } from "react-toastify";
+import {toast} from "react-toastify";
 import {
     addEdge,
     Connection,
@@ -34,9 +34,9 @@ import {
     useEdgesState,
     useNodesState,
 } from "reactflow";
-import { checkPipelineValidity, createPipeline } from "utils/api";
-import { handleAIToggle, handleNoFilter, handleOrder, handleSearch, handleTags, isSmartphone } from "utils/functions";
-import { PerPage } from 'utils/reducers/perPageSlice';
+import {checkPipelineValidity, createPipeline} from "utils/api";
+import {handleAIToggle, handleNoFilter, handleOrder, handleSearch, handleTags, isSmartphone} from "utils/functions";
+import {PerPage} from 'utils/reducers/perPageSlice';
 
 
 const entryNodeMinWidth = 400;
@@ -95,18 +95,28 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         deletedEdges.forEach((edge) => {
             const targetNode = nodesRef.current.find((node) => edge.target === node.id)
             if (targetNode?.type === "exitNodeEdit") {
-                const pipelineOutput: FieldDescription[] = [];
+                if (!edge.targetHandle) return;
+
                 setNodesRef.current((nds) =>
                     nds.map((node) => {
-                        if (node.type !== "exitNodeEdit") {
+                        if (node.id !== targetNode.id) {
                             return node;
                         }
+
+                        const nextDataOut = [...node.data.dataOut];
+                        const outputIndex = nextDataOut.findIndex(
+                            (output: FieldDescription) => output.name === edge.targetHandle
+                        );
+
+                        if (outputIndex === -1) return node;
+
+                        nextDataOut[outputIndex] = {...nextDataOut[outputIndex], type: []};
 
                         return {
                             ...node,
                             data: {
                                 ...node.data,
-                                dataOut: pipelineOutput,
+                                dataOut: nextDataOut,
                             },
                         };
                     })
@@ -137,22 +147,35 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         const sourceNode = nodesRef.current.find((node) => node.id === params.source);
         if (!(targetNode && sourceNode)) return;
         if (targetNode.type === "exitNodeEdit") {
-            const pipelineOutput: FieldDescription[] = sourceNode.data.dataOut;
-            setNodesRef.current((nds) =>
-                nds.map((node) => {
-                    if (node.type !== "exitNodeEdit") {
-                        return node;
-                    }
+            const {sourceHandle, targetHandle} = params;
+            if (!sourceHandle || !targetHandle) return;
 
-                    return {
-                        ...node,
-                        data: {
-                            ...node.data,
-                            dataOut: pipelineOutput,
-                        },
-                    };
+            const sourceOutputs: FieldDescription[] =
+                sourceNode.type === "entryNodeEdit" ? sourceNode.data.dataIn : sourceNode.data.dataOut;
+
+            const srcField = sourceOutputs.find((f) => f.name === sourceHandle);
+            if (!srcField) {
+                toast("Source output not found", {type: "warning"});
+                return;
+            }
+
+            // Update only the connected output slot on exit
+            setNodesRef.current((nds) =>
+                nds.map((n) => {
+                    if (n.id !== targetNode.id) return n;
+                    const nextOut = [...n.data.dataOut];
+                    const idx = nextOut.findIndex((f) => f.name === targetHandle);
+                    if (idx === -1) return n;
+
+                    nextOut[idx] = {...nextOut[idx], type: srcField.type};
+                    return {...n, data: {...n.data, dataOut: nextOut}};
                 })
             );
+
+            const data = {condition: "", onAddCondition, onDeleteCondition};
+            const edge = {...params, type: "editEdge", data};
+            setEdges((eds) => addEdge(edge, eds));
+            return;
         } else {
             const {sourceHandle, targetHandle} = params
 
@@ -218,11 +241,14 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
         if (target.id === connection.source) return false;
         if (source.type === "entryNodeEdit" && target.type === "exitNodeEdit") return false;
-        // make sure the source is not already connected to the exit node
-        const exitNode = nodesRef.current.find((node) => node.type === "exitNodeEdit");
-        if (edgesRef.current.find((edge) => {
-            return edge.source === source.id && edge.target === exitNode?.id
-        })) return false;
+        // Allow multiple connections to exit, but only one edge per exit output handle
+        if (target.type === "exitNodeEdit") {
+            if (!connection.targetHandle) return false;
+            const alreadyUsed = edgesRef.current.some(
+                (e) => e.target === target.id && e.targetHandle === connection.targetHandle
+            );
+            if (alreadyUsed) return false;
+        }
         return !hasCycle(target);
 
     });
@@ -309,21 +335,6 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         );
     }
 
-    const createExitNode = () => {
-        const dataOut: FieldDescription[] = [];
-        return {
-            id: `exit`,
-            type: "exitNodeEdit",
-            deletable: false,
-            data: {
-                identifier: "exit",
-                dataOut: dataOut,
-                label: "pipeline-exit",
-            },
-            position: {x: 2 * nodeSpacing + nodeWidth + entryNodeMinWidth, y: 200},
-        }
-    }
-
     const addServiceNode = (serviceId: string, tags: any[], serviceSlug: string, dataIn: FieldDescription[], dataOut: FieldDescription[]) => {
         let counter = 2;
         const selectedDataIn = new Array<string>(dataIn.length);
@@ -382,6 +393,47 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         return inputConnected;
     }
 
+    const checkExitOutputsAreValid = (): boolean => {
+        const exitNode = nodesRef.current.find((node) => node.type === "exitNodeEdit");
+        if (!exitNode) return false;
+
+        const outputs: FieldDescription[] = exitNode.data.dataOut ?? [];
+        const connectedHandles = new Set(
+            edgesRef.current
+                .filter((edge) => edge.target === exitNode.id && edge.targetHandle)
+                .map((edge) => edge.targetHandle as string)
+        );
+        const outputNameSet = new Set<string>();
+
+        for (let index = 0; index < outputs.length; index++) {
+            const output = outputs[index];
+            const outputName = output.name?.trim();
+
+            if (!outputName) {
+                toast(`Invalid: Output #${index + 1} must have a name`, {type: "warning"});
+                return false;
+            }
+
+            if (outputNameSet.has(outputName)) {
+                toast(`Invalid: Output name "${outputName}" must be unique`, {type: "warning"});
+                return false;
+            }
+            outputNameSet.add(outputName);
+
+            if (!output.type || output.type.length === 0) {
+                toast(`Invalid: Output "${outputName}" must be connected to resolve its type`, {type: "warning"});
+                return false;
+            }
+
+            if (!connectedHandles.has(outputName)) {
+                toast(`Invalid: Output "${outputName}" must be connected`, {type: "warning"});
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     const postPipeline = async () => {
         if (!(await checkPipeline())) return;
 
@@ -409,6 +461,10 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
         if (!checkInputsAreConnected()) {
             toast("Invalid: Every service input must be connected", {type: "warning"})
+            return false;
+        }
+
+        if (!checkExitOutputsAreValid()) {
             return false;
         }
 
@@ -442,13 +498,13 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     const getJSONRepresentation = (): string => {
         const entryNode = nodesRef.current.find((node) => node.type === "entryNodeEdit");
         const exitNode = nodesRef.current.find((node) => node.type === "exitNodeEdit");
-        const lastEdge = edgesRef.current.find((edge) => edge.target === exitNode?.id);
+        const exitEdges = edgesRef.current.filter((edge) => edge.target === exitNode?.id);
 
-        if (!(entryNode && exitNode && lastEdge)) return "{}";
+        if (!(entryNode && exitNode) || exitEdges.length === 0) return "{}";
 
         const data_in_fields = entryNode?.data.dataIn;
         const data_out_fields = exitNode?.data.dataOut;
-        const queue: string[] = [lastEdge!.source];
+        const queue: string[] = exitEdges.map((e) => e.source);
         let index = 0;
 
         // Add all nodes in the queue in reverse order of their appearance in the pipeline (allowing duplicates)
@@ -546,6 +602,48 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             setNodeDataIn(entryNode, dataIn)
         }
 
+        const onAddExitOutput = (defaultName: string) => {
+            const exitNode = nodesRef.current.find((node) => node.type === "exitNodeEdit");
+            if (!exitNode) return;
+
+            const dataOut = [...exitNode.data.dataOut];
+            const outField = new FieldDescription();
+            outField.type = [];
+            outField.name = defaultName;
+
+            dataOut.push(outField);
+
+            setNodesRef.current((nds) =>
+                nds.map((n) =>
+                    n.id !== exitNode.id ? n : {...n, data: {...n.data, dataOut}}
+                )
+            );
+        };
+
+        const onDeleteExitOutput = (index: number) => {
+            const exitNode = nodesRef.current.find((node) => node.type === "exitNodeEdit");
+            if (!exitNode) return;
+
+            const dataOut = [...exitNode.data.dataOut];
+            const removedName = dataOut[index]?.name;
+
+            // remove edges connected to that exit handle
+            const edgesToRemove = edgesRef.current.filter(
+                (e) => e.target === exitNode.id && e.targetHandle === removedName
+            );
+            const edgeIdsToRemove = new Set(edgesToRemove.map((edge) => edge.id));
+            onEdgeDelete(edgesToRemove);
+            setEdgesRef.current((eds) => eds.filter((e) => !edgeIdsToRemove.has(e.id)));
+
+            dataOut.splice(index, 1);
+
+            setNodesRef.current((nds) =>
+                nds.map((n) =>
+                    n.id !== exitNode.id ? n : {...n, data: {...n.data, dataOut}}
+                )
+            );
+        };
+
         const onSelectEntryInput = (inputIndex: number, type: string[]) => {
             const entryNode = nodesRef.current.find((node) => node.type === "entryNodeEdit")
             if (entryNode === undefined) return;
@@ -553,10 +651,11 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             // remove edges that are connected to the input
             const inputName = entryNode.data.dataIn[inputIndex].name;
             const edgesToRemove = edgesRef.current.filter((edge) => edge.sourceHandle === inputName)
+            const edgeIdsToRemove = new Set(edgesToRemove.map((edge) => edge.id));
             onEdgeDelete(edgesToRemove);
 
             // update edges refs to remove the edges
-            setEdgesRef.current((edges) => edges.filter((edge) => !edgesToRemove.includes(edge)))
+            setEdgesRef.current((edges) => edges.filter((edge) => !edgeIdsToRemove.has(edge.id)))
 
             const dataIn = [...entryNode.data.dataIn];
             dataIn[inputIndex].type = type;
@@ -592,6 +691,65 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             }
             return;
         }
+        const onSelectExitOutputName = (outputIndex: number, newName: string, previousName: string) => {
+            const exitNode = nodesRef.current.find((node) => node.type === "exitNodeEdit");
+            if (exitNode === undefined) return;
+
+            const dataOut = [...exitNode.data.dataOut];
+            dataOut[outputIndex].name = newName;
+
+            // update exit node outputs
+            setNodesRef.current((nds) =>
+                nds.map((n) => {
+                    if (n.id !== exitNode.id) return n;
+                    return {
+                        ...n,
+                        data: {
+                            ...n.data,
+                            dataOut,
+                        },
+                    };
+                })
+            );
+
+            // propagate rename to edges connected to that specific exit handle
+            const exitEdges = edgesRef.current.filter(
+                (edge) => edge.target === exitNode.id && edge.targetHandle === previousName
+            );
+
+            if (exitEdges.length > 0) {
+                setEdgesRef.current((eds) =>
+                    eds.map((edge) => {
+                        if (edge.target === exitNode.id && edge.targetHandle === previousName) {
+                            return {
+                                ...edge,
+                                targetHandle: newName,
+                            };
+                        }
+                        return edge;
+                    })
+                );
+            }
+
+            return;
+        };
+        const createExitNode = () => {
+            const dataOut: FieldDescription[] = [];
+            return {
+                id: `exit`,
+                type: "exitNodeEdit",
+                deletable: false,
+                data: {
+                    identifier: "exit",
+                    dataOut,
+                    label: "pipeline-exit",
+                    onAddExitOutput,
+                    onDeleteExitOutput,
+                    onSelectExitOutputName,
+                },
+                position: {x: 2 * nodeSpacing + nodeWidth + entryNodeMinWidth, y: 200},
+            };
+        };
 
         const createEntryNode = () => {
             const dataIn: FieldDescription[] = [];
