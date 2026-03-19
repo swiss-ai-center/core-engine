@@ -5,6 +5,7 @@ export enum DataType {
     TEXT_CSV = "text/csv",
     APPLICATION_JSON = "application/json",
     APPLICATION_PDF = "application/pdf",
+    APPLICATION_ZIP = "application/zip",
     AUDIO_MP3 = "audio/mpeg",
     AUDIO_OGG = "audio/ogg"
 }
