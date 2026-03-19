@@ -354,8 +354,8 @@ wheels = [
 
 [[package]]
 name = "common-code"
-version = "1.1.5"
-source = { git = "https://github.com/swiss-ai-center/common-code.git?rev=main#b3effecdcaa314bc3e86efefb1c0eca1c1c327f9" }
+version = "1.2.0"
+source = { git = "https://github.com/swiss-ai-center/common-code.git?rev=main#5072d19a148ef6869b6404cd26e8376bf56ff8a0" }
 dependencies = [
     { name = "aiobotocore" },
     { name = "aiofiles" },

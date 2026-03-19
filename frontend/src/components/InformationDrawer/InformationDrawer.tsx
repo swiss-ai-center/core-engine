@@ -7,6 +7,12 @@ import {
     Chip,
     Drawer,
     Grid,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
     Toolbar,
     Tooltip,
     Typography
@@ -26,6 +32,10 @@ import { isSmartphone } from 'utils/functions';
 import { getCodeSnippet } from 'utils/api';
 import { toast } from 'react-toastify';
 import { ServiceStatus } from '../../enums/serviceStatusEnum';
+
+import { DataType } from '../../enums/dataTypeEnum';
+import { CsvColumnHint, CsvFormatHint, FieldDescription, ZipFormatHint, ZipTreeNode } from '../../models/ExecutionUnit';
+
 
 const drawerWidth = isSmartphone() ? '100%' : 450;
 
@@ -57,6 +67,8 @@ export const InformationDrawer: React.FC<{
     const colorMode = useSelector((state: any) => state.colorMode.value);
     const lightgrey = colorMode === 'light' ? grey[100] : grey[900];
     const darkgrey = colorMode === 'light' ? grey[400] : grey[800];
+    const hintBackground = colorMode === 'light' ? "#fff" : "#000";
+    const hintBorder = colorMode === 'light' ? "#bdbdbd" : "#5a5a5a";
 
     const handleCodeSnippet = async () => {
         const response = await getCodeSnippet(description.slug, description.steps !== undefined);
@@ -67,6 +79,195 @@ export const InformationDrawer: React.FC<{
             toast("Error while getting the code snippet \n" + response.error, {type: "error"});
         }
     }
+
+    const getFormatHint = (field: FieldDescription): unknown => {
+        return field.format_hint ?? (field as any).format_example ?? null;
+    };
+
+    const getCsvColumns = (value: unknown): CsvColumnHint[] => {
+        if (
+            typeof value === "object" &&
+            value !== null &&
+            "columns" in value &&
+            Array.isArray((value as CsvFormatHint).columns)
+        ) {
+            return (value as CsvFormatHint).columns.filter((column): column is CsvColumnHint => {
+                return typeof column === "object" && column !== null && typeof column.name === "string";
+            });
+        }
+        return [];
+    };
+
+    const getZipTree = (value: unknown): ZipTreeNode[] => {
+        if (
+            typeof value === "object" &&
+            value !== null &&
+            "tree" in value &&
+            Array.isArray((value as ZipFormatHint).tree)
+        ) {
+            return (value as ZipFormatHint).tree.filter((node): node is ZipTreeNode => {
+                return typeof node === "object" && node !== null && typeof node.name === "string" &&
+                    (node.kind === "file" || node.kind === "directory");
+            });
+        }
+        return [];
+    };
+
+    const buildAsciiTree = (nodes: ZipTreeNode[], prefix: string = ""): string[] => {
+        return nodes.flatMap((node, index) => {
+            const isLast = index === nodes.length - 1;
+            const connector = isLast ? "└── " : "├── ";
+            const currentLine = `${prefix}${connector}${node.name}${node.kind === "directory" ? "/" : ""}`;
+            const childPrefix = `${prefix}${isLast ? "    " : "│   "}`;
+            const childNodes = node.kind === "directory" && Array.isArray(node.children) ? node.children : [];
+
+            return [currentLine, ...buildAsciiTree(childNodes, childPrefix)];
+        });
+    };
+
+    const renderHintCodeBlock = (hint: unknown, label: string) => (
+        <Box mt={1}>
+            <Typography variant={"caption"} color={"text.secondary"}>
+                {label}
+            </Typography>
+            <Box
+                component={"pre"}
+                sx={{
+                    m: 0,
+                    mt: 0.5,
+                    p: 1.5,
+                    border: 1,
+                    borderRadius: 1,
+                    overflow: "auto",
+                    fontSize: "0.8rem",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                    backgroundColor: hintBackground,
+                    borderColor: hintBorder,
+                }}
+            >
+                {JSON.stringify(hint, null, 2)}
+            </Box>
+        </Box>
+    );
+
+    const renderFormatHint = (field: FieldDescription) => {
+        const hint = getFormatHint(field);
+
+        if (hint == null) {
+            return null;
+        }
+
+        if (field.type.includes(DataType.TEXT_CSV)) {
+            const columns = getCsvColumns(hint);
+
+            if (columns.length === 0) {
+                return renderHintCodeBlock(hint, "Format hint");
+            }
+
+            return (
+                <Box mt={1}>
+                    <Typography variant={"caption"} color={"text.secondary"}>
+                        CSV format
+                    </Typography>
+                    <TableContainer
+                        sx={{
+                            mt: 0.5,
+                            border: 1,
+                            borderRadius: 1,
+                            overflowX: "auto",
+                            backgroundColor: hintBackground,
+                            borderColor: hintBorder,
+                        }}
+                    >
+                        <Table size={"small"}>
+                            <TableHead>
+                                <TableRow>
+                                    {columns.map((column) => (
+                                        <TableCell key={`${field.name}-${column.name}`} sx={{fontWeight: 600}}>
+                                            {column.name}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                <TableRow>
+                                    {columns.map((column) => (
+                                        <TableCell key={`${field.name}-${column.name}-description`}>
+                                            {column.description ?? "-"}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Box>
+            );
+        }
+
+        if (field.type.includes(DataType.APPLICATION_ZIP)) {
+            const tree = getZipTree(hint);
+
+            if (tree.length === 0) {
+                return renderHintCodeBlock(hint, "ZIP format");
+            }
+
+            return (
+                <Box mt={1}>
+                    <Typography variant={"caption"} color={"text.secondary"}>
+                        Archive tree
+                    </Typography>
+                    <Box
+                        component={"pre"}
+                        sx={{
+                            m: 0,
+                            mt: 0.5,
+                            p: 1.5,
+                            border: 1,
+                            borderRadius: 1,
+                            overflow: "auto",
+                            fontSize: "0.8rem",
+                            whiteSpace: "pre",
+                            backgroundColor: hintBackground,
+                            borderColor: hintBorder,
+                        }}
+                    >
+                        {buildAsciiTree(tree).join("\n")}
+                    </Box>
+                </Box>
+            );
+        }
+
+        return renderHintCodeBlock(
+            hint,
+            field.type.includes(DataType.APPLICATION_JSON) ? "JSON example" : "Format hint"
+        );
+    };
+
+    const renderFieldRow = (field: FieldDescription, index: number, prefix: "data-in" | "data-out") => (
+        <Box key={`${prefix}-${index}`} mb={index === (prefix === "data-in" ? description.data_in_fields.length : description.data_out_fields.length) - 1 ? 0 : 2}>
+            <Grid container>
+                <Grid item xs={4}>
+                    <Typography variant={"subtitle1"} color={"primary"}>
+                        {field.name}
+                    </Typography>
+                </Grid>
+                <Grid item xs={8} justifyContent={"flex-end"} display={"flex"}>
+                    <Typography variant={"subtitle1"} textAlign={"right"}>
+                        {field.type.map((type: string, typeIndex: number) => {
+                            return (
+                                <span key={`${prefix}-type-${index}-${typeIndex}`}>
+                                    {type}
+                                    {typeIndex !== field.type.length - 1 ? ', ' : ''}
+                                </span>
+                            )
+                        })}
+                    </Typography>
+                </Grid>
+            </Grid>
+            {renderFormatHint(field)}
+        </Box>
+    );
 
     const drawer = (
         <>
@@ -169,30 +370,10 @@ export const InformationDrawer: React.FC<{
                                     <Typography>Data in</Typography>
                                 </AccordionSummary>
                                 <AccordionDetails>
-                                    {description.data_in_fields ? description.data_in_fields.map((data: any, index: number) => {
-                                            return (
-                                                <Grid key={`data-in-${index}`} container>
-                                                    <Grid item xs={4}>
-                                                        <Typography variant={"subtitle1"} color={"primary"}>
-                                                            {data.name}
-                                                        </Typography>
-                                                    </Grid>
-                                                    <Grid item xs={8} justifyContent={"flex-end"} display={"flex"}>
-                                                        <Typography variant={"subtitle1"}>
-                                                            {data.type.map((type: string, index: number) => {
-                                                                return (
-                                                                    <span key={`data-in-type-${index}`}>
-                                                                        {type}
-                                                                        {index !== data.type.length - 1 ? ', ' : ''}
-                                                                    </span>
-                                                                )
-                                                            })}
-                                                        </Typography>
-                                                    </Grid>
-                                                </Grid>
-                                            )
-                                        }
-                                    ) : ''}
+                                    {description.data_in_fields
+                                        ? description.data_in_fields.map((data: FieldDescription, index: number) =>
+                                            renderFieldRow(data, index, "data-in"))
+                                        : ''}
                                 </AccordionDetails>
                             </Accordion>
                             <Accordion variant={"outlined"} color={colorMode}>
@@ -200,30 +381,10 @@ export const InformationDrawer: React.FC<{
                                     <Typography>Data out</Typography>
                                 </AccordionSummary>
                                 <AccordionDetails>
-                                    {description.data_out_fields ? description.data_out_fields.map((data: any, index: number) => {
-                                            return (
-                                                <Grid key={`data-out-${index}`} container>
-                                                    <Grid item xs={4}>
-                                                        <Typography variant={"subtitle1"} color={"primary"}>
-                                                            {data.name}
-                                                        </Typography>
-                                                    </Grid>
-                                                    <Grid item xs={8} justifyContent={"flex-end"} display={"flex"}>
-                                                        <Typography variant={"subtitle1"}>
-                                                            {data.type.map((type: string, index: number) => {
-                                                                return (
-                                                                    <span key={`data-out-type-${index}`}>
-                                                                    {type}
-                                                                        {index !== data.type.length - 1 ? ', ' : ''}
-                                                                </span>
-                                                                )
-                                                            })}
-                                                        </Typography>
-                                                    </Grid>
-                                                </Grid>
-                                            )
-                                        }
-                                    ) : ''}
+                                    {description.data_out_fields
+                                        ? description.data_out_fields.map((data: FieldDescription, index: number) =>
+                                            renderFieldRow(data, index, "data-out"))
+                                        : ''}
                                 </AccordionDetails>
                             </Accordion>
                         </>
