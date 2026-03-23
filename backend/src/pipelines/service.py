@@ -334,6 +334,7 @@ class PipelinesService:
                 if not service:
                     raise NotFoundException(f"Service with slug '{step_data['service_slug']}' not found.")
                 step.service = service
+                step.service_id = service.id
                 for key, value in step_data.items():
                     if key == "service_slug":
                         continue
@@ -344,7 +345,7 @@ class PipelinesService:
                 service = self.services_service.find_one_by_slug(step_data["service_slug"])
                 if not service:
                     raise NotFoundException(f"Service with slug '{step_data['service_slug']}' not found.")
-                step_data["service"] = service
+                step_data["service_id"] = service.id
                 # Remove the service_slug key
                 step_data.pop("service_slug")
                 # Add new step
