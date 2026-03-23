@@ -6,6 +6,20 @@ const HEADERS = {
     'Access-Control-Allow-Origin': '*',
 }
 
+const createUnavailableServiceFallback = (id?: string | null) => ({
+    id: id ?? "",
+    name: "Unavailable service",
+    slug: "",
+    summary: "Service reference is missing for this pipeline step.",
+    description: "",
+    status: ServiceStatus.UNAVAILABLE,
+    data_in_fields: [],
+    data_out_fields: [],
+    url: "",
+    docs_url: "",
+    has_ai: false,
+});
+
 const createQuery = (
     unit: string,
     filter: string,
@@ -169,14 +183,19 @@ export const getServiceDescriptionById = async (id: string) => {
      * Function to fetch a service description from the engine
      * id: string - the id of the service
      */
+    const normalizedId = id.trim();
+    if (!normalizedId || normalizedId === "null" || normalizedId === "undefined") {
+        return createUnavailableServiceFallback(null);
+    }
+
     try {
-        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + id, {headers: HEADERS});
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + normalizedId, {headers: HEADERS});
         if (response.status === 200) {
             return await response.json();
         }
-        return null;
+        return createUnavailableServiceFallback(normalizedId);
     } catch (error: any) {
-        return {error: error.message}
+        return createUnavailableServiceFallback(normalizedId);
     }
 }
 
@@ -313,8 +332,13 @@ export const wakeUp = async (serviceId: string) => {
      * Function to send a wake up request to the engine
      * serviceId: string - the id of the service
      */
+    const normalizedServiceId = serviceId.trim();
+    if (!normalizedServiceId || normalizedServiceId === "null" || normalizedServiceId === "undefined") {
+        return {error: "Missing service id"};
+    }
+
     try {
-        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/${serviceId}/wake-up`, {
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/${normalizedServiceId}/wake-up`, {
             headers: HEADERS,
             method: 'POST',
         });
