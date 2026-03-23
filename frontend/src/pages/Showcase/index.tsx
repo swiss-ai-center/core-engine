@@ -62,7 +62,10 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
                         }
                         desc.steps = steps;
                     }
-                    if ((desc as any).status === ServiceStatus.AVAILABLE || (desc as any).status === ServiceStatus.SLEEPING ) {
+                    if (
+                        (desc as any).status === ServiceStatus.AVAILABLE ||
+                        (desc as any).status === ServiceStatus.SLEEPING
+                    ) {
                         setDescription(desc);
                     } else {
                         toast("This service or pipeline is actually not available", {type: "warning"});

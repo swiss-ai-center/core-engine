@@ -525,18 +525,7 @@ class ServicesService:
         :param service: The service to enable the pipelines for
         """
         self.logger.debug(f"Enabling pipelines linked to service {service.id}")
-
-        # Get the pipelines linked to the service
-        for pipeline_step in service.pipeline_steps:
-            pipeline = pipeline_step.pipeline
-            # check if the services linked to the pipeline are all available
-            for step in pipeline.steps:
-                if step.service.status != ExecutionUnitStatus.AVAILABLE:
-                    return
-            pipeline.status = ExecutionUnitStatus.AVAILABLE
-            self.session.add(pipeline)
-            self.session.commit()
-            self.logger.debug(f"Pipeline {pipeline.name} status set to {pipeline.status.value}")
+        self.refresh_status_for_pipelines_linked_to_service(service)
 
     def disable_pipelines_linked_to_service(self, service: Service):
         """
@@ -544,14 +533,55 @@ class ServicesService:
         :param service: The service to disable the pipelines for
         """
         self.logger.debug(f"Disabling pipelines linked to service {service.id}")
+        self.refresh_status_for_pipelines_linked_to_service(service)
 
-        # Get the pipelines linked to the service
+    def _compute_pipeline_status(self, pipeline) -> ExecutionUnitStatus:
+        has_sleeping_service = False
+
+        for step in pipeline.steps:
+            if step.service is None:
+                return ExecutionUnitStatus.DISABLED
+
+            if step.service.status in (ExecutionUnitStatus.DISABLED, ExecutionUnitStatus.UNAVAILABLE):
+                return ExecutionUnitStatus.DISABLED
+
+            if step.service.status == ExecutionUnitStatus.SLEEPING:
+                has_sleeping_service = True
+
+        if has_sleeping_service:
+            return ExecutionUnitStatus.SLEEPING
+
+        return ExecutionUnitStatus.AVAILABLE
+
+    def refresh_status_for_pipelines_linked_to_service(self, service: Service):
+        """
+        Refresh status of pipelines linked to a service based on linked services status.
+        Precedence:
+          - DISABLED / UNAVAILABLE present => pipeline DISABLED
+          - else SLEEPING present => pipeline SLEEPING
+          - else pipeline AVAILABLE
+        """
+        self.logger.debug(f"Refreshing pipelines status linked to service {service.id}")
+
+        updated = False
+        seen_pipeline_ids = set()
+
         for pipeline_step in service.pipeline_steps:
             pipeline = pipeline_step.pipeline
-            pipeline.status = ExecutionUnitStatus.DISABLED
-            self.session.add(pipeline)
+            if not pipeline or pipeline.id in seen_pipeline_ids:
+                continue
+
+            seen_pipeline_ids.add(pipeline.id)
+            next_status = self._compute_pipeline_status(pipeline)
+
+            if pipeline.status != next_status:
+                pipeline.status = next_status
+                self.session.add(pipeline)
+                updated = True
+                self.logger.debug(f"Pipeline {pipeline.name} status set to {pipeline.status.value}")
+
+        if updated:
             self.session.commit()
-            self.logger.debug(f"Pipeline {pipeline.name} status set to {pipeline.status.value}")
 
     async def check_if_service_is_reachable_and_ok(self, service: Service):
         """
@@ -609,7 +639,8 @@ class ServicesService:
 
         if not service.latest_ping:
             self.logger.warning(f"Service {service.name} has no heartbeat, setting it as sleeping")
-            self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.SLEEPING))
+            updated_service = self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.SLEEPING))
+            self.refresh_status_for_pipelines_linked_to_service(updated_service)
             raise HTTPException(status_code=503, detail="Service has no heartbeat")
 
         time_since_last_heartbeat = (datetime.now() - service.latest_ping).total_seconds()
@@ -619,7 +650,8 @@ class ServicesService:
                 f"Service {service.name} last heartbeat is too old ({time_since_last_heartbeat} seconds), "
                 f"setting it as sleeping"
             )
-            self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.SLEEPING))
+            updated_service = self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.SLEEPING))
+            self.refresh_status_for_pipelines_linked_to_service(updated_service)
             raise HTTPException(status_code=503, detail="Service heartbeat too old")
         else:
             self.logger.debug(f"Service {service.name} last heartbeat is recent ({time_since_last_heartbeat} seconds)")
@@ -639,7 +671,8 @@ class ServicesService:
         except HTTPError as e:
             self.logger.error(f"Waking up service {service.name} failed: {str(e)}")
         else:
-            self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.AVAILABLE))
+            updated_service = self.update(service.id, ServiceUpdate(status=ExecutionUnitStatus.AVAILABLE))
+            self.refresh_status_for_pipelines_linked_to_service(updated_service)
             self.logger.info(f"Service {service.name} woke up successfully")
 
     def generate_code_snippet(self, service: Service):

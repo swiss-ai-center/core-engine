@@ -4,7 +4,7 @@ import { grey } from '@mui/material/colors';
 import { ProgressNodeData } from 'models/NodeData';
 import React from "react";
 import { useSelector } from 'react-redux';
-import { NodeProps, Position } from "reactflow";
+import { NodeProps, Position, useReactFlow } from "reactflow";
 import { displayTimer, download, positionHandle } from 'utils/functions';
 import "components/Board/styles.css";
 import { RunState } from 'utils/reducers/runStateSlice';
@@ -22,9 +22,36 @@ const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
     const currentTask = useSelector((state: any) => state.runState.task);
     const taskArray = useSelector((state: any) => state.runState.taskArray);
     const timer = useSelector((state: any) => state.runState.timer);
+    const {setNodes} = useReactFlow();
     const [selfTimer, setSelfTimer] = React.useState(0.0);
     const [sleeping, setSleeping] = React.useState(false);
     const [serviceStatus, setServiceStatus] = React.useState<ServiceStatus>(data.status);
+
+    const refreshNodeStatus = React.useCallback((nextStatus: ServiceStatus) => {
+        setNodes((nodes: any[]) => nodes.map((node: any) => {
+            if (node.id === data.label) {
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        status: nextStatus,
+                    },
+                };
+            }
+
+            if (data.type === "service" && node.id === `${data.label}-entry`) {
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        status: nextStatus,
+                    },
+                };
+            }
+
+            return node;
+        }));
+    }, [data.label, data.type, setNodes]);
 
     const getStatus = () => {
         if (currentTask && currentTask.service_id === data.service_id) {
@@ -54,18 +81,17 @@ const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
         try {
             toast("Sending wake up request...", {type: "info"});
             setSleeping(true);
-            wakeUp(data.service_id).then((response: any) => {
-                if (response.status === 204) {
-                    toast(response.message, {type: "success"});
-                    setSleeping(false);
-                    setServiceStatus(ServiceStatus.UNAVAILABLE);
-                } else {
-                    toast(response.error, {type: "error"});
-                    setSleeping(false);
-                }
-            });
+            const response: any = await wakeUp(data.service_id);
+            if (response.status === 204) {
+                toast(response.message, {type: "success"});
+                setServiceStatus(ServiceStatus.AVAILABLE);
+                refreshNodeStatus(ServiceStatus.AVAILABLE);
+            } else {
+                toast(response.error, {type: "error"});
+            }
         } catch (e: any) {
             toast("Error while sending wake up request: " + e.message, {type: "error"});
+        } finally {
             setSleeping(false);
         }
     };

@@ -86,6 +86,7 @@ class PipelinesService:
             Pipeline.status == ExecutionUnitStatus.AVAILABLE,
             Pipeline.status == ExecutionUnitStatus.UNAVAILABLE,
             Pipeline.status == ExecutionUnitStatus.DISABLED,
+            Pipeline.status == ExecutionUnitStatus.SLEEPING,
         )
 
         if status:
