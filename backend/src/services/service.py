@@ -1,4 +1,3 @@
-from datetime import datetime
 from inspect import Parameter, Signature
 from sqlalchemy.exc import IntegrityError
 from common_code.common.models import ExecutionUnitTag
@@ -22,6 +21,7 @@ from common.exceptions import NotFoundException, ConflictException, UnreachableE
 from http_client import HttpClient
 from fastapi.encoders import jsonable_encoder
 from httpx import HTTPError
+from datetime import datetime, timezone
 
 REGISTERED_SERVICES_TAG = "Registered Services"
 
@@ -643,7 +643,10 @@ class ServicesService:
             self.refresh_status_for_pipelines_linked_to_service(updated_service)
             raise HTTPException(status_code=503, detail="Service has no heartbeat")
 
-        time_since_last_heartbeat = (datetime.now() - service.latest_ping).total_seconds()
+        ping_time = service.latest_ping
+        if ping_time.tzinfo is None:
+            ping_time = ping_time.replace(tzinfo=timezone.utc)
+        time_since_last_heartbeat = (datetime.now(timezone.utc) - ping_time).total_seconds()
 
         if time_since_last_heartbeat > self.settings.check_services_availability_interval + 20:
             self.logger.warning(
