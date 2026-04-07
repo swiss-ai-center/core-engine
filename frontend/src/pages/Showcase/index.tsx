@@ -77,7 +77,8 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
                 }
                 setIsReady(true);
             } catch (e: any) {
-                toast("No description found with this slug", {type: "warning"});
+                toast("Something went wrong while fetching the description", {type: "warning"});
+                console.log("Error while fetching description: ", e);
                 navigateHome();
             }
         }
