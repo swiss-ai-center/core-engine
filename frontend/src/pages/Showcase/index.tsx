@@ -54,6 +54,7 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
                     desc = await getPipelineDescription(slug);
                 }
                 if (desc) {
+                    console.log("Fetched description: ", desc);
                     if (type !== 'service') {
                         const steps = desc.steps
                         const stepsDescriptions = await Promise.all(steps.map((step: any) => getServiceDescriptionById(step.service_id)));
