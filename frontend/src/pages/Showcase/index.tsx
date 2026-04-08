@@ -54,6 +54,7 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
                     desc = await getPipelineDescription(slug);
                 }
                 if (desc) {
+                    console.log("Fetched description: ", desc);
                     if (type !== 'service') {
                         const steps = desc.steps
                         const stepsDescriptions = await Promise.all(steps.map((step: any) => getServiceDescriptionById(step.service_id)));
@@ -77,7 +78,8 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
                 }
                 setIsReady(true);
             } catch (e: any) {
-                toast("No description found with this slug", {type: "warning"});
+                toast("Something went wrong while fetching the description", {type: "warning"});
+                console.log("Error while fetching description: ", e);
                 navigateHome();
             }
         }
