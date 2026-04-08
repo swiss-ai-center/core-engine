@@ -60,6 +60,7 @@ on:
   push:
     branches:
       - main
+      - dev
     paths:
       - .github/workflows/core-engine-backend.yml
       - backend/**/*
@@ -127,7 +128,7 @@ jobs:
   release:
     needs: test
     runs-on: ubuntu-latest
-    if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && (vars.DEPLOY_DEV == 'true' || vars.DEPLOY_PROD == 'true') }}
+    if: ${{ vars.RUN_CICD == 'true' && success() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
@@ -146,7 +147,7 @@ jobs:
   deploy-dev:
     needs: release
     runs-on: ubuntu-latest
-    if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_DEV == 'true' }}
+    if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/dev' }}
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
@@ -207,7 +208,7 @@ jobs:
   deploy-prod:
     needs: release
     runs-on: ubuntu-latest
-    if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' && vars.DEPLOY_PROD == 'true' }}
+    if: ${{ vars.RUN_CICD == 'true' && success() && github.ref == 'refs/heads/main' }}
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
