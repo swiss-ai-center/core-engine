@@ -70,11 +70,13 @@ const StepNodeEdit: React.FC<{ id: string, data: any }> = (
                 </CardActions>
             </Card>
             {data.dataOut.map((output: FieldDescription, index: number) => {
+                const outputTypes = output.type?.length ? output.type.join(", ") : "unknown type";
+                const outputLabel = `${output.name} (${outputTypes})`;
                 return (
                     <CustomHandle
                         key={index}
                         id={output.name}
-                        label={output.name}
+                        label={outputLabel}
                         type={"source"}
                         style={{top: positionHandle(data.dataOut.length, index + 1)}}
                         position={Position.Right}
