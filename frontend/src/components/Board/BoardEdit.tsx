@@ -6,7 +6,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import 'components/Board/styles.css';
 import 'reactflow/dist/style.css';
-import ReactFlow, { Background, Controls, } from 'reactflow';
+import ReactFlow, { Background, Controls, ReactFlowInstance, } from 'reactflow';
 
 const BoardEdit: React.FC<{
     nodes: any,
@@ -15,9 +15,10 @@ const BoardEdit: React.FC<{
     onEdgesChange: any,
     onEdgeDelete: any,
     isValidConnection: any,
-    onConnect: any
+    onConnect: any,
+    onInit?: (instance: ReactFlowInstance) => void
 }> = (
-    {nodes, edges, onNodesChange, onEdgesChange, onEdgeDelete, isValidConnection, onConnect}) => {
+    {nodes, edges, onNodesChange, onEdgesChange, onEdgeDelete, isValidConnection, onConnect, onInit}) => {
     const nodeTypes = React.useMemo(() => ({
         entryNodeEdit: EntryNodeEdit, serviceNode: StepNodeEdit, exitNodeEdit: ExitNodeEdit
     }), []);
@@ -40,6 +41,7 @@ const BoardEdit: React.FC<{
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             onConnect={onConnect}
+            onInit={onInit}
             fitView
             snapToGrid
             about={colorMode}

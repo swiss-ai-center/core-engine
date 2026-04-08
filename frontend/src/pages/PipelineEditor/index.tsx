@@ -30,6 +30,7 @@ import {
     Edge,
     getOutgoers,
     Node,
+    ReactFlowInstance,
     ReactFlowProvider,
     useEdgesState,
     useNodesState,
@@ -73,12 +74,17 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     const setNodesRef = React.useRef(setNodes)
     const edgesRef = React.useRef(edges)
     const setEdgesRef = React.useRef(setEdges)
+    const reactFlowInstanceRef = React.useRef<ReactFlowInstance | null>(null);
 
     const handleNoFilterWrapper = () => handleNoFilter(searchParams, history)
 
     const navigateHome = () => {
         navigate("/home");
     }
+
+    const onBoardInit = React.useCallback((reactFlowInstance: ReactFlowInstance) => {
+        reactFlowInstanceRef.current = reactFlowInstance;
+    }, []);
 
     const handlePipeSlug = (value: string) => {
         setPipeNameSlugLinked(false);
@@ -177,18 +183,48 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             setEdges((eds) => addEdge(edge, eds));
             return;
         } else {
-            const {sourceHandle, targetHandle} = params
+            const {sourceHandle, targetHandle} = params;
 
-            const sourceNodeDataOut = sourceNode.type === "entryNodeEdit" ? sourceNode.data.dataIn : sourceNode.data.dataOut;
-            const dataInIndex = targetNode.data.dataIn.findIndex((input: FieldDescription) => input.name === targetHandle)
-            const sourceDataIndex = sourceNodeDataOut.findIndex((input: FieldDescription) => input.name === sourceHandle)
-            const dataTypes: string [] = sourceNodeDataOut[sourceDataIndex]?.type;
-
-            if (sourceHandle === null || dataTypes.length === 0) {
+            if (!sourceHandle || !targetHandle) {
                 toast("The data must be named and have a type to be connected", {type: "warning"});
                 return;
             }
-            const allowedTypes: string[] = targetNode.data.dataIn[dataInIndex].type;
+
+            const sourceNodeDataOut: FieldDescription[] = sourceNode.type === "entryNodeEdit"
+                ? sourceNode.data.dataIn
+                : sourceNode.data.dataOut;
+            const targetNodeDataIn: FieldDescription[] = targetNode.data.dataIn ?? [];
+
+            const dataInIndex = targetNodeDataIn.findIndex((input: FieldDescription) => input.name === targetHandle);
+            const sourceDataIndex = sourceNodeDataOut.findIndex((input: FieldDescription) => input.name === sourceHandle);
+
+            if (dataInIndex < 0 || sourceDataIndex < 0) {
+                toast("The data must be named and have a type to be connected", {type: "warning"});
+                return;
+            }
+
+            const allowedTypes: string[] = Array.isArray(targetNodeDataIn[dataInIndex]?.type)
+                ? [...targetNodeDataIn[dataInIndex].type]
+                : [];
+            let dataTypes: string[] = Array.isArray(sourceNodeDataOut[sourceDataIndex]?.type)
+                ? [...sourceNodeDataOut[sourceDataIndex].type]
+                : [];
+
+            if (sourceNode.type === "entryNodeEdit" && dataTypes.length === 0 && allowedTypes.length > 0) {
+                const entryDataIn = [...sourceNode.data.dataIn];
+                entryDataIn[sourceDataIndex] = {
+                    ...entryDataIn[sourceDataIndex],
+                    type: [...allowedTypes],
+                };
+                setNodeDataIn(sourceNode, entryDataIn);
+                dataTypes = [...allowedTypes];
+            }
+
+            if (dataTypes.length === 0 || allowedTypes.length === 0) {
+                toast("The data must be named and have a type to be connected", {type: "warning"});
+                return;
+            }
+
             let compatible = false;
             // Check if the source data type is compatible with the target data type
             // by checking if the source data type is a subset of the target data type
@@ -208,12 +244,12 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
             if (sourceNode.type !== "entryNodeEdit") {
                 const needs = [...targetNode.data.needs];
-                needs.push(sourceNode.data.identifier)
+                needs.push(sourceNode.data.identifier);
                 setNodeNeeds(targetNode, needs);
             }
             const selectedDataIn = [...targetNode.data.selectedDataIn];
             const dataSource = sourceNode.type === "entryNodeEdit" ? "pipeline" : sourceNode.data.identifier;
-            selectedDataIn[dataInIndex] = `${dataSource}.${params.sourceHandle}`;
+            selectedDataIn[dataInIndex] = `${dataSource}.${sourceHandle}`;
             setNodeSelectedDataIn(targetNode, selectedDataIn);
         }
 
@@ -335,6 +371,102 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         );
     }
 
+    const getLegacyServiceNodePosition = () => {
+        return {
+            x: nodeSpacing + entryNodeMinWidth,
+            y: 200 + (nodesRef.current.length - 2) * (nodeHeight + nodeSpacing),
+        };
+    }
+
+    const getServiceNodeDimensions = () => {
+        const serviceNode = nodesRef.current.find((node) => node.type === "serviceNode");
+        const width = typeof serviceNode?.width === "number" ? serviceNode.width : nodeWidth;
+        const height = typeof serviceNode?.height === "number" ? serviceNode.height : nodeHeight;
+
+        return {width, height};
+    }
+
+    const getViewportCenterInFlow = () => {
+        const reactFlowInstance = reactFlowInstanceRef.current;
+        const boardElement = document.getElementById("board");
+        if (!reactFlowInstance || !boardElement) return null;
+
+        const boardRect = boardElement.getBoundingClientRect();
+        return reactFlowInstance.screenToFlowPosition({
+            x: boardRect.left + boardRect.width / 2,
+            y: boardRect.top + boardRect.height / 2,
+        });
+    }
+
+    const getPlacementCandidates = (
+        center: { x: number, y: number },
+        stepX: number,
+        stepY: number,
+        maxRing: number
+    ) => {
+        const candidates: { x: number, y: number }[] = [center];
+
+        for (let ring = 1; ring <= maxRing; ring++) {
+            const cardinalOffsets = [
+                {dx: ring, dy: 0},
+                {dx: -ring, dy: 0},
+                {dx: 0, dy: ring},
+                {dx: 0, dy: -ring},
+            ];
+
+            cardinalOffsets.forEach(({dx, dy}) => {
+                candidates.push({
+                    x: center.x + dx * stepX,
+                    y: center.y + dy * stepY,
+                });
+            });
+
+            for (let dy = -ring; dy <= ring; dy++) {
+                for (let dx = -ring; dx <= ring; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) !== ring) continue;
+                    if ((Math.abs(dx) === ring && dy === 0) || (dx === 0 && Math.abs(dy) === ring)) continue;
+
+                    candidates.push({
+                        x: center.x + dx * stepX,
+                        y: center.y + dy * stepY,
+                    });
+                }
+            }
+        }
+
+        return candidates;
+    }
+
+    const getServiceNodePosition = () => {
+        const reactFlowInstance = reactFlowInstanceRef.current;
+        const viewportCenter = getViewportCenterInFlow();
+        const fallbackPosition = getLegacyServiceNodePosition();
+        if (!reactFlowInstance || !viewportCenter) return fallbackPosition;
+
+        const {width, height} = getServiceNodeDimensions();
+        const centeredTopLeft = {
+            x: viewportCenter.x - width / 2,
+            y: viewportCenter.y - height / 2,
+        };
+
+        const stepX = width + nodeSpacing;
+        const stepY = height + nodeSpacing;
+        const candidates = getPlacementCandidates(centeredTopLeft, stepX, stepY, 8);
+
+        for (let index = 0; index < candidates.length; index++) {
+            const candidate = candidates[index];
+            const intersectingNodes = reactFlowInstance.getIntersectingNodes({
+                x: candidate.x,
+                y: candidate.y,
+                width,
+                height,
+            });
+            if (intersectingNodes.length === 0) return candidate;
+        }
+
+        return fallbackPosition;
+    }
+
     const addServiceNode = (serviceId: string, tags: any[], serviceSlug: string, dataIn: FieldDescription[], dataOut: FieldDescription[]) => {
         let counter = 2;
         const selectedDataIn = new Array<string>(dataIn.length);
@@ -347,14 +479,12 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             counter++;
         }
 
+        const nodePosition = getServiceNodePosition();
         const newNode = {
             id: identifier,
             type: "serviceNode",
 
-            position: {
-                x: nodeSpacing + entryNodeMinWidth,
-                y: 200 + (nodesRef.current.length - 2) * (nodeHeight + nodeSpacing),
-            },
+            position: nodePosition,
             data: {
                 identifier: identifier,
                 selectedDataIn: selectedDataIn,
@@ -853,6 +983,7 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                                 isValidConnection={isValidConnection}
                                 onNodesChange={onNodesChange}
                                 onEdgesChange={onEdgesChange}
+                                onInit={onBoardInit}
                             />
                         </ReactFlowProvider>
                     </Box>
