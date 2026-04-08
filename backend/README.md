@@ -9,3 +9,4 @@ To run the backend locally, you can use the following command:
 ```bash
 docker compose up --build
 ```
+test CI
