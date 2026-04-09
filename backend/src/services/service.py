@@ -353,14 +353,14 @@ class ServicesService:
                     Parameter(
                         field_name,
                         kind=Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=UploadFile,
+                        annotation=list[UploadFile],
                     )
                 )
 
             service_id = service.id
 
             @with_signature(Signature(handler_params))
-            async def handler(*args, **kwargs: UploadFile):
+            async def handler(*args, **kwargs: UploadFile | list[UploadFile]):
                 """
                 This function represents a service function.
                 It handles the files described by the service, upload them to the S3 bucket
@@ -376,10 +376,10 @@ class ServicesService:
                 # The files for the tasks
                 task_files = []
 
-                # Iterate over the uploaded files
-                for param_index, (_, file) in enumerate(kwargs.items()):
-                    # Get the content type of the file
-                    file_content_type = file.content_type
+                # Iterate over uploaded files grouped by service input field.
+                for param_index, (_, files) in enumerate(kwargs.items()):
+                    # Backward-safe normalization: a single file becomes a 1-item list.
+                    files = files if isinstance(files, list) else [files]
 
                     data_in_field = service.data_in_fields[param_index]
                     file_part_name = data_in_field.get("name") if isinstance(data_in_field,
@@ -387,31 +387,32 @@ class ServicesService:
                     accepted_file_content_types = data_in_field.get("type") if isinstance(data_in_field,
                                                                                           dict) else data_in_field.type
 
-                    # Check if the content type of the uploaded file is accepted
-                    if file_content_type not in accepted_file_content_types:
-                        return JSONResponse(
-                            status_code=400,
-                            content={
-                                "error": "Invalid Content Type",
-                                "message": f"The content type of the file '{file_part_name}' must be of type "
-                                           f"{accepted_file_content_types}."
-                            }
-                        )
+                    for file in files:
+                        file_content_type = file.content_type
 
-                    # Upload the file to S3
-                    file_key = None
-                    try:
-                        file_key = await self.storage_service.upload(file)
-                    except Exception:
-                        return JSONResponse(
-                            status_code=500,
-                            content={
-                                "error": "Storage upload",
-                                "message": f"The upload of file '{file_part_name}' has failed."
-                            }
-                        )
+                        # Accept any type when configured with */*.
+                        if "*/*" not in accepted_file_content_types and file_content_type not in accepted_file_content_types:
+                            return JSONResponse(
+                                status_code=400,
+                                content={
+                                    "error": "Invalid Content Type",
+                                    "message": f"The content type of the file '{file_part_name}' must be of type "
+                                               f"{accepted_file_content_types}."
+                                }
+                            )
 
-                    task_files.append(file_key)
+                        try:
+                            file_key = await self.storage_service.upload(file)
+                        except Exception:
+                            return JSONResponse(
+                                status_code=500,
+                                content={
+                                    "error": "Storage upload",
+                                    "message": f"The upload of file '{file_part_name}' has failed."
+                                }
+                            )
+
+                        task_files.append(file_key)
 
                 # Create the task
                 task = Task()

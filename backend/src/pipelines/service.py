@@ -467,7 +467,7 @@ class PipelinesService:
                     Parameter(
                         field_name,
                         kind=Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=UploadFile,
+                        annotation=list[UploadFile],
                     )
                 )
 
@@ -475,7 +475,7 @@ class PipelinesService:
             pipeline_steps = pipeline.steps
 
             @with_signature(Signature(handler_params))
-            async def handler(*args, **kwargs: UploadFile):
+            async def handler(*args, **kwargs: UploadFile | list[UploadFile]):
                 """
                 Pipeline route handler.
                 - Validates and uploads input files.
@@ -495,9 +495,11 @@ class PipelinesService:
                 # The files for the pipeline
                 pipeline_files = []
 
-                # Upload inputs
-                for param_index, (_, file) in enumerate(kwargs.items()):
-                    file_content_type = file.content_type
+                # Upload inputs grouped by pipeline input field.
+                for param_index, (_, files) in enumerate(kwargs.items()):
+                    # Backward-safe normalization: a single file becomes a 1-item list.
+                    files = files if isinstance(files, list) else [files]
+
                     data_in_field = pipeline.data_in_fields[param_index]
                     file_part_name = data_in_field.get("name") if isinstance(data_in_field,
                                                                              dict) else data_in_field.name
@@ -513,28 +515,31 @@ class PipelinesService:
                         t = accepted_file_content_types
                         accepted_types_values = [t.value if hasattr(t, "value") else str(t)]
 
-                    if file_content_type not in accepted_types_values:
-                        return JSONResponse(
-                            status_code=400,
-                            content={
-                                "error": "Invalid Content Type",
-                                "message": f"The content type of the file '{file_part_name}'"
-                                           f"must be of type {accepted_types_values}."
-                            }
-                        )
+                    for file in files:
+                        file_content_type = file.content_type
 
-                    try:
-                        file_key = await self.storage_service.upload(file)
-                    except Exception:
-                        return JSONResponse(
-                            status_code=500,
-                            content={
-                                "error": "Storage upload",
-                                "message": f"The upload of file '{file_part_name}' has failed."
-                            }
-                        )
+                        if "*/*" not in accepted_types_values and file_content_type not in accepted_types_values:
+                            return JSONResponse(
+                                status_code=400,
+                                content={
+                                    "error": "Invalid Content Type",
+                                    "message": f"The content type of the file '{file_part_name}'"
+                                               f"must be of type {accepted_types_values}."
+                                }
+                            )
 
-                    pipeline_files.append(FileKeyReference(reference=f"pipeline.{file_part_name}", file_key=file_key))
+                        try:
+                            file_key = await self.storage_service.upload(file)
+                        except Exception:
+                            return JSONResponse(
+                                status_code=500,
+                                content={
+                                    "error": "Storage upload",
+                                    "message": f"The upload of file '{file_part_name}' has failed."
+                                }
+                            )
+
+                        pipeline_files.append(FileKeyReference(reference=f"pipeline.{file_part_name}", file_key=file_key))
 
                 # Create tasks
                 pipeline_tasks = []
@@ -580,7 +585,7 @@ class PipelinesService:
                 for f in (pipeline_execution.files or []):
                     ref, fk = _get_ref_and_key(f)
                     if ref and fk:
-                        files_by_ref[ref] = fk
+                        files_by_ref.setdefault(ref, []).append(fk)
 
                 post_coroutines = []
                 skip_updates = []
@@ -603,9 +608,8 @@ class PipelinesService:
                     data_in = []
                     for ref in (init_step.inputs or []):
                         if ref.startswith("pipeline."):
-                            fk = files_by_ref.get(ref)
-                            if fk:
-                                data_in.append(fk)
+                            file_keys = files_by_ref.get(ref, [])
+                            data_in.extend(file_keys)
 
                     # Optional condition evaluation on txt/json inputs
                     should_post_task = True
@@ -613,9 +617,10 @@ class PipelinesService:
                         condition = init_step.condition
                         files_mapping = {}
                         for ref in (init_step.inputs or []):
-                            fk = files_by_ref.get(ref)
-                            if not fk:
+                            file_keys = files_by_ref.get(ref, [])
+                            if not file_keys:
                                 continue
+                            fk = file_keys[0]
                             alias = re.sub(r"[-.]", "_", ref)
                             ext = fk.rsplit(".", 1)[-1].lower() if "." in fk else ""
                             try:

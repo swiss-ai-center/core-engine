@@ -326,9 +326,12 @@ class TasksService:
 
         if task.status == TaskStatus.FINISHED and task.data_out:
             files = list(pipeline_execution.files or [])
+            field_defs = list(service.data_out_fields or [])
+            last_field_index = max(len(field_defs) - 1, 0)
             for index, file_key in enumerate(task.data_out):
-                # service.data_out_fields can be a list of dicts or pydantic models; use name accordingly
-                field_def = service.data_out_fields[index]
+                # When a field returns multiple files, extra outputs map to the last declared output field.
+                mapped_index = index if index < len(field_defs) else last_field_index
+                field_def = field_defs[mapped_index] if field_defs else {"name": f"out_{index}"}
                 field_name = field_def["name"] if isinstance(field_def, dict) else getattr(field_def, "name",
                                                                                            f"out_{index}")
                 reference = f"{current_pipeline_step.identifier}.{field_name}"
@@ -388,7 +391,6 @@ class TasksService:
                         fk = get_key(f)
                         if fk:
                             task_files.append(fk)
-                        break
 
             # Evaluate condition if present
             if next_step.condition:
