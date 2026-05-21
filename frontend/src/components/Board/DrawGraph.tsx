@@ -9,6 +9,16 @@ const nodeWidth = 250;
 const nodeHeight = 200;
 const edgeType = 'default';
 
+const getPipelineSource = (field: FieldDescription): string | null => {
+    const hint = field.format_hint;
+    if (typeof hint === "object" && hint !== null && !Array.isArray(hint)) {
+        const source = (hint as { pipeline_source?: unknown }).pipeline_source;
+        if (typeof source === "string") return source;
+    }
+
+    return null;
+};
+
 export default function getNodesAndEdges(entity: Service | Pipeline | null) {
     let nodes: ElkNode[] = [];
     let edges: Edge[] = [];
@@ -110,38 +120,58 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
             }
         }
 
+        const allStepOutputs: { stepIdentifier: string, field: FieldDescription }[] = [];
         const terminalOutputs: { stepIdentifier: string, field: FieldDescription }[] = [];
         for (let i = 0; i < entity.steps.length; i++) {
             const step = entity.steps[i];
-            if (!requiredSteps.has(step.identifier)) {
-                for (let j = 0; j < step.service.data_out_fields.length; j++) {
+            for (let j = 0; j < step.service.data_out_fields.length; j++) {
+                const stepOutput = {
+                    stepIdentifier: step.identifier,
+                    field: step.service.data_out_fields[j],
+                };
+                allStepOutputs.push(stepOutput);
+                if (!requiredSteps.has(step.identifier)) {
                     terminalOutputs.push({
-                        stepIdentifier: step.identifier,
-                        field: step.service.data_out_fields[j],
+                        stepIdentifier: stepOutput.stepIdentifier,
+                        field: stepOutput.field,
                     });
                 }
             }
         }
 
-        const usedTerminalOutputIndex = new Set<number>();
+        const usedOutputSources = new Set<string>();
         for (let i = 0; i < entity.data_out_fields.length; i++) {
             const pipelineOutput = entity.data_out_fields[i];
-            let sourceIndex = terminalOutputs.findIndex(
-                (candidate, candidateIndex) =>
-                    !usedTerminalOutputIndex.has(candidateIndex) &&
-                    candidate.field.name === pipelineOutput.name
-            );
+            const pipelineSource = getPipelineSource(pipelineOutput);
+            let sourceIndex = pipelineSource
+                ? allStepOutputs.findIndex(
+                    (candidate) => {
+                        const source = `${candidate.stepIdentifier}.${candidate.field.name}`;
+                        return source === pipelineSource;
+                    }
+                )
+                : -1;
+            let selectedOutputs = pipelineSource && sourceIndex !== -1 ? allStepOutputs : terminalOutputs;
 
             if (sourceIndex === -1) {
-                sourceIndex = terminalOutputs.findIndex((_, candidateIndex) =>
-                    !usedTerminalOutputIndex.has(candidateIndex)
+                sourceIndex = terminalOutputs.findIndex(
+                    (candidate) =>
+                        !usedOutputSources.has(`${candidate.stepIdentifier}.${candidate.field.name}`) &&
+                        candidate.field.name === pipelineOutput.name
+                );
+                selectedOutputs = terminalOutputs;
+            }
+
+            if (sourceIndex === -1) {
+                sourceIndex = terminalOutputs.findIndex((candidate) =>
+                    !usedOutputSources.has(`${candidate.stepIdentifier}.${candidate.field.name}`)
                 );
             }
 
             if (sourceIndex === -1) continue;
 
-            usedTerminalOutputIndex.add(sourceIndex);
-            const selectedOutput = terminalOutputs[sourceIndex];
+            const selectedOutput = selectedOutputs[sourceIndex];
+            usedOutputSources.add(`${selectedOutput.stepIdentifier}.${selectedOutput.field.name}`);
 
             edges.push({
                 id: `${selectedOutput.stepIdentifier}-${selectedOutput.field.name}-${exitNode.id}-${pipelineOutput.name}`,

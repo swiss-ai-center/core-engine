@@ -81,7 +81,14 @@ export const InformationDrawer: React.FC<{
     }
 
     const getFormatHint = (field: FieldDescription): unknown => {
-        return field.format_hint ?? (field as any).format_example ?? null;
+        const hint = field.format_hint ?? (field as any).format_example ?? null;
+        if (typeof hint === "object" && hint !== null && !Array.isArray(hint) && "pipeline_source" in hint) {
+            const visibleHint = {...(hint as Record<string, unknown>)};
+            delete visibleHint.pipeline_source;
+            return Object.keys(visibleHint).length > 0 ? visibleHint : null;
+        }
+
+        return hint;
     };
 
     const getCsvColumns = (value: unknown): CsvColumnHint[] => {
