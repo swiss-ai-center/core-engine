@@ -70,6 +70,54 @@ def end_pipeline_execution(pipeline_execution: PipelineExecution):
     pipeline_execution.files = None
 
 
+def get_pipeline_output_source(field):
+    format_hint = (
+        field.get("format_hint")
+        if isinstance(field, dict)
+        else getattr(field, "format_hint", None)
+    )
+    if isinstance(format_hint, dict):
+        source = format_hint.get("pipeline_source")
+        if isinstance(source, str):
+            return source
+
+    return None
+
+
+def get_pipeline_output_files(pipeline: Pipeline, pipeline_execution: PipelineExecution, fallback_files):
+    output_sources = [
+        get_pipeline_output_source(field)
+        for field in (pipeline.data_out_fields or [])
+    ]
+    output_sources = [source for source in output_sources if source]
+
+    if not output_sources:
+        return fallback_files
+
+    files_by_reference = {}
+    for file_reference in (pipeline_execution.files or []):
+        reference = (
+            file_reference.get("reference")
+            if isinstance(file_reference, dict)
+            else getattr(file_reference, "reference", None)
+        )
+        file_key = (
+            file_reference.get("file_key")
+            if isinstance(file_reference, dict)
+            else getattr(file_reference, "file_key", None)
+        )
+        if reference and file_key:
+            files_by_reference[reference] = file_key
+
+    selected_files = [
+        files_by_reference[source]
+        for source in output_sources
+        if source in files_by_reference
+    ]
+
+    return selected_files or fallback_files
+
+
 def set_error_state(pipeline_execution: PipelineExecution, task_id: UUID):
     """
     Set the pipeline execution task to error state
@@ -341,6 +389,9 @@ class TasksService:
             self.logger.debug(f"Sending task {task} to client")
             message = create_message(task)
             message.message.text = "Execution finished"
+            message.message.data["data_out"] = get_pipeline_output_files(
+                pipeline, pipeline_execution, task.data_out
+            )
             await self.send_message(message, pipeline_execution, task, general_status=TaskStatus.FINISHED)
             end_pipeline_execution(pipeline_execution)
             self.session.add(pipeline_execution)
