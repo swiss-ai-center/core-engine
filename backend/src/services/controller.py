@@ -267,6 +267,7 @@ def delete(
     summary="Services health check endpoint",
     responses={
         200: {"detail": "Service is healthy"},
+        404: {"detail": "Service Not Found"},
         503: {"detail": "Service is unhealthy"},
     },
     status_code=200
@@ -276,5 +277,8 @@ def heartbeat_endpoint(
         services_service: ServicesService = Depends(),
 ):
     service = services_service.find_one_by_slug(service_slug)
+    if not service:
+        raise HTTPException(status_code=404, detail="Service Not Found")
+
     now = datetime.now()
     services_service.update(service.id, ServiceUpdate(latest_ping=now))

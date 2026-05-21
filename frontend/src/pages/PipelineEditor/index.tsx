@@ -116,7 +116,11 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
                         if (outputIndex === -1) return node;
 
-                        nextDataOut[outputIndex] = {...nextDataOut[outputIndex], type: []};
+                        nextDataOut[outputIndex] = {
+                            ...nextDataOut[outputIndex],
+                            type: [],
+                            format_hint: undefined,
+                        };
 
                         return {
                             ...node,
@@ -173,7 +177,11 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                     const idx = nextOut.findIndex((f) => f.name === targetHandle);
                     if (idx === -1) return n;
 
-                    nextOut[idx] = {...nextOut[idx], type: srcField.type};
+                    nextOut[idx] = {
+                        ...nextOut[idx],
+                        type: srcField.type,
+                        format_hint: srcField.format_hint,
+                    };
                     return {...n, data: {...n.data, dataOut: nextOut}};
                 })
             );
@@ -633,7 +641,25 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         if (!(entryNode && exitNode) || exitEdges.length === 0) return "{}";
 
         const data_in_fields = entryNode?.data.dataIn;
-        const data_out_fields = exitNode?.data.dataOut;
+        const data_out_fields = (exitNode?.data.dataOut ?? []).map((output: FieldDescription) => {
+            const edge = exitEdges.find((e) => e.targetHandle === output.name);
+            const sourceNode = nodesRef.current.find((node) => node.id === edge?.source);
+            if (!edge?.sourceHandle || !sourceNode) return output;
+
+            const formatHint = output.format_hint;
+            const formatHintObject =
+                typeof formatHint === "object" && formatHint !== null && !Array.isArray(formatHint)
+                    ? formatHint
+                    : {};
+
+            return {
+                ...output,
+                format_hint: {
+                    ...formatHintObject,
+                    pipeline_source: `${sourceNode.data.identifier}.${edge.sourceHandle}`,
+                },
+            };
+        });
         const queue: string[] = exitEdges.map((e) => e.source);
         let index = 0;
 

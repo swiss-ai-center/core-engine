@@ -538,6 +538,7 @@ class PipelinesService:
 
                 # Create tasks
                 pipeline_tasks = []
+                pipeline_tasks_by_step_identifier = {}
                 for pipeline_step in pipeline_steps:
                     task = Task()
                     task.service_id = pipeline_step.service_id
@@ -545,6 +546,7 @@ class PipelinesService:
                     task.status = TaskStatus.SCHEDULED
                     task = self.tasks_service.create(task)
                     pipeline_tasks.append(task)
+                    pipeline_tasks_by_step_identifier[pipeline_step.identifier] = task
 
                 # Create pipeline execution
                 pipeline_execution = PipelineExecution(
@@ -572,9 +574,6 @@ class PipelinesService:
                         detail=f"Could not execute pipeline '{pipeline.slug}', cause: {cause}"
                     )
 
-                # Determine initial steps (no needs)
-                initial_steps = [s for s in pipeline_steps if not s.needs]
-
                 # Map pipeline.* references to file keys (safe for dicts or objects)
                 files_by_ref = {}
                 for f in (pipeline_execution.files or []):
@@ -586,26 +585,34 @@ class PipelinesService:
                 skip_updates = []
 
                 # Launch all ready initial steps concurrently
-                for init_step in initial_steps:
-                    # Find the task index by identifier
-                    try:
-                        idx = next(i for i, s in enumerate(pipeline_steps) if s.identifier == init_step.identifier)
-                    except StopIteration:
+                for init_step in pipeline_steps:
+                    if init_step.needs:
                         continue
 
-                    task = pipeline_execution.tasks[idx]
+                    data_in = []
+                    missing_inputs = []
+                    for ref in (init_step.inputs or []):
+                        fk = files_by_ref.get(ref)
+                        if fk:
+                            data_in.append(fk)
+                        else:
+                            missing_inputs.append(ref)
+
+                    if missing_inputs:
+                        await clean_up(
+                            cause=f"Step '{init_step.identifier}' cannot start because input(s) "
+                                  f"{missing_inputs} are not ready"
+                        )
+
+                    task = pipeline_tasks_by_step_identifier.get(init_step.identifier)
+                    if not task:
+                        await clean_up(cause=f"Task for step '{init_step.identifier}' not found")
+                        continue
+
                     service = self.services_service.find_one(task.service_id)
                     if not service:
                         await clean_up(cause="Service not found")
                         continue
-
-                    # Resolve inputs from pipeline files only
-                    data_in = []
-                    for ref in (init_step.inputs or []):
-                        if ref.startswith("pipeline."):
-                            fk = files_by_ref.get(ref)
-                            if fk:
-                                data_in.append(fk)
 
                     # Optional condition evaluation on txt/json inputs
                     should_post_task = True
