@@ -31,7 +31,7 @@ def upgrade():
                     sa.Column('data_in_fields', sa.JSON(), nullable=True),
                     sa.Column('data_out_fields', sa.JSON(), nullable=True),
                     sa.Column('tags', sa.JSON(), nullable=True),
-                    sa.Column('id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
+                    sa.Column('id', sa.Uuid(), nullable=False),
                     sa.PrimaryKeyConstraint('id'),
                     sa.UniqueConstraint('slug')
                     )
@@ -50,7 +50,7 @@ def upgrade():
                     sa.Column('url', sa.String(), nullable=True),
                     sa.Column('docs_url', sa.String(), nullable=True),
                     sa.Column('has_ai', sa.Boolean(), nullable=True),
-                    sa.Column('id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
+                    sa.Column('id', sa.Uuid(), nullable=False),
                     sa.PrimaryKeyConstraint('id'),
                     sa.UniqueConstraint('slug')
                     )
@@ -61,9 +61,9 @@ def upgrade():
                     sa.Column('needs', sa.JSON(), nullable=True),
                     sa.Column('condition', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
                     sa.Column('inputs', sa.JSON(), nullable=True),
-                    sa.Column('id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
-                    sa.Column('pipeline_id', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-                    sa.Column('service_id', sqlmodel.sql.sqltypes.GUID(), nullable=True),
+                    sa.Column('id', sa.Uuid(), nullable=False),
+                    sa.Column('pipeline_id', sa.Uuid(), nullable=True),
+                    sa.Column('service_id', sa.Uuid(), nullable=True),
                     sa.ForeignKeyConstraint(['pipeline_id'], ['pipelines.id'], ),
                     sa.ForeignKeyConstraint(['service_id'], ['services.id'], ),
                     sa.PrimaryKeyConstraint('id')
@@ -71,9 +71,9 @@ def upgrade():
     op.create_table('pipeline_executions',
                     sa.Column('created_at', sa.DateTime(), nullable=True),
                     sa.Column('updated_at', sa.DateTime(), nullable=True),
-                    sa.Column('pipeline_id', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-                    sa.Column('current_pipeline_step_id', sqlmodel.sql.sqltypes.GUID(), nullable=True),
-                    sa.Column('id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
+                    sa.Column('pipeline_id', sa.Uuid(), nullable=True),
+                    sa.Column('current_pipeline_step_id', sa.Uuid(), nullable=True),
+                    sa.Column('id', sa.Uuid(), nullable=False),
                     sa.Column('files', sa.JSON(), nullable=True),
                     sa.ForeignKeyConstraint(['current_pipeline_step_id'], ['pipeline_steps.id'], ),
                     sa.ForeignKeyConstraint(['pipeline_id'], ['pipelines.id'], ),
@@ -87,10 +87,10 @@ def upgrade():
                     sa.Column('status',
                               sa.Enum('PENDING', 'FETCHING', 'PROCESSING', 'SAVING', 'FINISHED', 'ERROR', 'SCHEDULED',
                                       'SKIPPED', 'ARCHIVED', 'UNAVAILABLE', name='taskstatus'), nullable=False),
-                    sa.Column('service_id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
-                    sa.Column('pipeline_execution_id', sqlmodel.sql.sqltypes.GUID(), nullable=True),
+                    sa.Column('service_id', sa.Uuid(), nullable=False),
+                    sa.Column('pipeline_execution_id', sa.Uuid(), nullable=True),
                     sa.Column('error_message', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-                    sa.Column('id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
+                    sa.Column('id', sa.Uuid(), nullable=False),
                     sa.ForeignKeyConstraint(['pipeline_execution_id'], ['pipeline_executions.id'], ),
                     sa.ForeignKeyConstraint(['service_id'], ['services.id'], ),
                     sa.PrimaryKeyConstraint('id')
