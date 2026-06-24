@@ -244,10 +244,10 @@ class PipelinesService:
         flat_steps = []
         # cumulative map of "pipelineNodeId.outName" -> concrete "service-step-id.fieldName"
         outbound: dict[str, str] = {}
-        used_identifiers: set[str] = {s.identifier for s in steps if s.service_slug}
+        used_identifiers: set[str] = {s.identifier for s in steps if s.service_slug is not None}
 
         for step in steps:
-            if step.service_slug:
+            if step.service_slug is not None:
                 # Plain service step: substitute any pipeline-node output refs in inputs
                 new_inputs = [outbound.get(inp, inp) for inp in (step.inputs or [])]
                 new_condition = step.condition
