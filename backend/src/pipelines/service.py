@@ -300,12 +300,11 @@ class PipelinesService:
             # Expand each internal step
             for T in sub.steps:
                 new_id = f"{step.identifier}-{T.identifier}"
-                # Guard against identifier collisions
-                counter = 2
-                base_id = new_id
-                while new_id in used_identifiers:
-                    new_id = f"{base_id}-{counter}"
-                    counter += 1
+                # Identifier collisions require rewriting all internal references; fail fast instead.
+                if new_id in used_identifiers:
+                    raise InconsistentPipelineException(
+                        f"Expanded step identifier '{new_id}' already exists; choose a different identifier for pipeline step '{step.identifier}'."
+                    )
                 used_identifiers.add(new_id)
 
                 new_needs = [f"{step.identifier}-{n}" for n in (T.needs or [])]
