@@ -5,20 +5,18 @@ from common.models import CoreModel
 from uuid import UUID, uuid4
 from services.models import Service
 from pydantic_settings import SettingsConfigDict
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 
 
 class PipelineStepBase(CoreModel):
-    """
-    Base class for a step in a Pipeline
-    This model is used in subclasses
-    """
     model_config = SettingsConfigDict(arbitrary_types_allowed=True)
 
     identifier: str
     needs: Optional[List[str]] = Field(sa_column=Column(JSON), default=None)
     condition: Optional[str] = None
     inputs: List[str] = Field(sa_column=Column(JSON))
+    group_identifier: Optional[str] = None
+    source_pipeline_slug: Optional[str] = None
 
     @field_validator("identifier")
     def identifier_format(cls, v):
@@ -33,11 +31,6 @@ class PipelineStep(
     PipelineStepBase,
     table=True,
 ):
-    """
-    Pipeline Step model
-    This model is the one that is stored in the database
-    """
-
     __tablename__ = "pipeline_steps"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -52,31 +45,34 @@ class PipelineStep(
 
 
 class PipelineStepRead(PipelineStepBase):
-    """
-    Pipeline Step read model
-    This model is used to return a pipeline step to the user
-    """
-
     id: UUID
     pipeline: "Pipeline"
 
 
 class PipelineStepCreate(PipelineStepBase):
-    """
-    Pipeline Step create model
-    This model is used to create a pipeline step
-    """
+    service_slug: Optional[str] = None
+    pipeline_slug: Optional[str] = None
 
-    service_slug: str
+    @model_validator(mode="after")
+    def exactly_one_unit(self):
+        has_service = self.service_slug is not None
+        has_pipeline = self.pipeline_slug is not None
+        if has_service == has_pipeline:
+            raise ValueError("Exactly one of service_slug or pipeline_slug must be set.")
+        return self
 
 
 class PipelineStepUpdate(PipelineStepBase):
-    """
-    Pipeline Step update model
-    This model is used to update a pipeline step
-    """
+    service_slug: Optional[str] = None
+    pipeline_slug: Optional[str] = None
 
-    service_slug: str
+    @model_validator(mode="after")
+    def exactly_one_unit(self):
+        has_service = self.service_slug is not None
+        has_pipeline = self.pipeline_slug is not None
+        if has_service == has_pipeline:
+            raise ValueError("Exactly one of service_slug or pipeline_slug must be set.")
+        return self
 
 
 from pipelines.models import Pipeline  # noqa E402

@@ -216,9 +216,13 @@ def check(
         services_service: ServicesService = Depends(),
 ):
     try:
+        flat_steps, flat_data_out = pipelines_service.expand_nested_pipelines(
+            pipeline.steps, pipeline.data_out_fields, parent_slug=pipeline.slug
+        )
+
         new_pipeline_id = uuid4()
         new_steps = []
-        for step in pipeline.steps:
+        for step in flat_steps:
             service = services_service.find_one_by_slug(step.service_slug)
             if not service:
                 raise NotFoundException(f"Service with slug {step.service_slug} not found")
@@ -230,8 +234,7 @@ def check(
                 pipeline_id=new_pipeline_id,
                 service_id=service.id,
             )
-            new_step = PipelineStep.model_validate(new_pipeline_step)
-            new_steps.append(new_step)
+            new_steps.append(PipelineStep.model_validate(new_pipeline_step))
 
         new_pipeline = Pipeline(
             id=new_pipeline_id,
@@ -240,7 +243,7 @@ def check(
             summary=pipeline.summary,
             steps=new_steps,
             data_in_fields=pipeline.data_in_fields,
-            data_out_fields=pipeline.data_out_fields,
+            data_out_fields=flat_data_out,
         )
 
         if pipelines_service.check_pipeline_consistency(new_pipeline):

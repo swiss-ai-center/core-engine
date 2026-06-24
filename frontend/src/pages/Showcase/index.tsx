@@ -61,6 +61,23 @@ const Showcase: React.FC<{ mobileOpen: boolean }> = ({mobileOpen}) => {
                         for (let i = 0; i < steps.length; i++) {
                             steps[i].service = stepsDescriptions[i];
                         }
+                        // Fetch the definition of each inlined sub-pipeline so the board can render
+                        // it as a single service-like node exposing its full output interface.
+                        const subPipelineSlugs = Array.from(new Set(
+                            steps
+                                .filter((s: any) => s.group_identifier && s.source_pipeline_slug)
+                                .map((s: any) => s.source_pipeline_slug)
+                        ));
+                        const subPipelines = await Promise.all(
+                            subPipelineSlugs.map((s: any) => getPipelineDescription(s))
+                        );
+                        const subPipelineBySlug = new Map<string, any>();
+                        subPipelineSlugs.forEach((s: any, i: number) => subPipelineBySlug.set(s, subPipelines[i]));
+                        for (const step of steps) {
+                            if (step.group_identifier && step.source_pipeline_slug) {
+                                step.source_pipeline = subPipelineBySlug.get(step.source_pipeline_slug) ?? null;
+                            }
+                        }
                         desc.steps = steps;
                     }
                     if (

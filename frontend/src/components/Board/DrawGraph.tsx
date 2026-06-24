@@ -15,7 +15,6 @@ const getPipelineSource = (field: FieldDescription): string | null => {
         const source = (hint as { pipeline_source?: unknown }).pipeline_source;
         if (typeof source === "string") return source;
     }
-
     return null;
 };
 
@@ -50,170 +49,303 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
                 type: edgeType,
             });
         }
+        edges = edges.flat();
+        return {nodes, edges};
+    }
 
-        edges = edges.flat()
-        return {nodes: nodes, edges: edges};
+    if (!entity) return {nodes: [], edges: []};
 
-    } else if (entity) {
-        const entryNode = generateEntryNode("pipeline", entity.slug, entity.data_in_fields, ServiceStatus.AVAILABLE);
-        nodes.push(entryNode);
+    const entryNode = generateEntryNode("pipeline", entity.slug, entity.data_in_fields, ServiceStatus.AVAILABLE);
+    const exitNode = generateExitNode(entity.slug, entity.data_out_fields);
+    nodes.push(entryNode);
 
-        for (let i = 0; i < entity.steps.length; i++) {
-            const step = entity.steps[i];
-            const node = generateNode(step.identifier, "pipeline", step.service.status, step.service_id, step.service.data_in_fields, step.service.data_out_fields);
-            nodes.push(node);
+    // Group steps by group_identifier. Steps without one are standalone.
+    // group_identifier is present on the step when the pipeline was imported from another.
+    const groups = new Map<string, { steps: any[], sourcePipelineSlug: string, subPipeline: any }>();
+    const standaloneSteps: any[] = [];
+
+    for (const step of entity.steps) {
+        if (step.group_identifier) {
+            if (!groups.has(step.group_identifier)) {
+                groups.set(step.group_identifier, {
+                    steps: [],
+                    sourcePipelineSlug: step.source_pipeline_slug ?? step.group_identifier,
+                    subPipeline: step.source_pipeline ?? null,
+                });
+            }
+            groups.get(step.group_identifier)!.steps.push(step);
+        } else {
+            standaloneSteps.push(step);
+        }
+    }
+
+    // Map each step identifier to its effective node id (group or self)
+    const stepToNodeId = new Map<string, string>();
+    for (const step of standaloneSteps) stepToNodeId.set(step.identifier, step.identifier);
+    Array.from(groups.entries()).forEach(([groupId, {steps: gSteps}]) => {
+        gSteps.forEach(step => stepToNodeId.set(step.identifier, groupId));
+    });
+
+    // Add standalone step nodes
+    for (const step of standaloneSteps) {
+        nodes.push(generateNode(
+            step.identifier, "pipeline",
+            step.service?.status ?? ServiceStatus.AVAILABLE,
+            step.service_id,
+            step.service?.data_in_fields ?? [],
+            step.service?.data_out_fields ?? [],
+        ));
+    }
+
+    // Build raw edges from all steps (using original step identifiers)
+    const rawEdges: Edge[] = [];
+    for (const step of entity.steps) {
+        for (let j = 0; j < step.inputs.length; j++) {
+            const field = step.inputs[j];
+            const fieldIdentifier = field.split(".")[1];
+            const sourceStepId = field.split(".")[0];
+
+            if (sourceStepId === "pipeline") {
+                rawEdges.push({
+                    id: `${entryNode.id}-${fieldIdentifier}-${step.identifier}-${step.service?.data_in_fields?.[j]?.name ?? j}`,
+                    source: entryNode.id,
+                    sourceHandle: `${entryNode.id}-${fieldIdentifier}`,
+                    target: step.identifier,
+                    targetHandle: `${step.identifier}-${step.service?.data_in_fields?.[j]?.name ?? j}`,
+                    animated: false,
+                    type: edgeType,
+                });
+            } else {
+                rawEdges.push({
+                    id: `${sourceStepId}-${fieldIdentifier}-${step.identifier}-${step.service?.data_in_fields?.[j]?.name ?? j}`,
+                    source: sourceStepId,
+                    sourceHandle: `${sourceStepId}-${fieldIdentifier}`,
+                    target: step.identifier,
+                    targetHandle: `${step.identifier}-${step.service?.data_in_fields?.[j]?.name ?? j}`,
+                    animated: false,
+                    type: edgeType,
+                });
+            }
+        }
+    }
+
+    // Determine terminal steps (not consumed by any other step) for exit connections
+    const requiredSteps = new Set<string>();
+    for (const step of entity.steps) {
+        for (const inp of step.inputs) {
+            const src = inp.split(".")[0];
+            if (src !== "pipeline") requiredSteps.add(src);
+        }
+    }
+
+    const allStepOutputs: { stepIdentifier: string, field: FieldDescription }[] = [];
+    const terminalOutputs: { stepIdentifier: string, field: FieldDescription }[] = [];
+    for (const step of entity.steps) {
+        for (const outField of (step.service?.data_out_fields ?? [])) {
+            allStepOutputs.push({stepIdentifier: step.identifier, field: outField});
+            if (!requiredSteps.has(step.identifier)) {
+                terminalOutputs.push({stepIdentifier: step.identifier, field: outField});
+            }
+        }
+    }
+
+    const usedOutputSources = new Set<string>();
+    for (const pipelineOutput of (entity.data_out_fields ?? [])) {
+        const pipelineSource = getPipelineSource(pipelineOutput);
+
+        // Group-direct reference "<groupId>.<subOutputName>": the parent consumes a
+        // sub-pipeline output directly, so wire straight to the collapsed group's handle.
+        if (pipelineSource) {
+            const dot = pipelineSource.indexOf(".");
+            const groupId = pipelineSource.slice(0, dot);
+            const subOutput = pipelineSource.slice(dot + 1);
+            if (groups.has(groupId)) {
+                rawEdges.push({
+                    id: `${groupId}-${subOutput}-${exitNode.id}-${pipelineOutput.name}`,
+                    source: groupId,
+                    sourceHandle: `${groupId}-${subOutput}`,
+                    target: exitNode.id,
+                    targetHandle: `${exitNode.id}-${pipelineOutput.name}`,
+                    animated: false,
+                    type: edgeType,
+                });
+                continue;
+            }
         }
 
-        const exitNode = generateExitNode(entity.slug, entity.data_out_fields);
-        nodes.push(exitNode);
+        let sourceIndex = pipelineSource
+            ? allStepOutputs.findIndex(c => `${c.stepIdentifier}.${c.field.name}` === pipelineSource)
+            : -1;
+        let selectedOutputs = pipelineSource && sourceIndex !== -1 ? allStepOutputs : terminalOutputs;
 
-        // Connect entry node to each other node
-        // The rule is that a node defines his input with "<step.identifier>.<field.name>"
-        // and if it requires entities from the pipeline, it uses "pipeline.<field.name>"
-        for (let i = 0; i < entity.steps.length; i++) {
-            const step = entity.steps[i];
-            // for each input field of the step, connect the entry node to the step
-            // the input array is an array of strings in the form "<node_identifier>.<field_identifier>"
-            // in the same order as the fields in service.data_in_fields
-            // so map the input array to the corresponding field in service.data_in_fields
-            // and if the node_identifier is "pipeline", connect the entry node to the step
-            for (let j = 0; j < step.inputs.length; j++) {
-                const field = step.inputs[j];
-                const fieldIdentifier = field.split(".")[1];
-                if (field.split(".")[0] === "pipeline") {
-                    // id should be unique depending on the edge source and target
-                    edges.push({
-                        id: `${entryNode.id}-${fieldIdentifier}-${step.identifier}-${step.service.data_in_fields[j].name}`,
-                        source: entryNode.id,
-                        sourceHandle: `${entryNode.id}-${fieldIdentifier}`,
-                        target: step.identifier,
-                        targetHandle: `${step.identifier}-${step.service.data_in_fields[j].name}`,
-                        animated: false,
-                        type: edgeType,
-                    });
+        if (sourceIndex === -1) {
+            sourceIndex = terminalOutputs.findIndex(
+                c => !usedOutputSources.has(`${c.stepIdentifier}.${c.field.name}`) && c.field.name === pipelineOutput.name
+            );
+            selectedOutputs = terminalOutputs;
+        }
+        if (sourceIndex === -1) {
+            sourceIndex = terminalOutputs.findIndex(c => !usedOutputSources.has(`${c.stepIdentifier}.${c.field.name}`));
+        }
+        if (sourceIndex === -1) continue;
+
+        const sel = selectedOutputs[sourceIndex];
+        usedOutputSources.add(`${sel.stepIdentifier}.${sel.field.name}`);
+        rawEdges.push({
+            id: `${sel.stepIdentifier}-${sel.field.name}-${exitNode.id}-${pipelineOutput.name}`,
+            source: sel.stepIdentifier,
+            sourceHandle: `${sel.stepIdentifier}-${sel.field.name}`,
+            target: exitNode.id,
+            targetHandle: `${exitNode.id}-${pipelineOutput.name}`,
+            animated: false,
+            type: edgeType,
+        });
+    }
+
+    // Collapse raw edges: remap endpoints using stepToNodeId, drop internal edges
+    if (groups.size === 0) {
+        // No groups — emit edges as-is
+        edges = rawEdges.flat();
+    } else {
+        // A handle id is "<nodeId>-<fieldName>"; recover the field name for labels/keys.
+        const handleField = (nodeId: string, handle: string | null | undefined): string =>
+            handle && handle.startsWith(nodeId + "-") ? handle.slice(nodeId.length + 1) : (handle ?? nodeId);
+
+        // Boundary handles a group exposes once collapsed (handleId -> label).
+        const groupTargetHandles = new Map<string, Map<string, string>>();
+        const groupSourceHandles = new Map<string, Map<string, string>>();
+        Array.from(groups.keys()).forEach(groupId => {
+            groupTargetHandles.set(groupId, new Map<string, string>());
+            groupSourceHandles.set(groupId, new Map<string, string>());
+        });
+
+        const seenEdgeIds = new Set<string>();
+        const collapsedEdges: Edge[] = [];
+        for (const e of rawEdges) {
+            const sourceNodeId = stepToNodeId.get(e.source) ?? e.source;
+            const targetNodeId = e.target === exitNode.id
+                ? exitNode.id
+                : (stepToNodeId.get(e.target) ?? e.target);
+
+            // Drop internal edges (both endpoints in same group)
+            if (sourceNodeId !== entryNode.id && sourceNodeId === targetNodeId) continue;
+
+            let newSourceHandle = e.sourceHandle ?? e.source;
+            let newTargetHandle = e.targetHandle ?? e.target;
+
+            // Source is the collapsed group.
+            if (groups.has(sourceNodeId)) {
+                if (sourceNodeId !== e.source) {
+                    // An internal step crosses out: map its output back to the matching
+                    // sub-pipeline output field so the edge lands on the named handle.
+                    const subStep = e.source.slice(sourceNodeId.length + 1);
+                    const field = handleField(e.source, e.sourceHandle);
+                    const subPipeline = groups.get(sourceNodeId)!.subPipeline;
+                    const subOutput = (subPipeline?.data_out_fields ?? []).find(
+                        (f: FieldDescription) => getPipelineSource(f) === `${subStep}.${field}`
+                    );
+                    if (subOutput) {
+                        newSourceHandle = `${sourceNodeId}-${subOutput.name}`;
+                    } else {
+                        newSourceHandle = `${sourceNodeId}-out-${e.sourceHandle ?? e.source}`;
+                        groupSourceHandles.get(sourceNodeId)!.set(newSourceHandle, field);
+                    }
                 } else {
-                    const referredNode = nodes.find((node) => node.id === field.split(".")[0]);
-                    if (referredNode) {
-                        edges.push({
-                            id: `${referredNode.id}-${fieldIdentifier}-${step.identifier}-${step.service.data_in_fields[j].name}`,
-                            source: referredNode.id,
-                            sourceHandle: `${referredNode.id}-${fieldIdentifier}`,
-                            target: step.identifier,
-                            targetHandle: `${step.identifier}-${step.service.data_in_fields[j].name}`,
-                            animated: false,
-                            type: edgeType,
-                        });
-                    }
-
+                    // Group-direct edge: handle is already named after a sub-pipeline output.
+                    groupSourceHandles.get(sourceNodeId)!.set(newSourceHandle, handleField(sourceNodeId, e.sourceHandle));
                 }
             }
-        }
-        // connect the required steps to the exit node
-        // to do this, find the steps that are not required by any other step and connect them to the exit node
-        const requiredSteps = new Set<string>();
-        for (let i = 0; i < entity.steps.length; i++) {
-            const step = entity.steps[i];
-            for (let j = 0; j < step.inputs.length; j++) {
-                if (step.inputs[j].split(".")[0] !== "pipeline") {
-                    requiredSteps.add(step.inputs[j].split(".")[0]);
-                }
-            }
-        }
-
-        const allStepOutputs: { stepIdentifier: string, field: FieldDescription }[] = [];
-        const terminalOutputs: { stepIdentifier: string, field: FieldDescription }[] = [];
-        for (let i = 0; i < entity.steps.length; i++) {
-            const step = entity.steps[i];
-            for (let j = 0; j < step.service.data_out_fields.length; j++) {
-                const stepOutput = {
-                    stepIdentifier: step.identifier,
-                    field: step.service.data_out_fields[j],
-                };
-                allStepOutputs.push(stepOutput);
-                if (!requiredSteps.has(step.identifier)) {
-                    terminalOutputs.push({
-                        stepIdentifier: stepOutput.stepIdentifier,
-                        field: stepOutput.field,
-                    });
-                }
-            }
-        }
-
-        const usedOutputSources = new Set<string>();
-        for (let i = 0; i < entity.data_out_fields.length; i++) {
-            const pipelineOutput = entity.data_out_fields[i];
-            const pipelineSource = getPipelineSource(pipelineOutput);
-            let sourceIndex = pipelineSource
-                ? allStepOutputs.findIndex(
-                    (candidate) => {
-                        const source = `${candidate.stepIdentifier}.${candidate.field.name}`;
-                        return source === pipelineSource;
-                    }
-                )
-                : -1;
-            let selectedOutputs = pipelineSource && sourceIndex !== -1 ? allStepOutputs : terminalOutputs;
-
-            if (sourceIndex === -1) {
-                sourceIndex = terminalOutputs.findIndex(
-                    (candidate) =>
-                        !usedOutputSources.has(`${candidate.stepIdentifier}.${candidate.field.name}`) &&
-                        candidate.field.name === pipelineOutput.name
-                );
-                selectedOutputs = terminalOutputs;
+            // Target crosses into a group: coalesce by external source so steps that
+            // share the same pipeline input collapse onto a single entry handle.
+            if (groups.has(targetNodeId) && targetNodeId !== e.target) {
+                const field = handleField(sourceNodeId, e.sourceHandle);
+                newTargetHandle = `${targetNodeId}-in-${sourceNodeId}-${field}`;
+                groupTargetHandles.get(targetNodeId)!.set(newTargetHandle, field);
             }
 
-            if (sourceIndex === -1) {
-                sourceIndex = terminalOutputs.findIndex((candidate) =>
-                    !usedOutputSources.has(`${candidate.stepIdentifier}.${candidate.field.name}`)
-                );
-            }
+            const id = `${sourceNodeId}-${newSourceHandle}-${targetNodeId}-${newTargetHandle}`;
+            if (seenEdgeIds.has(id)) continue;
+            seenEdgeIds.add(id);
 
-            if (sourceIndex === -1) continue;
-
-            const selectedOutput = selectedOutputs[sourceIndex];
-            usedOutputSources.add(`${selectedOutput.stepIdentifier}.${selectedOutput.field.name}`);
-
-            edges.push({
-                id: `${selectedOutput.stepIdentifier}-${selectedOutput.field.name}-${exitNode.id}-${pipelineOutput.name}`,
-                source: selectedOutput.stepIdentifier,
-                sourceHandle: `${selectedOutput.stepIdentifier}-${selectedOutput.field.name}`,
-                target: exitNode.id,
-                targetHandle: `${exitNode.id}-${pipelineOutput.name}`,
-                animated: false,
-                type: edgeType,
+            collapsedEdges.push({
+                ...e,
+                id,
+                source: sourceNodeId,
+                sourceHandle: newSourceHandle,
+                target: targetNodeId,
+                targetHandle: newTargetHandle,
             });
         }
 
-        edges = edges.flat()
-        return {nodes: nodes, edges: edges};
+        // Generate collapsed group nodes with the collected boundary handles
+        Array.from(groups.entries()).forEach(([groupId, {sourcePipelineSlug, subPipeline, steps: gSteps}]) => {
+            const targetHandles = Array.from(groupTargetHandles.get(groupId)!.entries()).map(([id, label]) => ({id, label}));
+            // Expose every sub-pipeline output (even unused ones), then add any handle an
+            // edge resolved to that isn't in the declared interface (e.g. unhinted outputs).
+            const sourceHandleMap = new Map<string, string>();
+            for (const field of (subPipeline?.data_out_fields ?? [])) {
+                sourceHandleMap.set(`${groupId}-${field.name}`, field.name);
+            }
+            Array.from(groupSourceHandles.get(groupId)!.entries()).forEach(([id, label]) => {
+                if (!sourceHandleMap.has(id)) sourceHandleMap.set(id, label);
+            });
+            const sourceHandles = Array.from(sourceHandleMap.entries()).map(([id, label]) => ({id, label}));
+            const serviceId = gSteps[0]?.service_id ?? groupId;
+            nodes.push(generateGroupNode(groupId, sourcePipelineSlug, serviceId, targetHandles, sourceHandles));
+        });
+
+        edges = collapsedEdges.flat();
     }
 
-    return {nodes: [], edges: []};
+    nodes.push(exitNode);
+    return {nodes, edges};
 }
 
 const generateNode = (slug: string, type: string, status: ServiceStatus, service_id: string, data_in_fields: FieldDescription[], data_out_fields: FieldDescription[]) => {
-    const targetHandles = data_in_fields.map((field) => {
-        return {id: slug + "-" + field.name, label: field.name};
-    });
-    const sourceHandles = data_out_fields.map((field) => {
-        return {id: slug + "-" + field.name, label: field.name};
-    });
+    const targetHandles = data_in_fields.map((field) => ({id: slug + "-" + field.name, label: field.name}));
+    const sourceHandles = data_out_fields.map((field) => ({id: slug + "-" + field.name, label: field.name}));
     return {
         id: slug,
         type: "progressNode",
         data: {
             label: slug,
-            type: type,
-            service_id: service_id,
+            type,
+            service_id,
             service_slug: slug,
-            status: status,
-            sourceHandles: sourceHandles,
-            targetHandles: targetHandles,
+            status,
+            sourceHandles,
+            targetHandles,
         },
         width: nodeWidth,
         height: nodeHeight,
-    }
-}
+    };
+};
+
+const generateGroupNode = (
+    id: string,
+    label: string,
+    serviceId: string,
+    targetHandles: { id: string, label: string }[],
+    sourceHandles: { id: string, label: string }[]
+) => {
+    return {
+        id,
+        type: "progressNode",
+        data: {
+            // "subpipeline" makes StepNode link to the pipeline page and aggregate
+            // status from the (representative) internal service rather than the group id.
+            label,
+            type: "subpipeline",
+            service_id: serviceId,
+            service_slug: label,
+            status: ServiceStatus.AVAILABLE,
+            sourceHandles,
+            targetHandles,
+        },
+        width: nodeWidth,
+        height: nodeHeight,
+    };
+};
 
 const generateEntryNode = (
     executionType: string,
@@ -222,41 +354,37 @@ const generateEntryNode = (
     status: ServiceStatus
 ) => {
     const id = slug + "-entry";
-    const sourceHandles = data_in_fields.map((field) => {
-        return {id: id + "-" + field.name, label: field.name};
-    });
+    const sourceHandles = data_in_fields.map((field) => ({id: id + "-" + field.name, label: field.name}));
     return {
-        id: id,
+        id,
         type: "entryNode",
         data: {
             label: slug + "-entry",
-            executionType: executionType,
-            data_in_fields: data_in_fields,
-            status: status,
-            sourceHandles: sourceHandles,
+            executionType,
+            data_in_fields,
+            status,
+            sourceHandles,
             targetHandles: [],
         },
         position: {x: 0, y: 0},
         width: nodeWidth,
         height: nodeHeight,
-    }
-}
+    };
+};
 
 const generateExitNode = (slug: string, data_out_fields: FieldDescription[]) => {
     const id = slug + "-exit";
-    const targetHandles = data_out_fields.map((field) => {
-        return {id: id + "-" + field.name, label: field.name};
-    });
+    const targetHandles = data_out_fields.map((field) => ({id: id + "-" + field.name, label: field.name}));
     return {
-        id: id,
+        id,
         type: "exitNode",
         data: {
             label: slug + "-exit",
-            data_out_fields: data_out_fields,
+            data_out_fields,
             sourceHandles: [],
-            targetHandles: targetHandles,
+            targetHandles,
         },
         width: nodeWidth,
         height: nodeHeight,
-    }
-}
+    };
+};

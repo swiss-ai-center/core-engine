@@ -133,9 +133,14 @@ const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
                     </Typography>
                 </Box>
                 <CardContent sx={{flexGrow: 1, width: "100%"}}>
-                    {data.type === "pipeline" ? (
-                        <URLLink href={`/showcase/service/${data.service_slug}`} sx={{textDecoration: "none"}}>
-                            <Tooltip title={"Service's page"} placement={"top"}>
+                    {data.type === "pipeline" || data.type === "subpipeline" ? (
+                        <URLLink
+                            href={data.type === "subpipeline"
+                                ? `/showcase/pipeline/${data.service_slug}`
+                                : `/showcase/service/${data.service_slug}`}
+                            sx={{textDecoration: "none"}}>
+                            <Tooltip title={data.type === "subpipeline" ? "Pipeline's page" : "Service's page"}
+                                     placement={"top"}>
                                 <Typography variant={"subtitle1"} color={"primary"}
                                             sx={{justifyContent: "center", display: "flex"}}
                                 >
@@ -192,7 +197,7 @@ const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
                             </Button>
                         </span>
                         </Tooltip>) : (
-                        data.type === "pipeline" && (
+                        (data.type === "pipeline" || data.type === "subpipeline") && (
                             <Tooltip title={"Download intermediate result"} placement={"bottom"}>
                             <span>
                                 <Button
