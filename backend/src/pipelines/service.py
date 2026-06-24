@@ -17,7 +17,7 @@ from common_code.logger.logger import Logger, get_logger
 from common_code.common.models import ExecutionUnitTag
 from common_code.common.enums import FieldDescriptionType, ExecutionUnitTagName, ExecutionUnitTagAcronym
 from uuid import UUID
-from pipeline_steps.models import PipelineStep
+from pipeline_steps.models import PipelineStep, PipelineStepCreate
 from pipelines.models import Pipeline, PipelineUpdate, PipelineCreate
 from common.exceptions import NotFoundException, InconsistentPipelineException, ConflictException
 from pipeline_executions.models import FileKeyReference, PipelineExecution, PipelineExecutionReadWithPipelineAndTasks
@@ -249,7 +249,6 @@ class PipelinesService:
                 if new_condition:
                     for key, val in outbound.items():
                         new_condition = new_condition.replace(key, val)
-                from pipeline_steps.models import PipelineStepCreate
                 flat_steps.append(PipelineStepCreate(
                     identifier=step.identifier,
                     needs=step.needs,
@@ -331,7 +330,6 @@ class PipelinesService:
                 if not service:
                     raise NotFoundException(f"Service for step '{T.identifier}' in pipeline '{step.pipeline_slug}' not found.")
 
-                from pipeline_steps.models import PipelineStepCreate
                 flat_steps.append(PipelineStepCreate(
                     identifier=new_id,
                     needs=new_needs,
