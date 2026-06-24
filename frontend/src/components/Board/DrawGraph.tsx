@@ -260,7 +260,7 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
             // Target crosses into a group: coalesce by external source so steps that
             // share the same pipeline input collapse onto a single entry handle.
             if (groups.has(targetNodeId) && targetNodeId !== e.target) {
-                const field = handleField(sourceNodeId, e.sourceHandle);
+                const field = handleField(e.source, e.sourceHandle);
                 newTargetHandle = `${targetNodeId}-in-${sourceNodeId}-${field}`;
                 groupTargetHandles.get(targetNodeId)!.set(newTargetHandle, field);
             }
