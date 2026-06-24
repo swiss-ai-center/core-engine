@@ -12,9 +12,11 @@ const PipelineEditorPipelineCard: React.FC<{
             {item.name}
         </Typography>
 
+    const summaryText = typeof item.summary === "string" ? item.summary : "";
+
     const summary = () =>
         <Typography>
-            {item.summary.length > 100 ? item.summary.substring(0, 75) + "..." : item.summary}
+            {summaryText.length > 75 ? summaryText.substring(0, 75) + "..." : summaryText}
         </Typography>
 
     return (
