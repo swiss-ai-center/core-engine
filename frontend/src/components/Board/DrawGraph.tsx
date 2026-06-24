@@ -290,8 +290,10 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
                 if (!sourceHandleMap.has(id)) sourceHandleMap.set(id, label);
             });
             const sourceHandles = Array.from(sourceHandleMap.entries()).map(([id, label]) => ({id, label}));
-            const serviceId = gSteps[0]?.service_id ?? groupId;
-            nodes.push(generateGroupNode(groupId, sourcePipelineSlug, serviceId, targetHandles, sourceHandles));
+            const representativeStep = gSteps[0];
+            const serviceId = representativeStep?.service_id ?? groupId;
+            const status = representativeStep?.service?.status ?? ServiceStatus.AVAILABLE;
+            nodes.push(generateGroupNode(groupId, sourcePipelineSlug, serviceId, status, targetHandles, sourceHandles));
         });
 
         edges = collapsedEdges.flat();
@@ -323,8 +325,9 @@ const generateNode = (slug: string, type: string, status: ServiceStatus, service
 
 const generateGroupNode = (
     id: string,
-    label: string,
+    pipelineSlug: string,
     serviceId: string,
+    status: ServiceStatus,
     targetHandles: { id: string, label: string }[],
     sourceHandles: { id: string, label: string }[]
 ) => {
@@ -332,13 +335,13 @@ const generateGroupNode = (
         id,
         type: "progressNode",
         data: {
-            // "subpipeline" makes StepNode link to the pipeline page and aggregate
-            // status from the (representative) internal service rather than the group id.
-            label,
+            // "subpipeline" makes StepNode link to the pipeline page while keeping
+            // label aligned with the React Flow node id for status refreshes.
+            label: id,
             type: "subpipeline",
             service_id: serviceId,
-            service_slug: label,
-            status: ServiceStatus.AVAILABLE,
+            service_slug: pipelineSlug,
+            status,
             sourceHandles,
             targetHandles,
         },

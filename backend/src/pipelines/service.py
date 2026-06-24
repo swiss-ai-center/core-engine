@@ -34,6 +34,11 @@ from fastapi.encoders import jsonable_encoder
 REGISTERED_PIPELINES_TAG = "Registered Pipelines"
 
 
+def replace_reference_token(text: str, reference: str, replacement: str) -> str:
+    pattern = rf"(?<![A-Za-z0-9_-]){re.escape(reference)}(?![A-Za-z0-9_-])"
+    return re.sub(pattern, replacement, text)
+
+
 class PipelinesService:
     def __init__(
             self,
@@ -248,7 +253,7 @@ class PipelinesService:
                 new_condition = step.condition
                 if new_condition:
                     for key, val in outbound.items():
-                        new_condition = new_condition.replace(key, val)
+                        new_condition = replace_reference_token(new_condition, key, val)
                 flat_steps.append(PipelineStepCreate(
                     identifier=step.identifier,
                     needs=step.needs,
@@ -318,12 +323,15 @@ class PipelinesService:
                     for inp in (T.inputs or []):
                         id_part, var_part = inp.split(".", 1)
                         if id_part == "pipeline":
-                            new_condition = new_condition.replace(
-                                f"pipeline.{var_part}", inbound.get(var_part, f"pipeline.{var_part}")
+                            reference = f"pipeline.{var_part}"
+                            new_condition = replace_reference_token(
+                                new_condition, reference, inbound.get(var_part, reference)
                             )
                         else:
-                            new_condition = new_condition.replace(
-                                f"{id_part}.{var_part}", f"{step.identifier}-{id_part}.{var_part}"
+                            new_condition = replace_reference_token(
+                                new_condition,
+                                f"{id_part}.{var_part}",
+                                f"{step.identifier}-{id_part}.{var_part}",
                             )
 
                 service = self.session.get(Service, T.service_id)
