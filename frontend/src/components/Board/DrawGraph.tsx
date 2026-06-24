@@ -157,19 +157,21 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
         // sub-pipeline output directly, so wire straight to the collapsed group's handle.
         if (pipelineSource) {
             const dot = pipelineSource.indexOf(".");
-            const groupId = pipelineSource.slice(0, dot);
-            const subOutput = pipelineSource.slice(dot + 1);
-            if (groups.has(groupId)) {
-                rawEdges.push({
-                    id: `${groupId}-${subOutput}-${exitNode.id}-${pipelineOutput.name}`,
-                    source: groupId,
-                    sourceHandle: `${groupId}-${subOutput}`,
-                    target: exitNode.id,
-                    targetHandle: `${exitNode.id}-${pipelineOutput.name}`,
-                    animated: false,
-                    type: edgeType,
-                });
-                continue;
+            if (dot !== -1) {
+                const groupId = pipelineSource.slice(0, dot);
+                const subOutput = pipelineSource.slice(dot + 1);
+                if (groups.has(groupId)) {
+                    rawEdges.push({
+                        id: `${groupId}-${subOutput}-${exitNode.id}-${pipelineOutput.name}`,
+                        source: groupId,
+                        sourceHandle: `${groupId}-${subOutput}`,
+                        target: exitNode.id,
+                        targetHandle: `${exitNode.id}-${pipelineOutput.name}`,
+                        animated: false,
+                        type: edgeType,
+                    });
+                    continue;
+                }
             }
         }
 
