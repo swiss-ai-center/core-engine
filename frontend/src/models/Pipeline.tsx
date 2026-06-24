@@ -8,6 +8,9 @@ export class PipelineStep {
     inputs: string[];
     service_id: string;
     service: Service;
+    group_identifier: string | null;
+    source_pipeline_slug: string | null;
+    source_pipeline: Pipeline | null;
 }
 
 export class Pipeline extends ExecutionUnit {

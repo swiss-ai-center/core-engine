@@ -17,7 +17,7 @@ from common_code.logger.logger import Logger, get_logger
 from common_code.common.models import ExecutionUnitTag
 from common_code.common.enums import FieldDescriptionType, ExecutionUnitTagName, ExecutionUnitTagAcronym
 from uuid import UUID
-from pipeline_steps.models import PipelineStep
+from pipeline_steps.models import PipelineStep, PipelineStepCreate
 from pipelines.models import Pipeline, PipelineUpdate, PipelineCreate
 from common.exceptions import NotFoundException, InconsistentPipelineException, ConflictException
 from pipeline_executions.models import FileKeyReference, PipelineExecution, PipelineExecutionReadWithPipelineAndTasks
@@ -32,6 +32,11 @@ from http_client import HttpClient
 from fastapi.encoders import jsonable_encoder
 
 REGISTERED_PIPELINES_TAG = "Registered Pipelines"
+
+
+def replace_reference_token(text: str, reference: str, replacement: str) -> str:
+    pattern = rf"(?<![A-Za-z0-9_-]){re.escape(reference)}(?![A-Za-z0-9_-])"
+    return re.sub(pattern, replacement, text)
 
 
 class PipelinesService:
@@ -225,6 +230,147 @@ class PipelinesService:
 
         return self.session.exec(select(Pipeline).where(Pipeline.slug == pipeline_slug)).first()
 
+    def expand_nested_pipelines(
+        self,
+        steps: list,
+        data_out_fields: list | None,
+        parent_slug: str = "",
+    ) -> tuple:
+        """
+        Replace every pipeline-referencing step with the sub-pipeline's service steps
+        (namespaced + reference-rewired). Returns flat service-only steps and the
+        parent's data_out_fields with pipeline-node references rewritten.
+        """
+        flat_steps = []
+        # cumulative map of "pipelineNodeId.outName" -> concrete "service-step-id.fieldName"
+        outbound: dict[str, str] = {}
+        used_identifiers: set[str] = {s.identifier for s in steps if s.service_slug is not None}
+
+        for step in steps:
+            if step.service_slug is not None:
+                # Plain service step: substitute any pipeline-node output refs in inputs
+                new_inputs = [outbound.get(inp, inp) for inp in (step.inputs or [])]
+                new_condition = step.condition
+                if new_condition:
+                    for key, val in outbound.items():
+                        new_condition = replace_reference_token(new_condition, key, val)
+                flat_steps.append(PipelineStepCreate(
+                    identifier=step.identifier,
+                    needs=step.needs,
+                    condition=new_condition or None,
+                    inputs=new_inputs,
+                    service_slug=step.service_slug,
+                    group_identifier=step.group_identifier,
+                    source_pipeline_slug=step.source_pipeline_slug,
+                ))
+                continue
+
+            # Pipeline step: expand into service steps
+            if step.pipeline_slug == parent_slug:
+                raise InconsistentPipelineException(
+                    f"Pipeline '{parent_slug}' cannot reference itself."
+                )
+            sub = self.find_one_by_slug(step.pipeline_slug)
+            if not sub:
+                raise NotFoundException(f"Pipeline with slug '{step.pipeline_slug}' not found.")
+
+            # Resolve the step's inputs through the running outbound map first
+            resolved_inputs = [outbound.get(inp, inp) for inp in (step.inputs or [])]
+
+            # inbound: sub-pipeline input name -> external producer ref
+            sub_in = sub.data_in_fields or []
+            inbound: dict[str, str] = {
+                (f.get("name") if isinstance(f, dict) else f.name): resolved_inputs[i]
+                for i, f in enumerate(sub_in)
+                if i < len(resolved_inputs)
+            }
+
+            # Build outbound entries for this node from sub-pipeline's data_out_fields
+            for out_field in (sub.data_out_fields or []):
+                name = out_field.get("name") if isinstance(out_field, dict) else out_field.name
+                hint = out_field.get("format_hint") if isinstance(out_field, dict) else out_field.format_hint
+                ps = hint.get("pipeline_source") if isinstance(hint, dict) else None
+                if ps:
+                    id_part, var_part = ps.split(".", 1)
+                    if id_part == "pipeline":
+                        outbound[f"{step.identifier}.{name}"] = inbound.get(var_part, ps)
+                    else:
+                        outbound[f"{step.identifier}.{name}"] = f"{step.identifier}-{id_part}.{var_part}"
+
+            # Expand each internal step
+            for T in sub.steps:
+                new_id = f"{step.identifier}-{T.identifier}"
+                # Identifier collisions require rewriting all internal references; fail fast instead.
+                if new_id in used_identifiers:
+                    raise InconsistentPipelineException(
+                        f"Expanded step identifier '{new_id}' already exists; choose a different identifier for pipeline step '{step.identifier}'."
+                    )
+                used_identifiers.add(new_id)
+
+                new_needs = [f"{step.identifier}-{n}" for n in (T.needs or [])]
+
+                new_inputs = []
+                for inp in (T.inputs or []):
+                    id_part, var_part = inp.split(".", 1)
+                    if id_part == "pipeline":
+                        new_inputs.append(inbound.get(var_part, inp))
+                    else:
+                        new_inputs.append(f"{step.identifier}-{id_part}.{var_part}")
+
+                new_condition = T.condition
+                if new_condition:
+                    for inp in (T.inputs or []):
+                        id_part, var_part = inp.split(".", 1)
+                        if id_part == "pipeline":
+                            reference = f"pipeline.{var_part}"
+                            new_condition = replace_reference_token(
+                                new_condition, reference, inbound.get(var_part, reference)
+                            )
+                        else:
+                            new_condition = replace_reference_token(
+                                new_condition,
+                                f"{id_part}.{var_part}",
+                                f"{step.identifier}-{id_part}.{var_part}",
+                            )
+
+                service = self.session.get(Service, T.service_id)
+                if not service:
+                    raise NotFoundException(f"Service for step '{T.identifier}' in pipeline '{step.pipeline_slug}' not found.")
+
+                flat_steps.append(PipelineStepCreate(
+                    identifier=new_id,
+                    needs=new_needs,
+                    condition=new_condition or None,
+                    inputs=new_inputs,
+                    service_slug=service.slug,
+                    group_identifier=step.identifier,
+                    source_pipeline_slug=step.pipeline_slug,
+                ))
+
+        # Rewrite data_out_fields format_hint.pipeline_source through outbound map
+        new_data_out_fields = data_out_fields
+        if data_out_fields and outbound:
+            from common_code.common.models import FieldDescription
+            new_data_out_fields = []
+            for field in data_out_fields:
+                if isinstance(field, dict):
+                    hint = field.get("format_hint")
+                    ps = hint.get("pipeline_source") if isinstance(hint, dict) else None
+                    if ps and ps in outbound:
+                        field = {**field, "format_hint": {**hint, "pipeline_source": outbound[ps]}}
+                else:
+                    hint = field.format_hint
+                    ps = hint.get("pipeline_source") if isinstance(hint, dict) else None
+                    if ps and ps in outbound:
+                        field = FieldDescription(
+                            name=field.name,
+                            type=field.type,
+                            format_hint={**hint, "pipeline_source": outbound[ps]},
+                        )
+                new_data_out_fields.append(field)
+
+        return flat_steps, new_data_out_fields
+
     def create(self, pipeline_create: PipelineCreate, app: FastAPI):
         """
         Create a pipeline
@@ -239,6 +385,10 @@ class PipelinesService:
         # Check if pipeline already exists
         if found_pipeline:
             raise ConflictException(f"Pipeline with slug '{found_pipeline.slug}' already exists.")
+
+        pipeline_create.steps, pipeline_create.data_out_fields = self.expand_nested_pipelines(
+            pipeline_create.steps, pipeline_create.data_out_fields, parent_slug=pipeline_create.slug
+        )
 
         # Backup the pipeline steps
         pipeline_steps = pipeline_create.steps
@@ -267,6 +417,8 @@ class PipelinesService:
                 inputs=step.inputs,
                 pipeline_id=pipeline.id,
                 service_id=service.id,
+                group_identifier=step.group_identifier,
+                source_pipeline_slug=step.source_pipeline_slug,
             )
 
             self.session.add(new_pipeline_step)

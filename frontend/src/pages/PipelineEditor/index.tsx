@@ -12,6 +12,7 @@ import {
     Typography
 } from "@mui/material";
 import BoardEdit from 'components/Board/BoardEdit';
+import PipelineEditorPipelineCard from "components/Cards/PipelineEditorPipelineCard";
 import PipelineEditorServiceCard from "components/Cards/PipelineEditorServiceCard";
 import Copyright from 'components/Copyright/Copyright';
 import {FilterDrawer} from "components/FilterDrawer/FilterDrawer";
@@ -475,6 +476,41 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         return fallbackPosition;
     }
 
+    const addPipelineNode = (pipelineId: string, tags: any[], pipelineSlug: string, dataIn: FieldDescription[], dataOut: FieldDescription[]) => {
+        let counter = 2;
+        const selectedDataIn = new Array<string>(dataIn.length);
+        let identifier = pipelineSlug;
+        const doesIdentifierExist = (node: Node) => node.data.identifier === identifier;
+
+        while (nodesRef.current.find(doesIdentifierExist)) {
+            identifier = `${pipelineSlug}-${counter}`;
+            counter++;
+        }
+
+        const nodePosition = getServiceNodePosition();
+        const newNode = {
+            id: identifier,
+            type: "serviceNode",
+            position: nodePosition,
+            data: {
+                identifier,
+                selectedDataIn,
+                dataIn,
+                dataOut,
+                unit_type: "pipeline",
+                pipeline_slug: pipelineSlug,
+                service_slug: undefined,
+                serviceId: pipelineId,
+                tags,
+                needs: [],
+                label: identifier,
+            },
+        };
+        setNodesRef.current((nodes) => nodes.concat(newNode));
+        const elem = document.querySelector('[title="fit view"]') as HTMLElement;
+        if (elem) setTimeout(() => elem.click(), 0);
+    };
+
     const addServiceNode = (serviceId: string, tags: any[], serviceSlug: string, dataIn: FieldDescription[], dataOut: FieldDescription[]) => {
         let counter = 2;
         const selectedDataIn = new Array<string>(dataIn.length);
@@ -692,19 +728,23 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                     tags.push(tag);
                 }
             })
+            const unitRef = node?.data.unit_type === "pipeline"
+                ? {pipeline_slug: node?.data.pipeline_slug}
+                : {service_slug: node?.data.service_slug};
+
             condition === "" ?
                 steps.push({
                     identifier: node?.data.identifier,
                     needs: node?.data.needs,
                     inputs: node?.data.selectedDataIn,
-                    service_slug: node?.data.service_slug
+                    ...unitRef,
                 })
                 : steps.push({
                     identifier: node?.data.identifier,
                     needs: node?.data.needs,
                     condition: condition,
                     inputs: node?.data.selectedDataIn,
-                    service_slug: node?.data.service_slug
+                    ...unitRef,
                 })
 
         })
@@ -724,8 +764,8 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
     const itemGrid = () => {
         return (
             <ItemGrid filter={search} orderBy={orderBy} tags={tags} ai={ai}
-                      itemFunctions={{addService: addServiceNode}}
-                      items={{service: PipelineEditorServiceCard}}
+                      itemFunctions={{addService: addServiceNode, addPipeline: addPipelineNode}}
+                      items={{service: PipelineEditorServiceCard, pipeline: PipelineEditorPipelineCard}}
                       handleTags={(event: SelectChangeEvent, newValue: Tag[]) =>
                           handleTags(event, newValue, setTags, searchParams, history, handleNoFilterWrapper)}
 
