@@ -1,6 +1,7 @@
 from typing import Optional
 from sqlmodel import Field, SQLModel, TypeDecorator, JSON
 from datetime import datetime
+from uuid import UUID, uuid4
 
 
 class CoreModel(SQLModel):
@@ -26,3 +27,9 @@ class PydanticJSON(TypeDecorator):
                 for item in value
             ]
         return value
+
+
+class TestMigration(CoreModel, table=True):
+    __tablename__ = "test_migration"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)

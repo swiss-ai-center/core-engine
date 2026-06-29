@@ -20,6 +20,8 @@ COPY ./uv.lock .
 RUN uv sync --frozen --no-dev --no-install-project
 
 # Copy sources
+COPY alembic.ini .
+COPY alembic alembic
 COPY src src
 
 # Environment variables
@@ -37,8 +39,5 @@ ENV CHECK_SERVICES_AVAILABILITY_INTERVAL=${CHECK_SERVICES_AVAILABILITY_INTERVAL}
 # Exposed ports
 EXPOSE 80
 
-# Switch to src directory
-WORKDIR "/app/src"
-
 # Command to run on start
-CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["bash", "-c", "uv run alembic upgrade head && cd src && exec uv run uvicorn main:app --host 0.0.0.0 --port 80"]

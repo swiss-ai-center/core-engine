@@ -97,6 +97,14 @@ jobs:
         working-directory: backend
         run: uv sync --frozen --all-groups
 
+      - name: Check Alembic migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: sqlite:///core-engine-alembic-check.db
+        run: |
+          uv run alembic upgrade head
+          uv run alembic check
+
       - name: Lint Python app
         working-directory: backend
         run: uv run flake8 src tests
