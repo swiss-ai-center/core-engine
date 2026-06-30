@@ -13,6 +13,15 @@ export type ProgressNodeData = ElkNodeData & {
     service_id: string;
     service_slug: string;
     status: ServiceStatus;
+    service_ids?: string[];
+    step_ids?: string[];
+    output_sources?: Record<string, {
+        stepIdentifier: string;
+        stepId: string;
+        serviceId: string;
+        outputName: string;
+        outputIndex: number;
+    }>;
 };
 
 export type EntryNodeData = ElkNodeData & {

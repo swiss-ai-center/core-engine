@@ -19,6 +19,10 @@ class TaskBase(CoreModel):
     status: TaskStatus = TaskStatus.PENDING
     service_id: UUID = Field(foreign_key="services.id")
     pipeline_execution_id: Optional[UUID] = Field(default=None, foreign_key="pipeline_executions.id")
+    # Soft reference to the pipeline step this task was created for. Lets the frontend
+    # pair tasks to steps by id instead of by list position. Intentionally not a DB
+    # foreign key: pipeline updates delete steps while only archiving their tasks.
+    pipeline_step_id: Optional[UUID] = Field(default=None)
     error_message: Optional[str] = Field(default=None, nullable=True)
 
 

@@ -135,9 +135,10 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             } else {
                 const sourceNode = nodesRef.current.find((node) => edge.source === node.id)
                 if (!targetNode || !sourceNode) return;
+                const dataSource = sourceNode.type === "entryNodeEdit" ? "pipeline" : sourceNode.data.identifier;
                 const prevDataIn = [...targetNode.data.selectedDataIn];
                 const selectedDataIn = prevDataIn.filter((input) => {
-                    return `${sourceNode.data.identifier}.${edge.sourceHandle}` !== input
+                    return `${dataSource}.${edge.sourceHandle}` !== input
                 });
                 setNodeSelectedDataIn(targetNode, selectedDataIn);
 
@@ -253,7 +254,9 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
 
             if (sourceNode.type !== "entryNodeEdit") {
                 const needs = [...targetNode.data.needs];
-                needs.push(sourceNode.data.identifier);
+                if (!needs.includes(sourceNode.data.identifier)) {
+                    needs.push(sourceNode.data.identifier);
+                }
                 setNodeNeeds(targetNode, needs);
             }
             const selectedDataIn = [...targetNode.data.selectedDataIn];
@@ -288,6 +291,12 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         if (source.type === "entryNodeEdit" && target.type === "exitNodeEdit") return false;
         // Allow multiple connections to exit, but only one edge per exit output handle
         if (target.type === "exitNodeEdit") {
+            if (!connection.targetHandle) return false;
+            const alreadyUsed = edgesRef.current.some(
+                (e) => e.target === target.id && e.targetHandle === connection.targetHandle
+            );
+            if (alreadyUsed) return false;
+        } else {
             if (!connection.targetHandle) return false;
             const alreadyUsed = edgesRef.current.some(
                 (e) => e.target === target.id && e.targetHandle === connection.targetHandle
@@ -560,7 +569,7 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
         let inputConnected = true;
         allNodes.forEach((node) => {
             node.data.dataIn.forEach((input: FieldDescription) => {
-                if (!edgesRef.current.find((edge) => edge.targetHandle === input.name)) inputConnected = false;
+                if (!edgesRef.current.find((edge) => edge.target === node.id && edge.targetHandle === input.name)) inputConnected = false;
             })
         })
 
@@ -735,13 +744,13 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
             condition === "" ?
                 steps.push({
                     identifier: node?.data.identifier,
-                    needs: node?.data.needs,
+                    needs: Array.from(new Set(node?.data.needs ?? [])),
                     inputs: node?.data.selectedDataIn,
                     ...unitRef,
                 })
                 : steps.push({
                     identifier: node?.data.identifier,
-                    needs: node?.data.needs,
+                    needs: Array.from(new Set(node?.data.needs ?? [])),
                     condition: condition,
                     inputs: node?.data.selectedDataIn,
                     ...unitRef,
@@ -878,11 +887,22 @@ const PipelineEditor: React.FC<{ mobileOpen: boolean, handleOpen: any }> = (
                     .map((edge) => edge.sourceHandle === previousName ? edge.target : null)
                     .filter((target) => target !== null);
 
+                setEdgesRef.current((eds) =>
+                    eds.map((edge) => {
+                        if (edge.source === entryNode.id && edge.sourceHandle === previousName) {
+                            return {
+                                ...edge,
+                                sourceHandle: newName,
+                            };
+                        }
+                        return edge;
+                    })
+                );
 
                 affectedNodes.forEach((nodeId) => {
                     const affectedNode = nodesRef.current.find((node) => node.id === nodeId)
                     if (affectedNode && affectedNode.type !== "exitNodeEdit")
-                        updateSelectedInputOption(affectedNode, `${entryNode.data.identifier}.${newName}`, `${entryNode.data.identifier}.${previousName}`);
+                        updateSelectedInputOption(affectedNode, `pipeline.${newName}`, `pipeline.${previousName}`);
                 })
             }
             return;

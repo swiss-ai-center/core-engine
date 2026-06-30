@@ -9,6 +9,14 @@ const nodeWidth = 250;
 const nodeHeight = 200;
 const edgeType = 'default';
 
+type GroupOutputSource = {
+    stepIdentifier: string;
+    stepId: string;
+    serviceId: string;
+    outputName: string;
+    outputIndex: number;
+};
+
 const getPipelineSource = (field: FieldDescription): string | null => {
     const hint = field.format_hint;
     if (typeof hint === "object" && hint !== null && !Array.isArray(hint)) {
@@ -78,6 +86,74 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
             standaloneSteps.push(step);
         }
     }
+
+    const getStepOutputSource = (stepIdentifier: string, outputName: string): GroupOutputSource | null => {
+        const step = entity.steps.find((candidate) => candidate.identifier === stepIdentifier);
+        if (!step) return null;
+        const outputIndex = (step.service?.data_out_fields ?? []).findIndex(
+            (field: FieldDescription) => field.name === outputName
+        );
+        if (outputIndex === -1) return null;
+        return {
+            stepIdentifier,
+            stepId: step.id,
+            serviceId: step.service_id,
+            outputName,
+            outputIndex,
+        };
+    };
+
+    const getGroupStatus = (steps: any[]) => {
+        const statuses = steps.map((step) => step.service?.status);
+        if (statuses.includes(ServiceStatus.SLEEPING)) return ServiceStatus.SLEEPING;
+        if (statuses.includes(ServiceStatus.UNAVAILABLE)) return ServiceStatus.UNAVAILABLE;
+        if (statuses.includes(ServiceStatus.DISABLED)) return ServiceStatus.DISABLED;
+        return ServiceStatus.AVAILABLE;
+    };
+
+    const getDeclaredOutputSource = (groupId: string, steps: any[], outputField: FieldDescription): GroupOutputSource | null => {
+        const source = getPipelineSource(outputField);
+        if (source) {
+            const [sourceStep, outputName] = source.split(".", 2);
+            if (sourceStep && outputName && sourceStep !== "pipeline") {
+                return getStepOutputSource(`${groupId}-${sourceStep}`, outputName);
+            }
+        }
+
+        const groupStepIds = new Set(steps.map((step) => step.identifier));
+        const requiredSteps = new Set<string>();
+        for (const step of steps) {
+            for (const input of (step.inputs ?? [])) {
+                const sourceStep = input.split(".", 1)[0];
+                if (groupStepIds.has(sourceStep)) requiredSteps.add(sourceStep);
+            }
+        }
+
+        const terminalOutputs: GroupOutputSource[] = [];
+        for (const step of steps) {
+            if (requiredSteps.has(step.identifier)) continue;
+            for (const field of (step.service?.data_out_fields ?? [])) {
+                const outputSource = getStepOutputSource(step.identifier, field.name);
+                if (outputSource) terminalOutputs.push(outputSource);
+            }
+        }
+
+        return terminalOutputs.find((output) => output.outputName === outputField.name)
+            ?? (terminalOutputs.length === 1 ? terminalOutputs[0] : null);
+    };
+
+    const findDeclaredSubOutput = (
+        subPipeline: any,
+        subStep: string,
+        outputName: string,
+    ): FieldDescription | null => {
+        const declaredOutputs = subPipeline?.data_out_fields ?? [];
+        return declaredOutputs.find(
+            (field: FieldDescription) => getPipelineSource(field) === `${subStep}.${outputName}`
+        )
+            ?? declaredOutputs.find((field: FieldDescription) => field.name === outputName)
+            ?? (declaredOutputs.length === 1 ? declaredOutputs[0] : null);
+    };
 
     // Map each step identifier to its effective node id (group or self)
     const stepToNodeId = new Map<string, string>();
@@ -216,9 +292,11 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
         // Boundary handles a group exposes once collapsed (handleId -> label).
         const groupTargetHandles = new Map<string, Map<string, string>>();
         const groupSourceHandles = new Map<string, Map<string, string>>();
+        const groupOutputSources = new Map<string, Map<string, GroupOutputSource>>();
         Array.from(groups.keys()).forEach(groupId => {
             groupTargetHandles.set(groupId, new Map<string, string>());
             groupSourceHandles.set(groupId, new Map<string, string>());
+            groupOutputSources.set(groupId, new Map<string, GroupOutputSource>());
         });
 
         const seenEdgeIds = new Set<string>();
@@ -242,15 +320,16 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
                     // sub-pipeline output field so the edge lands on the named handle.
                     const subStep = e.source.slice(sourceNodeId.length + 1);
                     const field = handleField(e.source, e.sourceHandle);
-                    const subPipeline = groups.get(sourceNodeId)!.subPipeline;
-                    const subOutput = (subPipeline?.data_out_fields ?? []).find(
-                        (f: FieldDescription) => getPipelineSource(f) === `${subStep}.${field}`
-                    );
+                    const subOutput = findDeclaredSubOutput(groups.get(sourceNodeId)!.subPipeline, subStep, field);
                     if (subOutput) {
                         newSourceHandle = `${sourceNodeId}-${subOutput.name}`;
                     } else {
                         newSourceHandle = `${sourceNodeId}-out-${e.sourceHandle ?? e.source}`;
                         groupSourceHandles.get(sourceNodeId)!.set(newSourceHandle, field);
+                    }
+                    const outputSource = getStepOutputSource(e.source, field);
+                    if (outputSource) {
+                        groupOutputSources.get(sourceNodeId)!.set(newSourceHandle, outputSource);
                     }
                 } else {
                     // Group-direct edge: handle is already named after a sub-pipeline output.
@@ -282,11 +361,16 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
         // Generate collapsed group nodes with the collected boundary handles
         Array.from(groups.entries()).forEach(([groupId, {sourcePipelineSlug, subPipeline, steps: gSteps}]) => {
             const targetHandles = Array.from(groupTargetHandles.get(groupId)!.entries()).map(([id, label]) => ({id, label}));
-            // Expose every sub-pipeline output (even unused ones), then add any handle an
-            // edge resolved to that isn't in the declared interface (e.g. unhinted outputs).
+            // Expose declared sub-pipeline outputs. Synthetic handles are only kept
+            // when there is no declared output to map the internal edge to.
             const sourceHandleMap = new Map<string, string>();
             for (const field of (subPipeline?.data_out_fields ?? [])) {
-                sourceHandleMap.set(`${groupId}-${field.name}`, field.name);
+                const handleId = `${groupId}-${field.name}`;
+                sourceHandleMap.set(handleId, field.name);
+                const outputSource = getDeclaredOutputSource(groupId, gSteps, field);
+                if (outputSource) {
+                    groupOutputSources.get(groupId)!.set(handleId, outputSource);
+                }
             }
             Array.from(groupSourceHandles.get(groupId)!.entries()).forEach(([id, label]) => {
                 if (!sourceHandleMap.has(id)) sourceHandleMap.set(id, label);
@@ -294,8 +378,18 @@ export default function getNodesAndEdges(entity: Service | Pipeline | null) {
             const sourceHandles = Array.from(sourceHandleMap.entries()).map(([id, label]) => ({id, label}));
             const representativeStep = gSteps[0];
             const serviceId = representativeStep?.service_id ?? groupId;
-            const status = representativeStep?.service?.status ?? ServiceStatus.AVAILABLE;
-            nodes.push(generateGroupNode(groupId, sourcePipelineSlug, serviceId, status, targetHandles, sourceHandles));
+            const status = getGroupStatus(gSteps);
+            nodes.push(generateGroupNode(
+                groupId,
+                sourcePipelineSlug,
+                serviceId,
+                status,
+                targetHandles,
+                sourceHandles,
+                Array.from(new Set(gSteps.map((step) => step.service_id))),
+                gSteps.map((step) => step.id),
+                Object.fromEntries(groupOutputSources.get(groupId)!.entries()),
+            ));
         });
 
         edges = collapsedEdges.flat();
@@ -331,7 +425,10 @@ const generateGroupNode = (
     serviceId: string,
     status: ServiceStatus,
     targetHandles: { id: string, label: string }[],
-    sourceHandles: { id: string, label: string }[]
+    sourceHandles: { id: string, label: string }[],
+    serviceIds: string[],
+    stepIds: string[],
+    outputSources: Record<string, GroupOutputSource>
 ) => {
     return {
         id,
@@ -346,6 +443,9 @@ const generateGroupNode = (
             status,
             sourceHandles,
             targetHandles,
+            service_ids: serviceIds,
+            step_ids: stepIds,
+            output_sources: outputSources,
         },
         width: nodeWidth,
         height: nodeHeight,
