@@ -2,6 +2,7 @@ import { ExecutionUnit } from 'models/ExecutionUnit';
 import { Service } from 'models/Service';
 
 export class PipelineStep {
+    id: string;
     identifier: string;
     needs: string[];
     condition: string;

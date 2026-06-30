@@ -39,6 +39,55 @@ def replace_reference_token(text: str, reference: str, replacement: str) -> str:
     return re.sub(pattern, replacement, text)
 
 
+def get_field_name(field) -> str:
+    return field.get("name") if isinstance(field, dict) else field.name
+
+
+def get_pipeline_source(field) -> str | None:
+    hint = field.get("format_hint") if isinstance(field, dict) else field.format_hint
+    return hint.get("pipeline_source") if isinstance(hint, dict) else None
+
+
+def get_input_dependencies(inputs: list[str], current_identifier: str) -> list[str]:
+    dependencies = []
+    for input_ref in inputs:
+        if "." not in input_ref:
+            continue
+        identifier = input_ref.split(".", 1)[0]
+        if identifier in ("pipeline", current_identifier) or identifier in dependencies:
+            continue
+        dependencies.append(identifier)
+    return dependencies
+
+
+def extend_needs(needs: list[str], dependencies: list[str]) -> list[str]:
+    for dependency in dependencies:
+        if dependency not in needs:
+            needs.append(dependency)
+    return needs
+
+
+def rewrite_parent_needs(needs: list[str] | None, outbound: dict[str, str]) -> list[str]:
+    """Remap each need through the outbound map (pipeline-node id -> concrete step id), de-duplicated."""
+    dependencies: list[str] = []
+    for need in needs or []:
+        rewritten_needs = [
+            output_ref.split(".", 1)[0]
+            for key, output_ref in outbound.items()
+            if key.split(".", 1)[0] == need and "." in output_ref
+        ] or [need]
+        extend_needs(dependencies, rewritten_needs)
+    return dependencies
+
+
+def rewrite_needs(needs: list[str] | None, inputs: list[str], current_identifier: str, outbound: dict[str, str]) -> list[str]:
+    """Remap needs through the outbound map, then add every input-referenced identifier as a need."""
+    return extend_needs(
+        rewrite_parent_needs(needs, outbound),
+        get_input_dependencies(inputs, current_identifier),
+    )
+
+
 class PipelinesService:
     def __init__(
             self,
@@ -256,7 +305,7 @@ class PipelinesService:
                         new_condition = replace_reference_token(new_condition, key, val)
                 flat_steps.append(PipelineStepCreate(
                     identifier=step.identifier,
-                    needs=step.needs,
+                    needs=rewrite_needs(step.needs, new_inputs, step.identifier, outbound),
                     condition=new_condition or None,
                     inputs=new_inputs,
                     service_slug=step.service_slug,
@@ -280,22 +329,66 @@ class PipelinesService:
             # inbound: sub-pipeline input name -> external producer ref
             sub_in = sub.data_in_fields or []
             inbound: dict[str, str] = {
-                (f.get("name") if isinstance(f, dict) else f.name): resolved_inputs[i]
+                get_field_name(f): resolved_inputs[i]
                 for i, f in enumerate(sub_in)
                 if i < len(resolved_inputs)
             }
 
+            required_steps = {
+                inp.split(".", 1)[0]
+                for T in sub.steps
+                for inp in (T.inputs or [])
+                if "." in inp and inp.split(".", 1)[0] != "pipeline"
+            }
+            terminal_outputs = []
+            for T in sub.steps:
+                if T.identifier in required_steps:
+                    continue
+                service = self.session.get(Service, T.service_id)
+                if not service:
+                    raise NotFoundException(f"Service for step '{T.identifier}' in pipeline '{step.pipeline_slug}' not found.")
+                for output in service.data_out_fields or []:
+                    terminal_outputs.append((T.identifier, output))
+
+            used_terminal_outputs: set[tuple[str, str]] = set()
+
             # Build outbound entries for this node from sub-pipeline's data_out_fields
             for out_field in (sub.data_out_fields or []):
-                name = out_field.get("name") if isinstance(out_field, dict) else out_field.name
-                hint = out_field.get("format_hint") if isinstance(out_field, dict) else out_field.format_hint
-                ps = hint.get("pipeline_source") if isinstance(hint, dict) else None
+                name = get_field_name(out_field)
+                ps = get_pipeline_source(out_field)
                 if ps:
                     id_part, var_part = ps.split(".", 1)
                     if id_part == "pipeline":
                         outbound[f"{step.identifier}.{name}"] = inbound.get(var_part, ps)
                     else:
                         outbound[f"{step.identifier}.{name}"] = f"{step.identifier}-{id_part}.{var_part}"
+                    continue
+
+                matching_output = next(
+                    (
+                        (identifier, output)
+                        for identifier, output in terminal_outputs
+                        if (identifier, get_field_name(output)) not in used_terminal_outputs
+                        and get_field_name(output) == name
+                    ),
+                    None,
+                )
+                if matching_output is None:
+                    matching_output = next(
+                        (
+                            (identifier, output)
+                            for identifier, output in terminal_outputs
+                            if (identifier, get_field_name(output)) not in used_terminal_outputs
+                        ),
+                        None,
+                    )
+                if matching_output is not None:
+                    identifier, output = matching_output
+                    output_name = get_field_name(output)
+                    used_terminal_outputs.add((identifier, output_name))
+                    outbound[f"{step.identifier}.{name}"] = f"{step.identifier}-{identifier}.{output_name}"
+
+            parent_needs = rewrite_parent_needs(step.needs, outbound)
 
             # Expand each internal step
             for T in sub.steps:
@@ -308,6 +401,8 @@ class PipelinesService:
                 used_identifiers.add(new_id)
 
                 new_needs = [f"{step.identifier}-{n}" for n in (T.needs or [])]
+                if not T.needs:
+                    new_needs = extend_needs(new_needs, parent_needs)
 
                 new_inputs = []
                 for inp in (T.inputs or []):
@@ -316,6 +411,7 @@ class PipelinesService:
                         new_inputs.append(inbound.get(var_part, inp))
                     else:
                         new_inputs.append(f"{step.identifier}-{id_part}.{var_part}")
+                new_needs = extend_needs(new_needs, get_input_dependencies(new_inputs, new_id))
 
                 new_condition = T.condition
                 if new_condition:
@@ -353,20 +449,14 @@ class PipelinesService:
             from common_code.common.models import FieldDescription
             new_data_out_fields = []
             for field in data_out_fields:
-                if isinstance(field, dict):
-                    hint = field.get("format_hint")
-                    ps = hint.get("pipeline_source") if isinstance(hint, dict) else None
-                    if ps and ps in outbound:
-                        field = {**field, "format_hint": {**hint, "pipeline_source": outbound[ps]}}
-                else:
-                    hint = field.format_hint
-                    ps = hint.get("pipeline_source") if isinstance(hint, dict) else None
-                    if ps and ps in outbound:
-                        field = FieldDescription(
-                            name=field.name,
-                            type=field.type,
-                            format_hint={**hint, "pipeline_source": outbound[ps]},
-                        )
+                ps = get_pipeline_source(field)
+                if ps and ps in outbound:
+                    hint = field.get("format_hint") if isinstance(field, dict) else field.format_hint
+                    new_hint = {**hint, "pipeline_source": outbound[ps]}
+                    if isinstance(field, dict):
+                        field = {**field, "format_hint": new_hint}
+                    else:
+                        field = FieldDescription(name=field.name, type=field.type, format_hint=new_hint)
                 new_data_out_fields.append(field)
 
         return flat_steps, new_data_out_fields
@@ -694,6 +784,7 @@ class PipelinesService:
                 for pipeline_step in pipeline_steps:
                     task = Task()
                     task.service_id = pipeline_step.service_id
+                    task.pipeline_step_id = pipeline_step.id
                     task.pipeline_execution_id = None
                     task.status = TaskStatus.SCHEDULED
                     task = self.tasks_service.create(task)

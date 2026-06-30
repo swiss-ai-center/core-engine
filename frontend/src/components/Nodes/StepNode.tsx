@@ -26,6 +26,7 @@ const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
     const [selfTimer, setSelfTimer] = React.useState(0.0);
     const [sleeping, setSleeping] = React.useState(false);
     const [serviceStatus, setServiceStatus] = React.useState<ServiceStatus>(data.status);
+    const groupedServiceIds = data.service_ids ?? [data.service_id];
 
     const refreshNodeStatus = React.useCallback((nextStatus: ServiceStatus) => {
         setNodes((nodes: any[]) => nodes.map((node: any) => {
@@ -54,6 +55,30 @@ const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
     }, [data.label, data.type, setNodes]);
 
     const getStatus = () => {
+        if (data.type === "subpipeline") {
+            // Pair tasks to this group's steps by pipeline_step_id (stable, unique per step),
+            // falling back to service_id for tasks that predate that column. We can't use list
+            // position: taskArray (execution response) and the rendered steps come from separate
+            // requests whose orderings are not guaranteed to match.
+            const groupedStepIdSet = new Set(data.step_ids ?? []);
+            const groupedServiceIdSet = new Set(groupedServiceIds);
+            const taskInGroup = (task: any) => task?.pipeline_step_id
+                ? groupedStepIdSet.has(task.pipeline_step_id)
+                : groupedServiceIdSet.has(task?.service_id);
+
+            if (currentTask && taskInGroup(currentTask)) return currentTask.status;
+
+            const groupedTasks = taskArray.filter(taskInGroup);
+            const priority = [RunState.PROCESSING, RunState.PENDING, RunState.SAVING, RunState.FETCHING, RunState.ERROR, RunState.SKIPPED];
+            for (const status of priority) {
+                if (groupedTasks.some((task: any) => task.status === status)) return status;
+            }
+            if (groupedTasks.length > 0 && groupedTasks.every((task: any) => task.status === RunState.FINISHED)) {
+                return RunState.FINISHED;
+            }
+            return RunState.IDLE;
+        }
+
         if (currentTask && currentTask.service_id === data.service_id) {
             return currentTask.status;
         } else {
@@ -73,21 +98,52 @@ const StepNode = ({data}: NodeProps<ProgressNodeData>) => {
     }
 
     const downloadIntermediateResult = async () => {
+        if (data.type === "subpipeline") {
+            const resultIdList = data.sourceHandles.flatMap((handle) => {
+                const outputSource = data.output_sources?.[handle.id];
+                if (!outputSource) return [];
+                const task = taskArray.find((t: any) => t.pipeline_step_id
+                    ? t.pipeline_step_id === outputSource.stepId
+                    : t.service_id === outputSource.serviceId);
+                const fileKey = task?.data_out?.[outputSource.outputIndex];
+                return fileKey ? [fileKey] : [];
+            });
+
+            if (resultIdList.length === 0) {
+                toast("No sub-pipeline output available to download", {type: "warning"});
+                return;
+            }
+
+            await download(resultIdList);
+            return;
+        }
+
         const resultIdList = taskArray.filter((task: any) => task.service_id === data.service_id)[0].data_out;
         await download(resultIdList);
     }
 
     const wakeUpService = async () => {
         try {
-            toast("Sending wake up request...", {type: "info"});
+            toast(data.type === "subpipeline" ? "Sending wake up requests..." : "Sending wake up request...", {type: "info"});
             setSleeping(true);
-            const response: any = await wakeUp(data.service_id);
-            if (response.status === 204) {
-                toast(response.message, {type: "success"});
+
+            const responses = await Promise.all(Array.from(new Set(groupedServiceIds)).map((serviceId) => wakeUp(serviceId)));
+            const successCount = responses.filter((response: any) => response.status === 204).length;
+            const failCount = responses.length - successCount;
+
+            if (failCount === 0) {
+                toast(
+                    data.type === "subpipeline"
+                        ? `All ${successCount} services woken up successfully`
+                        : responses[0].message,
+                    {type: "success"}
+                );
                 setServiceStatus(ServiceStatus.AVAILABLE);
                 refreshNodeStatus(ServiceStatus.AVAILABLE);
+            } else if (successCount === 0) {
+                toast("Failed to wake up service(s)", {type: "error"});
             } else {
-                toast(response.error, {type: "error"});
+                toast(`${successCount} services woken up, ${failCount} failed`, {type: "warning"});
             }
         } catch (e: any) {
             toast("Error while sending wake up request: " + e.message, {type: "error"});

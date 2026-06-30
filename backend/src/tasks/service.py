@@ -354,18 +354,29 @@ class TasksService:
                 f"Task {task.id} status is {task.status}. Expected {TaskStatus.FINISHED} or {TaskStatus.SKIPPED}"
             )
 
-        # Find task index in execution
-        try:
-            task_index = next(i for i, t in enumerate(pipeline_execution.tasks) if t.id == task.id)
-        except StopIteration:
-            raise NotFoundException("Associated Task in Pipeline Execution Not Found")
-
         # Get pipeline and steps
         pipeline = self.session.get(Pipeline, pipeline_execution.pipeline_id)
         if not pipeline:
             raise NotFoundException("Associated Pipeline Not Found")
 
-        current_pipeline_step = pipeline.steps[task_index]
+        # Pair every task with its pipeline step through the stable pipeline_step_id link.
+        # Indexing tasks against steps by position is unsafe: the two relationships are not
+        # guaranteed to share a row order, which mislabels produced files and routes the
+        # wrong data downstream. Fall back to positional pairing only for legacy tasks
+        # created before the pipeline_step_id column existed.
+        steps_by_id = {step.id: step for step in pipeline.steps}
+        if all(t.pipeline_step_id in steps_by_id for t in pipeline_execution.tasks):
+            step_by_task_id = {t.id: steps_by_id[t.pipeline_step_id] for t in pipeline_execution.tasks}
+        else:
+            step_by_task_id = {
+                t.id: pipeline.steps[i]
+                for i, t in enumerate(pipeline_execution.tasks)
+                if i < len(pipeline.steps)
+            }
+
+        current_pipeline_step = step_by_task_id.get(task.id)
+        if current_pipeline_step is None:
+            raise NotFoundException("Associated Task in Pipeline Execution Not Found")
 
         # Append produced files (if any) from finished task
         service = self.session.get(Service, task.service_id)
@@ -402,19 +413,19 @@ class TasksService:
 
         # Build completed identifiers set
         completed_identifiers = {
-            pipeline.steps[idx].identifier
-            for idx, t in enumerate(pipeline_execution.tasks)
-            if t.status in final_states
+            step_by_task_id[t.id].identifier
+            for t in pipeline_execution.tasks
+            if t.status in final_states and t.id in step_by_task_id
         }
 
         # Find steps ready to start: task still SCHEDULED and all needs satisfied
-        ready_indices = []
-        for idx, step in enumerate(pipeline.steps):
-            if pipeline_execution.tasks[idx].status != TaskStatus.SCHEDULED:
+        ready_pairs = []  # (step, task)
+        for t in pipeline_execution.tasks:
+            step = step_by_task_id.get(t.id)
+            if step is None or t.status != TaskStatus.SCHEDULED:
                 continue
-            needs = step.needs or []
-            if all(n in completed_identifiers for n in needs):
-                ready_indices.append(idx)
+            if all(n in completed_identifiers for n in (step.needs or [])):
+                ready_pairs.append((step, t))
 
         # Collect coroutines to post ready tasks concurrently
         post_coroutines = []
@@ -427,10 +438,7 @@ class TasksService:
         def get_key(fkr) -> str | None:
             return getattr(fkr, "file_key", None) if not isinstance(fkr, dict) else fkr.get("file_key")
 
-        for idx in ready_indices:
-            next_step = pipeline.steps[idx]
-            next_task = pipeline_execution.tasks[idx]
-
+        for next_step, next_task in ready_pairs:
             # Resolve input files by matching references already present in pipeline\_execution.files
             task_files = []
             for file_input in next_step.inputs or []:

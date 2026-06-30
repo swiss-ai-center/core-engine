@@ -9,6 +9,7 @@ export class Task {
     data_out: string[];
     service: Service;
     service_id: string;
+    pipeline_step_id?: string;
     pipeline_execution?: PipelineExecution;
     pipeline_execution_id?: string;
     general_status?: RunState;
