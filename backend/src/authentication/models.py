@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from sqlmodel import Column, Field
 
 from common.models import CoreModel, PydanticJSON
@@ -65,3 +65,21 @@ class UserRead(UserBase):
     This model is used to return a user to the user
     """
     id: UUID
+
+
+class UserNameUpdate(BaseModel):
+    """Fields an authenticated user may update on their own account."""
+
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
+
+    @field_validator("first_name", "last_name", mode="before")
+    @classmethod
+    def strip_name(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+
+class UserRoleUpdate(BaseModel):
+    """Role change available to administrators."""
+
+    role: Role

@@ -1,4 +1,5 @@
 from inspect import Parameter, Signature
+from typing import Optional
 from sqlalchemy.exc import IntegrityError
 from common_code.common.models import ExecutionUnitTag
 from common_code.common.enums import ExecutionUnitTagName, ExecutionUnitTagAcronym
@@ -16,7 +17,10 @@ from sqlmodel import Session, select, desc, col, or_, and_, cast
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from config import Settings, get_settings
-from services.models import Service, ServiceUpdate, ServiceTask
+from authentication.functions import get_optional_current_user
+from authentication.models import User
+from services.access import ServiceAccessLevel, can_access_service
+from services.models import Service, ServiceAccessUpdate, ServiceUpdate, ServiceTask
 from common.exceptions import NotFoundException, ConflictException, UnreachableException, ConstraintException
 from http_client import HttpClient
 from fastapi.encoders import jsonable_encoder
@@ -62,6 +66,7 @@ class ServicesService:
             tags: str | None,
             ai: bool | None,
             status: str = None,
+            access_levels: list[ServiceAccessLevel] | None = None,
     ) -> select:
         """
         Create a statement to find many services.
@@ -86,6 +91,9 @@ class ServicesService:
             status_list = status.split(",")
             status_enums = [ExecutionUnitStatus[status_str.upper()] for status_str in status_list]
             filter_statement = and_(filter_statement, Service.status.in_(status_enums))
+
+        if access_levels is not None:
+            filter_statement = and_(filter_statement, Service.access_level.in_(access_levels))
 
         if ai:
             filter_statement = and_(filter_statement, Service.has_ai == ai)
@@ -147,6 +155,7 @@ class ServicesService:
             tags: str = None,
             ai: bool = False,
             status: str = None,
+            access_levels: list[ServiceAccessLevel] | None = None,
     ):
         """
         Find many services with total count.
@@ -162,7 +171,7 @@ class ServicesService:
         """
         self.logger.debug("Find many services with total count.")
 
-        statement = self.create_statement(search, order_by, order, tags, ai, status)
+        statement = self.create_statement(search, order_by, order, tags, ai, status, access_levels)
 
         statement_to_count = statement
 
@@ -184,6 +193,7 @@ class ServicesService:
             tags: str = None,
             ai: bool = False,
             status: str = None,
+            access_levels: list[ServiceAccessLevel] | None = None,
     ):
         """
         Find many services.
@@ -199,7 +209,7 @@ class ServicesService:
         """
         self.logger.debug("Find many services")
 
-        statement = self.create_statement(search, order_by, order, tags, ai, status)
+        statement = self.create_statement(search, order_by, order, tags, ai, status, access_levels)
 
         statement = statement.offset(skip).limit(limit)
 
@@ -300,6 +310,19 @@ class ServicesService:
         self.logger.debug(f"Updated service with id {current_service.id}")
         return current_service
 
+    def update_access_level(self, service_id: UUID, update: ServiceAccessUpdate) -> Service:
+        """Update only the access policy of a service."""
+
+        current_service = self.session.get(Service, service_id)
+        if not current_service:
+            raise NotFoundException("Service Not Found")
+
+        current_service.access_level = update.access_level
+        self.session.add(current_service)
+        self.session.commit()
+        self.session.refresh(current_service)
+        return current_service
+
     def delete(self, service_id: UUID, app: FastAPI):
         """
         Delete a service.
@@ -357,6 +380,21 @@ class ServicesService:
                     )
                 )
 
+            handler_params.extend([
+                Parameter(
+                    "_current_user",
+                    kind=Parameter.KEYWORD_ONLY,
+                    annotation=Optional[User],
+                    default=Depends(get_optional_current_user),
+                ),
+                Parameter(
+                    "_request_session",
+                    kind=Parameter.KEYWORD_ONLY,
+                    annotation=Session,
+                    default=Depends(get_session),
+                ),
+            ])
+
             service_id = service.id
 
             @with_signature(Signature(handler_params))
@@ -372,6 +410,15 @@ class ServicesService:
                 number of arguments at runtime, we have to access these arguments through the
                 `kwargs` argument.
                 """
+
+                current_user = kwargs.pop("_current_user")
+                request_session = kwargs.pop("_request_session")
+                current_service = request_session.get(Service, service_id)
+                if not current_service or not can_access_service(
+                        current_service.access_level,
+                        current_user.role if current_user else None,
+                ):
+                    raise HTTPException(status_code=403, detail="You do not have access to this service.")
 
                 # The files for the tasks
                 task_files = []

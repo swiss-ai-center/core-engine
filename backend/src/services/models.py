@@ -7,6 +7,7 @@ from common_code.common.models import FieldDescription, ExecutionUnitTag
 from common.models import CoreModel, PydanticJSON
 from execution_units.enums import ExecutionUnitStatus
 from pydantic_settings import SettingsConfigDict
+from services.access import ServiceAccessLevel
 
 
 class ServiceBase(CoreModel):
@@ -88,6 +89,11 @@ class Service(ServiceBase, table=True):
     __tablename__ = "services"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
+    access_level: ServiceAccessLevel = Field(
+        default=ServiceAccessLevel.PUBLIC,
+        nullable=False,
+        sa_column_kwargs={"server_default": ServiceAccessLevel.PUBLIC.name},
+    )
     tasks: List["Task"] = Relationship(
         sa_relationship_kwargs={"cascade": "delete"}, back_populates="service"
     )  # noqa F821
@@ -103,6 +109,7 @@ class ServiceRead(ServiceBase):
     """
 
     id: UUID
+    access_level: ServiceAccessLevel
 
 
 class ServiceReadWithTasks(ServiceRead):
@@ -141,6 +148,12 @@ class ServiceUpdate(SQLModel):
     tags: Optional[List[ExecutionUnitTag]] = None
     has_ai: Optional[bool] = None
     latest_ping: Optional[datetime] = None
+
+
+class ServiceAccessUpdate(BaseModel):
+    """Access setting administrators may change independently of service metadata."""
+
+    access_level: ServiceAccessLevel
 
 
 class ServiceTaskBase(BaseModel):

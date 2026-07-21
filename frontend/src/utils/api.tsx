@@ -1,10 +1,19 @@
 import { FieldDescriptionWithSetAndValue } from 'models/ExecutionUnit';
+import { Pipeline } from 'models/Pipeline';
 import { ServiceStatus } from '../enums/serviceStatusEnum';
+import { ServiceAccessLevel } from 'enums/serviceAccessLevelEnum';
+import { Service } from 'models/Service';
+import { getStoredAuthenticationToken } from 'utils/authentication';
 
 // Allow all origins
 const HEADERS = {
     'Access-Control-Allow-Origin': '*',
 }
+
+const serviceRequestHeaders = (): HeadersInit => {
+    const token = getStoredAuthenticationToken();
+    return token ? {...HEADERS, Authorization: `Bearer ${token}`} : {...HEADERS};
+};
 
 const createUnavailableServiceFallback = (id?: string | null) => ({
     id: id ?? "",
@@ -18,6 +27,7 @@ const createUnavailableServiceFallback = (id?: string | null) => ({
     url: "",
     docs_url: "",
     has_ai: false,
+    access_level: ServiceAccessLevel.PUBLIC,
 });
 
 const createQuery = (
@@ -88,7 +98,7 @@ export const getServices = async (
         const query = createQuery('services', filter, skip, limit, orderBy, tags, ai, statuses);
 
         console.log(query);
-        const response = await fetch(query, {headers: HEADERS});
+        const response = await fetch(query, {headers: serviceRequestHeaders()});
         if (response.status === 200) {
             return await response.json();
         }
@@ -110,7 +120,7 @@ export const getPipelines = async (filter: string, skip: number, limit: number, 
     try {
         const query = createQuery('pipelines', filter, skip, limit, orderBy, tags);
 
-        const response = await fetch(query, {headers: HEADERS});
+        const response = await fetch(query, {headers: serviceRequestHeaders()});
         if (response.status === 200) {
             return await response.json();
         }
@@ -119,6 +129,120 @@ export const getPipelines = async (filter: string, skip: number, limit: number, 
         return {error: error.message};
     }
 }
+
+export const getAllPipelines = async (token: string): Promise<Pipeline[]> => {
+    const batchSize = 100;
+    const pipelines: Pipeline[] = [];
+    let skip = 0;
+    let total = 0;
+
+    do {
+        const query = new URLSearchParams({
+            with_count: 'true',
+            skip: String(skip),
+            limit: String(batchSize),
+            order_by: 'name',
+            order: 'asc',
+        });
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/admin/pipelines?${query}`, {
+            headers: {Authorization: `Bearer ${token}`},
+        });
+
+        if (!response.ok) throw new Error('Unable to load pipelines.');
+
+        const result: { count: number, pipelines: Pipeline[] } = await response.json();
+        pipelines.push(...result.pipelines);
+        total = result.count;
+        skip += result.pipelines.length;
+
+        if (result.pipelines.length === 0) break;
+    } while (pipelines.length < total);
+
+    return pipelines;
+};
+
+export const getAllAdminServices = async (token: string): Promise<Service[]> => {
+    const batchSize = 100;
+    const services: Service[] = [];
+    let skip = 0;
+    let total = 0;
+
+    do {
+        const query = new URLSearchParams({
+            skip: String(skip),
+            limit: String(batchSize),
+            order_by: 'name',
+            order: 'asc',
+        });
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/admin/services?${query}`, {
+            headers: {Authorization: `Bearer ${token}`},
+        });
+
+        if (!response.ok) throw new Error('Unable to load services.');
+
+        const result: { count: number, services: Service[] } = await response.json();
+        services.push(...result.services);
+        total = result.count;
+        skip += result.services.length;
+
+        if (result.services.length === 0) break;
+    } while (services.length < total);
+
+    return services;
+};
+
+export const updateServiceAccess = async (
+    token: string,
+    serviceId: string,
+    accessLevel: ServiceAccessLevel,
+): Promise<Service> => {
+    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/admin/services/${serviceId}/access`, {
+        method: 'PATCH',
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({access_level: accessLevel}),
+    });
+
+    if (!response.ok) {
+        throw new Error(response.status === 404 ? 'This service no longer exists.' : 'Unable to update service access.');
+    }
+
+    return response.json();
+};
+
+export const deletePipeline = async (token: string, pipelineId: string): Promise<void> => {
+    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines/${pipelineId}`, {
+        method: 'DELETE',
+        headers: {Authorization: `Bearer ${token}`},
+    });
+
+    if (!response.ok) {
+        throw new Error(response.status === 404 ? 'This pipeline no longer exists.' : 'Unable to delete this pipeline.');
+    }
+};
+
+export const updatePipelineMetadata = async (
+    token: string,
+    pipelineId: string,
+    metadata: Pick<Pipeline, 'name' | 'summary' | 'description'>,
+): Promise<Pipeline> => {
+    const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines/${pipelineId}`, {
+        method: 'PATCH',
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(metadata),
+    });
+
+    if (!response.ok) {
+        throw new Error(response.status === 404 ? 'This pipeline no longer exists.' : 'Unable to update this pipeline.');
+    }
+
+    return response.json();
+};
 
 
 export const checkPipelineValidity = async (jsonDescription: string) => {
@@ -189,7 +313,7 @@ export const getServiceDescriptionById = async (id: string) => {
     }
 
     try {
-        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + normalizedId, {headers: HEADERS});
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/` + normalizedId, {headers: serviceRequestHeaders()});
         if (response.status === 200) {
             return await response.json();
         }
@@ -205,7 +329,7 @@ export const getServiceDescription = async (slug: string) => {
      * slug: string - the slug of the service
      */
     try {
-        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/slug/` + slug, {headers: HEADERS});
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/slug/` + slug, {headers: serviceRequestHeaders()});
         if (response.status === 200) {
             return await response.json();
         }
@@ -221,7 +345,9 @@ export const getPipelineDescription = async (slug: string) => {
      * slug: string - the slug of the pipeline
      */
     try {
-        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines/slug/` + slug, {headers: HEADERS});
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/pipelines/slug/` + slug, {
+            headers: serviceRequestHeaders(),
+        });
         if (response.status === 200) {
             return await response.json();
         }
@@ -294,7 +420,7 @@ export const postToEngine = async (serviceSlug: string, parts: FieldDescriptionW
         }
 
         const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/${serviceSlug}`, {
-            headers: HEADERS,
+            headers: serviceRequestHeaders(),
             method: 'POST',
             body,
         });
@@ -316,7 +442,9 @@ export const getCodeSnippet = async (slug: string, isPipeline: boolean = false) 
      */
     try {
         const type = isPipeline ? 'pipelines' : 'services';
-        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/${type}/slug/${slug}/code-snippet`, {headers: HEADERS});
+        const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/${type}/slug/${slug}/code-snippet`, {
+            headers: serviceRequestHeaders(),
+        });
         if (response.status === 200) {
             const code_snippet = await response.text();
             return {"code_snippet": code_snippet};
@@ -339,7 +467,7 @@ export const wakeUp = async (serviceId: string) => {
 
     try {
         const response = await fetch(`${process.env.REACT_APP_ENGINE_URL}/services/${normalizedServiceId}/wake-up`, {
-            headers: HEADERS,
+            headers: serviceRequestHeaders(),
             method: 'POST',
         });
         if (response.status === 204) {
