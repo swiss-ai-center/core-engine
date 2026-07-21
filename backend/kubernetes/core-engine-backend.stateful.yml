@@ -30,3 +30,5 @@ spec:
           envFrom:
             - configMapRef:
                 name: core-engine-backend-config
+            - secretRef:
+                name: core-engine-backend-secret

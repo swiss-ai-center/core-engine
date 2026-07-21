@@ -5,6 +5,8 @@ from connection_manager.connection_manager import ConnectionManager, get_connect
 from connection_manager.models import ConnectionData, Message, MessageType, MessageSubject
 from database import get_session, get_engine
 from common_code.logger.logger import get_logger
+from authentication.controller import router as authentication_router
+from authentication.service import create_first_admin
 from pipelines.controller import router as pipelines_router
 from pipeline_executions.controller import router as pipeline_executions_router
 from services.controller import router as services_router
@@ -53,6 +55,9 @@ async def lifespan(api: FastAPI):
     session_generator = get_session(engine)
     session = next(session_generator)
     http_client = HttpClient()
+
+    # Create the first admin user if configured (ADMIN_EMAIL / ADMIN_PASSWORD_HASH)
+    create_first_admin(settings, session, logger)
 
     storage_service = StorageService(
         logger=logger,
@@ -155,6 +160,7 @@ app.add_middleware(
 )
 
 # Include routers from other files
+app.include_router(authentication_router, tags=['Authentication'])
 app.include_router(pipeline_executions_router, tags=['Pipeline Executions'])
 app.include_router(pipelines_router, tags=['Pipelines'])
 app.include_router(services_router, tags=['Services'])
