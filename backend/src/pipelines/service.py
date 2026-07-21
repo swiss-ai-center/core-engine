@@ -15,7 +15,7 @@ from authentication.functions import get_optional_current_user
 from authentication.models import User
 from storage.service import StorageService
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlmodel import Session, select, desc, col, or_, and_, cast, exists
+from sqlmodel import Session, select, desc, col, or_, and_, cast
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from common_code.common.models import ExecutionUnitTag
@@ -157,10 +157,10 @@ class PipelinesService:
                 .join(Service, PipelineStep.service_id == Service.id)
                 .where(
                     PipelineStep.pipeline_id == Pipeline.id,
-                    Service.access_level.not_in(access_levels),
+                    Service.access_level.notin_(access_levels),
                 )
             )
-            filter_statement = and_(filter_statement, ~exists(inaccessible_step))
+            filter_statement = and_(filter_statement, ~inaccessible_step.exists())
 
         if search:
             filter_statement = and_(
