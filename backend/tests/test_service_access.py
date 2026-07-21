@@ -10,7 +10,7 @@ from sqlmodel import Session, SQLModel, create_engine
 from authentication.controller import router as authentication_router
 from authentication.models import Role, User
 from database import get_async_session, get_session
-from main import app as _main_app  # Import models in the application's established order.
+from main import app as _main_app  # noqa: F401  Import models in the application's established order.
 from pipeline_steps.models import PipelineStep
 from pipelines.controller import router as pipelines_router
 from pipelines.models import Pipeline
