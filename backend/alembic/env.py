@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 from sqlmodel import SQLModel  # noqa: E402 F401 F403
 
 # Import all models so they're registered with SQLModel.metadata
+from authentication.models import *  # noqa: E402 F401 F403
 from common.models import *  # noqa: E402 F401 F403
 from services.models import *  # noqa: E402 F401 F403
 from connection_manager.models import *  # noqa: E402 F401 F403

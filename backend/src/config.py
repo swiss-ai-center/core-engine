@@ -32,6 +32,18 @@ class Settings(BaseSettings):
     s3_bucket: str
     check_services_availability_interval: int = 30
     sentry_dsn: str
+    # Secret used to sign JWTs and fastapi-users tokens.
+    # Loaded from the AUTH_SECRET environment variable (see .env); no default
+    # on purpose so the app refuses to start without one.
+    auth_secret: str
+    # First admin bootstrap (ADMIN_EMAIL / ADMIN_PASSWORD_HASH env vars, e.g.
+    # from a Kubernetes secret): created at startup if this email does not
+    # exist yet. The password is provided already hashed (bcrypt/argon2),
+    # never in clear text. Both unset = bootstrap skipped.
+    admin_email: str | None = None
+    admin_password_hash: str | None = None
+    # Authentication token lifetime, in seconds
+    auth_token_ttl: int = 3600  # 1 hour
 
 
 @lru_cache()

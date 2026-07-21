@@ -62,3 +62,19 @@ class ConstraintException(Exception):
     def __init__(self, message):
         self.message = message
         super().__init__(self.message)
+
+
+class NotAuthenticatedException(Exception):
+    """Exception raised when no authenticated user can be resolved from the request."""
+
+    def __init__(self, message=None):
+        self.message = message or "Not authenticated"
+        super().__init__(self.message)
+
+
+class ForbiddenException(Exception):
+    """Exception raised when the authenticated user lacks the required permissions."""
+
+    def __init__(self, message=None):
+        self.message = message or "You do not have enough permissions"
+        super().__init__(self.message)
