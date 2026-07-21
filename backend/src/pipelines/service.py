@@ -2,6 +2,7 @@ import asyncio
 import json
 import re
 import graphlib
+from typing import Optional
 from fastapi import FastAPI, UploadFile, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from inspect import Parameter, Signature
@@ -9,9 +10,12 @@ from makefun import with_signature
 from common.functions import get_example_filename
 from execution_units.enums import ExecutionUnitStatus
 from services.models import Service, ServiceTask
+from services.access import ServiceAccessLevel, can_access_service
+from authentication.functions import get_optional_current_user
+from authentication.models import User
 from storage.service import StorageService
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlmodel import Session, select, desc, col, or_, and_, cast
+from sqlmodel import Session, select, desc, col, or_, and_, cast, exists
 from database import get_session
 from common_code.logger.logger import Logger, get_logger
 from common_code.common.models import ExecutionUnitTag
@@ -126,6 +130,7 @@ class PipelinesService:
             order: str | None,
             tags: str | None,
             status: str = None,
+            access_levels: list[ServiceAccessLevel] | None = None,
     ) -> select:
         """
         Create a statement to find many pipelines.
@@ -145,6 +150,17 @@ class PipelinesService:
 
         if status:
             filter_statement = Pipeline.status == status
+
+        if access_levels is not None:
+            inaccessible_step = (
+                select(PipelineStep.id)
+                .join(Service, PipelineStep.service_id == Service.id)
+                .where(
+                    PipelineStep.pipeline_id == Pipeline.id,
+                    Service.access_level.not_in(access_levels),
+                )
+            )
+            filter_statement = and_(filter_statement, ~exists(inaccessible_step))
 
         if search:
             filter_statement = and_(
@@ -201,7 +217,8 @@ class PipelinesService:
             order_by: str = "name",
             order: str = "asc",
             tags: str = None,
-            status: str = None
+            status: str = None,
+            access_levels: list[ServiceAccessLevel] | None = None,
     ):
         """
         Find many pipelines with total count.
@@ -216,7 +233,7 @@ class PipelinesService:
         """
         self.logger.debug("Find many pipelines with total count.")
 
-        statement = self.create_statement(search, order_by, order, tags, status)
+        statement = self.create_statement(search, order_by, order, tags, status, access_levels)
 
         statement_to_count = statement
 
@@ -236,7 +253,8 @@ class PipelinesService:
             order_by: str = "name",
             order: str = "asc",
             tags: str = None,
-            status: str = None
+            status: str = None,
+            access_levels: list[ServiceAccessLevel] | None = None,
     ):
         """
         Find many pipelines.
@@ -251,7 +269,7 @@ class PipelinesService:
         """
         self.logger.debug("Find many pipelines")
 
-        statement = self.create_statement(search, order_by, order, tags, status)
+        statement = self.create_statement(search, order_by, order, tags, status, access_levels)
 
         statement = statement.offset(skip).limit(limit)
 
@@ -278,6 +296,12 @@ class PipelinesService:
         self.logger.debug(f"Find pipeline with slug {pipeline_slug}")
 
         return self.session.exec(select(Pipeline).where(Pipeline.slug == pipeline_slug)).first()
+
+    @staticmethod
+    def is_accessible(pipeline: Pipeline, access_levels: list[ServiceAccessLevel]) -> bool:
+        """Return whether every service used by a pipeline is visible to an audience."""
+
+        return all(step.service.access_level in access_levels for step in pipeline.steps)
 
     def expand_nested_pipelines(
         self,
@@ -552,6 +576,7 @@ class PipelinesService:
 
         # Dump the model data
         pipeline_data = pipeline.model_dump(exclude_unset=True)
+        steps_updated = "steps" in pipeline_data
 
         # Update Pipeline attributes
         for key, value in pipeline_data.items():
@@ -559,85 +584,87 @@ class PipelinesService:
                 continue
             setattr(current_pipeline, key, value)
 
-        # Update/Add/Delete Steps
-        existing_step_identifiers = {step.identifier for step in current_pipeline.steps}
-        updated_step_ids = set()
+        if steps_updated:
+            # Update/Add/Delete Steps
+            existing_step_identifiers = {step.identifier for step in current_pipeline.steps}
+            updated_step_ids = set()
 
-        for step_data in pipeline_data["steps"]:
-            step_identifier = step_data.get("identifier")
-            if step_identifier in existing_step_identifiers:
-                # Update existing step
+            for step_data in pipeline_data["steps"]:
+                step_identifier = step_data.get("identifier")
+                if step_identifier in existing_step_identifiers:
+                    # Update existing step
+                    step = self.session.exec(
+                        select(PipelineStep).where(
+                            and_(PipelineStep.pipeline_id == pipeline_id, PipelineStep.identifier == step_identifier)
+                        )
+                    ).first()
+                    # Get the service
+                    service = self.services_service.find_one_by_slug(step_data["service_slug"])
+                    if not service:
+                        raise NotFoundException(f"Service with slug '{step_data['service_slug']}' not found.")
+                    step.service = service
+                    step.service_id = service.id
+                    for key, value in step_data.items():
+                        if key == "service_slug":
+                            continue
+                        setattr(step, key, value)
+                    updated_step_ids.add(step_identifier)
+                else:
+                    # Get the service
+                    service = self.services_service.find_one_by_slug(step_data["service_slug"])
+                    if not service:
+                        raise NotFoundException(f"Service with slug '{step_data['service_slug']}' not found.")
+                    step_data["service_id"] = service.id
+                    # Remove the service_slug key
+                    step_data.pop("service_slug")
+                    # Add new step
+                    new_step = PipelineStep(**step_data, pipeline_id=pipeline_id)
+                    self.session.add(new_step)
+                    updated_step_ids.add(new_step.id)
+
+            # Delete steps that are no longer present
+            steps_to_delete = existing_step_identifiers - updated_step_ids
+            for step_identifier in steps_to_delete:
                 step = self.session.exec(
                     select(PipelineStep).where(
                         and_(PipelineStep.pipeline_id == pipeline_id, PipelineStep.identifier == step_identifier)
                     )
                 ).first()
-                # Get the service
-                service = self.services_service.find_one_by_slug(step_data["service_slug"])
-                if not service:
-                    raise NotFoundException(f"Service with slug '{step_data['service_slug']}' not found.")
-                step.service = service
-                step.service_id = service.id
-                for key, value in step_data.items():
-                    if key == "service_slug":
-                        continue
-                    setattr(step, key, value)
-                updated_step_ids.add(step_identifier)
-            else:
-                # Get the service
-                service = self.services_service.find_one_by_slug(step_data["service_slug"])
-                if not service:
-                    raise NotFoundException(f"Service with slug '{step_data['service_slug']}' not found.")
-                step_data["service_id"] = service.id
-                # Remove the service_slug key
-                step_data.pop("service_slug")
-                # Add new step
-                new_step = PipelineStep(**step_data, pipeline_id=pipeline_id)
-                self.session.add(new_step)
-                updated_step_ids.add(new_step.id)
-
-        # Delete steps that are no longer present
-        steps_to_delete = existing_step_identifiers - updated_step_ids
-        for step_identifier in steps_to_delete:
-            step = self.session.exec(
-                select(PipelineStep).where(
-                    and_(PipelineStep.pipeline_id == pipeline_id, PipelineStep.identifier == step_identifier)
-                )
-            ).first()
-            self.session.delete(step)
+                self.session.delete(step)
 
         # Save the updated pipeline
         self.session.add(current_pipeline)
         self.session.flush()
         self.session.refresh(current_pipeline)
 
-        # Check if pipeline is consistent
-        try:
-            self.check_pipeline_consistency(current_pipeline)
-        except InconsistentPipelineException as e:
-            self.session.rollback()
-            raise e
+        if steps_updated:
+            # Check if pipeline is consistent
+            try:
+                self.check_pipeline_consistency(current_pipeline)
+            except InconsistentPipelineException as e:
+                self.session.rollback()
+                raise e
 
-        # Update the pipeline execution tasks to archive them
-        pipeline_executions = self.session.exec(
-            select(PipelineExecution).where(PipelineExecution.pipeline_id == pipeline_id)
-        ).all()
+            # Step changes invalidate existing executions; metadata changes do not.
+            pipeline_executions = self.session.exec(
+                select(PipelineExecution).where(PipelineExecution.pipeline_id == pipeline_id)
+            ).all()
 
-        for pipeline_execution in pipeline_executions:
-            for task in pipeline_execution.tasks:
-                # Update the tasks to set pipeline_execution_id to None and status to ARCHIVED
-                self.logger.debug(
-                    f"Updating task {task.id} with pipeline_execution_id to None "
-                    f"and status to ARCHIVED"
-                )
-                self.tasks_service.update(
-                    task.id,
-                    TaskUpdate(status=TaskStatus.ARCHIVED, pipeline_execution_id=None, data_out=[])
-                )
+            for pipeline_execution in pipeline_executions:
+                for task in pipeline_execution.tasks:
+                    # Update the tasks to set pipeline_execution_id to None and status to ARCHIVED
+                    self.logger.debug(
+                        f"Updating task {task.id} with pipeline_execution_id to None "
+                        f"and status to ARCHIVED"
+                    )
+                    self.tasks_service.update(
+                        task.id,
+                        TaskUpdate(status=TaskStatus.ARCHIVED, pipeline_execution_id=None, data_out=[])
+                    )
 
-            # Delete the pipeline_execution
-            self.logger.debug(f"Deleting pipeline_execution {pipeline_execution.id}")
-            self.pipeline_executions_service.delete(pipeline_execution.id)
+                # Delete the pipeline_execution
+                self.logger.debug(f"Deleting pipeline_execution {pipeline_execution.id}")
+                self.pipeline_executions_service.delete(pipeline_execution.id)
 
         self.session.commit()
 
@@ -713,6 +740,21 @@ class PipelinesService:
                     )
                 )
 
+            handler_params.extend([
+                Parameter(
+                    "_current_user",
+                    kind=Parameter.KEYWORD_ONLY,
+                    annotation=Optional[User],
+                    default=Depends(get_optional_current_user),
+                ),
+                Parameter(
+                    "_request_session",
+                    kind=Parameter.KEYWORD_ONLY,
+                    annotation=Session,
+                    default=Depends(get_session),
+                ),
+            ])
+
             pipeline_id = pipeline.id
             pipeline_steps = pipeline.steps
 
@@ -724,6 +766,17 @@ class PipelinesService:
                 - Creates tasks and a pipeline_execution.
                 - Starts all initial steps (no 'needs') concurrently.
                 """
+
+                current_user = kwargs.pop("_current_user")
+                request_session = kwargs.pop("_request_session")
+                current_role = current_user.role if current_user else None
+                for pipeline_step in pipeline_steps:
+                    step_service = request_session.get(Service, pipeline_step.service_id)
+                    if not step_service or not can_access_service(step_service.access_level, current_role):
+                        raise HTTPException(
+                            status_code=403,
+                            detail="You do not have access to every service required by this pipeline.",
+                        )
 
                 # Helper to safely access FileKeyReference or dict
                 def _get_ref_and_key(f):

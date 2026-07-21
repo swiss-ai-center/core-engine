@@ -16,7 +16,9 @@ import { useDispatch } from 'react-redux';
 import { NavLink, useParams } from 'react-router-dom';
 import { useAuthentication } from 'utils/hooks/authentication';
 import { setMenuIcon } from 'utils/reducers/menuIconSlice';
+import AdminPipelines from './Pipelines';
 import AdminUsers from './Users';
+import AdminServices from './Services';
 
 const sections = {
     users: {label: 'Users', icon: <PeopleOutline/>},
@@ -153,6 +155,8 @@ const AdminPanel: React.FC = () => {
                         {sections[activeSection].label}
                     </Typography>
                     {activeSection === 'users' && <AdminUsers/>}
+                    {activeSection === 'pipelines' && <AdminPipelines/>}
+                    {activeSection === 'services' && <AdminServices/>}
                 </Box>
             </Box>
         </Box>

@@ -21,6 +21,7 @@ import { getPipelines, getServices } from 'utils/api';
 import { isSmartphone } from 'utils/functions';
 import { setPipelinePerPage, setServicePerPage, setServicePipelineEditorPerPage } from 'utils/reducers/perPageSlice';
 import LoadingGrid from 'components/LoadingGrid/LoadingGrid';
+import { useAuthentication } from 'utils/hooks/authentication';
 
 // min width is 100% for mobile, 50% for tablet, 33% for desktop
 const minWidth = isSmartphone() ? '100%' : (window.innerWidth < 900) ? '82%' : '66%';
@@ -60,6 +61,7 @@ const ItemGrid: React.FC<{
     const [pipelines, setPipelines] = React.useState([]);
     const [services, setServices] = React.useState([]);
     const navigate = useNavigate();
+    const authenticationAudience = useAuthentication().user?.role ?? 'public';
 
     const navigateToPipelineEditor = () => {
         navigate("/pipeline-editor");
@@ -279,7 +281,7 @@ const ItemGrid: React.FC<{
             listElements(filter, orderBy, tags.map(t => t.acronym));
         }, 300);
         return () => clearTimeout(timeout);
-    }, [filter, pageService, pagePipeline, orderBy, tags, ai, servicesPerPage, servicesPipelineEditorPerPage, pipelinesPerPage, items]);
+    }, [filter, pageService, pagePipeline, orderBy, tags, ai, servicesPerPage, servicesPipelineEditorPerPage, pipelinesPerPage, items, displayedPage, authenticationAudience]);
 
     return (
         <Box>
