@@ -16,3 +16,5 @@ data:
   S3_HOST: http://minio-service:9000
   S3_BUCKET: core-engine
   SENTRY_DSN: ""
+  # Authentication token lifetime, in seconds
+  AUTH_TOKEN_TTL: "86400" # 24h
