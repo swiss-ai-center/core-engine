@@ -92,6 +92,7 @@ class Service(ServiceBase, table=True):
     access_level: ServiceAccessLevel = Field(
         default=ServiceAccessLevel.PUBLIC,
         nullable=False,
+        sa_column_kwargs={"server_default": ServiceAccessLevel.PUBLIC.name},
     )
     tasks: List["Task"] = Relationship(
         sa_relationship_kwargs={"cascade": "delete"}, back_populates="service"
