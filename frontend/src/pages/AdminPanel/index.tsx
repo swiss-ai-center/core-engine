@@ -1,4 +1,12 @@
-import { AccountTreeOutlined, MiscellaneousServicesOutlined, PeopleOutline } from '@mui/icons-material';
+import {
+    AccountTreeOutlined,
+    AnalyticsOutlined,
+    ArticleOutlined,
+    MiscellaneousServicesOutlined,
+    MonitorHeartOutlined,
+    PeopleOutline,
+    QueryStatsOutlined,
+} from '@mui/icons-material';
 import {
     Alert,
     Box,
@@ -16,14 +24,22 @@ import { useDispatch } from 'react-redux';
 import { NavLink, useParams } from 'react-router-dom';
 import { useAuthentication } from 'utils/hooks/authentication';
 import { setMenuIcon } from 'utils/reducers/menuIconSlice';
+import AdminEngineStatistics from './EngineStatistics';
+import AdminLogs from './Logs';
+import AdminMonitoring from './Monitoring';
 import AdminPipelines from './Pipelines';
-import AdminUsers from './Users';
 import AdminServices from './Services';
+import AdminServiceStatistics from './ServiceStatistics';
+import AdminUsers from './Users';
 
 const sections = {
     users: {label: 'Users', icon: <PeopleOutline/>},
     pipelines: {label: 'Pipelines', icon: <AccountTreeOutlined/>},
     services: {label: 'Services', icon: <MiscellaneousServicesOutlined/>},
+    logs: {label: 'Logs', icon: <ArticleOutlined/>},
+    monitoring: {label: 'Monitoring', icon: <MonitorHeartOutlined/>},
+    'engine-statistics': {label: 'Engine statistics', icon: <QueryStatsOutlined/>},
+    'service-statistics': {label: 'Service statistics', icon: <AnalyticsOutlined/>},
 };
 
 type AdminSection = keyof typeof sections;
@@ -31,6 +47,8 @@ type AdminSection = keyof typeof sections;
 const categories: { label: string, sections: AdminSection[] }[] = [
     {label: 'User management', sections: ['users']},
     {label: 'Engine resources', sections: ['pipelines', 'services']},
+    {label: 'Monitoring', sections: ['logs', 'monitoring']},
+    {label: 'Statistics', sections: ['engine-statistics', 'service-statistics']},
 ];
 
 const AdminPanel: React.FC = () => {
@@ -157,6 +175,10 @@ const AdminPanel: React.FC = () => {
                     {activeSection === 'users' && <AdminUsers/>}
                     {activeSection === 'pipelines' && <AdminPipelines/>}
                     {activeSection === 'services' && <AdminServices/>}
+                    {activeSection === 'logs' && <AdminLogs/>}
+                    {activeSection === 'monitoring' && <AdminMonitoring/>}
+                    {activeSection === 'engine-statistics' && <AdminEngineStatistics/>}
+                    {activeSection === 'service-statistics' && <AdminServiceStatistics/>}
                 </Box>
             </Box>
         </Box>
