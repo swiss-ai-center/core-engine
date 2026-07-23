@@ -1,3 +1,4 @@
+import { PowerSettingsNewOutlined } from '@mui/icons-material';
 import {
     Alert,
     Box,
@@ -5,6 +6,7 @@ import {
     Chip,
     CircularProgress,
     FormControl,
+    IconButton,
     MenuItem,
     Paper,
     Select,
@@ -15,13 +17,14 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    Tooltip,
     Typography,
 } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ServiceAccessLevel } from 'enums/serviceAccessLevelEnum';
 import { ServiceStatus } from 'enums/serviceStatusEnum';
 import { Service } from 'models/Service';
-import { getAllAdminServices, updateServiceAccess } from 'utils/api';
+import { getAllAdminServices, updateServiceAccess, wakeUp } from 'utils/api';
 import { getStoredAuthenticationToken } from 'utils/authentication';
 
 const accessLabels: Record<ServiceAccessLevel, string> = {
@@ -42,7 +45,9 @@ const AdminServices: React.FC = () => {
     const [services, setServices] = useState<Service[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [updatingServiceId, setUpdatingServiceId] = useState<string | null>(null);
+    const [wakingServiceId, setWakingServiceId] = useState<string | null>(null);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
     const loadServices = useCallback(async () => {
         const token = getStoredAuthenticationToken();
@@ -53,6 +58,7 @@ const AdminServices: React.FC = () => {
         }
 
         setError('');
+        setSuccess('');
         setIsLoading(true);
         try {
             setServices(await getAllAdminServices(token));
@@ -75,6 +81,7 @@ const AdminServices: React.FC = () => {
         }
 
         setError('');
+        setSuccess('');
         setUpdatingServiceId(serviceId);
         try {
             const updatedService = await updateServiceAccess(
@@ -89,6 +96,30 @@ const AdminServices: React.FC = () => {
             setError(updateError instanceof Error ? updateError.message : 'Unable to update service access.');
         } finally {
             setUpdatingServiceId(null);
+        }
+    };
+
+    const wakeService = async (service: Service) => {
+        const token = getStoredAuthenticationToken();
+        if (!token) {
+            setError('Your session is no longer valid.');
+            return;
+        }
+
+        setError('');
+        setSuccess('');
+        setWakingServiceId(service.id);
+
+        try {
+            const result = await wakeUp(service.id);
+            if (result.error) throw new Error(result.error);
+
+            setServices(await getAllAdminServices(token));
+            setSuccess(`Wake-up request sent to ${service.name}.`);
+        } catch (wakeError) {
+            setError(wakeError instanceof Error ? wakeError.message : 'Unable to wake this service.');
+        } finally {
+            setWakingServiceId(null);
         }
     };
 
@@ -108,6 +139,12 @@ const AdminServices: React.FC = () => {
                 </Alert>
             )}
 
+            {success && (
+                <Alert severity="success" sx={{mb: 3}} onClose={() => setSuccess('')}>
+                    {success}
+                </Alert>
+            )}
+
             {isLoading ? (
                 <Box sx={{display: 'flex', alignItems: 'center', gap: 1.5, py: 4}}>
                     <CircularProgress size={24}/>
@@ -115,7 +152,7 @@ const AdminServices: React.FC = () => {
                 </Box>
             ) : (
                 <TableContainer component={Paper} variant="outlined" elevation={0}>
-                    <Table aria-label="Services" sx={{minWidth: 760}}>
+                    <Table aria-label="Services" sx={{minWidth: 800}}>
                         <TableHead>
                             <TableRow>
                                 <TableCell>Name</TableCell>
@@ -127,6 +164,8 @@ const AdminServices: React.FC = () => {
                         <TableBody>
                             {services.map((service) => {
                                 const isUpdating = updatingServiceId === service.id;
+                                const isWaking = wakingServiceId === service.id;
+                                const isSleeping = service.status === ServiceStatus.SLEEPING;
                                 return (
                                     <TableRow key={service.id} hover>
                                         <TableCell>
@@ -137,13 +176,32 @@ const AdminServices: React.FC = () => {
                                         </TableCell>
                                         <TableCell>{service.slug}</TableCell>
                                         <TableCell>
-                                            <Chip
-                                                label={service.status}
-                                                size="small"
-                                                color={statusColor(service.status)}
-                                                variant="outlined"
-                                                sx={{textTransform: 'capitalize', fontWeight: 600}}
-                                            />
+                                            <Box sx={{display: 'flex', alignItems: 'center', gap: 0.75}}>
+                                                <Chip
+                                                    label={service.status}
+                                                    size="small"
+                                                    color={statusColor(service.status)}
+                                                    variant="outlined"
+                                                    sx={{textTransform: 'capitalize', fontWeight: 600}}
+                                                />
+                                                {isSleeping && (
+                                                    <Tooltip title="Wake service" arrow>
+                                                        <span>
+                                                            <IconButton
+                                                                size="small"
+                                                                color="primary"
+                                                                aria-label={`Wake ${service.name}`}
+                                                                onClick={() => wakeService(service)}
+                                                                disabled={wakingServiceId !== null}
+                                                            >
+                                                                {isWaking
+                                                                    ? <CircularProgress size={17} color="inherit"/>
+                                                                    : <PowerSettingsNewOutlined fontSize="small"/>}
+                                                            </IconButton>
+                                                        </span>
+                                                    </Tooltip>
+                                                )}
+                                            </Box>
                                         </TableCell>
                                         <TableCell>
                                             <Box sx={{display: 'flex', alignItems: 'center', gap: 1.25}}>
