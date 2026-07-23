@@ -22,6 +22,10 @@ import {
     getStoredAuthenticationToken,
     getUsers,
 } from 'utils/authentication';
+import StatisticsDonut, {
+    CountItem,
+    formatStatisticLabel,
+} from './StatisticsDonut';
 
 type EngineSnapshot = {
     stats: Stats;
@@ -30,21 +34,11 @@ type EngineSnapshot = {
     users: AuthenticatedUser[];
 };
 
-type CountItem = {
-    label: string;
-    count: number;
-    color: string;
-};
-
 type MetricProps = {
     label: string;
     value: number;
     detail: string;
 };
-
-const formatLabel = (value: string) => value
-    .replaceAll('_', ' ')
-    .replace(/\b\w/g, (character) => character.toUpperCase());
 
 const Metric = ({label, value, detail}: MetricProps) => (
     <Box sx={{minWidth: 0, px: {xs: 2, md: 3}, py: {xs: 2, md: 2.5}}}>
@@ -127,117 +121,6 @@ const Distribution = ({items, ariaLabel}: { items: CountItem[], ariaLabel: strin
                     </Stack>
                 ))}
             </Box>
-        </Box>
-    );
-};
-
-const DonutChart = ({
-    items,
-    total,
-    ariaLabel,
-}: {
-    items: CountItem[],
-    total: number,
-    ariaLabel: string,
-}) => {
-    let currentPercentage = 0;
-    const segments = items.map((item) => {
-        const start = currentPercentage;
-        currentPercentage += total > 0 ? (item.count / total) * 100 : 0;
-        return `${item.color} ${start}% ${currentPercentage}%`;
-    });
-    const background = total > 0
-        ? `conic-gradient(${segments.join(', ')})`
-        : 'conic-gradient(currentColor 0% 100%)';
-
-    return (
-        <Box
-            sx={{
-                display: 'grid',
-                gridTemplateColumns: {xs: '1fr', sm: '220px minmax(0, 1fr)'},
-                gap: {xs: 3, sm: 5},
-                alignItems: 'center',
-            }}
-        >
-            <Box
-                role="img"
-                aria-label={ariaLabel}
-                sx={{
-                    position: 'relative',
-                    width: 220,
-                    maxWidth: '70vw',
-                    aspectRatio: '1',
-                    mx: {xs: 'auto', sm: 0},
-                    color: 'action.hover',
-                    background,
-                    borderRadius: '50%',
-                }}
-            >
-                <Stack
-                    alignItems="center"
-                    justifyContent="center"
-                    sx={{
-                        position: 'absolute',
-                        inset: '19%',
-                        borderRadius: '50%',
-                        bgcolor: 'background.paper',
-                        color: 'text.primary',
-                    }}
-                >
-                    <Typography variant="h4" fontWeight={650}>
-                        {total.toLocaleString()}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                        Total tasks
-                    </Typography>
-                </Stack>
-            </Box>
-
-            {items.length > 0 ? (
-                <Box
-                    sx={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr',
-                        rowGap: 1.75,
-                    }}
-                >
-                    {items.map((item) => (
-                        <Stack
-                            key={item.label}
-                            direction="row"
-                            alignItems="center"
-                            spacing={2}
-                        >
-                            <Stack direction="row" alignItems="center" spacing={1.25} minWidth={0}>
-                                <Box
-                                    aria-hidden
-                                    sx={{
-                                        width: 10,
-                                        height: 10,
-                                        flexShrink: 0,
-                                        borderRadius: '50%',
-                                        bgcolor: item.color,
-                                    }}
-                                />
-                                <Typography variant="body2" noWrap>{item.label}</Typography>
-                            </Stack>
-                            <Typography variant="body2" fontWeight={650} whiteSpace="nowrap">
-                                {item.count.toLocaleString()}
-                                <Typography
-                                    component="span"
-                                    variant="caption"
-                                    color="text.secondary"
-                                    sx={{ml: 0.75}}
-                                >
-                                    ({total > 0 ? Math.round((item.count / total) * 100) : 0}%)
-                                </Typography>
-                            </Typography>
-                        </Stack>
-                    ))}
-                </Box>
-            ) : (
-                <Typography color="text.secondary">No tasks recorded yet.</Typography>
-            )}
         </Box>
     );
 };
@@ -377,7 +260,7 @@ const AdminEngineStatistics: React.FC = () => {
         const taskStatuses = [...snapshot.stats.summary]
             .sort((left, right) => right.count - left.count)
             .map((status) => ({
-                label: formatLabel(status.status),
+                label: formatStatisticLabel(status.status),
                 count: status.count,
                 color: statusColors[status.status] ?? theme.palette.grey[500],
             }));
@@ -389,7 +272,7 @@ const AdminEngineStatistics: React.FC = () => {
             [ServiceStatus.DISABLED]: theme.palette.grey[500],
         };
         const serviceStatuses = Object.values(ServiceStatus).map((status) => ({
-            label: formatLabel(status),
+            label: formatStatisticLabel(status),
             count: snapshot.services.filter((service) => service.status === status).length,
             color: serviceStatusColors[status],
         }));
@@ -401,7 +284,7 @@ const AdminEngineStatistics: React.FC = () => {
             [ServiceAccessLevel.DISABLED]: theme.palette.grey[500],
         };
         const accessLevels = Object.values(ServiceAccessLevel).map((level) => ({
-            label: formatLabel(level),
+            label: formatStatisticLabel(level),
             count: snapshot.services.filter((service) => service.access_level === level).length,
             color: accessColors[level],
         }));
@@ -560,7 +443,7 @@ const AdminEngineStatistics: React.FC = () => {
                             Share and exact count of tasks in each recorded status.
                         </Typography>
                     </Box>
-                    <DonutChart
+                    <StatisticsDonut
                         items={view.taskStatuses}
                         total={snapshot.stats.total}
                         ariaLabel="Task distribution grouped by status"
