@@ -51,7 +51,6 @@ def session_fixture():
 
 
 @pytest.fixture(name="client")
-@pytest.mark.anyio
 def client_fixture(session: Session, storage_service: StorageService):
     def get_session_override():
         return session
@@ -85,22 +84,8 @@ service_1 = {
     "url": "http://test-service-1.local",
     "summary": "string",
     "description": "string",
-    "data_in_fields": [
-        {
-            "name": "string",
-            "type": [
-                "image/jpeg"
-            ]
-        }
-    ],
-    "data_out_fields": [
-        {
-            "name": "string",
-            "type": [
-                "image/jpeg"
-            ]
-        }
-    ]
+    "data_in_fields": [{"name": "string", "type": ["image/jpeg"]}],
+    "data_out_fields": [{"name": "string", "type": ["image/jpeg"]}],
 }
 
 service_2 = {
@@ -109,22 +94,8 @@ service_2 = {
     "url": "http://test-service-2.local",
     "summary": "string",
     "description": "string",
-    "data_in_fields": [
-        {
-            "name": "string",
-            "type": [
-                "image/jpeg"
-            ]
-        }
-    ],
-    "data_out_fields": [
-        {
-            "name": "string",
-            "type": [
-                "image/jpeg"
-            ]
-        }
-    ]
+    "data_in_fields": [{"name": "string", "type": ["image/jpeg"]}],
+    "data_out_fields": [{"name": "string", "type": ["image/jpeg"]}],
 }
 
 
@@ -195,10 +166,7 @@ def test_update_service(client: TestClient, service_instance: HTTPServer):
     service_response_data = service_response.json()
 
     service_response = client.patch(
-        f"/services/{service_response_data['id']}",
-        json={
-            "summary": "new summary"
-        }
+        f"/services/{service_response_data['id']}", json={"summary": "new summary"}
     )
     service_response_data = service_response.json()
 
@@ -237,7 +205,9 @@ def test_delete_service_non_existent(client: TestClient):
 
 
 def test_patch_service_non_existent(client: TestClient):
-    response = client.patch("/services/00000000-0000-0000-0000-000000000000", json={"status": "available"})
+    response = client.patch(
+        "/services/00000000-0000-0000-0000-000000000000", json={"status": "available"}
+    )
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Service Not Found"}
@@ -333,7 +303,9 @@ def test_service_compute(client: TestClient, service_instance: HTTPServer):
 
     # Send a request to the mocked service through the Engine
     file_to_upload = open("tests/smallest-jpeg-possible.jpg", "rb")
-    service_task_response = client.post(f"/{service_copy['slug']}", files={"string": file_to_upload})
+    service_task_response = client.post(
+        f"/{service_copy['slug']}", files={"string": file_to_upload}
+    )
 
     # Check the output
     assert service_task_response.status_code == 200
