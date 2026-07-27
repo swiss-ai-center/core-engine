@@ -10,12 +10,15 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Home from 'pages/Home';
 import Info from 'pages/Info';
+import Account from 'pages/Account';
+import AdminPanel from 'pages/AdminPanel';
 import PipelineEditor from "pages/PipelineEditor";
 import Showcase from 'pages/Showcase';
 import React, { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { EngineStats } from 'components/EngineStats/EngineStats';
+import { AuthenticationMenu } from 'components/Authentication/AuthenticationMenu';
 import { toggleColorMode } from 'utils/reducers/colorModeSlice';
 import "typeface-inter";
 
@@ -176,6 +179,7 @@ function App() {
                                         <QueryStatsTwoTone/>
                                     </IconButton>
                                 </Tooltip>}
+                            <AuthenticationMenu/>
                         </Grid>
                     </Grid>
                 </Toolbar>
@@ -184,16 +188,17 @@ function App() {
 
             {/* Main content */}
             <EngineStats trigger={open} onClose={handleCloseStats}/>
-            <Router>
-                <Routes>
-                    <Route path={"/showcase/:type/:slug"} element={<Showcase mobileOpen={mobileOpen}/>}/>
-                    <Route path={"/showcase"} element={<Info/>}/>
-                    <Route path={"/home"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
-                    <Route path={"*"} element={<Info/>}/>
-                    <Route path={"/pipeline-editor"}
-                           element={<PipelineEditor mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
-                </Routes>
-            </Router>
+            <Routes>
+                <Route path={"/showcase/:type/:slug"} element={<Showcase mobileOpen={mobileOpen}/>}/>
+                <Route path={"/showcase"} element={<Info/>}/>
+                <Route path={"/home"} element={<Home mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
+                <Route path={"/account"} element={<Account/>}/>
+                <Route path={"/admin"} element={<Navigate to={"/admin/users"} replace/>}/>
+                <Route path={"/admin/:section"} element={<AdminPanel/>}/>
+                <Route path={"/pipeline-editor"}
+                       element={<PipelineEditor mobileOpen={mobileOpen} handleOpen={handleDrawerToggle}/>}/>
+                <Route path={"*"} element={<Info/>}/>
+            </Routes>
             {/* End Main content */}
 
         </ThemeProvider>

@@ -1,2 +1,2 @@
 # Base image
-FROM node:20.11.1
+FROM node:24.18.0

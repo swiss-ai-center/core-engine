@@ -34,6 +34,8 @@ fastapi_users = FastAPIUsers[User, uuid.UUID](get_user_manager, [auth_backend])
 
 # Resolves the user from the Bearer token (401 if missing/invalid/inactive)
 get_current_user = fastapi_users.current_user(active=True)
+# Resolves the user when a valid token is present while keeping public routes public.
+get_optional_current_user = fastapi_users.current_user(active=True, optional=True)
 
 
 class RoleChecker:

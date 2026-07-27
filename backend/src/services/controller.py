@@ -4,14 +4,35 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 from common.exceptions import NotFoundException, ConflictException, ConstraintException
 from execution_units.enums import ExecutionUnitStatus
+from authentication.functions import RoleChecker, get_optional_current_user
+from authentication.models import Role, User
+from services.access import ServiceAccessLevel, accessible_service_levels, can_access_service
 from services.service import ServicesService
 from common.query_parameters import QueryParameters
-from services.models import ServiceRead, ServiceUpdate, ServiceCreate, Service, ServicesWithCount
+from services.models import (
+    Service,
+    ServiceAccessUpdate,
+    ServiceCreate,
+    ServiceRead,
+    ServicesWithCount,
+    ServiceUpdate,
+)
 from uuid import UUID
 from sqlalchemy.exc import CompileError
 import textwrap
 
 router = APIRouter()
+
+
+def require_service_access(service: Service | None, current_user: User | None) -> Service:
+    """Hide services that the current audience is not allowed to discover."""
+
+    if not service or not can_access_service(
+            service.access_level,
+            current_user.role if current_user else None,
+    ):
+        raise HTTPException(status_code=404, detail="Service Not Found")
+    return service
 
 
 @router.get(
@@ -26,13 +47,10 @@ router = APIRouter()
 )
 def get_one(
         service_id: UUID,
+        current_user: User | None = Depends(get_optional_current_user),
         services_service: ServicesService = Depends()
 ):
-    service = services_service.find_one(service_id)
-    if not service:
-        raise HTTPException(status_code=404, detail="Service Not Found")
-
-    return service
+    return require_service_access(services_service.find_one(service_id), current_user)
 
 
 @router.post(
@@ -46,11 +64,10 @@ def get_one(
 )
 async def wake_up_service(
         service_id: UUID,
+        current_user: User | None = Depends(get_optional_current_user),
         services_service: ServicesService = Depends()
 ):
-    service = services_service.find_one(service_id)
-    if not service:
-        raise HTTPException(status_code=404, detail="Service Not Found")
+    service = require_service_access(services_service.find_one(service_id), current_user)
 
     await services_service.wake_up_service(service)
 
@@ -67,11 +84,10 @@ async def wake_up_service(
 )
 async def get_code_snippet(
         service_id: UUID,
+        current_user: User | None = Depends(get_optional_current_user),
         services_service: ServicesService = Depends()
 ):
-    service = services_service.find_one(service_id)
-    if not service:
-        raise HTTPException(status_code=404, detail="Service Not Found")
+    service = require_service_access(services_service.find_one(service_id), current_user)
     raw_snippet = services_service.generate_code_snippet(service)
     # Format the code snippet
     formatted_snippet = textwrap.dedent(raw_snippet).strip()
@@ -90,13 +106,10 @@ async def get_code_snippet(
 )
 def get_one_by_slug(
         service_slug: str,
+        current_user: User | None = Depends(get_optional_current_user),
         services_service: ServicesService = Depends()
 ):
-    service = services_service.find_one_by_slug(service_slug)
-    if not service:
-        raise HTTPException(status_code=404, detail="Service Not Found")
-
-    return service
+    return require_service_access(services_service.find_one_by_slug(service_slug), current_user)
 
 
 @router.post(
@@ -110,11 +123,10 @@ def get_one_by_slug(
 )
 async def wake_up_service_by_slug(
         service_slug: str,
+        current_user: User | None = Depends(get_optional_current_user),
         services_service: ServicesService = Depends()
 ):
-    service = services_service.find_one_by_slug(service_slug)
-    if not service:
-        raise HTTPException(status_code=404, detail="Service Not Found")
+    service = require_service_access(services_service.find_one_by_slug(service_slug), current_user)
 
     await services_service.wake_up_service(service)
 
@@ -131,11 +143,10 @@ async def wake_up_service_by_slug(
 )
 async def get_code_snippet_by_slug(
         service_slug: str,
+        current_user: User | None = Depends(get_optional_current_user),
         services_service: ServicesService = Depends()
 ):
-    service = services_service.find_one_by_slug(service_slug)
-    if not service:
-        raise HTTPException(status_code=404, detail="Service Not Found")
+    service = require_service_access(services_service.find_one_by_slug(service_slug), current_user)
 
     raw_snippet = services_service.generate_code_snippet(service)
 
@@ -153,6 +164,7 @@ async def get_code_snippet_by_slug(
 def get_many_services(
         with_count: bool = False,
         query_parameters: QueryParameters = Depends(),
+        current_user: User | None = Depends(get_optional_current_user),
         services_service: ServicesService = Depends(),
 ):
     try:
@@ -168,7 +180,8 @@ def get_many_services(
                 query_parameters.order,
                 query_parameters.tags,
                 query_parameters.ai,
-                query_parameters.status
+                query_parameters.status,
+                accessible_service_levels(current_user.role if current_user else None),
             )
             return ServicesWithCount(count=count, services=services)
         else:
@@ -180,12 +193,65 @@ def get_many_services(
                 query_parameters.order,
                 query_parameters.tags,
                 query_parameters.ai,
-                query_parameters.status
+                query_parameters.status,
+                accessible_service_levels(current_user.role if current_user else None),
             )
             return services
 
     except CompileError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+# --- Administrator-only service access routes -------------------------------
+
+@router.get(
+    "/admin/services",
+    summary="List all services for administration",
+    response_model=ServicesWithCount,
+    responses={
+        401: {"detail": "Unauthorized"},
+        403: {"detail": "Administrator access required"},
+    },
+)
+def get_admin_services(
+        query_parameters: QueryParameters = Depends(),
+        _current_admin: User = Depends(RoleChecker([Role.ADMIN])),
+        services_service: ServicesService = Depends(),
+):
+    count, services = services_service.find_many_with_total_count(
+        query_parameters.search,
+        query_parameters.skip,
+        query_parameters.limit,
+        query_parameters.order_by,
+        query_parameters.order,
+        query_parameters.tags,
+        query_parameters.ai,
+        query_parameters.status,
+        list(ServiceAccessLevel),
+    )
+    return ServicesWithCount(count=count, services=services)
+
+
+@router.patch(
+    "/admin/services/{service_id}/access",
+    summary="Change a service access level",
+    response_model=ServiceRead,
+    responses={
+        401: {"detail": "Unauthorized"},
+        403: {"detail": "Administrator access required"},
+        404: {"detail": "Service Not Found"},
+    },
+)
+def update_service_access(
+        service_id: UUID,
+        update: ServiceAccessUpdate,
+        _current_admin: User = Depends(RoleChecker([Role.ADMIN])),
+        services_service: ServicesService = Depends(),
+):
+    try:
+        return services_service.update_access_level(service_id, update)
+    except NotFoundException as error:
+        raise HTTPException(status_code=404, detail=str(error))
 
 
 @router.post(

@@ -1,5 +1,5 @@
 # Base image
-FROM ghcr.io/astral-sh/uv:0.8.15 AS uv
+FROM ghcr.io/astral-sh/uv:0.11.7 AS uv
 FROM python:3.11
 
 # Work directory

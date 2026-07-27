@@ -12,8 +12,22 @@ from sqlalchemy.exc import CompileError
 import textwrap
 
 from services.service import ServicesService
+from authentication.functions import RoleChecker, get_optional_current_user
+from authentication.models import Role, User
+from services.access import ServiceAccessLevel, accessible_service_levels
 
 router = APIRouter()
+
+
+def require_pipeline_access(
+        pipeline: Pipeline | None,
+        current_user: User | None,
+        pipelines_service: PipelinesService,
+) -> Pipeline:
+    access_levels = accessible_service_levels(current_user.role if current_user else None)
+    if not pipeline or not pipelines_service.is_accessible(pipeline, access_levels):
+        raise HTTPException(status_code=404, detail="Pipeline Not Found")
+    return pipeline
 
 
 @router.get(
@@ -28,13 +42,10 @@ router = APIRouter()
 )
 def get_one(
         pipeline_id: UUID,
+        current_user: User | None = Depends(get_optional_current_user),
         pipelines_service: PipelinesService = Depends()
 ):
-    pipeline = pipelines_service.find_one(pipeline_id)
-    if not pipeline:
-        raise HTTPException(status_code=404, detail="Pipeline Not Found")
-
-    return pipeline
+    return require_pipeline_access(pipelines_service.find_one(pipeline_id), current_user, pipelines_service)
 
 
 @router.get(
@@ -49,13 +60,10 @@ def get_one(
 )
 def get_one_by_slug(
         pipeline_slug: str,
+        current_user: User | None = Depends(get_optional_current_user),
         pipelines_service: PipelinesService = Depends()
 ):
-    pipeline = pipelines_service.find_one_by_slug(pipeline_slug)
-    if not pipeline:
-        raise HTTPException(status_code=404, detail="Pipeline Not Found")
-
-    return pipeline
+    return require_pipeline_access(pipelines_service.find_one_by_slug(pipeline_slug), current_user, pipelines_service)
 
 
 @router.get(
@@ -70,11 +78,14 @@ def get_one_by_slug(
 )
 async def get_code_snippet_by_slug(
         pipeline_slug: str,
+        current_user: User | None = Depends(get_optional_current_user),
         pipelines_service: PipelinesService = Depends()
 ):
-    service = pipelines_service.find_one_by_slug(pipeline_slug)
-    if not service:
-        raise HTTPException(status_code=404, detail="Pipeline Not Found")
+    service = require_pipeline_access(
+        pipelines_service.find_one_by_slug(pipeline_slug),
+        current_user,
+        pipelines_service,
+    )
 
     raw_snippet = pipelines_service.generate_code_snippet(service)
 
@@ -92,6 +103,7 @@ async def get_code_snippet_by_slug(
 def get_many_pipelines(
         with_count: bool = False,
         query_parameters: QueryParameters = Depends(),
+        current_user: User | None = Depends(get_optional_current_user),
         pipelines_service: PipelinesService = Depends(),
 ):
     try:
@@ -106,7 +118,8 @@ def get_many_pipelines(
                 query_parameters.order_by,
                 query_parameters.order,
                 query_parameters.tags,
-                query_parameters.status
+                query_parameters.status,
+                accessible_service_levels(current_user.role if current_user else None),
             )
 
             return PipelinesWithCount(count=count, pipelines=pipelines)
@@ -118,13 +131,41 @@ def get_many_pipelines(
                 query_parameters.order_by,
                 query_parameters.order,
                 query_parameters.tags,
-                query_parameters.status
+                query_parameters.status,
+                accessible_service_levels(current_user.role if current_user else None),
             )
 
             return pipelines
 
     except CompileError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get(
+    "/admin/pipelines",
+    summary="List every pipeline for administration",
+    response_model=PipelinesWithCount,
+    responses={
+        401: {"detail": "Unauthorized"},
+        403: {"detail": "Administrator access required"},
+    },
+)
+def get_admin_pipelines(
+        query_parameters: QueryParameters = Depends(),
+        _current_admin: User = Depends(RoleChecker([Role.ADMIN])),
+        pipelines_service: PipelinesService = Depends(),
+):
+    count, pipelines = pipelines_service.find_many_with_total_count(
+        query_parameters.search,
+        query_parameters.skip,
+        query_parameters.limit,
+        query_parameters.order_by,
+        query_parameters.order,
+        query_parameters.tags,
+        query_parameters.status,
+        list(ServiceAccessLevel),
+    )
+    return PipelinesWithCount(count=count, pipelines=pipelines)
 
 
 @router.post(
