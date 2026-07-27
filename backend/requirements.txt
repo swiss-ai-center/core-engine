@@ -1,13 +1,20 @@
 # @Deprecated: This file is deprecated. Please use pyproject.toml instead.
-common-code[test] @ git+https://github.com/swiss-ai-center/common-code.git@main
-alembic==1.14
-makefun==1.15.2
-pg8000==1.31.2
-psycopg2-binary==2.9.9
-python-multipart==0.0.9
-sentry-sdk[fastapi]==1.42.0
-sqlmodel==0.0.16
-testcontainers-core==0.0.1rc1
-testcontainers-minio==0.0.1rc1
-testcontainers-postgres==0.0.1rc1
-websockets==12.0
+common-code @ git+https://github.com/swiss-ai-center/common-code.git@887e8beb9625bd78d927a7c0ebe48985a2af4dca
+aiobotocore==2.26.0
+aiosqlite==0.22.1
+alembic==1.18.5
+asyncpg==0.31.0
+fastapi==0.135.4
+fastapi-users[sqlalchemy]==15.0.5
+httpx==0.28.1
+jinja2==3.1.6
+makefun==1.16.0
+pg8000==1.31.5
+psycopg2-binary==2.9.12
+pydantic-settings==2.14.2
+python-multipart==0.0.32
+requests==2.34.2
+sentry-sdk[fastapi]==1.45.1
+sqlmodel==0.0.39
+uvicorn==0.41.0
+websockets==16.1.1
