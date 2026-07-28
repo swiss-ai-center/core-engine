@@ -162,11 +162,7 @@ class ServiceTaskBase(BaseModel):
     This model is used in subclasses
     """
 
-    s3_access_key_id: str
-    s3_secret_access_key: str
-    s3_region: str
-    s3_host: str
-    s3_bucket: str
+    storage_url: AnyHttpUrl
     task: "TaskRead"
     callback_url: AnyHttpUrl
 
@@ -175,7 +171,7 @@ class ServiceTask(ServiceTaskBase):
     """
     Service task
     This model is sent to the service with the information
-    related to S3 as well as the task to execute
+    related to storage as well as the task to execute
     """
 
     pass

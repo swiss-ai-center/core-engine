@@ -470,11 +470,7 @@ class ServicesService:
 
                 # Create the service task
                 service_task = ServiceTask(
-                    s3_access_key_id=self.settings.s3_access_key_id,
-                    s3_secret_access_key=self.settings.s3_secret_access_key,
-                    s3_region=self.settings.s3_region,
-                    s3_host=self.settings.s3_host,
-                    s3_bucket=self.settings.s3_bucket,
+                    storage_url=f"{self.settings.host.rstrip('/')}/storage",
                     task=task,
                     callback_url=f"{self.settings.host}/tasks/{task.id}"
                 )
