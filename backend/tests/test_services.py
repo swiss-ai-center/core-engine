@@ -8,7 +8,9 @@ from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 from pytest_httpserver import HTTPServer
 from config import get_settings
+from services.models import ServiceTaskBase
 from storage.service import StorageService
+from werkzeug import Response
 
 
 @pytest.fixture(name="minio")
@@ -70,8 +72,15 @@ def client_fixture(session: Session, storage_service: StorageService):
 
 @pytest.fixture(name="service_instance")
 def service_instance_fixture(httpserver: HTTPServer):
+    received_tasks = []
+
+    def capture_task(request):
+        received_tasks.append(request.get_json())
+        return Response(status=200)
+
+    httpserver.received_tasks = received_tasks
     httpserver.expect_request("/status").respond_with_json({}, status=200)
-    httpserver.expect_request("/compute").respond_with_json({}, status=200)
+    httpserver.expect_request("/compute").respond_with_handler(capture_task)
 
     yield httpserver
 
@@ -97,6 +106,14 @@ service_2 = {
     "data_in_fields": [{"name": "string", "type": ["image/jpeg"]}],
     "data_out_fields": [{"name": "string", "type": ["image/jpeg"]}],
 }
+
+
+def test_service_task_contract_exposes_only_core_storage_url():
+    assert set(ServiceTaskBase.model_fields) == {
+        "storage_url",
+        "task",
+        "callback_url",
+    }
 
 
 def test_create_service(client: TestClient, service_instance: HTTPServer):
@@ -317,6 +334,17 @@ def test_service_compute(client: TestClient, service_instance: HTTPServer):
     service_data["url"] = service_data["url"].rstrip("/")
     assert service_data == service_task_service_data
     assert len(service_task_data["data_in"]) == 1
+
+    assert len(service_instance.received_tasks) == 1
+    dispatched_task = service_instance.received_tasks[0]
+    assert dispatched_task["storage_url"] == f"{get_settings().host.rstrip('/')}/storage"
+    assert not {
+        "s3_access_key_id",
+        "s3_secret_access_key",
+        "s3_region",
+        "s3_host",
+        "s3_bucket",
+    }.intersection(dispatched_task)
 
 
 def test_service_heartbeat(client: TestClient, service_instance: HTTPServer):

@@ -8,9 +8,12 @@ files were labelled with the wrong step identifier, routing the wrong data to
 the next step (e.g. a face-detection bounding-box JSON delivered where the
 blurred image was expected).
 """
+from io import BytesIO
 from types import SimpleNamespace
 
 import pytest
+from fastapi import FastAPI, UploadFile
+from starlette.datastructures import Headers
 
 # Import the model modules in dependency order before pulling individual names, to
 # avoid the circular import between services.models and pipeline_steps.models.
@@ -25,6 +28,7 @@ from config import get_settings  # noqa: E402
 from pipeline_executions.models import PipelineExecution  # noqa: E402
 from pipeline_steps.models import PipelineStep  # noqa: E402
 from pipelines.models import Pipeline  # noqa: E402
+from pipelines.service import PipelinesService  # noqa: E402
 from services.models import Service  # noqa: E402
 from sqlmodel import Session, SQLModel, create_engine  # noqa: E402
 from sqlmodel.pool import StaticPool  # noqa: E402
@@ -50,6 +54,86 @@ def _ref_map(pipeline_execution: PipelineExecution) -> dict:
         file_key = f["file_key"] if isinstance(f, dict) else f.file_key
         refs[reference] = file_key
     return refs
+
+
+@pytest.mark.asyncio
+async def test_initial_pipeline_dispatch_uses_core_storage_url(session: Session):
+    service = Service(
+        name="initial-service",
+        slug="initial-service",
+        summary="s",
+        description="d",
+        url="http://initial-service",
+        data_in_fields=[{"name": "image", "type": ["image/jpeg"]}],
+        data_out_fields=[{"name": "image", "type": ["image/jpeg"]}],
+    )
+    pipeline = Pipeline(
+        name="initial-pipeline",
+        slug="initial-pipeline",
+        summary="s",
+        description="d",
+        data_in_fields=[{"name": "image", "type": ["image/jpeg"]}],
+        data_out_fields=[],
+    )
+    session.add(service)
+    session.add(pipeline)
+    session.commit()
+
+    step = PipelineStep(
+        identifier="initial-service",
+        needs=[],
+        inputs=["pipeline.image"],
+        pipeline_id=pipeline.id,
+        service_id=service.id,
+    )
+    session.add(step)
+    session.commit()
+    session.refresh(pipeline)
+
+    settings = get_settings()
+    dispatched_tasks = []
+
+    async def fake_post(url, json=None):
+        dispatched_tasks.append(json)
+        return SimpleNamespace(status_code=200, text="ok")
+
+    async def update_task(task_id, task):
+        return task
+
+    async def upload(_file):
+        return "input.jpg"
+
+    pipelines_service = PipelinesService(
+        logger=get_logger(settings),
+        storage_service=SimpleNamespace(upload=upload),
+        session=session,
+        pipeline_executions_service=SimpleNamespace(create=lambda execution: execution),
+        tasks_service=SimpleNamespace(create=lambda task: task, update=update_task),
+        settings=settings,
+        services_service=SimpleNamespace(find_one=lambda _service_id: service),
+        http_client=SimpleNamespace(post=fake_post),
+    )
+    app = FastAPI()
+    pipelines_service.enable_pipeline(app, pipeline)
+    endpoint = next(route.endpoint for route in app.routes if route.path == "/initial-pipeline")
+    upload_file = UploadFile(
+        file=BytesIO(b"image"),
+        filename="input.jpg",
+        headers=Headers({"content-type": "image/jpeg"}),
+    )
+
+    await endpoint(image=upload_file, _current_user=None, _request_session=session)
+
+    assert len(dispatched_tasks) == 1
+    dispatched_task = dispatched_tasks[0]
+    assert dispatched_task["storage_url"] == f"{settings.host.rstrip('/')}/storage"
+    assert not {
+        "s3_access_key_id",
+        "s3_secret_access_key",
+        "s3_region",
+        "s3_host",
+        "s3_bucket",
+    }.intersection(dispatched_task)
 
 
 @pytest.mark.asyncio
@@ -118,8 +202,10 @@ async def test_next_step_routing_with_scrambled_task_order(session: Session):
     assert [t.pipeline_step_id for t in pipeline_execution.tasks] != [s.id for s in pipeline.steps]
 
     settings = get_settings()
+    dispatched_tasks = []
 
     async def fake_post(url, json=None):
+        dispatched_tasks.append(json)
         return SimpleNamespace(status_code=200, text="ok")
 
     async def noop(*args, **kwargs):
@@ -146,3 +232,14 @@ async def test_next_step_routing_with_scrambled_task_order(session: Session):
     session.refresh(task_ib)
     assert task_ib.status == TaskStatus.PENDING
     assert task_ib.data_in == ["input.jpg", "bbox.json"]
+
+    assert len(dispatched_tasks) == 1
+    dispatched_task = dispatched_tasks[0]
+    assert dispatched_task["storage_url"] == f"{settings.host.rstrip('/')}/storage"
+    assert not {
+        "s3_access_key_id",
+        "s3_secret_access_key",
+        "s3_region",
+        "s3_host",
+        "s3_bucket",
+    }.intersection(dispatched_task)
